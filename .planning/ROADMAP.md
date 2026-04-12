@@ -35,7 +35,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. OnMarketDepth hot path has zero allocations (Welford replaces LINQ Std(), pre-allocated brush palette, circular buffers replace RemoveAll())
   3. All 9 existing engine results flow through the new partial class structure and produce identical output to pre-refactor
   4. A 1,200-line warning threshold is enforced — new files are created before any file approaches the limit
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Decompose DEEP6.cs into 11 AddOns/ partial class files (ARCH-01)
+- [ ] 01-02-PLAN.md — E3/E4/Core GC fixes: Welford QueueStats, circular buffers, RunE3 to OnBarUpdate (ARCH-02)
+- [ ] 01-03-PLAN.md — Render/Scorer GC fixes: brush palette, manual dot-product loops (ARCH-02)
+- [ ] 01-04-PLAN.md — Line count audit + NT8 Windows compilation and visual validation checkpoint
 
 ### Phase 2: Signal Infrastructure
 **Goal**: Every signal threshold in the system adapts automatically to ATR(20) volatility, a correlation matrix prevents redundant implementation, and the SignalFlags bitmask is ready to receive all 44 signals
@@ -180,7 +186,7 @@ Note: Phase 9 (Data Bridge) can begin collecting data in parallel with Phases 6-
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Architecture Foundation | 0/TBD | Not started | - |
+| 1. Architecture Foundation | 0/4 | In progress | - |
 | 2. Signal Infrastructure | 0/TBD | Not started | - |
 | 3. Absorption and Exhaustion | 0/TBD | Not started | - |
 | 4. Imbalance, Delta, and Trapped Traders | 0/TBD | Not started | - |
