@@ -1,0 +1,114 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+
+    // ══════════════════════════════════════════════════════════════════════
+    //  BUILD
+    // ══════════════════════════════════════════════════════════════════════
+    {
+      "label": "DEEP6: Build (Debug)",
+      "type": "dotnet",
+      "task": "build",
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": "$msCompile",
+      "detail": "Compile DEEP6.cs against NT8 assemblies (Debug config)"
+    },
+
+    {
+      "label": "DEEP6: Build (Release)",
+      "type": "shell",
+      "command": "dotnet",
+      "args": ["build", "${workspaceFolder}\\DEEP6.csproj", "--configuration", "Release", "--verbosity", "minimal"],
+      "group": "build",
+      "problemMatcher": "$msCompile",
+      "detail": "Compile DEEP6.cs — optimized release build"
+    },
+
+    // ══════════════════════════════════════════════════════════════════════
+    //  DEPLOY TO NINJATRADER 8
+    // ══════════════════════════════════════════════════════════════════════
+    {
+      "label": "DEEP6: Deploy to NT8",
+      "type": "shell",
+      "command": "powershell",
+      "args": ["-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\scripts\\Deploy-ToNT8.ps1"],
+      "group": "none",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": [],
+      "detail": "Copy DEEP6.cs to NinjaTrader 8 Custom\\Indicators folder"
+    },
+
+    {
+      "label": "DEEP6: Build + Deploy",
+      "dependsOrder": "sequence",
+      "dependsOn": ["DEEP6: Build (Release)", "DEEP6: Deploy to NT8"],
+      "group": "none",
+      "problemMatcher": [],
+      "detail": "Release build then auto-deploy to NT8"
+    },
+
+    // ══════════════════════════════════════════════════════════════════════
+    //  WATCH MODE  (auto-deploy on file save)
+    // ══════════════════════════════════════════════════════════════════════
+    {
+      "label": "DEEP6: Watch + Auto-Deploy",
+      "type": "shell",
+      "command": "powershell",
+      "args": ["-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\scripts\\Watch-AndDeploy.ps1"],
+      "group": "none",
+      "isBackground": true,
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": {
+        "owner": "DEEP6-watch",
+        "pattern": { "regexp": "ERROR", "message": 1 },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "Watching DEEP6",
+          "endsPattern": "Deployed"
+        }
+      },
+      "detail": "Watch DEEP6.cs for changes and auto-deploy to NT8 on every save"
+    },
+
+    // ══════════════════════════════════════════════════════════════════════
+    //  NT8 COMPILE VIA NinjaScript (trigger NT8's own compiler)
+    // ══════════════════════════════════════════════════════════════════════
+    {
+      "label": "DEEP6: Trigger NT8 Compile",
+      "type": "shell",
+      "command": "powershell",
+      "args": ["-Command", "& '${workspaceFolder}\\scripts\\Trigger-NT8Compile.ps1'"],
+      "group": "none",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": [],
+      "detail": "Send NT8 the compile command via its COM automation interface"
+    },
+
+    // ══════════════════════════════════════════════════════════════════════
+    //  CLEAN
+    // ══════════════════════════════════════════════════════════════════════
+    {
+      "label": "DEEP6: Clean",
+      "type": "shell",
+      "command": "dotnet",
+      "args": ["clean", "${workspaceFolder}\\DEEP6.csproj"],
+      "group": "none",
+      "problemMatcher": [],
+      "detail": "Remove all build artifacts"
+    },
+
+    // ══════════════════════════════════════════════════════════════════════
+    //  OPEN NT8 CUSTOM FOLDER
+    // ══════════════════════════════════════════════════════════════════════
+    {
+      "label": "DEEP6: Open NT8 Custom Folder",
+      "type": "shell",
+      "command": "explorer",
+      "args": ["${env:USERPROFILE}\\Documents\\NinjaTrader 8\\bin\\Custom\\Indicators"],
+      "group": "none",
+      "problemMatcher": [],
+      "detail": "Open the NT8 Indicators folder in Windows Explorer"
+    }
+
+  ]
+}

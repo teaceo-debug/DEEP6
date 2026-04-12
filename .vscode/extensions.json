@@ -1,0 +1,43 @@
+{
+  "recommendations": [
+    // ── C# Core ──────────────────────────────────────────────────────────
+    "ms-dotnettools.csharp",              // C# language support (OmniSharp/Roslyn)
+    "ms-dotnettools.csdevkit",            // C# Dev Kit — project mgmt, test explorer
+    "ms-dotnettools.vscode-dotnet-runtime",// .NET runtime installer
+
+    // ── Code Quality ─────────────────────────────────────────────────────
+    "streetsidesoftware.code-spell-checker", // typo detection in comments/strings
+    "usernamehw.errorlens",              // inline error highlighting (essential for NT8 syntax)
+    "SonarSource.sonarlint-vscode",      // static analysis — catches NT8 hot-path issues
+
+    // ── Git & Collaboration ───────────────────────────────────────────────
+    "eamodio.gitlens",                   // blame, history, diffs
+    "mhutchie.git-graph",                // visual branch graph
+
+    // ── Productivity ─────────────────────────────────────────────────────
+    "christian-kohler.path-intellisense",// file path autocomplete
+    "aaron-bond.better-comments",       // color-coded comment types (TODO, HACK, etc.)
+    "oderwat.indent-rainbow",           // indent depth coloring
+    "mechatroner.rainbow-csv",          // for .csv backtesting output files
+    "ms-vscode.powershell",             // PowerShell for deploy scripts
+
+    // ── XML / Project Files ───────────────────────────────────────────────
+    "redhat.vscode-xml",                 // .csproj / .targets intellisense
+
+    // ── Theme (matches DEEP6 aesthetic) ──────────────────────────────────
+    "zhuangtongfa.material-theme",       // One Dark Pro
+    "PKief.material-icon-theme",         // file icons
+
+    // ── Markdown / Docs ───────────────────────────────────────────────────
+    "yzhang.markdown-all-in-one",        // live preview for README / docs
+    "bierner.markdown-mermaid",          // Mermaid diagram support in markdown
+
+    // ── Optional: NT8 extras ──────────────────────────────────────────────
+    "formulahendry.code-runner",         // run scripts directly from editor
+    "ms-vscode.hexeditor"                // inspect NT8 binary data files
+  ],
+
+  "unwantedRecommendations": [
+    "ms-vscode.csharp"                   // old C# extension — replaced by ms-dotnettools.csharp
+  ]
+}

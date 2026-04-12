@@ -1,0 +1,38 @@
+# Build outputs
+bin/
+obj/
+
+# Backups created by deploy script
+backups/
+
+# VS Code local overrides (keep .vscode tracked for team)
+.vscode/settings.local.json
+
+# User-specific files
+*.user
+*.suo
+*.userprefs
+.DS_Store
+Thumbs.db
+
+# NT8 generated files
+*.ntp
+*.ntws
+
+# Logs
+*.log
+
+# Package caches
+.nuget/
+packages/
+
+# Rider / Resharper
+.idea/
+_ReSharper*/
+*.DotSettings.user
+
+# Temp
+*.tmp
+*.bak
+*.swp
+*~

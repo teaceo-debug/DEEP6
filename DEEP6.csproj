@@ -1,0 +1,134 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <AssemblyName>DEEP6</AssemblyName>
+    <RootNamespace>NinjaTrader.NinjaScript.Indicators</RootNamespace>
+    <Nullable>enable</Nullable>
+    <LangVersion>10.0</LangVersion>
+    <Optimize>true</Optimize>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <OutputType>Library</OutputType>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <OutputPath>bin\</OutputPath>
+    <DocumentationFile>bin\DEEP6.xml</DocumentationFile>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <NoWarn>CS0618;CS1591;CS0108;CS0114</NoWarn>
+    <Platforms>x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
+
+    <!-- NinjaTrader 8 installation path — update if installed elsewhere -->
+    <NT8Path Condition="'$(NT8Path)' == ''">C:\Program Files\NinjaTrader 8</NT8Path>
+    <!-- NT8 Custom folder for hot-deploy -->
+    <NT8CustomPath>$(USERPROFILE)\Documents\NinjaTrader 8\bin\Custom</NT8CustomPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DefineConstants>TRACE</DefineConstants>
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       NinjaTrader 8 Core Assemblies
+       These DLLs are required for IntelliSense and compilation.
+       They live in your NT8 installation folder.
+       If NT8 is not installed, set NT8Path in an environment variable or
+       pass it to the build:  dotnet build /p:NT8Path="C:\path\to\NT8"
+       ═══════════════════════════════════════════════════════════════════ -->
+  <ItemGroup>
+    <Reference Include="NinjaTrader.Core">
+      <HintPath>$(NT8Path)\bin\NinjaTrader.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="NinjaTrader.Client">
+      <HintPath>$(NT8Path)\bin\NinjaTrader.Client.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="NinjaTrader.Data">
+      <HintPath>$(NT8Path)\bin\NinjaTrader.Data.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="NinjaTrader.Gui">
+      <HintPath>$(NT8Path)\bin\NinjaTrader.Gui.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="NinjaTrader.NinjaScript">
+      <HintPath>$(NT8Path)\bin\NinjaTrader.NinjaScript.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="NinjaTrader.NinjaScript.AddOns">
+      <HintPath>$(NT8Path)\bin\NinjaTrader.NinjaScript.AddOns.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="NinjaTrader.Custom">
+      <HintPath>$(NT8CustomPath)\NinjaTrader.Custom.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       SharpDX — DirectX/Direct2D wrapper used by NT8 for chart rendering
+       ═══════════════════════════════════════════════════════════════════ -->
+  <ItemGroup>
+    <Reference Include="SharpDX">
+      <HintPath>$(NT8Path)\bin\SharpDX.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SharpDX.Direct2D1">
+      <HintPath>$(NT8Path)\bin\SharpDX.Direct2D1.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SharpDX.DirectWrite">
+      <HintPath>$(NT8Path)\bin\SharpDX.DirectWrite.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SharpDX.Mathematics">
+      <HintPath>$(NT8Path)\bin\SharpDX.Mathematics.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       WPF + Windows assemblies (required for UI components)
+       ═══════════════════════════════════════════════════════════════════ -->
+  <ItemGroup>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.Serialization" />
+  </ItemGroup>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       Source files
+       ═══════════════════════════════════════════════════════════════════ -->
+  <ItemGroup>
+    <Compile Include="Indicators\DEEP6.cs" />
+  </ItemGroup>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       Post-build: Auto-copy to NT8 Custom folder for hot-deploy
+       Comment this out if you don't want automatic deployment
+       ═══════════════════════════════════════════════════════════════════ -->
+  <Target Name="DeployToNT8" AfterTargets="Build" Condition="Exists('$(NT8CustomPath)')">
+    <Message Text="Deploying DEEP6.cs to NT8 Custom folder..." Importance="high" />
+    <Copy
+      SourceFiles="Indicators\DEEP6.cs"
+      DestinationFolder="$(NT8CustomPath)\Indicators"
+      OverwriteReadOnlyFiles="true"
+      SkipUnchangedFiles="true" />
+    <Message Text="✓ Deployed to $(NT8CustomPath)\Indicators\DEEP6.cs" Importance="high" />
+  </Target>
+
+</Project>

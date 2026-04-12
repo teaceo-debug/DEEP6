@@ -1,0 +1,55 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+
+    // ══════════════════════════════════════════════════════════════════════
+    //  Attach to NinjaTrader 8 process for live debugging
+    //  Note: NT8 must be running. Start NT8 first, then use this config.
+    //
+    //  Setup:
+    //  1. Build DEEP6 in Debug configuration
+    //  2. Deploy to NT8 Custom folder
+    //  3. Start NinjaTrader 8
+    //  4. Add indicator to a chart
+    //  5. Press F5 here to attach the VS Code debugger
+    //  6. Set breakpoints in DEEP6.cs — they will hit on the next tick
+    // ══════════════════════════════════════════════════════════════════════
+    {
+      "name": "DEEP6: Attach to NinjaTrader 8",
+      "type": "coreclr",
+      "request": "attach",
+      "processName": "NinjaTrader",
+      "justMyCode": false,
+      "requireExactSource": false,
+      "symbolOptions": {
+        "searchMicrosoftSymbolServer": false,
+        "searchNuGetOrgSymbolServer": false
+      },
+      "presentation": {
+        "hidden": false,
+        "group": "NT8",
+        "order": 1
+      }
+    },
+
+    // ══════════════════════════════════════════════════════════════════════
+    //  Run DEEP6 tests (standalone validation of engine logic)
+    // ══════════════════════════════════════════════════════════════════════
+    {
+      "name": "DEEP6: Run Engine Tests",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "${workspaceFolder}\\bin\\DEEP6.Tests.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "stopAtEntry": false,
+      "presentation": {
+        "hidden": false,
+        "group": "Tests",
+        "order": 2
+      }
+    }
+
+  ]
+}
