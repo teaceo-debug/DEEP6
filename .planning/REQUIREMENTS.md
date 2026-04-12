@@ -228,13 +228,140 @@ Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (populated by roadmapper) | | |
+| ARCH-01 | Phase 1 | Pending |
+| ARCH-02 | Phase 1 | Pending |
+| ARCH-03 | Phase 2 | Pending |
+| ARCH-04 | Phase 2 | Pending |
+| ARCH-05 | Phase 2 | Pending |
+| ABS-01 | Phase 3 | Pending |
+| ABS-02 | Phase 3 | Pending |
+| ABS-03 | Phase 3 | Pending |
+| ABS-04 | Phase 3 | Pending |
+| ABS-05 | Phase 3 | Pending |
+| ABS-06 | Phase 3 | Pending |
+| ABS-07 | Phase 3 | Pending |
+| EXH-01 | Phase 3 | Pending |
+| EXH-02 | Phase 3 | Pending |
+| EXH-03 | Phase 3 | Pending |
+| EXH-04 | Phase 3 | Pending |
+| EXH-05 | Phase 3 | Pending |
+| EXH-06 | Phase 3 | Pending |
+| EXH-07 | Phase 3 | Pending |
+| EXH-08 | Phase 3 | Pending |
+| ENG-07 | Phase 3 | Pending |
+| IMB-01 | Phase 4 | Pending |
+| IMB-02 | Phase 4 | Pending |
+| IMB-03 | Phase 4 | Pending |
+| IMB-04 | Phase 4 | Pending |
+| IMB-05 | Phase 4 | Pending |
+| IMB-06 | Phase 4 | Pending |
+| IMB-07 | Phase 4 | Pending |
+| IMB-08 | Phase 4 | Pending |
+| IMB-09 | Phase 4 | Pending |
+| DELT-01 | Phase 4 | Pending |
+| DELT-02 | Phase 4 | Pending |
+| DELT-03 | Phase 4 | Pending |
+| DELT-04 | Phase 4 | Pending |
+| DELT-05 | Phase 4 | Pending |
+| DELT-06 | Phase 4 | Pending |
+| DELT-07 | Phase 4 | Pending |
+| DELT-08 | Phase 4 | Pending |
+| DELT-09 | Phase 4 | Pending |
+| DELT-10 | Phase 4 | Pending |
+| DELT-11 | Phase 4 | Pending |
+| TRAP-01 | Phase 4 | Pending |
+| TRAP-02 | Phase 4 | Pending |
+| TRAP-03 | Phase 4 | Pending |
+| TRAP-04 | Phase 4 | Pending |
+| TRAP-05 | Phase 4 | Pending |
+| AUCT-01 | Phase 5 | Pending |
+| AUCT-02 | Phase 5 | Pending |
+| AUCT-03 | Phase 5 | Pending |
+| AUCT-04 | Phase 5 | Pending |
+| AUCT-05 | Phase 5 | Pending |
+| VOLP-01 | Phase 5 | Pending |
+| VOLP-02 | Phase 5 | Pending |
+| VOLP-03 | Phase 5 | Pending |
+| VOLP-04 | Phase 5 | Pending |
+| VOLP-05 | Phase 5 | Pending |
+| VOLP-06 | Phase 5 | Pending |
+| POC-01 | Phase 5 | Pending |
+| POC-02 | Phase 5 | Pending |
+| POC-03 | Phase 5 | Pending |
+| POC-04 | Phase 5 | Pending |
+| POC-05 | Phase 5 | Pending |
+| POC-06 | Phase 5 | Pending |
+| POC-07 | Phase 5 | Pending |
+| POC-08 | Phase 5 | Pending |
+| ENG-08 | Phase 5 | Pending |
+| VPRO-01 | Phase 6 | Pending |
+| VPRO-02 | Phase 6 | Pending |
+| VPRO-03 | Phase 6 | Pending |
+| VPRO-04 | Phase 6 | Pending |
+| VPRO-05 | Phase 6 | Pending |
+| VPRO-06 | Phase 6 | Pending |
+| VPRO-07 | Phase 6 | Pending |
+| VPRO-08 | Phase 6 | Pending |
+| GEX-01 | Phase 6 | Pending |
+| GEX-02 | Phase 6 | Pending |
+| GEX-03 | Phase 6 | Pending |
+| GEX-04 | Phase 6 | Pending |
+| GEX-05 | Phase 6 | Pending |
+| GEX-06 | Phase 6 | Pending |
+| ZONE-01 | Phase 7 | Pending |
+| ZONE-02 | Phase 7 | Pending |
+| ZONE-03 | Phase 7 | Pending |
+| ZONE-04 | Phase 7 | Pending |
+| ZONE-05 | Phase 7 | Pending |
+| ENG-01 | Phase 7 | Pending |
+| ENG-02 | Phase 7 | Pending |
+| ENG-03 | Phase 7 | Pending |
+| ENG-04 | Phase 7 | Pending |
+| ENG-05 | Phase 7 | Pending |
+| ENG-06 | Phase 7 | Pending |
+| SCOR-01 | Phase 8 | Pending |
+| SCOR-02 | Phase 8 | Pending |
+| SCOR-03 | Phase 8 | Pending |
+| SCOR-04 | Phase 8 | Pending |
+| SCOR-05 | Phase 8 | Pending |
+| SCOR-06 | Phase 8 | Pending |
+| EXEC-01 | Phase 8 | Pending |
+| EXEC-02 | Phase 8 | Pending |
+| EXEC-03 | Phase 8 | Pending |
+| EXEC-04 | Phase 8 | Pending |
+| EXEC-05 | Phase 8 | Pending |
+| EXEC-06 | Phase 8 | Pending |
+| BRDG-01 | Phase 9 | Pending |
+| BRDG-02 | Phase 9 | Pending |
+| BRDG-03 | Phase 9 | Pending |
+| BRDG-04 | Phase 9 | Pending |
+| BRDG-05 | Phase 9 | Pending |
+| TEST-01 | Phase 9 | Pending |
+| TEST-02 | Phase 9 | Pending |
+| TEST-03 | Phase 3 | Pending |
+| TEST-04 | Phase 3 | Pending |
+| TEST-05 | Phase 9 | Pending |
+| TEST-06 | Phase 9 | Pending |
+| ML-01 | Phase 10 | Pending |
+| ML-02 | Phase 10 | Pending |
+| ML-03 | Phase 10 | Pending |
+| ML-04 | Phase 10 | Pending |
+| ML-05 | Phase 10 | Pending |
+| ML-06 | Phase 10 | Pending |
+| ML-07 | Phase 10 | Pending |
+| DASH-01 | Phase 11 | Pending |
+| DASH-02 | Phase 11 | Pending |
+| DASH-03 | Phase 11 | Pending |
+| DASH-04 | Phase 11 | Pending |
+| DASH-05 | Phase 11 | Pending |
+| DASH-06 | Phase 11 | Pending |
+| DASH-07 | Phase 11 | Pending |
 
 **Coverage:**
-- v1 requirements: 97 total
-- Mapped to phases: 0
-- Unmapped: 97
+- v1 requirements: 119 total (counted from requirement IDs above — original "97" count in header was from an earlier draft before all signal categories were fully specified)
+- Mapped to phases: 119
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-12*
-*Last updated: 2026-04-12 after initial definition*
+*Last updated: 2026-04-11 after roadmap creation — all requirements mapped to phases*
