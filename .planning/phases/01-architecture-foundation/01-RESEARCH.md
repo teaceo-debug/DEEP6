@@ -652,22 +652,16 @@ _csvWriter = null;
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Does NT8 version 8.0.23+ support AddOns folder partial class compilation cleanly?**
-   - What we know: Community forum evidence says yes; research file ARCHITECTURE.md tags this MEDIUM confidence
-   - What's unclear: Exact NT8 version behavior; whether NT8's internal `csc.exe` invocation includes AddOns in the same compilation unit as Indicators
-   - Recommendation: Before writing any Phase 1 code, create a 2-file minimal test (`Indicators/TestIndicator.cs` as partial, `AddOns/TestIndicator.Part.cs` as partial) and verify NT8 compiles it. If it fails, the decomposition strategy must pivot to standalone engine classes (non-partial, passed as fields on DEEP6).
+   - RESOLVED: Plan 01 Task 0 validates via a minimal 2-file compile test before full decomposition begins. If NT8 rejects the pattern (CS0101), the task blocks and the decomposition strategy must pivot. Plan 04 Task 2 provides a final compilation checkpoint gate on the Windows NT8 box.
 
 2. **Does the `_iLong`/`_iShort` Queue ownership move to E3 or stay shared?**
-   - What we know: `_iLong`/`_iShort` are populated in RunE2 (E2's responsibility) and read in RunE3 (E3's responsibility)
-   - What's unclear: D-03 says each engine file is self-contained with its own state. But `_iLong`/`_iShort` are used by BOTH E2 and E3.
-   - Recommendation: Keep `_iLong`/`_iShort` in E2Trespass.cs (they are populated by RunE2). E3CounterSpoof.cs accesses them as fields on the shared partial class instance — this is valid since they're the same class. Add a comment documenting the cross-engine field dependency explicitly.
+   - RESOLVED: `_iLong`/`_iShort` stay in E2Trespass.cs (E2 owns them, E2 populates them). E3CounterSpoof.cs accesses them as fields on the shared partial class instance. Cross-engine field dependency documented in Plan 01-01 action.
 
 3. **Visual regression: will 32-shade palette produce identical pixel output?**
-   - What we know: The original code computes alpha as `0.3 + f(ratio) * 0.55` where f is a clamp; the palette discretizes this to 32 levels
-   - What's unclear: Whether NT8's D2D render pipeline will produce visually identical output after palette quantization
-   - Recommendation: This is acceptable — D-06 specifies visual comparison, not pixel-perfect identity. The palette approach rounds colors to the nearest 1/32 of the range, which is imperceptible to the human eye at 7-9px cell heights.
+   - RESOLVED: D-06 specifies visual comparison, not pixel-perfect identity. The 32-shade palette quantization is imperceptible at 7-9px cell heights. Plan 04 Task 2 Step 4 validates via before/after visual comparison on the Windows NT8 box.
 
 ---
 
