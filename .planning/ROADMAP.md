@@ -113,7 +113,11 @@ Plans:
   3. GPU inference latency is benchmarked on production hardware (M2 Mac MPS) — if latency exceeds bar duration budget, CPU fallback is activated with documented tolerance
   4. TradingView Desktop launches with --remote-debugging-port=9222 and Claude can read current price, indicators, and Pine Script levels from the chart
   5. Claude can inject the Bookmap Liquidity Mapper Pine Script on a live chart and read the resulting absorption/exhaustion zone levels as cross-reference for signal validation
-**Plans**: TBD
+**Plans**: 2 plans (Wave 1: plan-01, plan-02 parallel)
+
+Plans:
+- [ ] 06-01-PLAN.md — KronosConfig + subprocess worker + KronosSubprocessBridge + benchmark script
+- [ ] 06-02-PLAN.md — TradingView MCP config, launch script, human verification checkpoint
 
 ### Phase 7: Scoring + Backtesting Framework
 **Goal**: The two-layer confluence scorer synthesizes all 44 signal flags into a typed ScorerResult; the Databento MBO replay engine generates ground-truth labeled bars; vectorbt runs parameter sweeps; walk-forward validation gates any weight changes.
@@ -177,7 +181,7 @@ Note: Phase 6 (Kronos + TVMCP) can begin after Phase 1 completes, running in par
 | 3. Footprint Signal Engines (E1, E8, E9) | 0/4 | Not started | - |
 | 4. DOM Depth Signal Engines (E2, E3, E4, E5) | 0/? | Not started | - |
 | 5. Volume Profile + GEX Context + Zone Registry | 0/? | Not started | - |
-| 6. Kronos E10 + TradingView MCP | 0/? | Not started | - |
+| 6. Kronos E10 + TradingView MCP | 0/2 | Not started | - |
 | 7. Scoring + Backtesting Framework | 0/? | Not started | - |
 | 8. Auto-Execution + Risk Layer | 0/? | Not started | - |
 | 9. ML Backend | 0/? | Not started | - |
