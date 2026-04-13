@@ -48,14 +48,18 @@ namespace NinjaTrader.NinjaScript.Indicators
             {
                 if (e.Operation != Operation.Remove)
                 { _bP[lv] = e.Price; _bV[lv] = e.Volume;
-                  if (e.Volume >= SpooQty && lv >= 2) _pLg.Add((DateTime.Now, lv, true)); }
+                  if (e.Volume >= SpooQty && lv >= 2)
+                  { _pLgBuf[_pLgHead] = new LgEntry { ts = DateTime.Now, lv = lv, bid = true };
+                    _pLgHead = (_pLgHead + 1) % LG_CAP; if (_pLgCount < LG_CAP) _pLgCount++; } }
                 else { ChkSpoof(lv, true); _bV[lv] = 0; }
             }
             else
             {
                 if (e.Operation != Operation.Remove)
                 { _aP[lv] = e.Price; _aV[lv] = e.Volume;
-                  if (e.Volume >= SpooQty && lv >= 2) _pLg.Add((DateTime.Now, lv, false)); }
+                  if (e.Volume >= SpooQty && lv >= 2)
+                  { _pLgBuf[_pLgHead] = new LgEntry { ts = DateTime.Now, lv = lv, bid = false };
+                    _pLgHead = (_pLgHead + 1) % LG_CAP; if (_pLgCount < LG_CAP) _pLgCount++; } }
                 else { ChkSpoof(lv, false); _aV[lv] = 0; }
             }
             RunE2(); RunE3();
