@@ -100,8 +100,13 @@ Plans:
   3. GEX data ingests from FlashAlpha API every 60 seconds — call wall, put wall, gamma flip, and HVL are available as priced levels; stale flag activates when data age exceeds threshold
   4. ZoneRegistry consolidates absorption, exhaustion, LVN, HVN, and GEX zones — overlapping same-direction zones merge with combined score; confluence between zone types produces the highest conviction flag
   5. E7 MLQualityEngine returns 1.0 (neutral) when model not yet trained — system functions correctly before ML pipeline is built in Phase 9
-**Plans**: TBD
+**Plans**: 3 plans (Wave 1: plan-01; Wave 2: plan-02; Wave 3: plan-03)
 **UI hint**: yes
+
+Plans:
+- [ ] 05-01-PLAN.md — POCConfig/VolumeProfileConfig/GexConfig extraction, VPRO-07 multi-session decay, VPRO-08 POC migration tracking
+- [ ] 05-02-PLAN.md — ZoneRegistry (ZONE-01..05), E6VPContextEngine + E7MLQualityEngine stub (ENG-06, ENG-07)
+- [ ] 05-03-PLAN.md — Comprehensive test suite for all POC/VP/GEX/Zone/E6/E7 components
 
 ### Phase 6: Kronos E10 + TradingView MCP
 **Goal**: Kronos-small runs in a dedicated subprocess with persistent GPU model load providing directional bias every 5 bars with confidence decay; TradingView MCP is configured so Claude can read chart state, inject Pine Script, and capture screenshots for visual confirmation.
@@ -185,7 +190,7 @@ Note: Phase 6 (Kronos + TVMCP) can begin after Phase 1 completes, running in par
 | 2. Absorption + Exhaustion Core | 0/3 | Not started | - |
 | 3. Footprint Signal Engines (E1, E8, E9) | 0/4 | Not started | - |
 | 4. DOM Depth Signal Engines (E2, E3, E4, E5) | 0/? | Not started | - |
-| 5. Volume Profile + GEX Context + Zone Registry | 0/? | Not started | - |
+| 5. Volume Profile + GEX Context + Zone Registry | 0/3 | Not started | - |
 | 6. Kronos E10 + TradingView MCP | 0/2 | Not started | - |
 | 7. Scoring + Backtesting Framework | 0/? | Not started | - |
 | 8. Auto-Execution + Risk Layer | 0/? | Not started | - |
