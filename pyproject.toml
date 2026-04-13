@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "deep6"
+version = "0.1.0"
+description = "DEEP6 v2.0 — Institutional-grade footprint auto-trading system for NQ futures"
+requires-python = ">=3.12"
+dependencies = [
+    "async-rithmic==1.5.9",
+    "uvloop==0.22.1",
+    "aiosqlite==0.22.1",
+    "numpy>=2.0",
+    "structlog>=25.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=1.2.0",
+]
+
+[project.scripts]
+deep6 = "deep6.__main__:cli_entry"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["deep6*"]
