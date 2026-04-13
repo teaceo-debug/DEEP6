@@ -110,13 +110,13 @@ async def connect_rithmic(config: Config) -> RithmicClient:
         system_name=config.rithmic_system_name,
         app_name="DEEP6",
         app_version="2.0.0",
-        uri=config.rithmic_uri,
+        url=config.rithmic_uri,
         reconnection_settings=ReconnectionSettings(
             max_retries=10,
-            base_delay=1.0,
+            backoff_type="exponential",
+            interval=1.0,
             max_delay=60.0,
-            backoff_factor=2.0,
-            jitter=True,
+            jitter_range=(0.5, 1.5),
         ),
     )
 
