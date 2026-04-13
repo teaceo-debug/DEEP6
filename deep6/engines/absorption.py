@@ -40,6 +40,7 @@ class AbsorptionSignal:
     wick_pct: float         # Wick volume as % of total
     delta_ratio: float      # |delta| / volume in the wick zone
     detail: str             # Human-readable description
+    at_va_extreme: bool = False  # ABS-07: True when price is within va_extreme_ticks of VAH or VAL
 
 
 def detect_absorption(
@@ -47,6 +48,8 @@ def detect_absorption(
     atr: float = 15.0,
     vol_ema: float = 500.0,
     config: AbsorptionConfig | None = None,
+    vah: float | None = None,
+    val: float | None = None,
 ) -> list[AbsorptionSignal]:
     """Detect all absorption variants in a single bar.
 
@@ -56,6 +59,8 @@ def detect_absorption(
         vol_ema: Running average volume (runtime value)
         config: AbsorptionConfig with all tunable thresholds. If None, uses
                 defaults — fully backward compatible with callers that omit config.
+        vah: Value Area High price level (from POCEngine). Used for ABS-07 VA extreme bonus.
+        val: Value Area Low price level (from POCEngine). Used for ABS-07 VA extreme bonus.
 
     Returns:
         List of AbsorptionSignal (usually 0 or 1 per bar; rarely 2)
@@ -212,5 +217,22 @@ def detect_absorption(
             detail=f"EFFORT VS RESULT: vol={bar.total_vol} ({bar.total_vol/vol_ema:.1f}x avg) "
                    f"range={bar.bar_range:.2f} ({bar.bar_range/atr*100:.0f}% ATR)",
         ))
+
+    # --- ABS-07: VA extremes conviction bonus (D-05) ---
+    # Apply after all signals are created so bonus is uniform across all 4 variants.
+    # Tick size for NQ is 0.25 points. va_extreme_ticks * 0.25 = proximity threshold in points.
+    if (vah is not None or val is not None) and signals:
+        tick_size = 0.25
+        proximity = cfg.va_extreme_ticks * tick_size
+        for sig in signals:
+            at_vah = vah is not None and abs(sig.price - vah) <= proximity
+            at_val = val is not None and abs(sig.price - val) <= proximity
+            if at_vah or at_val:
+                sig.at_va_extreme = True
+                # Boost strength, capped at 1.0
+                sig.strength = min(sig.strength + cfg.va_extreme_strength_bonus, 1.0)
+                # Annotate detail with VA location
+                location = "@VAH" if at_vah else "@VAL"
+                sig.detail = f"{sig.detail} {location}"
 
     return signals

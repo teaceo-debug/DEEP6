@@ -78,7 +78,7 @@ def classify_bar(
                     If None, uses ExhaustionConfig() defaults — backward compat.
     """
     # Detect all signal types — pass config objects through to engines
-    abs_signals = detect_absorption(bar, atr=atr, vol_ema=vol_ema, config=abs_config)
+    abs_signals = detect_absorption(bar, atr=atr, vol_ema=vol_ema, config=abs_config, vah=vah, val=val)
     exh_signals = detect_exhaustion(bar, prior_bar=prior_bar, bar_index=bar_index, atr=atr, config=exh_config)
     imb_signals = detect_imbalances(bar, prior_bar=prior_bar)
 
@@ -207,17 +207,23 @@ def classify_bar(
 
 
 def _absorption_label(sig: AbsorptionSignal, vwap, vah, val) -> str:
-    """Generate context-aware absorption label."""
+    """Generate context-aware absorption label.
+
+    Uses sig.at_va_extreme (set by detect_absorption via ABS-07) rather than
+    recomputing proximity — ensures label threshold is consistent with the 2-tick
+    bonus threshold in AbsorptionConfig.va_extreme_ticks.
+    """
     base = "SELLERS ABSORBED" if sig.direction > 0 else "BUYERS ABSORBED"
     suffix = ""
 
-    if vah is not None and val is not None:
-        if sig.direction > 0 and val is not None and abs(sig.price - val) < 5.0:
+    if sig.at_va_extreme:
+        # Determine which VA extreme from price proximity (vah/val may be None if one is missing)
+        if sig.direction > 0:
             suffix = " @VAL — HIGH CONVICTION LONG ZONE"
-        elif sig.direction < 0 and vah is not None and abs(sig.price - vah) < 5.0:
-            suffix = " @VAH — HIGH CONVICTION SHORT ZONE"
         else:
-            suffix = " — WAIT FOR CONTROL" if sig.direction > 0 else " — WAIT FOR CONTROL"
+            suffix = " @VAH — HIGH CONVICTION SHORT ZONE"
+    elif vah is not None or val is not None:
+        suffix = " — WAIT FOR CONTROL"
 
     return f"{base}{suffix}"
 

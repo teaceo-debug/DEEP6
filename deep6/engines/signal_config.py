@@ -34,6 +34,15 @@ class AbsorptionConfig:
     evr_vol_mult: float = 1.5    # Volume must exceed this × vol_ema
     evr_range_cap: float = 0.30  # Max bar range as fraction of ATR
 
+    # ABS-07 / D-05: VA extremes conviction bonus — absorption near VAH/VAL
+    va_extreme_ticks: int = 2          # Ticks within VAH/VAL to qualify as "at VA extreme"
+    va_extreme_strength_bonus: float = 0.15  # Additive strength bonus when at VA extreme
+
+    # ABS-06 / D-06 / D-07: Absorption confirmation — defense window tracking
+    confirmation_window_bars: int = 3    # Bars to watch for zone defense after signal fires
+    confirmation_score_bonus: float = 2.0  # Score upgrade when defense confirmed (for scorer.py)
+    confirmation_breach_ticks: int = 2   # Max ticks price can breach zone before defense fails
+
 
 @dataclass(frozen=True)
 class ExhaustionConfig:
