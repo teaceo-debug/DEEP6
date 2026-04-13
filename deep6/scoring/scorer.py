@@ -1,0 +1,269 @@
+"""Two-layer confluence scorer — SCOR-01..06.
+
+Layer 1: Engine-level agreement ratio (how many engines agree on direction)
+Layer 2: Category-level confluence multiplier (how many signal categories agree)
+
+When 5+ categories agree → 1.25× multiplier (SCOR-02)
+Zone bonus: zones scoring ≥50 add +6 to +8 points (SCOR-03)
+
+TypeA: absorption/exhaustion + zone confluence + 5+ categories = highest conviction
+TypeB: 4+ categories + zone = tradeable
+TypeC: 3+ categories = alert only
+Quiet: fewer than 3 categories
+"""
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from enum import IntEnum
+
+from deep6.engines.narrative import NarrativeResult, NarrativeType
+from deep6.engines.delta import DeltaSignal
+from deep6.engines.auction import AuctionSignal
+from deep6.engines.poc import POCSignal
+from deep6.engines.volume_profile import VolumeZone, ZoneState
+
+
+class SignalTier(IntEnum):
+    QUIET = 0
+    TYPE_C = 1
+    TYPE_B = 2
+    TYPE_A = 3
+
+
+@dataclass
+class ScorerResult:
+    """Output of the two-layer scorer for one bar."""
+    total_score: float          # 0-100
+    tier: SignalTier
+    direction: int              # +1 bull, -1 bear, 0 neutral
+    engine_agreement: float     # 0-1 ratio of engines agreeing on direction
+    category_count: int         # how many of 8 categories agree
+    confluence_mult: float      # 1.0 or 1.25
+    zone_bonus: float           # 0, 6, or 8
+    narrative: NarrativeType
+    label: str                  # human-readable
+    categories_firing: list[str] = field(default_factory=list)
+
+
+# Category weights — how much each category contributes to the base score
+CATEGORY_WEIGHTS = {
+    "absorption": 25.0,    # Highest weight — core alpha
+    "exhaustion": 18.0,
+    "imbalance": 12.0,
+    "delta": 10.0,
+    "auction": 8.0,
+    "poc": 7.0,
+    "volume_profile": 10.0,
+    "trapped": 10.0,
+}
+
+
+def score_bar(
+    narrative: NarrativeResult,
+    delta_signals: list[DeltaSignal],
+    auction_signals: list[AuctionSignal],
+    poc_signals: list[POCSignal],
+    active_zones: list[VolumeZone],
+    bar_close: float,
+    type_a_min: float = 80.0,
+    type_b_min: float = 65.0,
+    type_c_min: float = 50.0,
+    min_categories: int = 3,
+) -> ScorerResult:
+    """Score a bar using two-layer confluence.
+
+    Args:
+        narrative: NarrativeResult from narrative cascade
+        delta_signals: DeltaSignal list from delta engine
+        auction_signals: AuctionSignal list from auction engine
+        poc_signals: POCSignal list from POC engine
+        active_zones: Active VolumeZones near current price
+        bar_close: Current bar close price
+        type_a_min: Score threshold for TypeA (default 80)
+        type_b_min: Score threshold for TypeB (default 65)
+        type_c_min: Score threshold for TypeC (default 50)
+        min_categories: Minimum categories for any signal tier
+    """
+    # --- Layer 1: Determine direction from all signals ---
+    bull_votes = 0
+    bear_votes = 0
+    total_votes = 0
+
+    # Count directional votes per category
+    categories_bull: set[str] = set()
+    categories_bear: set[str] = set()
+
+    # Absorption
+    for sig in narrative.absorption:
+        total_votes += 1
+        if sig.direction > 0:
+            bull_votes += 1
+            categories_bull.add("absorption")
+        elif sig.direction < 0:
+            bear_votes += 1
+            categories_bear.add("absorption")
+
+    # Exhaustion
+    for sig in narrative.exhaustion:
+        total_votes += 1
+        if sig.direction > 0:
+            bull_votes += 1
+            categories_bull.add("exhaustion")
+        elif sig.direction < 0:
+            bear_votes += 1
+            categories_bear.add("exhaustion")
+
+    # Imbalance — count trapped traders separately
+    for sig in narrative.imbalances:
+        if "TRAP" in sig.imb_type.name:
+            total_votes += 1
+            if sig.direction > 0:
+                bull_votes += 1
+                categories_bull.add("trapped")
+            elif sig.direction < 0:
+                bear_votes += 1
+                categories_bear.add("trapped")
+        elif "STACKED" in sig.imb_type.name:
+            total_votes += 1
+            if sig.direction > 0:
+                bull_votes += 1
+                categories_bull.add("imbalance")
+            elif sig.direction < 0:
+                bear_votes += 1
+                categories_bear.add("imbalance")
+
+    # Delta
+    for sig in delta_signals:
+        if sig.delta_type in (
+            sig.delta_type.DIVERGENCE, sig.delta_type.CVD_DIVERGENCE,
+            sig.delta_type.SLINGSHOT, sig.delta_type.TRAP, sig.delta_type.FLIP,
+        ):
+            total_votes += 1
+            if sig.direction > 0:
+                bull_votes += 1
+                categories_bull.add("delta")
+            elif sig.direction < 0:
+                bear_votes += 1
+                categories_bear.add("delta")
+
+    # Auction
+    for sig in auction_signals:
+        if sig.auction_type in (
+            sig.auction_type.FINISHED_AUCTION,
+            sig.auction_type.UNFINISHED_BUSINESS,
+            sig.auction_type.MARKET_SWEEP,
+        ):
+            total_votes += 1
+            if sig.direction > 0:
+                bull_votes += 1
+                categories_bull.add("auction")
+            elif sig.direction < 0:
+                bear_votes += 1
+                categories_bear.add("auction")
+
+    # POC
+    for sig in poc_signals:
+        if sig.poc_type in (
+            sig.poc_type.EXTREME_POC_HIGH, sig.poc_type.EXTREME_POC_LOW,
+            sig.poc_type.BULLISH_POC, sig.poc_type.BEARISH_POC,
+            sig.poc_type.VA_GAP,
+        ):
+            total_votes += 1
+            if sig.direction > 0:
+                bull_votes += 1
+                categories_bull.add("poc")
+            elif sig.direction < 0:
+                bear_votes += 1
+                categories_bear.add("poc")
+
+    # Determine dominant direction
+    if bull_votes > bear_votes:
+        direction = +1
+        agreement = bull_votes / total_votes if total_votes > 0 else 0
+        categories_agreeing = categories_bull
+    elif bear_votes > bull_votes:
+        direction = -1
+        agreement = bear_votes / total_votes if total_votes > 0 else 0
+        categories_agreeing = categories_bear
+    else:
+        direction = 0
+        agreement = 0.0
+        categories_agreeing = set()
+
+    # --- Layer 2: Category confluence ---
+    cat_count = len(categories_agreeing)
+
+    # Volume profile zone proximity adds a category
+    zone_bonus = 0.0
+    for zone in active_zones:
+        if zone.state == ZoneState.INVALIDATED:
+            continue
+        if zone.bot_price <= bar_close <= zone.top_price:
+            if zone.score >= 50:
+                zone_bonus = 8.0
+                categories_agreeing.add("volume_profile")
+            elif zone.score >= 30:
+                zone_bonus = 6.0
+                categories_agreeing.add("volume_profile")
+            break
+        # Within 2 ticks of zone
+        if abs(bar_close - zone.bot_price) <= 0.50 or abs(bar_close - zone.top_price) <= 0.50:
+            if zone.score >= 40:
+                zone_bonus = 4.0
+                categories_agreeing.add("volume_profile")
+            break
+
+    cat_count = len(categories_agreeing)
+
+    # Confluence multiplier (SCOR-02)
+    confluence_mult = 1.25 if cat_count >= 5 else 1.0
+
+    # --- Compute base score ---
+    base_score = 0.0
+    for cat in categories_agreeing:
+        base_score += CATEGORY_WEIGHTS.get(cat, 5.0)
+
+    # Apply multiplier and zone bonus
+    total_score = min((base_score * confluence_mult + zone_bonus) * agreement, 100.0)
+
+    # --- Classify tier (SCOR-04) ---
+    has_absorption = "absorption" in categories_agreeing
+    has_exhaustion = "exhaustion" in categories_agreeing
+    has_zone = zone_bonus > 0
+
+    if (total_score >= type_a_min
+            and (has_absorption or has_exhaustion)
+            and has_zone
+            and cat_count >= 5):
+        tier = SignalTier.TYPE_A
+    elif total_score >= type_b_min and cat_count >= 4:
+        tier = SignalTier.TYPE_B
+    elif total_score >= type_c_min and cat_count >= min_categories:
+        tier = SignalTier.TYPE_C
+    else:
+        tier = SignalTier.QUIET
+
+    # --- Build label (SCOR-06) ---
+    if tier == SignalTier.TYPE_A:
+        dir_str = "LONG" if direction > 0 else "SHORT"
+        label = f"TYPE A — TRIPLE CONFLUENCE {dir_str} ({cat_count} categories, score {total_score:.0f})"
+    elif tier == SignalTier.TYPE_B:
+        dir_str = "LONG" if direction > 0 else "SHORT"
+        label = f"TYPE B — DOUBLE CONFLUENCE {dir_str} ({cat_count} categories, score {total_score:.0f})"
+    elif tier == SignalTier.TYPE_C:
+        label = f"TYPE C — SIGNAL ({cat_count} categories, score {total_score:.0f})"
+    else:
+        label = narrative.label
+
+    return ScorerResult(
+        total_score=total_score,
+        tier=tier,
+        direction=direction,
+        engine_agreement=agreement,
+        category_count=cat_count,
+        confluence_mult=confluence_mult,
+        zone_bonus=zone_bonus,
+        narrative=narrative.bar_type,
+        label=label,
+        categories_firing=sorted(categories_agreeing),
+    )
