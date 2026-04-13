@@ -41,7 +41,7 @@ Plans:
 - [x] 01-01-PLAN.md — Python package scaffold, async-rithmic connection, DOMState, aggressor gate, SignalFlags stub
 - [x] 01-02-PLAN.md — FootprintBar accumulator, dual-timeframe BarBuilder, SessionContext, ATRTracker
 - [x] 01-03-PLAN.md — SQLite session persistence, FreezeGuard reconnection state, GC control, SharedState
-- [ ] 01-04-PLAN.md — Main entrypoint wiring, footprint validation script, loop lag measurement, human verification checkpoint
+- [x] 01-04-PLAN.md — Main entrypoint wiring, footprint validation script, loop lag measurement, human verification checkpoint
 
 ### Phase 2: Absorption + Exhaustion Core
 **Goal**: All 4 absorption variants and all 6 exhaustion variants fire correctly from live FootprintBar data with proper narrative prioritization — the system can identify the highest-conviction reversal signals.
@@ -53,7 +53,12 @@ Plans:
   3. Absorption signals appear first in the narrative cascade above exhaustion, momentum, and rejection — narrative labels are human-readable (e.g., "ABSORBED @VAH")
   4. Exhaustion cooldown suppresses the same sub-type for N bars after firing — no signal clustering on consecutive bars
   5. Absorption at value area extremes (VAH/VAL) produces a conviction bonus flag visible in bar output
-**Plans**: TBD
+**Plans**: 3 plans (Wave 1: plan-01; Wave 2: plan-02; Wave 3: plan-03)
+
+Plans:
+- [ ] 02-01-PLAN.md — Config extraction (AbsorptionConfig/ExhaustionConfig), universal delta trajectory gate (EXH-07), narrative wiring
+- [ ] 02-02-PLAN.md — VA extremes conviction bonus (ABS-07), absorption confirmation logic (ABS-06)
+- [ ] 02-03-PLAN.md — Comprehensive test suite for all absorption/exhaustion variants, gate, cooldown, cascade, confirmation
 
 ### Phase 3: Footprint Signal Engines (E1, E8, E9)
 **Goal**: All 25 imbalance, delta, and auction theory signals are implemented in E1 FootprintEngine, E8 CVDEngine, and E9 AuctionFSM — every signal fires on the correct bar condition with the right tier/sub-type classification.
@@ -162,7 +167,7 @@ Note: Phase 6 (Kronos + TVMCP) can begin after Phase 1 completes, running in par
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Data Pipeline + Architecture Foundation | 2/4 | In Progress|  |
-| 2. Absorption + Exhaustion Core | 0/? | Not started | - |
+| 2. Absorption + Exhaustion Core | 0/3 | Not started | - |
 | 3. Footprint Signal Engines (E1, E8, E9) | 0/? | Not started | - |
 | 4. DOM Depth Signal Engines (E2, E3, E4, E5) | 0/? | Not started | - |
 | 5. Volume Profile + GEX Context + Zone Registry | 0/? | Not started | - |
