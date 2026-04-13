@@ -40,7 +40,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 Plans:
 - [ ] 01-01-PLAN.md — Decompose DEEP6.cs into 11 AddOns/ partial class files (ARCH-01)
 - [x] 01-02-PLAN.md — E3/E4/Core GC fixes: Welford QueueStats, circular buffers, RunE3 to OnBarUpdate (ARCH-02)
-- [ ] 01-03-PLAN.md — Render/Scorer GC fixes: brush palette, manual dot-product loops (ARCH-02)
+- [x] 01-03-PLAN.md — Render/Scorer GC fixes: brush palette, manual dot-product loops (ARCH-02)
 - [ ] 01-04-PLAN.md — Line count audit + NT8 Windows compilation and visual validation checkpoint
 
 ### Phase 2: Signal Infrastructure
