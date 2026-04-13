@@ -21,6 +21,7 @@ from deep6.engines.delta import DeltaSignal
 from deep6.engines.auction import AuctionSignal
 from deep6.engines.poc import POCSignal
 from deep6.engines.volume_profile import VolumeZone, ZoneState
+from deep6.engines.signal_config import ScorerConfig, AbsorptionConfig
 
 
 class SignalTier(IntEnum):
@@ -69,8 +70,14 @@ def score_bar(
     type_b_min: float = 65.0,
     type_c_min: float = 50.0,
     min_categories: int = 3,
+    scorer_config: ScorerConfig | None = None,
+    abs_config: AbsorptionConfig | None = None,
 ) -> ScorerResult:
     """Score a bar using two-layer confluence.
+
+    D-01: confirmation_score_bonus applied per confirmed_absorptions entry.
+    D-02: stacked imbalance dedup uses highest tier only per direction.
+    D-11: scorer_config centralizes all thresholds for Phase 7 vectorbt sweeps.
 
     Args:
         narrative: NarrativeResult from narrative cascade
@@ -79,11 +86,22 @@ def score_bar(
         poc_signals: POCSignal list from POC engine
         active_zones: Active VolumeZones near current price
         bar_close: Current bar close price
-        type_a_min: Score threshold for TypeA (default 80)
-        type_b_min: Score threshold for TypeB (default 65)
-        type_c_min: Score threshold for TypeC (default 50)
-        min_categories: Minimum categories for any signal tier
+        type_a_min: Score threshold for TypeA (default 80) — legacy kwarg
+        type_b_min: Score threshold for TypeB (default 65) — legacy kwarg
+        type_c_min: Score threshold for TypeC (default 50) — legacy kwarg
+        min_categories: Minimum categories for any signal tier — legacy kwarg
+        scorer_config: ScorerConfig with all thresholds; takes precedence over legacy kwargs
+        abs_config: AbsorptionConfig for confirmation_score_bonus; defaults to AbsorptionConfig()
     """
+    # Resolve configs — scorer_config takes precedence over legacy kwargs when provided
+    cfg = scorer_config or ScorerConfig(
+        type_a_min=type_a_min,
+        type_b_min=type_b_min,
+        type_c_min=type_c_min,
+        min_categories=min_categories,
+    )
+    _abs_cfg = abs_config or AbsorptionConfig()
+
     # --- Layer 1: Determine direction from all signals ---
     bull_votes = 0
     bear_votes = 0
@@ -113,7 +131,9 @@ def score_bar(
             bear_votes += 1
             categories_bear.add("exhaustion")
 
-    # Imbalance — count trapped traders separately
+    # Imbalance — trapped traders counted separately; stacked dedup uses highest tier (D-02)
+    stacked_bull_tier = 0   # 1=T1, 2=T2, 3=T3
+    stacked_bear_tier = 0
     for sig in narrative.imbalances:
         if "TRAP" in sig.imb_type.name:
             total_votes += 1
@@ -123,14 +143,30 @@ def score_bar(
             elif sig.direction < 0:
                 bear_votes += 1
                 categories_bear.add("trapped")
-        elif "STACKED" in sig.imb_type.name:
-            total_votes += 1
+        elif "STACKED_T3" in sig.imb_type.name:
             if sig.direction > 0:
-                bull_votes += 1
-                categories_bull.add("imbalance")
+                stacked_bull_tier = max(stacked_bull_tier, 3)
             elif sig.direction < 0:
-                bear_votes += 1
-                categories_bear.add("imbalance")
+                stacked_bear_tier = max(stacked_bear_tier, 3)
+        elif "STACKED_T2" in sig.imb_type.name:
+            if sig.direction > 0:
+                stacked_bull_tier = max(stacked_bull_tier, 2)
+            elif sig.direction < 0:
+                stacked_bear_tier = max(stacked_bear_tier, 2)
+        elif "STACKED_T1" in sig.imb_type.name:
+            if sig.direction > 0:
+                stacked_bull_tier = max(stacked_bull_tier, 1)
+            elif sig.direction < 0:
+                stacked_bear_tier = max(stacked_bear_tier, 1)
+    # D-02: one imbalance vote per direction — highest tier only
+    if stacked_bull_tier > 0:
+        total_votes += 1
+        bull_votes += 1
+        categories_bull.add("imbalance")
+    if stacked_bear_tier > 0:
+        total_votes += 1
+        bear_votes += 1
+        categories_bear.add("imbalance")
 
     # Delta
     for sig in delta_signals:
@@ -193,30 +229,31 @@ def score_bar(
     # --- Layer 2: Category confluence ---
     cat_count = len(categories_agreeing)
 
-    # Volume profile zone proximity adds a category
+    # Volume profile zone proximity adds a category (SCOR-03)
     zone_bonus = 0.0
     for zone in active_zones:
         if zone.state == ZoneState.INVALIDATED:
             continue
         if zone.bot_price <= bar_close <= zone.top_price:
-            if zone.score >= 50:
-                zone_bonus = 8.0
+            if zone.score >= cfg.zone_high_min:
+                zone_bonus = cfg.zone_high_bonus
                 categories_agreeing.add("volume_profile")
-            elif zone.score >= 30:
-                zone_bonus = 6.0
+            elif zone.score >= cfg.zone_mid_min:
+                zone_bonus = cfg.zone_mid_bonus
                 categories_agreeing.add("volume_profile")
             break
-        # Within 2 ticks of zone
-        if abs(bar_close - zone.bot_price) <= 0.50 or abs(bar_close - zone.top_price) <= 0.50:
-            if zone.score >= 40:
-                zone_bonus = 4.0
+        # Within zone_near_ticks of zone edge
+        if (abs(bar_close - zone.bot_price) <= cfg.zone_near_ticks
+                or abs(bar_close - zone.top_price) <= cfg.zone_near_ticks):
+            if zone.score >= cfg.zone_high_min:
+                zone_bonus = cfg.zone_near_bonus
                 categories_agreeing.add("volume_profile")
             break
 
     cat_count = len(categories_agreeing)
 
     # Confluence multiplier (SCOR-02)
-    confluence_mult = 1.25 if cat_count >= 5 else 1.0
+    confluence_mult = 1.25 if cat_count >= cfg.confluence_threshold else 1.0
 
     # --- Compute base score ---
     base_score = 0.0
@@ -226,19 +263,24 @@ def score_bar(
     # Apply multiplier and zone bonus
     total_score = min((base_score * confluence_mult + zone_bonus) * agreement, 100.0)
 
+    # D-01 (ABS-06): Apply confirmation bonus for each confirmed absorption
+    if narrative.confirmed_absorptions:
+        confirmed_bonus = len(narrative.confirmed_absorptions) * _abs_cfg.confirmation_score_bonus
+        total_score = min(total_score + confirmed_bonus, 100.0)
+
     # --- Classify tier (SCOR-04) ---
     has_absorption = "absorption" in categories_agreeing
     has_exhaustion = "exhaustion" in categories_agreeing
     has_zone = zone_bonus > 0
 
-    if (total_score >= type_a_min
+    if (total_score >= cfg.type_a_min
             and (has_absorption or has_exhaustion)
             and has_zone
             and cat_count >= 5):
         tier = SignalTier.TYPE_A
-    elif total_score >= type_b_min and cat_count >= 4:
+    elif total_score >= cfg.type_b_min and cat_count >= 4:
         tier = SignalTier.TYPE_B
-    elif total_score >= type_c_min and cat_count >= min_categories:
+    elif total_score >= cfg.type_c_min and cat_count >= cfg.min_categories:
         tier = SignalTier.TYPE_C
     else:
         tier = SignalTier.QUIET

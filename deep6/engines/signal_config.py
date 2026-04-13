@@ -184,6 +184,31 @@ class VolumeProfileConfig:
 
 
 @dataclass(frozen=True)
+class ScorerConfig:
+    """Configuration for score_bar() — all scoring thresholds.
+
+    Per D-11: centralizes scorer thresholds for Phase 7 vectorbt sweeps.
+    frozen=True prevents mutation between sweep trials.
+    """
+    # Tier thresholds (SCOR-04)
+    type_a_min: float = 80.0
+    type_b_min: float = 65.0
+    type_c_min: float = 50.0
+    min_categories: int = 3
+
+    # Confluence multiplier threshold (SCOR-02)
+    confluence_threshold: int = 5     # cat_count >= this triggers 1.25x multiplier
+
+    # Zone bonus thresholds (SCOR-03)
+    zone_high_min: float = 50.0       # zone.score >= this → +8.0 bonus
+    zone_mid_min: float = 30.0        # zone.score >= this → +6.0 bonus
+    zone_high_bonus: float = 8.0
+    zone_mid_bonus: float = 6.0
+    zone_near_bonus: float = 4.0      # within zone_near_ticks of zone edge
+    zone_near_ticks: float = 0.50     # NQ tick proximity threshold
+
+
+@dataclass(frozen=True)
 class GexConfig:
     """Configuration for GexEngine — all tunable thresholds.
 
