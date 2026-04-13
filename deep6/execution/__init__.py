@@ -12,6 +12,9 @@ Public API:
   RiskManager       — circuit breakers and GEX regime gate
   RiskState         — mutable intraday risk accumulator
   GateResult        — namedtuple(allowed, reason) from RiskManager.can_enter()
+  PaperTrader       — paper trading orchestrator with 30-day gate
+  PaperStats        — paper trading performance metrics
+  LiveGate          — 30-day SQLite-backed paper trading gate
 """
 from deep6.execution.config import ExecutionConfig, ExecutionDecision, OrderSide
 from deep6.execution.engine import ExecutionEngine
@@ -22,6 +25,7 @@ from deep6.execution.position_manager import (
     PositionEventType,
 )
 from deep6.execution.risk_manager import RiskManager, RiskState, GateResult
+from deep6.execution.paper_trader import PaperTrader, PaperStats, LiveGate
 
 __all__ = [
     "ExecutionConfig",
@@ -35,4 +39,7 @@ __all__ = [
     "RiskManager",
     "RiskState",
     "GateResult",
+    "PaperTrader",
+    "PaperStats",
+    "LiveGate",
 ]
