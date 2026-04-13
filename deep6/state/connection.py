@@ -3,7 +3,7 @@
 FreezeGuard (D-17, D-18, D-19):
   - Enters FROZEN on disconnect — all callback processing halted immediately
   - Sequential plant reconnection with 500ms delay (Issue #49 workaround)
-  - Exits FROZEN only after reconnect + position reconciliation stub
+  - Exits FROZEN only after reconnect + position reconciliation (D-15)
 
 SessionManager (D-16, D-07):
   - Disables GC at RTH open (9:30 ET): gc.disable()
@@ -14,6 +14,7 @@ SessionManager (D-16, D-07):
 Per T-03-01: FreezeGuard._state is private — only on_disconnect/on_reconnect mutate it.
 Per T-03-02: GC disabled only 6.5 hours/day; SessionManager.run() re-enables at close.
 Per T-03-04: on_disconnect() calls structlog.warning with ts= — audit trail per D-19.
+Per T-08-02: FreezeGuard stays FROZEN if position reconciliation fails; operator must intervene.
 """
 import asyncio
 import gc
@@ -37,6 +38,38 @@ class ConnectionState:
     RECONNECTING = "RECONNECTING"
 
 
+async def sync_position_state(client, config: "Config") -> dict:  # noqa: F821
+    """Query Rithmic ORDER_PLANT for current position and return reconciliation result.
+
+    Per D-15: compare Rithmic position to local state. Only unfreeze when matched.
+    Returns dict with keys: 'rithmic_position' (int | None), 'reconciled' (bool).
+
+    If async-rithmic position query fails, logs ERROR and returns reconciled=False
+    (system stays frozen — safer than assuming clean state on failure, per T-08-02).
+    """
+    try:
+        # async-rithmic v1.5.9: RithmicClient.get_positions() returns list[PositionItem]
+        # PositionItem has .net_quantity (positive=long, negative=short, 0=flat)
+        positions = await client.get_positions(config.exchange)
+        nq_pos = next(
+            (p.net_quantity for p in positions if config.instrument in p.ticker),
+            0,
+        )
+        log.info(
+            "reconcile.rithmic_position",
+            instrument=config.instrument,
+            net_qty=nq_pos,
+        )
+        return {"rithmic_position": nq_pos, "reconciled": True}
+    except Exception as exc:
+        log.error(
+            "reconcile.failed",
+            error=str(exc),
+            action="staying FROZEN — manual intervention required",
+        )
+        return {"rithmic_position": None, "reconciled": False}
+
+
 class FreezeGuard:
     """Guards all state mutation during disconnect/reconnect cycle.
 
@@ -49,6 +82,7 @@ class FreezeGuard:
 
     def __init__(self) -> None:
         self._state: str = ConnectionState.CONNECTED
+        self._last_known_position: int = 0
 
     @property
     def is_frozen(self) -> bool:
@@ -73,13 +107,13 @@ class FreezeGuard:
         )
 
     async def on_reconnect(self, client, config) -> None:
-        """Reconnect with sequential plant delay (D-18), then unfreeze (D-19).
+        """Reconnect with sequential plant delay (D-18), then reconcile positions (D-15).
 
         D-18: Issue #49 workaround — 500ms asyncio.sleep after client.connect()
         before any subscriptions. Prevents ForcedLogout reconnection loop.
 
-        Position reconciliation stub: Phase 8 will await sync_position_state(client)
-        here before setting CONNECTED. For now, assume state is clean on reconnect.
+        D-15: Query Rithmic ORDER_PLANT for current position before unfreezing.
+        Per T-08-02: stays FROZEN if reconciliation fails — operator must intervene.
         """
         self._state = ConnectionState.RECONNECTING
         log.info("connection.reconnecting", state=self._state)
@@ -90,16 +124,28 @@ class FreezeGuard:
         # Issue #49 workaround: 500ms delay between plant connections (D-18)
         await asyncio.sleep(0.5)
 
-        # TODO Phase 8: await sync_position_state(client) before unfreezing
-        # This will query Rithmic ORDER_PLANT for current position before
-        # allowing bar processing to resume.
+        # D-15: reconcile positions before unfreezing (T-08-02: stay frozen on failure)
+        result = await sync_position_state(client, config)
+        if not result["reconciled"]:
+            log.error(
+                "connection.reconcile_failed",
+                action="STAYING FROZEN — run manual position check before resuming",
+            )
+            return  # Stay frozen — operator must intervene
 
         self._state = ConnectionState.CONNECTED
+        self._last_known_position = result["rithmic_position"]
         log.info(
             "connection.restored",
             state=self._state,
+            position=self._last_known_position,
             ts=time.time(),
         )
+
+    @property
+    def last_known_position(self) -> int:
+        """Last Rithmic-reconciled position for this instrument (D-15)."""
+        return self._last_known_position
 
     def get_state(self) -> str:
         """Return the current state string (for logging and testing)."""
