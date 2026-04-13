@@ -88,7 +88,13 @@ Plans:
   3. E2 TrespassEngine computes multi-level weighted DOM queue imbalance from DOMSnapshot and logistic regression output without blocking the event loop
   4. E3 CounterSpoofEngine produces Wasserstein-1 distance on DOM distributions and fires cancel detection alert when a large order disappears within the detection window
   5. E4 IcebergEngine detects both native icebergs (trade > DOM) and synthetic icebergs (refill < 250ms); E5 MicroEngine combines E1/E2/E4 outputs via Naive Bayes without redundancy
-**Plans**: TBD
+**Plans**: 4 plans (Wave 1: plan-01; Wave 2: plan-02, plan-03 parallel; Wave 3: plan-04)
+
+Plans:
+- [ ] 04-01-PLAN.md — TrapEngine (TRAP-02..05) + VolPatternEngine (VOLP-01..06), config dataclasses
+- [ ] 04-02-PLAN.md — E2 TrespassEngine (ENG-02) + E3 CounterSpoofEngine (ENG-03)
+- [ ] 04-03-PLAN.md — E4 IcebergEngine (ENG-04) + E5 MicroEngine (ENG-05)
+- [ ] 04-04-PLAN.md — Comprehensive test suite for all Phase 4 engines
 
 ### Phase 5: Volume Profile + GEX Context + Zone Registry (E6, E7)
 **Goal**: Session volume profile with LVN/HVN detection, the 5-state zone lifecycle FSM, GEX integration, centralized ZoneRegistry, and the E6/E7 engine scaffold are all operational — providing the macro context layer that all high-conviction signals require.
