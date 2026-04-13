@@ -113,7 +113,12 @@ def detect_absorption(
         # Scale thresholds with ATR
         eff_wick_min = cfg.absorb_wick_min * (1.2 if bar.bar_range > atr * 1.5 else 1.0)
 
-        if wick_pct >= eff_wick_min and delta_ratio < cfg.absorb_delta_max:
+        # Bar-level delta ratio: reject if the WHOLE bar is strongly directional
+        # (FP analysis: false positives have |delta|/vol = 0.119 vs true positives 0.100)
+        bar_delta_ratio = abs(bar.bar_delta) / total if total > 0 else 0
+        if (wick_pct >= eff_wick_min
+                and delta_ratio < cfg.absorb_delta_max
+                and bar_delta_ratio < cfg.absorb_delta_max * 1.5):
             strength = min(wick_pct / 60.0, 1.0) * (1.0 - delta_ratio / cfg.absorb_delta_max)
             signals.append(AbsorptionSignal(
                 bar_type=AbsorptionType.CLASSIC,
