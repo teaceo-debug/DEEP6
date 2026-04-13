@@ -7,7 +7,7 @@ or reaches extremes that predict reversals.
 Variants (per DELT-01..11):
   1.  Rise/Drop:       Delta classified per bar
   2.  Tail:            Bar delta at 95%+ of its extreme
-  3.  Reversal:        Intrabar delta flip (not available without tick-level tracking)
+  3.  Reversal:        Bar-level delta/direction mismatch (approximation — no tick-level intrabar)
   4.  Divergence:      Price new high/low but delta fails to confirm (highest alpha)
   5.  Flip:            Sign change in cumulative delta
   6.  Trap:            Aggressive delta + price reversal
@@ -25,6 +25,7 @@ from enum import Enum, auto
 
 import numpy as np
 
+from deep6.engines.signal_config import DeltaConfig
 from deep6.state.footprint import FootprintBar
 
 
@@ -56,11 +57,11 @@ class DeltaSignal:
 class DeltaEngine:
     """Stateful delta engine tracking CVD, session extremes, and history."""
 
-    def __init__(self, lookback: int = 20):
-        self.lookback = lookback
-        self.cvd_history: deque[float] = deque(maxlen=lookback)
-        self.price_history: deque[float] = deque(maxlen=lookback)
-        self.delta_history: deque[float] = deque(maxlen=lookback)
+    def __init__(self, config: DeltaConfig = DeltaConfig()):
+        self.config = config
+        self.cvd_history: deque[float] = deque(maxlen=config.lookback)
+        self.price_history: deque[float] = deque(maxlen=config.lookback)
+        self.delta_history: deque[float] = deque(maxlen=config.lookback)
         self.session_cvd_min: float = 0.0
         self.session_cvd_max: float = 0.0
         self.bar_count: int = 0
@@ -81,6 +82,7 @@ class DeltaEngine:
 
         delta = bar.bar_delta
         cvd = bar.cvd
+        cfg = self.config
         self.bar_count += 1
 
         # Update histories
@@ -105,33 +107,56 @@ class DeltaEngine:
             ))
 
         # --- 2. TAIL (DELT-02) ---
-        # Delta at 95%+ of its extreme within bar
+        # Delta at tail_threshold+ of its extreme within bar
         if bar.total_vol > 0:
             delta_ratio = abs(delta) / bar.total_vol
-            if delta_ratio >= 0.95:
+            if delta_ratio >= cfg.tail_threshold:
                 direction = +1 if delta > 0 else -1
                 signals.append(DeltaSignal(
                     DeltaType.TAIL, direction, delta_ratio, delta,
                     f"DELTA TAIL: {delta_ratio*100:.0f}% at extreme — strong conviction",
                 ))
 
+        # --- 3. REVERSAL (DELT-03) — bar-level approximation ---
+        # Delta sign contradicts bar direction: close > open but delta < 0 (bearish hidden reversal)
+        # or close < open but delta > 0 (bullish hidden reversal).
+        # Requires min delta ratio to avoid noise on flat bars.
+        if bar.total_vol > 0:
+            delta_ratio_abs = abs(delta) / bar.total_vol
+            if delta_ratio_abs >= cfg.reversal_min_delta_ratio:
+                bar_bullish = bar.close > bar.open
+                bar_bearish = bar.close < bar.open
+                if bar_bullish and delta < 0:
+                    signals.append(DeltaSignal(
+                        DeltaType.REVERSAL, -1,
+                        min(delta_ratio_abs, 1.0), delta,
+                        f"DELTA REVERSAL (bearish hidden): bar closed UP but delta={delta:+d} (selling dominated)",
+                    ))
+                elif bar_bearish and delta > 0:
+                    signals.append(DeltaSignal(
+                        DeltaType.REVERSAL, +1,
+                        min(delta_ratio_abs, 1.0), delta,
+                        f"DELTA REVERSAL (bullish hidden): bar closed DOWN but delta={delta:+d} (buying dominated)",
+                    ))
+
         # --- 4. DIVERGENCE (DELT-04) — highest alpha ---
-        if len(self.price_history) >= 5 and len(self.cvd_history) >= 5:
+        div_lb = cfg.divergence_lookback
+        if len(self.price_history) >= div_lb and len(self.cvd_history) >= div_lb:
             prices = list(self.price_history)
             cvds = list(self.cvd_history)
 
-            # Price making new 5-bar high but CVD not confirming
-            if prices[-1] == max(prices[-5:]) and cvds[-1] < max(cvds[-5:]):
+            # Price making new N-bar high but CVD not confirming
+            if prices[-1] == max(prices[-div_lb:]) and cvds[-1] < max(cvds[-div_lb:]):
                 signals.append(DeltaSignal(
                     DeltaType.DIVERGENCE, -1, 0.8, cvd,
-                    f"BEARISH DIVERGENCE: price at 5-bar high but CVD failing",
+                    f"BEARISH DIVERGENCE: price at {div_lb}-bar high but CVD failing",
                 ))
 
-            # Price making new 5-bar low but CVD not confirming
-            if prices[-1] == min(prices[-5:]) and cvds[-1] > min(cvds[-5:]):
+            # Price making new N-bar low but CVD not confirming
+            if prices[-1] == min(prices[-div_lb:]) and cvds[-1] > min(cvds[-div_lb:]):
                 signals.append(DeltaSignal(
                     DeltaType.DIVERGENCE, +1, 0.8, cvd,
-                    f"BULLISH DIVERGENCE: price at 5-bar low but CVD holding",
+                    f"BULLISH DIVERGENCE: price at {div_lb}-bar low but CVD holding",
                 ))
 
         # --- 5. FLIP (DELT-05) ---
@@ -152,24 +177,54 @@ class DeltaEngine:
         if len(self.delta_history) >= 2:
             prev_delta = self.delta_history[-2]
             # Strong buying delta then price drops
-            if prev_delta > bar.total_vol * 0.3 and bar.close < bar.open:
+            if prev_delta > bar.total_vol * cfg.trap_delta_ratio and bar.close < bar.open:
                 signals.append(DeltaSignal(
                     DeltaType.TRAP, -1, 0.7, delta,
                     f"DELTA TRAP: prev delta={prev_delta:+d} (bullish) but price dropped",
                 ))
             # Strong selling delta then price rises
-            if prev_delta < -bar.total_vol * 0.3 and bar.close > bar.open:
+            if prev_delta < -bar.total_vol * cfg.trap_delta_ratio and bar.close > bar.open:
                 signals.append(DeltaSignal(
                     DeltaType.TRAP, +1, 0.7, delta,
                     f"DELTA TRAP: prev delta={prev_delta:+d} (bearish) but price rose",
                 ))
 
+        # --- 7. SWEEP (DELT-07) ---
+        # Bar spans >= sweep_min_levels price levels AND second-half volume exceeds
+        # first-half volume by sweep_vol_increase_ratio (indicates acceleration = sweep).
+        if bar.levels and len(bar.levels) >= cfg.sweep_min_levels:
+            sorted_ticks = sorted(bar.levels.keys())
+            n_levels = len(sorted_ticks)
+            mid = n_levels // 2
+            first_half_vol = sum(
+                bar.levels[t].bid_vol + bar.levels[t].ask_vol
+                for t in sorted_ticks[:mid]
+            )
+            second_half_vol = sum(
+                bar.levels[t].bid_vol + bar.levels[t].ask_vol
+                for t in sorted_ticks[mid:]
+            )
+            if first_half_vol > 0 and second_half_vol >= first_half_vol * cfg.sweep_vol_increase_ratio:
+                direction = +1 if delta >= 0 else -1
+                signals.append(DeltaSignal(
+                    DeltaType.SWEEP, direction, 0.8, delta,
+                    f"DELTA SWEEP: {n_levels} levels, vol accelerated "
+                    f"({first_half_vol} → {second_half_vol}, "
+                    f"{second_half_vol/first_half_vol:.1f}x increase)",
+                ))
+
         # --- 8. SLINGSHOT (DELT-08) — 72-78% win rate ---
         if len(self.delta_history) >= 4:
             recent = list(self.delta_history)[-4:]
-            # Compressed: 3 bars of small delta, then explosive
-            small_bars = sum(1 for d in recent[:3] if abs(d) < bar.total_vol * 0.1)
-            if small_bars >= 2 and abs(delta) > bar.total_vol * 0.4:
+            # Compressed: slingshot_quiet_bars out of 3 prior bars have small delta,
+            # then current bar explodes
+            small_bars = sum(
+                1 for d in recent[:3] if abs(d) < bar.total_vol * cfg.slingshot_quiet_ratio
+            )
+            if (
+                small_bars >= cfg.slingshot_quiet_bars
+                and abs(delta) > bar.total_vol * cfg.slingshot_explosive_ratio
+            ):
                 direction = +1 if delta > 0 else -1
                 signals.append(DeltaSignal(
                     DeltaType.SLINGSHOT, direction, 0.85, delta,
@@ -191,7 +246,7 @@ class DeltaEngine:
                 ))
 
         # --- 10. CVD MULTI-BAR DIVERGENCE (DELT-10) ---
-        if len(self.cvd_history) >= 10:
+        if len(self.cvd_history) >= cfg.cvd_divergence_min_bars:
             x = np.arange(len(self.cvd_history), dtype=np.float64)
             cvd_arr = np.array(self.cvd_history, dtype=np.float64)
             price_arr = np.array(self.price_history, dtype=np.float64)
@@ -200,13 +255,13 @@ class DeltaEngine:
             price_slope = np.polyfit(x, price_arr, 1)[0]
 
             # Divergence: slopes in opposite directions
-            if price_slope > 0 and cvd_slope < -abs(price_slope) * 0.3:
+            if price_slope > 0 and cvd_slope < -abs(price_slope) * cfg.cvd_slope_divergence_factor:
                 signals.append(DeltaSignal(
                     DeltaType.CVD_DIVERGENCE, -1, 0.75, cvd_slope,
                     f"CVD MULTI-BAR DIVERGENCE: price trending up (slope={price_slope:.2f}) "
                     f"but CVD declining (slope={cvd_slope:.2f})",
                 ))
-            elif price_slope < 0 and cvd_slope > abs(price_slope) * 0.3:
+            elif price_slope < 0 and cvd_slope > abs(price_slope) * cfg.cvd_slope_divergence_factor:
                 signals.append(DeltaSignal(
                     DeltaType.CVD_DIVERGENCE, +1, 0.75, cvd_slope,
                     f"CVD MULTI-BAR DIVERGENCE: price trending down (slope={price_slope:.2f}) "
@@ -218,7 +273,7 @@ class DeltaEngine:
             cvd_vals = list(self.cvd_history)
             velocity = cvd_vals[-1] - cvd_vals[-2]
             accel = velocity - (cvd_vals[-2] - cvd_vals[-3])
-            if abs(accel) > bar.total_vol * 0.3:
+            if abs(accel) > bar.total_vol * cfg.velocity_accel_ratio:
                 direction = +1 if accel > 0 else -1
                 signals.append(DeltaSignal(
                     DeltaType.VELOCITY, direction, min(abs(accel) / bar.total_vol, 1.0), accel,

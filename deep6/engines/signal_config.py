@@ -1,4 +1,4 @@
-"""Signal configuration dataclasses for absorption and exhaustion engines.
+"""Signal configuration dataclasses for absorption, exhaustion, imbalance, and delta engines.
 
 All tunable thresholds live here so Phase 7 vectorbt parameter sweeps
 can inject custom config objects without touching engine logic.
@@ -70,3 +70,58 @@ class ExhaustionConfig:
     # EXH-07 / D-08: Delta trajectory gate — universal filter for exhaustion variants 2-6
     delta_gate_min_ratio: float = 0.10  # Min |delta|/volume for gate to activate
     delta_gate_enabled: bool = True     # Master switch for the delta trajectory gate
+
+
+@dataclass(frozen=True)
+class ImbalanceConfig:
+    """Configuration for detect_imbalances() — all tunable thresholds.
+
+    Per D-01: defaults match original hardcoded values in imbalance.py kwargs.
+    Phase 7 vectorbt sweeps will vary these to find optimal values.
+    """
+    # IMB-01: Single imbalance — diagonal ask[P] vs bid[P-1] ratio
+    ratio_threshold: float = 3.0          # Min ask[P]/bid[P-1] for single imbalance
+    # IMB-06: Oversized — ratio at which SINGLE is promoted to OVERSIZED
+    oversized_threshold: float = 10.0     # Ratio for oversized classification
+    # IMB-03: Stacked — consecutive levels for T1/T2/T3 tiers
+    stacked_t1: int = 3                   # Consecutive levels for T1
+    stacked_t2: int = 5                   # Consecutive levels for T2
+    stacked_t3: int = 7                   # Consecutive levels for T3
+    # IMB-02: Multiple — same price imbalance accumulation
+    multiple_min_count: int = 3           # Min imbalances at same price tick for MULTIPLE
+    # IMB-07: Consecutive — same level across multiple bars
+    consecutive_min_bars: int = 2         # Min bars for consecutive detection (currently 2=prior+current)
+    # IMB-05: Inverse trap
+    inverse_min_imbalances: int = 3       # Min opposite-dir imbalances to qualify as trap
+    # Stacked run gap tolerance
+    stacked_gap_tolerance: int = 2        # Allow N tick gap in stacked runs
+
+
+@dataclass(frozen=True)
+class DeltaConfig:
+    """Configuration for DeltaEngine — all tunable thresholds.
+
+    Per D-01: defaults match original hardcoded values in delta.py.
+    Phase 7 vectorbt sweeps will vary these to find optimal values.
+    """
+    lookback: int = 20                         # Rolling window size for histories
+    # DELT-02: Tail — delta at extreme
+    tail_threshold: float = 0.95               # Delta ratio (|delta|/vol) for tail signal
+    # DELT-04: Divergence — price/CVD lookback
+    divergence_lookback: int = 5               # Bars for divergence check
+    # DELT-06: Trap — prior bar delta ratio threshold
+    trap_delta_ratio: float = 0.3              # Min |delta|/vol for trap qualification
+    # DELT-08: Slingshot — compressed then explosive
+    slingshot_quiet_ratio: float = 0.1         # Max |delta|/vol for compressed bar
+    slingshot_explosive_ratio: float = 0.4     # Min |delta|/vol for explosive bar
+    slingshot_quiet_bars: int = 2              # Min quiet bars (out of 3) before explosion
+    # DELT-10: CVD multi-bar divergence
+    cvd_divergence_min_bars: int = 10          # Min bars for CVD regression
+    cvd_slope_divergence_factor: float = 0.3   # Slope divergence threshold multiplier
+    # DELT-11: Velocity — CVD acceleration
+    velocity_accel_ratio: float = 0.3          # Min |accel|/vol for velocity signal
+    # DELT-07: Sweep — rapid delta across multiple levels
+    sweep_min_levels: int = 5                  # Min price levels in bar for sweep detection
+    sweep_vol_increase_ratio: float = 1.5      # Vol increase ratio (second half / first half)
+    # DELT-03: Reversal approximation — bar-level delta/direction mismatch
+    reversal_min_delta_ratio: float = 0.15     # Min |delta|/vol for reversal signal to fire
