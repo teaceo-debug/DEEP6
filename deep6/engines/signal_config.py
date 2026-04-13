@@ -209,6 +209,57 @@ class ScorerConfig:
 
 
 @dataclass(frozen=True)
+class TrapConfig:
+    """Configuration for TrapEngine — TRAP-02..05 thresholds.
+
+    TRAP-01 (INVERSE_TRAP) lives in imbalance.py and uses ImbalanceConfig.
+    Phase 7 vectorbt sweeps will vary these to find optimal values.
+    Per T-02-01: frozen=True prevents mutation after creation.
+    """
+    # TRAP-02: Delta trap — prior bar must have strong directional delta
+    trap_delta_ratio: float = 0.25       # Min |delta|/vol for prior bar to qualify
+
+    # TRAP-03: False breakout trap — volume must exceed this multiple of vol_ema
+    false_breakout_vol_mult: float = 1.8  # Volume multiple above vol_ema
+
+    # TRAP-04: High volume rejection trap
+    hvr_vol_mult: float = 2.5            # Volume multiple above vol_ema
+    hvr_wick_min: float = 0.35           # Min wick volume fraction
+
+    # TRAP-05: CVD trap — slope of CVD window must exceed this to qualify as trending
+    cvd_trap_lookback: int = 8           # Bars for CVD slope calculation
+    cvd_trap_min_slope: float = 0.05     # Min |slope| to qualify as trending CVD
+
+
+@dataclass(frozen=True)
+class VolPatternConfig:
+    """Configuration for VolPatternEngine — VOLP-01..06 thresholds.
+
+    Phase 7 vectorbt sweeps will vary these to find optimal values.
+    Per T-02-01: frozen=True prevents mutation after creation.
+    """
+    # VOLP-01: Volume sequencing — each bar >= prior * this ratio
+    vol_seq_step_ratio: float = 1.15    # Each bar >= prior * this ratio
+    vol_seq_min_bars: int = 3           # Min bars in sequence
+
+    # VOLP-02: Volume bubble — single level vol > avg_level_vol * this
+    bubble_mult: float = 4.0            # Level vol > avg_level_vol * this
+
+    # VOLP-03: Volume surge — bar vol > vol_ema * this
+    surge_mult: float = 3.0             # Bar vol > vol_ema * this
+    surge_delta_min_ratio: float = 0.15 # Min |delta|/vol for directional surge
+
+    # VOLP-04: POC momentum wave — consecutive bars of POC migration
+    poc_wave_bars: int = 3              # Consecutive bars of POC migration
+
+    # VOLP-05: Delta velocity spike
+    delta_velocity_mult: float = 0.6   # |velocity| > vol_ema * this
+
+    # VOLP-06: Big delta per level — min |net_delta| at single level (contracts)
+    big_delta_level_threshold: int = 80  # Min |net_delta| at single level (contracts)
+
+
+@dataclass(frozen=True)
 class GexConfig:
     """Configuration for GexEngine — all tunable thresholds.
 

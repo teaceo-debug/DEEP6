@@ -18,8 +18,7 @@
   "editor.minimap.renderCharacters": false,
 
   // ── C# (OmniSharp / Roslyn) ──────────────────────────────────────────────
-  "dotnet.defaultSolution": "DEEP6.csproj",
-  "csharp.referencesCodeLens.enabled": true,
+"dotnet.defaultSolution": "DEEP6.csproj",
   "csharp.implementationsCodeLens.enabled": true,
   "csharp.format.enable": true,
   "omnisharp.enableEditorConfigSupport": true,
@@ -78,5 +77,6 @@
 
   // ── NinjaTrader 8 path hints (update if NT8 is in a non-default location)
   "DEEP6.NT8InstallPath": "C:\\Program Files\\NinjaTrader 8",
-  "DEEP6.NT8CustomPath":  "%USERPROFILE%\\Documents\\NinjaTrader 8\\bin\\Custom"
+"DEEP6.NT8CustomPath": "%USERPROFILE%\\Documents\\NinjaTrader 8\\bin\\Custom",
+"dotnet.codeLens.enableReferencesCodeLens": true
 }

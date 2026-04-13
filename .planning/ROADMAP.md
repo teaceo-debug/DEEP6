@@ -91,7 +91,7 @@ Plans:
 **Plans**: 4 plans (Wave 1: plan-01; Wave 2: plan-02, plan-03 parallel; Wave 3: plan-04)
 
 Plans:
-- [ ] 04-01-PLAN.md — TrapEngine (TRAP-02..05) + VolPatternEngine (VOLP-01..06), config dataclasses
+- [x] 04-01-PLAN.md — TrapEngine (TRAP-02..05) + VolPatternEngine (VOLP-01..06), config dataclasses
 - [ ] 04-02-PLAN.md — E2 TrespassEngine (ENG-02) + E3 CounterSpoofEngine (ENG-03)
 - [ ] 04-03-PLAN.md — E4 IcebergEngine (ENG-04) + E5 MicroEngine (ENG-05)
 - [ ] 04-04-PLAN.md — Comprehensive test suite for all Phase 4 engines
