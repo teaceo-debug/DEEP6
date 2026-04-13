@@ -1,278 +1,241 @@
 <!-- GSD:project-start source:PROJECT.md -->
 ## Project
 
-**DEEP6 v2.0**
+**DEEP6 v2.0 — Python Edition**
 
-DEEP6 is an institutional-grade footprint chart auto-trading system for NQ futures, built on NinjaTrader 8 with Rithmic Level 2 DOM data. The core engine processes up to 1,000 callbacks/second and synthesizes 44 independent market microstructure signals into a unified confidence score. A Python + Next.js web backend provides ML-driven analytics, parameter evolution, and regime detection. The system's thesis: absorption and exhaustion are the highest-alpha reversal signals in order flow — everything else exists to confirm or contextualize them.
+DEEP6 is an institutional-grade footprint chart auto-trading system for NQ futures, built entirely in Python. The system connects directly to Rithmic via `async-rithmic` for real-time Level 2 DOM data (40+ levels, 1,000 callbacks/sec) and trade execution — eliminating the NinjaTrader dependency. 44 independent market microstructure signals are synthesized into a unified confidence score. Kronos (foundation model for financial K-lines) provides directional bias as E10. TradingView MCP enables Claude-in-the-loop visual analysis. A FastAPI + Next.js web stack provides ML optimization, analytics, and a session replay dashboard. The system's thesis: absorption and exhaustion are the highest-alpha reversal signals in order flow — everything else exists to confirm or contextualize them.
 
-**Core Value:** Detect absorption and exhaustion with the highest accuracy of any footprint system ever built, and auto-execute trades from those signals via NT8 ATM Strategy.
+**Core Value:** Detect absorption and exhaustion with the highest accuracy of any footprint system ever built, and auto-execute trades from those signals via direct Rithmic orders — all in Python, running on macOS.
 
 ### Constraints
 
-- **Platform**: NinjaTrader 8 (.NET Framework 4.8) — indicator must compile and run in NT8's NinjaScript environment
-- **Data feed**: Rithmic Level 2 with 40+ DOM levels required for E2/E3/E4 engines
-- **Performance**: Must handle 1,000+ callbacks/second without GC pressure or frame drops in SharpDX rendering
-- **Rendering**: SharpDX + WPF within NT8 — no external UI frameworks
-- **GEX data**: Requires commercial API subscription (SpotGamma or equivalent) — not yet provisioned
-- **ML backend**: Python + Next.js — separate from NT8 runtime, communicates via data bridge
-- **Development**: macOS dev environment — can edit/plan but cannot compile/run NT8; Windows box required for testing
-- **Monolithic risk**: Current DEEP6.cs is 1,010 lines with 7 engines + UI in one file — adding 44 signals + 2 new engines requires careful architecture to avoid maintainability collapse
+- **Language**: Python 3.12+ (entire system)
+- **Data feed**: Rithmic via async-rithmic (broker must enable API/plugin mode)
+- **Performance**: Must handle 1,000+ DOM callbacks/sec in Python async event loop
+- **Execution**: Direct Rithmic orders (approach TBD — needs research on order types, risk controls)
+- **GEX data**: FlashAlpha API ($49/mo) — NQ via QQQ/NDX proxy
+- **Historical data**: Databento MBO ($179/mo) for backtesting
+- **Kronos**: Requires GPU for inference (RTX 3060+ recommended) or CPU with larger latency
+- **Dashboard**: Next.js 15 + FastAPI backend
+- **Development**: macOS native (no Windows dependency)
+- **Research-first**: Deep research per domain before committing to architecture
 <!-- GSD:project-end -->
 
-<!-- GSD:stack-start source:codebase/STACK.md -->
+<!-- GSD:stack-start source:research/STACK.md -->
 ## Technology Stack
 
-## Languages
-- C# 10.0 - NinjaScript indicator for NinjaTrader 8, compiled against .NET Framework 4.8 (`/Users/teaceo/DEEP6/Indicators/DEEP6.cs`)
-- PowerShell 5.1+ - Deployment and watch scripts (`/Users/teaceo/DEEP6/scripts/Deploy-ToNT8.ps1`, `Watch-AndDeploy.ps1`, `Trigger-NT8Compile.ps1`)
-## Runtime
-- .NET Framework 4.8 - Required by NinjaTrader 8. Compiles against `net48` target framework (DEEP6.csproj line 4)
-- .NET SDK 7.0+ - Used for local compilation via `dotnet build` and IntelliSense in VS Code. Not used by NT8 runtime; NT8 has its own embedded .NET Framework 4.8
-- NuGet - Implicit; no external NuGet dependencies. All required assemblies come from NinjaTrader 8 installation
-## Frameworks
-- NinjaTrader 8 (NT8) NinjaScript - Main application framework. Indicator derives from `Indicator` base class in `NinjaTrader.NinjaScript.Indicators` namespace (DEEP6.cs line 48, 58)
-- Required NT8 assemblies (all referenced in DEEP6.csproj lines 46-74):
-- WPF (Windows Presentation Foundation) - Used for custom UI elements: header bar, left tab bar, status pills, right panel with tabs. References: `PresentationCore`, `PresentationFramework`, `System.Xaml`, `System.Windows.Forms` (DEEP6.csproj lines 102-111)
-- SharpDX - DirectX/Direct2D wrapper for high-performance chart rendering (footprint cells, delta rows, signal boxes, price level lines). Direct2D used for vector graphics, DirectWrite for text rendering
-- dotnet CLI - Builds via `dotnet build DEEP6.csproj` configured in VS Code tasks (tasks.json lines 9-25)
-- MSBuild - Underlying build system; custom target `DeployToNT8` post-build (DEEP6.csproj lines 124-132) auto-copies compiled indicator to NT8 Custom folder
-## Key Dependencies
-- NinjaTrader 8 Core Assemblies (see "Frameworks" section) - No external installation; path resolved via `$(NT8Path)` variable (default: `C:\Program Files\NinjaTrader 8`)
-- VolumetricBarsType - Requires NT8 Lifetime License + Order Flow+ subscription. DEEP6 detects and uses Volumetric Bars for footprint data (`NinjaTrader.NinjaScript.BarsTypes.VolumetricBarsType` cast in DEEP6.cs lines 219, 309, 338, 463)
-- WPF Framework (Windows only) - Used for dynamic UI panel creation (StackPanel, Grid, Label, CheckBox, ComboBox, etc.)
-- SharpDX - Vendored or provided by NT8 installation. Used for real-time chart rendering (OnRender override, lines 259-266)
-- EMA Indicator (NinjaTrader built-in) - Referenced as `NinjaTrader.NinjaScript.Indicators.EMA` for 20-period exponential moving average (DEEP6.cs line 129, instantiated in OnStateChange, State.DataLoaded)
-## Configuration
-- NT8 Installation Path - Resolved via `$(NT8Path)` property in DEEP6.csproj (default: `C:\Program Files\NinjaTrader 8`). Can be overridden via environment variable or MSBuild parameter: `dotnet build /p:NT8Path="D:\NT8"`
-- NT8 Custom Folder - Resolved via `$(NT8CustomPath)` = `$(USERPROFILE)\Documents\NinjaTrader 8\bin\Custom`. Build post-target auto-copies `Indicators\DEEP6.cs` here after compilation (DEEP6.csproj lines 124-132)
-- DEEP6.csproj - .NET SDK project file (SDK="Microsoft.NET.Sdk")
-- `.editorconfig` (DEEP6/.editorconfig) - EditorConfig for C# style enforcement
-## Platform Requirements
-- Windows 10/11 64-bit - PowerShell 5.1+, VS Code with C# Dev Kit extension
-- NinjaTrader 8 - 8.0.23+ with Lifetime License (required for Volumetric Bars)
-- .NET SDK 7.0+ - For local compilation and IntelliSense (not used by NT8)
-- Rithmic Data Feed - Level 2 DOM with 40+ depth levels (E2/E3/E4 engines depend on this)
-- Windows 10/11 64-bit (x64 only, see line 17 `<PlatformTarget>x64</PlatformTarget>`)
-- NinjaTrader 8 (8.0.23+) with:
-- CPU: i7-12700K / Ryzen 7 7700X minimum (i9-14900K / Ryzen 9 7950X recommended)
-- RAM: 32GB DDR4 minimum (64GB DDR5 recommended)
-- Storage: NVMe SSD 512GB minimum (2TB recommended, 7,000 MB/s)
-- GPU: 4GB VRAM minimum (RTX 3060 8GB recommended) for SharpDX rendering
-- Network: 1Gbps Ethernet (NOT WiFi), latency <20ms to CME Aurora preferred
-- OS: Windows 11 Pro preferred (Windows 10 Pro supported)
+## Context
+## Recommended Stack
+### 1. Rithmic Data + Execution: async-rithmic
+| Technology | Version | Purpose | Confidence |
+|------------|---------|---------|------------|
+| async-rithmic | 1.5.9 | Rithmic R\|Protocol via WebSocket + protobuf — L2 DOM, tick data, order execution | HIGH |
+| Python | 3.12 | Runtime (async-rithmic requires 3.10+; 3.12 is the sweet spot for library compatibility) | HIGH |
+- Full Order Book (L2) streaming — 40+ price levels per side, identical feed to what NinjaTrader receives
+- Live tick data and Best Bid/Offer (BBO) streaming
+- Order management: market, limit, stop orders via ORDER_PLANT
+- Historical tick and time bar data
+- Automatic reconnection with configurable backoff (exponential + jitter via `ReconnectionSettings`)
+- Multi-account support
+- macOS native — pure Python WebSocket + protobuf, no C DLLs
+# Market order
+# Limit order
+- Existing Rithmic broker account (same one used with NinjaTrader) — zero additional cost
+- Must sign Rithmic Market Data Subscription Agreement (done via R|Trader once)
+- Test environment (wss://rituz00100.rithmic.com) is free for development
+- Broker must enable "API/plugin mode" (EdgeClear, Tradovate via Rithmic, AMP Futures all support this)
+- PyPI: https://pypi.org/project/async-rithmic/ (v1.5.9, released 2026-02-20)
+- GitHub: https://github.com/rundef/async_rithmic
+- Rithmic API page: https://www.rithmic.com/apis
+### 2. Kronos E10 Bias Engine
+| Technology | Version | Purpose | Confidence |
+|------------|---------|---------|------------|
+| Kronos-small | 24.7M params | Directional bias prediction from OHLCV (E10 signal) | MEDIUM |
+| KronosTokenizer | base tokenizer | Converts OHLCV to hierarchical discrete tokens | MEDIUM |
+| PyTorch | >=2.0 (via Kronos requirements) | Model runtime | HIGH |
+| transformers | (via requirements.txt) | Model loading utilities | HIGH |
+# Load from HuggingFace Hub (downloads once, cached locally)
+# x_df: DataFrame with columns ['open', 'high', 'low', 'close', 'volume', 'amount']
+# Minimum: ['open', 'high', 'low', 'close'] — volume and amount are optional
+# Rows: historical K-lines, chronologically ordered, evenly spaced intervals
+# For 1-minute NQ bars: 512 bars = ~8.5 hours of context
+# pred_df columns: open, high, low, close, volume, amount
+# Use pred_df['close'] vs current close for directional bias
+| Hardware | Model | Inference Time (1 prediction) |
+|----------|-------|-------------------------------|
+| A100 GPU | Kronos-base (102M) | ~50ms |
+| RTX 3060 GPU | Kronos-small (24.7M) | ~80-150ms (estimated) |
+| Apple Silicon M2 (MPS) | Kronos-small | ~200-400ms (estimated) |
+| CPU only (no GPU) | Kronos-small | ~500ms-2s (estimated) |
+| CPU only | Kronos-mini (4.1M) | ~100-200ms (estimated) |
+- GitHub: https://github.com/shiyu-coder/Kronos
+- HuggingFace: https://huggingface.co/NeoQuasar/Kronos-small
+- arXiv paper: https://arxiv.org/abs/2508.02739
+- BrightCoding guide (2026-04-10): https://www.blog.brightcoding.dev/2026/04/10/kronos-the-revolutionary-ai-model-for-financial-markets
+### 3. TradingView MCP
+| Technology | Stars | Purpose | Confidence |
+|------------|-------|---------|------------|
+| tradingview-mcp (tradesdontlie) | ~1.7K | Claude Code ↔ TradingView Desktop bridge via CDP | HIGH |
+| Chrome DevTools Protocol | — | Underlying mechanism for chart inspection + JS injection | HIGH |
+- `chart_get_state` — symbol, timeframe, all indicator names/IDs (~500 bytes)
+- `quote_get` — current OHLC + volume
+- `data_get_ohlcv` — full price bars (use `summary: true` for compact mode)
+- `data_get_study_values` — read any built-in indicator values (RSI, MACD, EMA, etc.)
+- `data_get_pine_lines` — horizontal levels from custom Pine indicators
+- `data_get_pine_labels` — text annotations with price from Pine
+- `data_get_pine_boxes` — price zones as {high, low} pairs
+- `capture_screenshot` — full, chart, or strategy_tester regions
+- `pine_set_source` — inject Pine Script into TradingView editor
+- `pine_smart_compile` — compile with auto-detection + error report
+- `pine_get_errors` — read compilation errors
+- `pine_get_console` — read log.info() output
+- `pine_save` — save to TradingView cloud
+- `chart_set_symbol`, `chart_set_timeframe`, `chart_set_type`
+- `chart_scroll_to_date` — jump to date for replay
+- `pane_set_layout` — configure multi-pane grid (2x2, etc.)
+# 1. Clone and install
+# 2. Launch TradingView Desktop with debugging enabled (macOS)
+# Equivalent manual: /Applications/TradingView.app/Contents/MacOS/TradingView \
+#   --remote-debugging-port=9222
+# 3. Verify connection in Claude Code
+# "Use tv_health_check to verify TradingView is connected"
+- GitHub: https://github.com/tradesdontlie/tradingview-mcp
+- Setup guide: https://github.com/tradesdontlie/tradingview-mcp/blob/main/SETUP_GUIDE.md
+- PulseMCP listing: https://www.pulsemcp.com/servers/hilmituncay-tradingview-mcp
+### 4. Databento Python SDK (Backtesting Data)
+| Technology | Version | Purpose | Cost | Confidence |
+|------------|---------|---------|------|------------|
+| databento | latest | MBO (L3) historical NQ data for backtesting; live MBO as independent validation feed | $179/mo | HIGH |
+- MBO (Market-by-Order, L3) = every individual order event (add, modify, cancel) at every price level
+- Full order book reconstructibility from MBO — gives you all 40+ levels in historical replay
+- Nanosecond timestamps from CME colocation
+- Live and historical APIs share the same interface — one codebase for both
+- NQ continuous symbol: `NQ.c.0` (front-month roll handled automatically)
+# Equivalent to env var: DATABENTO_API_KEY
+# Market replay with callback — identical to live processing
+# Or convert to DataFrame / ndarray for analysis
+# Download as binary file for repeated replay (avoids re-downloading)
+# Later, reload without API call
+- GitHub: https://github.com/databento/databento-python
+- Databento blog (live MBO snapshots): https://databento.com/blog/live-MBO-snapshot
+- Live API reference: https://databento.com/docs/api-reference-live
+### 5. Python Async Architecture
+# janus: thread-safe asyncio-aware queue
+# Use when Kronos (sync PyTorch) needs to push results to async signal engine
+# Kronos thread (sync):
+# Signal engine (async):
+| Library | Purpose | Install |
+|---------|---------|---------|
+| `asyncio` | Core event loop (stdlib) | stdlib |
+| `janus` | Thread-safe asyncio queue | `pip install janus` |
+| `numpy` | Lock-free DOM state arrays | `pip install numpy` |
+| `concurrent.futures` | ThreadPoolExecutor for CPU work | stdlib |
+### 6. Footprint Chart Rendering
+| Library | Approach | Footprint support | Notes |
+|---------|----------|-------------------|-------|
+| TradingView Lightweight Charts v5.1 | Custom series via Next.js WebSocket | Manual custom series plugin | Purpose-built for financial data; 45KB bundle; best performance for OHLC overlay |
+| Plotly (Python Dash or as static charts) | Python-side rendering | Manual trace construction | Better for analysis/debugging than production real-time UI |
+| HTML5 Canvas (custom) | Direct WebGL/Canvas in Next.js | Full control | Maximum performance; significant development effort |
+- OrderflowChart (Plotly-based footprint): https://github.com/murtazayusuf/OrderflowChart
+- bmoscon orderbook (C-backed order book state management): https://github.com/bmoscon/orderbook
+- py-market-profile (Volume Profile from pandas): https://github.com/bfolkens/py-market-profile
+### 7. FastAPI + Next.js Web Stack
+| Layer | Choice | Version | Rationale |
+|-------|--------|---------|-----------|
+| Python API | FastAPI | 0.135.3 | Async-native, 15K-20K RPS, Pydantic v2 built-in, SSE via StreamingResponse |
+| ASGI server | Uvicorn | 0.34+ | Required by FastAPI; single worker sufficient |
+| Real-time push | SSE (native) | — | One-way push from FastAPI → Next.js; simpler than WebSockets; `EventSource` in browser |
+| Real-time push (footprint) | WebSocket | — | Footprint bar data is high-frequency; SSE is text-only; use WebSocket for binary efficiency |
+| Dashboard framework | Next.js | 15.x (App Router) | RSC reduces client bundle; built-in SSE via Route Handlers |
+| UI components | shadcn/ui + Tremor | latest / 3.x | Accessible primitives + production-ready chart components |
+| Financial charts | Lightweight Charts | 5.1.0 | Purpose-built OHLC; 45KB bundle; data conflation at v5.1 |
+| Dashboard charts | Tremor + Recharts | 3.x / 2.x | AreaChart, KPI cards, scatter plots out of the box |
+## Full Installation Reference
+# Python environment (Python 3.12 required)
+# Core data + execution
+# Async utilities
+# FastAPI stack
+# ML backend (from v1 — unchanged)
+# Data processing
+# Database / ORM
+# Scheduling
+# GEX data
+# Backtesting data + engine
+# Kronos (not on PyPI — install from source)
+# Order book state management (optional C-backed)
+# TradingView MCP (Node.js, not Python)
+# Next.js dashboard
+## What NOT to Use
+| Category | Avoid | Why |
+|----------|-------|-----|
+| Rithmic data | pyrithmic | Older, less maintained; async-rithmic is the better fork |
+| Rithmic data | NautilusTrader | Full trading engine adds complexity not needed when async-rithmic already covers the use case |
+| Kronos model | Kronos-base (102M) | 4x larger than small; inference latency on CPU/MPS grows proportionally; overkill for single-asset directional bias |
+| Kronos model | Kronos-large (499M, closed-source) | Not open-source; unavailable |
+| Async | threading.Thread for DOM | DOM callbacks must stay in asyncio to avoid lock overhead at 1,000/sec |
+| Async | multiprocessing for signals | Process overhead > signal computation time for 44 signals; ThreadPoolExecutor is sufficient |
+| Footprint viz | Bokeh | Less maintained than Plotly; worse integration with modern dashboards |
+| Footprint viz | D3.js directly | 200+ hours of custom charting; use Lightweight Charts custom series instead |
+| Charts | Chart.js | Worse TypeScript + React integration than Lightweight Charts |
+| Real-time | Socket.io (Python) | python-socketio adds complexity; FastAPI WebSocket is sufficient |
+| Backtesting | Re-implementing signals in Python from scratch separately from live engine | Creates two sources of truth; use same engine code with Databento replay |
+## Alternatives Considered
+| Category | Recommended | Alternative | Why Not |
+|----------|-------------|-------------|---------|
+| Rithmic Python | async-rithmic 1.5.9 | pyrithmic | async-rithmic is a complete rewrite with better architecture and active maintenance |
+| Rithmic Python | async-rithmic | Databento live | Databento adds $179/mo and doesn't provide execution; async-rithmic is $0 extra |
+| Foundation model | Kronos-small (24.7M) | Chronos (Amazon) | Chronos is generic time series; Kronos is specifically trained on financial K-lines from 45+ exchanges; higher directional accuracy on OHLCV |
+| Foundation model | Kronos | TimeGPT / Nixtla | Commercial API with cost-per-call; Kronos is fully open-source and runs locally |
+| DOM state | dict-based LOB | C-backed `orderbook` lib | At 1,000 updates/sec, NumPy array indexing by price level outperforms dict; implement custom for hot path, use `orderbook` for reference implementation |
+| Async queue | asyncio.Queue only | janus | asyncio.Queue is not thread-safe; janus needed when Kronos (sync PyTorch) pushes results into the async event loop |
+| Footprint viz (dev) | Plotly Dash | Lightweight Charts custom series | LW Charts custom series requires significant JS development; Plotly is faster to build for development iteration |
+| Footprint viz (prod) | Lightweight Charts v5.1 | Plotly in browser | LW Charts handles high-frequency updates without DOM thrashing; Plotly re-renders entire chart on update |
+## Phase-Specific Stack Notes
+| Phase | Component | Stack Element | Critical Note |
+|-------|-----------|---------------|---------------|
+| Phase 1 | Rithmic connection | async-rithmic 1.5.9 | Start with test environment (wss://rituz00100.rithmic.com) — free, no broker approval needed |
+| Phase 1 | DOM state | NumPy arrays | Pre-allocate bid/ask arrays covering NQ price range; avoid dict in hot path |
+| Phase 1 | Footprint builder | Custom Python | Build this before any signal code — data pipeline must be verified correct first |
+| Phase 2 | 44-signal engine | asyncio + ThreadPoolExecutor | Profile each signal; only offload to executor if > 0.5ms |
+| Phase 3 | Kronos E10 | Kronos-small + ThreadPoolExecutor | Test inference latency on your hardware before committing to per-bar invocation frequency |
+| Phase 3 | Kronos fine-tuning | Qlib pipeline (optional) | Only fine-tune on NQ data if zero-shot directional accuracy < 52%; pre-trained weights may be sufficient |
+| Phase 4 | Auto-execution | async-rithmic ORDER_PLANT | Research Rithmic's order types and bracket order support before implementing risk management |
+| Phase 5 | Backtesting | databento + vectorbt | Use MBO schema for historical replay; vectorbt for parameter sweeps via Optuna |
+| Phase 5 | TradingView MCP | tradingview-mcp + Claude Code | Use for visual trade review, not signal computation; data stays local |
+| Phase 6 | Web dashboard | FastAPI SSE + WebSocket + Next.js | SSE for signals (low frequency); WebSocket for footprint bars (high frequency) |
+## Open Questions Requiring Phase-Specific Research
+## Sources
+| Source | URL | Confidence |
+|--------|-----|------------|
+| async-rithmic PyPI | https://pypi.org/project/async-rithmic/ | HIGH |
+| async-rithmic GitHub | https://github.com/rundef/async_rithmic | HIGH |
+| Rithmic API page | https://www.rithmic.com/apis | HIGH |
+| Kronos GitHub | https://github.com/shiyu-coder/Kronos | HIGH |
+| Kronos arXiv paper | https://arxiv.org/abs/2508.02739 | HIGH |
+| Kronos HuggingFace | https://huggingface.co/NeoQuasar/Kronos-small | HIGH |
+| Kronos BrightCoding guide | https://www.blog.brightcoding.dev/2026/04/10/kronos-the-revolutionary-ai-model-for-financial-markets | MEDIUM |
+| tradingview-mcp GitHub | https://github.com/tradesdontlie/tradingview-mcp | HIGH |
+| tradingview-mcp setup | https://github.com/tradesdontlie/tradingview-mcp/blob/main/SETUP_GUIDE.md | HIGH |
+| databento-python GitHub | https://github.com/databento/databento-python | HIGH |
+| Databento live MBO blog | https://databento.com/blog/live-MBO-snapshot | HIGH |
+| Databento live API ref | https://databento.com/docs/api-reference-live | HIGH |
+| vectorbt PyPI | https://pypi.org/project/vectorbt/ | HIGH |
+| janus (asyncio queue) | https://github.com/aio-libs/janus | HIGH |
+| bmoscon orderbook | https://github.com/bmoscon/orderbook | HIGH |
+| OrderflowChart (Plotly footprint) | https://github.com/murtazayusuf/OrderflowChart | MEDIUM |
+| Lightweight Charts v5.1 | https://github.com/tradingview/lightweight-charts | HIGH |
 <!-- GSD:stack-end -->
 
 <!-- GSD:conventions-start source:CONVENTIONS.md -->
 ## Conventions
 
-## Naming Patterns
-- PascalCase for all public types: `GexRegime`, `DayType`, `IbType`, `SignalType`, `VwapZone`
-- Example: `public enum GexRegime { NegativeAmplifying, NegativeStable, PositiveDampening, Neutral }`
-- Indicator class itself: `DEEP6` (all caps as NinjaTrader convention)
-- PascalCase for properties exposed via `[NinjaScriptProperty]` attributes
-- Examples: `AbsorbWickMin`, `DomDepth`, `Lambda`, `LBeta`, `TressEma`, `IbMins`, `GexHvl`, `CallWall`
-- All property parameters are grouped by feature area in `[Display(GroupName="...")]`
-- camelCase with underscore prefix: `_fpSc`, `_fpDir`, `_cvd`, `_emaVol`, `_stkTier`, `_imb`, `_imbEma`, `_w1`, `_spEvt`
-- Collections also follow underscore convention: `_dQ`, `_bV`, `_aV`, `_bP`, `_aP`, `_iLong`, `_iShort`, `_pLg`, `_pTr`, `_feed`
-- UI element fields: `_hBdr`, `_pBdr`, `_tabBdr`, `_panelRoot`, `_hPrc`, `_hDT`, `_gauge`
-- SharpDX brush/font fields: `_dxG`, `_dxR`, `_dxGo`, `_dxW`, `_dwF`, `_fC`, `_fS`, `_fL`
-- camelCase: `RunE1()`, `RunE2()`, `RunE3()`, `SessionReset()`, `UpdateSession()`, `Scorer()`, `ChkSpoof()`, `RenderFP()`, `BuildUI()`, `InitDX()`, `DisposeDX()`
-- ALL_UPPER_CASE: `VER`, `MX_FP`, `MX_TR`, `MX_SP`, `MX_IC`, `MX_MI`, `MX_VP`, `DDEPTH`
-- Example: `private const double MX_FP = 25.0;`
-- camelCase throughout method bodies: `score`, `direction`, `delta`, `vol`, `rng`, `bTop`, `bBot`, `prox`, `cW`, `ds`
-## Code Style
-- .editorconfig enforced (see `/.editorconfig`)
-- Indentation: 4 spaces (not tabs)
-- Line length max: 120 characters (per .editorconfig)
-- Charset: UTF-8, line endings: CRLF
-- Trim trailing whitespace, insert final newline
-- Enables strict C# analysis: `<Nullable>enable</Nullable>` in `.csproj`
-- Language version: C# 10.0 (`<LangVersion>10.0</LangVersion>`)
-- Suppressions applied per .editorconfig:
-- `csharp_new_line_before_open_brace = none` — opening braces stay on same line
-- Example: `if (condition) { statement; }` (no newline before `{`)
-- Else/catch/finally stay on same line as closing brace: `} else {` not `}\nelse {`
-- Expression-bodied methods NOT preferred (silent): `private void Method() { /* statement */ }` preferred
-- Expression-bodied properties ALLOWED (suggestion): `public double Value => calculation;`
-- Expression-bodied accessors ALLOWED (suggestion): `public string Name { get => _name; set => _name = value; }`
-- No spaces between method name and parameters: `Method(param)` not `Method (param)`
-- Space after control flow keywords: `if (x)` not `if(x)`
-- Prefer braces only when multiline (suggestion): `if (x) statement;` OK, but `if (x) {\n  statements;\n}` for multiline
-## Import Organization
-#region Using declarations
-#endregion
-- Common shorthand aliases for verbose types (WPF/SharpDX): `WBrush`, `WColor`, `WColors`, `WFont`
-- Makes code more readable in UI rendering sections
-## Error Handling
-- Used selectively in hot-path rendering code where collection exceptions are expected
-- Example from `RunE1()`:
-- Early return prevents deep nesting (observed in `OnBarUpdate()`, `OnMarketDepth()`)
-- Null propagation with guards before assignment/access:
-## Logging
-- Used at initialization/state transitions only (not hot-path)
-- Example: `Print("[DEEP6] Loaded. Volumetric=" + v + " Instrument=" + Instrument.FullName);`
-- Minimal logging — focus is on chart visualization, not console output
-## Comments
-- Code organized into logical regions with clear headers
-- Examples:
-- Minimal — code intent is clear from method names and variable names
-- Example: `// E1 Footprint`, `// E2 Trespass` as section labels
-- Comments in file header explain 7-layer architecture and UI components (20 lines at top)
-- No XML doc comments (`///`) observed
-- Naming is self-documenting: `RunE1()`, `ChkSpoof()`, `BuildUI()`, `RenderFP()`
-- Used sparingly in UI construction code:
-## NinjaScript-Specific Patterns
-- Sets defaults in `State == State.SetDefaults` block
-- Configures data series in `State == State.Configure`
-- Initializes indicators in `State == State.DataLoaded`
-- Builds UI in `State == State.Realtime`
-- Cleans up in `State == State.Terminated`
-- Transparent plots for non-visual output
-- Values assigned via `Values[0][0] = _total; Values[1][0] = _imbEma;`
-- `OnBarUpdate()`: Main per-tick logic
-- `OnMarketDepth(MarketDepthEventArgs e)`: DOM updates (Level 2 data)
-- `OnMarketData(MarketDataEventArgs e)`: Last price/volume updates
-- `OnRender(ChartControl cc, ChartScale cs)`: SharpDX rendering
-- `OnRenderTargetChanged()`: Resource cleanup on chart resize
-- `Draw.Text()`, `Draw.HorizontalLine()` for chart annotations
-- Example: `Draw.Text(this, "D6_"+CurrentBar, true, lbl, 0, y, ...)`
-- Volumetric data: `BarsArray[0].BarsType as VolumetricBarsType` → `vb.Volumes[CurrentBar]`
-- OHLCV: `Open[0]`, `High[0]`, `Low[0]`, `Close[0]`, `Volume[0]`
-- Time: `Time[0]`, `Bars.IsFirstBarOfSession`, `(Time[0]-_sOpen).TotalMinutes`
-- TickSize: `TickSize` (contract-aware price increment)
-## Function Design
-- Engine methods (`RunE1()` through `RunE7()`) are 15-50 lines each
-- Calculation-heavy, no multi-responsibility
-- Private helper methods 5-20 lines (e.g., `ChkSpoof()`, `LvPx()`, `Std()`)
-- Engine methods take no parameters (use private fields for state)
-- Event handlers receive framework-provided args: `OnBarUpdate()`, `OnMarketDepth(MarketDepthEventArgs e)`
-- Helper methods pass context-specific data: `RenderFP(ChartControl cc, ChartScale cs)`
-- Most engine methods are `void` (modify internal state)
-- Helper methods return computed values: `Std()` returns double, `LvPx()` returns int
-- UI helpers return tuples: `(ProgressBar, Label)`, `(Ellipse, Label)`
-- Recursive helper returns nullable: `FindGrid(DependencyObject parent)` returns `Grid` or null
-## Module Design
-- Single public class: `DEEP6 : Indicator`
-- All engine logic, rendering, and UI building is internal to this class
-- Public interface = inherited Indicator methods + properties exposed via `[NinjaScriptProperty]`
-- Not applicable (single-file indicator compiled to DLL)
-- `public`: Only `DEEP6` class and parameter properties
-- `protected override`: NinjaScript framework events
-- `private`: All business logic, helpers, rendering, UI
-- `private const`: Constants
-## Observed Patterns
-- Sparse but clean use in E3 and scoring logic
-- `var` used when type is apparent: `var v = BarsArray[0].BarsType as VolumetricBarsType;`
-- Explicit typing preferred for public fields and parameters
-- Inline `.ToString()` with format strings: `_vwap.ToString("0.00")`, `delta.ToString("N0")`
-- String.Format not used; direct concatenation in some paths
-- Example: `"Δ +" + del.ToString("N0")` and string.Join("·", p) for complex builds
-- Pattern for optional calculated values (VWAP only available after bars):
-- `Queue<double>` for sliding window calculations: `_dQ` (delta history), `_mlH` (ML history)
-- `List<T>` for timestamped events: `_pLg` (large orders), `_pTr` (trades), `_feed` (signal history)
-- `RemoveAll()` used to prune old entries by timestamp comparison
+Conventions not yet established. Will populate as patterns emerge during development.
 <!-- GSD:conventions-end -->
 
 <!-- GSD:architecture-start source:ARCHITECTURE.md -->
 ## Architecture
 
-## Pattern Overview
-- Seven independent scoring engines running on NinjaScript lifecycle callbacks
-- Real-time data ingestion from Rithmic Level 2 DOM (up to 1,000 callbacks/second)
-- Deterministic consensus-based scoring pipeline (agreement ratio multiplier)
-- WPF overlay UI (header bar, left tabs, status pills, right panel) + SharpDX volumetric footprint rendering
-- Session-scoped state tracking (VWAP, Initial Balance, POC migration, Day Type)
-- NinjaTrader 8 integration via OnStateChange → OnBarUpdate → OnRender lifecycle
-## Layers
-- Purpose: Capture market data callbacks at tick/bar level granularity
-- Location: `OnMarketDepth` (lines 246–265), `OnMarketData` (lines 267–268), `OnBarUpdate` (lines 233–244)
-- Contains: Level 2 DOM queue updates, last trade price/volume, bar completion triggers
-- Depends on: NinjaTrader Cbi/Data APIs, VolumetricBarsType
-- Used by: All seven engines + session context
-- Purpose: Compute directional bias and confidence score for each strategic pattern
-- Location: `RunE1()` (lines 334–387), `RunE2()` (lines 389–402), `RunE3()` (lines 406–424), `RunE4()` (lines 427–442), `RunE5()` (lines 446–456), `RunE6()` (lines 460–480), `RunE7()` (lines 484–505)
-- Contains: Footprint absorption/imbalance analysis, DOM queue trespass, Wasserstein spoof detection, iceberg pattern matching, Naive Bayes micro-probability, DEX-ARRAY context scoring, Kalman filter velocity + logistic ML quality
-- Depends on: Session context state (_cvd, _vwap, _vsd, _ibH/_ibL, _pPoc, _emaVol), DOM arrays (_bV[], _aV[], _bP[], _aP[]), trade history queues
-- Used by: Scorer engine
-- Purpose: Maintain intra-session reference levels (VWAP, IB, POC, Day Type, GEX regime)
-- Location: `SessionReset()` (lines 282–290), `UpdateSession()` (lines 292–330)
-- Contains: VWAP/VAH/VAL calculation, Initial Balance tracking (type classification: Wide/Normal/Narrow), POC migration counter, Day Type classification (TrendBull/TrendBear/BalanceDay/Unknown)
-- Depends on: Bar OHLCV data, VolumetricBarsType for POC extraction
-- Used by: All engines (especially E6 VP+CTX), UI display (header/pills)
-- Purpose: Aggregate 7 engine scores into unified 0–100 confidence metric with signal type classification
-- Location: `Scorer()` (lines 509–526)
-- Contains: Direction voting (bit flags for bull/bear per engine), agreement ratio multiplier (max engines / total engines), signal type classification (TypeA ≥80, TypeB ≥65, TypeC ≥50)
-- Depends on: All engine outputs (_fpDir, _trDir, _icDir, _miDir, _dexDir + scores _fpSc through _vpSc)
-- Used by: Signal label generation, UI panel updates, chart rendering
-- Purpose: Draw volumetric footprint cells, POC lines, signal boxes, STKt markers onto chart canvas
-- Location: `InitDX()` (lines 573–593), `DisposeDX()` (lines 595–602), `RenderFP()` (lines 607–655), `RenderSigBoxes()` (lines 657–678), `RenderStk()` (lines 680–691)
-- Contains: Direct2D brush/font initialization, per-bar volumetric rendering (bid/ask cells with imbalance coloring), signal label box rendering, STKt triangle markers
-- Depends on: SharpDX.Direct2D1/DirectWrite APIs, ChartControl coordinate transforms
-- Used by: OnRender callback
-- Purpose: Build and update interactive overlay UI elements (header, pills, tabs, right panel)
-- Location: `BuildUI()` (line 695), `BuildHeader()` (lines 704–733), `BuildPills()` (lines 741–769), `BuildTabBar()` (lines 772–791), `BuildPanel()` (lines 794–843), `UpdatePanel()` (lines 879–927)
-- Contains: WPF Border/StackPanel/Canvas hierarchy, label binding, progress bar updates, status dot indicators, score gauge drawing
-- Depends on: WPF System.Windows.* namespaces, ChartControl hierarchy traversal (FindGrid)
-- Used by: Realtime event handler
-## Data Flow
-- **Per-Bar State:** `_fpSc`, `_fpDir`, `_trSc`, `_trDir`, `_icSc`, `_icDir`, `_miSc`, `_miDir`, `_dexFired`, `_dexDir`, `_vpSc`, `_mlSc`, `_total`, `_sigDir`, `_sigTyp`
-- **Per-Session State:** `_vwap`, `_vsd`, `_vah`, `_val`, `_ibH`, `_ibL`, `_ibTyp`, `_ibDone`, `_ibConf`, `_dPoc`, `_pPoc`, `_pocMB`, `_pocMU`, `_dayTyp`, `_oPx`, `_sOpen`, `_iHi`, `_iLo`, `_cvd`
-- **Queues/Buffers:** `_dQ` (delta queue, 5 bars), `_iLong` (imbalance long, 62 bars), `_iShort` (imbalance short, 12 bars), `_pLg` (large orders w/ timestamp), `_pTr` (trades w/ timestamp), `_mlH` (ML quality history, 20 bars), `_feed` (signal feed, max 12 items)
-## Key Abstractions
-- `GexRegime`: {NegativeAmplifying, NegativeStable, PositiveDampening, Neutral} — user-supplied external GEX regime
-- `DayType`: {TrendBull, TrendBear, FadeBull, FadeBear, BalanceDay, Unknown} — intra-session classification
-- `IbType`: {Wide, Normal, Narrow} — Initial Balance range classification
-- `SignalType`: {Quiet, TypeC, TypeB, TypeA} — signal severity
-- `VwapZone`: {Above2Sd, Above1Sd, AboveVwap, AtVwap, BelowVwap, Below1Sd, Below2Sd} — price proximity to VWAP
-- `MX_FP = 25.0`, `MX_TR = 20.0`, `MX_SP = 15.0`, `MX_IC = 15.0`, `MX_MI = 10.0`, `MX_VP = 15.0` — engine max point contributions
-- `DDEPTH = 10` — DOM depth array size
-- 7 engine-specific tuning groups (E1–E6), GEX user-supplied levels, Scoring thresholds, Display toggles
-- See README.md lines 172–192 for parameter semantics
-- Engine state stored as doubles: `_fpSc`, `_fpDir`, `_trSc`, `_trDir`, `_w1`, `_spSc`, `_icSc`, `_icDir`, `_pBull`, `_pBear`, `_miSc`, `_miDir`, `_vpSc`, `_dexFired`, `_mlSc`
-- Session state: grouping of VWAP/IB/POC/Day-related fields
-- Kalman filter state: `_kSt[2]` (position/velocity), `_kP[2,2]` (covariance matrix)
-## Entry Points
-- **State.SetDefaults:** Initialize all parameters with production-calibrated defaults
-- **State.Configure:** Add 1-minute data series for reference
-- **State.DataLoaded:** Create EMA(20) for volume/range smoothing, validate VolumetricBarsType availability
-- **State.Realtime:** Build UI (header, pills, tabs, panel) on Dispatcher
-- **State.Terminated:** Cleanup WPF and DirectX resources
-- Skip if BarsInProgress == 1 (ignore 1-min series)
-- Skip if CurrentBar < BarsRequiredToPlot (25 bars minimum)
-- Session initialization if first bar of session
-- Update session context (VWAP, IB, POC, Day Type)
-- Execute engines: RunE1(), RunE5(), RunE6(), RunE7()
-- Execute Scorer()
-- Plot values
-- Generate signal label if TypeB+
-- Update UI (levels, panel)
-- Fires ~1,000× per second during market hours
-- Populate DOM arrays (_bV, _aV, _bP, _aP)
-- Track large order placements (spoof detection)
-- Execute E2, E3 on every call
-- Last trade price/volume → E4 iceberg detection
-- Chart canvas repaint callback
-- Initialize DirectX on first call
-- Execute RenderFP, RenderSigBoxes, RenderStk conditionally based on Show* flags
-## Scoring Formula
-```
-```
-## Cross-Cutting Concerns
-- One-time print at DataLoaded: `[DEEP6] Loaded. Volumetric=true Instrument=NQ1!`
-- No per-bar logging (performance-critical path)
-- BarsRequiredToPlot: 25 bar minimum
-- MinCellVol threshold to filter noise in RenderFP
-- E3 ILong queue requires minimum 5 items before Wasserstein calc
-- Not applicable (NinjaTrader sandbox environment)
-- try-catch blocks in volumetric data access (VolumetricBarsType nullable checks)
-- DoesNotExist guards on UI traversal (FindGrid null check, Window.GetWindow null check)
-- Safe disposal pattern in DisposeDX: `D<T>(ref x)` generic helper
-- EMA decay: `_emaVol = _emaVol * 0.95 + vol * 0.05` (fast response)
-- Queue dequeuing: explicit `.Dequeue()` when capacity exceeded
-- OnMarketDepth returns early if Position >= DDEPTH
-- OnBarUpdate returns early on skip conditions
-- SharpDX batches rendering per visible bar range
-- Dispatcher.InvokeAsync prevents UI blocking
+Architecture not yet mapped. Follow existing patterns found in the codebase.
 <!-- GSD:architecture-end -->
 
 <!-- GSD:skills-start source:skills/ -->

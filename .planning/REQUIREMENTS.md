@@ -251,17 +251,167 @@
 
 ## Traceability
 
-Updated during roadmap creation.
+Updated during roadmap creation (2026-04-11).
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (populated by roadmapper) | | |
+| DATA-01 | Phase 1 | Pending |
+| DATA-02 | Phase 1 | Pending |
+| DATA-03 | Phase 1 | Pending |
+| DATA-04 | Phase 1 | Pending |
+| DATA-05 | Phase 1 | Pending |
+| DATA-06 | Phase 1 | Pending |
+| DATA-07 | Phase 1 | Pending |
+| DATA-08 | Phase 1 | Pending |
+| DATA-09 | Phase 1 | Pending |
+| DATA-10 | Phase 1 | Pending |
+| ARCH-01 | Phase 1 | Pending |
+| ARCH-02 | Phase 1 | Pending |
+| ARCH-03 | Phase 1 | Pending |
+| ARCH-04 | Phase 1 | Pending |
+| ARCH-05 | Phase 1 | Pending |
+| ABS-01 | Phase 2 | Pending |
+| ABS-02 | Phase 2 | Pending |
+| ABS-03 | Phase 2 | Pending |
+| ABS-04 | Phase 2 | Pending |
+| ABS-05 | Phase 2 | Pending |
+| ABS-06 | Phase 2 | Pending |
+| ABS-07 | Phase 2 | Pending |
+| EXH-01 | Phase 2 | Pending |
+| EXH-02 | Phase 2 | Pending |
+| EXH-03 | Phase 2 | Pending |
+| EXH-04 | Phase 2 | Pending |
+| EXH-05 | Phase 2 | Pending |
+| EXH-06 | Phase 2 | Pending |
+| EXH-07 | Phase 2 | Pending |
+| EXH-08 | Phase 2 | Pending |
+| IMB-01 | Phase 3 | Pending |
+| IMB-02 | Phase 3 | Pending |
+| IMB-03 | Phase 3 | Pending |
+| IMB-04 | Phase 3 | Pending |
+| IMB-05 | Phase 3 | Pending |
+| IMB-06 | Phase 3 | Pending |
+| IMB-07 | Phase 3 | Pending |
+| IMB-08 | Phase 3 | Pending |
+| IMB-09 | Phase 3 | Pending |
+| DELT-01 | Phase 3 | Pending |
+| DELT-02 | Phase 3 | Pending |
+| DELT-03 | Phase 3 | Pending |
+| DELT-04 | Phase 3 | Pending |
+| DELT-05 | Phase 3 | Pending |
+| DELT-06 | Phase 3 | Pending |
+| DELT-07 | Phase 3 | Pending |
+| DELT-08 | Phase 3 | Pending |
+| DELT-09 | Phase 3 | Pending |
+| DELT-10 | Phase 3 | Pending |
+| DELT-11 | Phase 3 | Pending |
+| AUCT-01 | Phase 3 | Pending |
+| AUCT-02 | Phase 3 | Pending |
+| AUCT-03 | Phase 3 | Pending |
+| AUCT-04 | Phase 3 | Pending |
+| AUCT-05 | Phase 3 | Pending |
+| ENG-01 | Phase 3 | Pending |
+| ENG-08 | Phase 3 | Pending |
+| ENG-09 | Phase 3 | Pending |
+| TRAP-01 | Phase 4 | Pending |
+| TRAP-02 | Phase 4 | Pending |
+| TRAP-03 | Phase 4 | Pending |
+| TRAP-04 | Phase 4 | Pending |
+| TRAP-05 | Phase 4 | Pending |
+| VOLP-01 | Phase 4 | Pending |
+| VOLP-02 | Phase 4 | Pending |
+| VOLP-03 | Phase 4 | Pending |
+| VOLP-04 | Phase 4 | Pending |
+| VOLP-05 | Phase 4 | Pending |
+| VOLP-06 | Phase 4 | Pending |
+| ENG-02 | Phase 4 | Pending |
+| ENG-03 | Phase 4 | Pending |
+| ENG-04 | Phase 4 | Pending |
+| ENG-05 | Phase 4 | Pending |
+| POC-01 | Phase 5 | Pending |
+| POC-02 | Phase 5 | Pending |
+| POC-03 | Phase 5 | Pending |
+| POC-04 | Phase 5 | Pending |
+| POC-05 | Phase 5 | Pending |
+| POC-06 | Phase 5 | Pending |
+| POC-07 | Phase 5 | Pending |
+| POC-08 | Phase 5 | Pending |
+| VPRO-01 | Phase 5 | Pending |
+| VPRO-02 | Phase 5 | Pending |
+| VPRO-03 | Phase 5 | Pending |
+| VPRO-04 | Phase 5 | Pending |
+| VPRO-05 | Phase 5 | Pending |
+| VPRO-06 | Phase 5 | Pending |
+| VPRO-07 | Phase 5 | Pending |
+| VPRO-08 | Phase 5 | Pending |
+| GEX-01 | Phase 5 | Pending |
+| GEX-02 | Phase 5 | Pending |
+| GEX-03 | Phase 5 | Pending |
+| GEX-04 | Phase 5 | Pending |
+| GEX-05 | Phase 5 | Pending |
+| GEX-06 | Phase 5 | Pending |
+| ZONE-01 | Phase 5 | Pending |
+| ZONE-02 | Phase 5 | Pending |
+| ZONE-03 | Phase 5 | Pending |
+| ZONE-04 | Phase 5 | Pending |
+| ZONE-05 | Phase 5 | Pending |
+| ENG-06 | Phase 5 | Pending |
+| ENG-07 | Phase 5 | Pending |
+| KRON-01 | Phase 6 | Pending |
+| KRON-02 | Phase 6 | Pending |
+| KRON-03 | Phase 6 | Pending |
+| KRON-04 | Phase 6 | Pending |
+| KRON-05 | Phase 6 | Pending |
+| KRON-06 | Phase 6 | Pending |
+| TVMCP-01 | Phase 6 | Pending |
+| TVMCP-02 | Phase 6 | Pending |
+| TVMCP-03 | Phase 6 | Pending |
+| TVMCP-04 | Phase 6 | Pending |
+| TVMCP-05 | Phase 6 | Pending |
+| TVMCP-06 | Phase 6 | Pending |
+| ENG-10 | Phase 6 | Pending |
+| SCOR-01 | Phase 7 | Pending |
+| SCOR-02 | Phase 7 | Pending |
+| SCOR-03 | Phase 7 | Pending |
+| SCOR-04 | Phase 7 | Pending |
+| SCOR-05 | Phase 7 | Pending |
+| SCOR-06 | Phase 7 | Pending |
+| TEST-01 | Phase 7 | Pending |
+| TEST-02 | Phase 7 | Pending |
+| TEST-03 | Phase 7 | Pending |
+| TEST-04 | Phase 7 | Pending |
+| TEST-05 | Phase 7 | Pending |
+| TEST-06 | Phase 7 | Pending |
+| TEST-07 | Phase 7 | Pending |
+| EXEC-01 | Phase 8 | Pending |
+| EXEC-02 | Phase 8 | Pending |
+| EXEC-03 | Phase 8 | Pending |
+| EXEC-04 | Phase 8 | Pending |
+| EXEC-05 | Phase 8 | Pending |
+| EXEC-06 | Phase 8 | Pending |
+| EXEC-07 | Phase 8 | Pending |
+| EXEC-08 | Phase 8 | Pending |
+| ML-01 | Phase 9 | Pending |
+| ML-02 | Phase 9 | Pending |
+| ML-03 | Phase 9 | Pending |
+| ML-04 | Phase 9 | Pending |
+| ML-05 | Phase 9 | Pending |
+| ML-06 | Phase 9 | Pending |
+| ML-07 | Phase 9 | Pending |
+| ML-08 | Phase 9 | Pending |
+| DASH-01 | Phase 10 | Pending |
+| DASH-02 | Phase 10 | Pending |
+| DASH-03 | Phase 10 | Pending |
+| DASH-04 | Phase 10 | Pending |
+| DASH-05 | Phase 10 | Pending |
+| DASH-06 | Phase 10 | Pending |
+| DASH-07 | Phase 10 | Pending |
 
 **Coverage:**
-- v1 requirements: 139 total
-- Mapped to phases: 0
-- Unmapped: 139
+- v1 requirements: 151 total (21 categories — REQUIREMENTS.md header said 139; actual count is 151)
+- Mapped to phases: 151
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-13*
-*Last updated: 2026-04-13 after Python pivot*
+*Last updated: 2026-04-11 — traceability populated by roadmapper*
