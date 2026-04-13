@@ -20,6 +20,7 @@ from collections import deque
 from dataclasses import dataclass
 from enum import Enum, auto
 
+from deep6.engines.signal_config import POCConfig
 from deep6.state.footprint import FootprintBar, price_to_tick, tick_to_price
 
 
@@ -49,15 +50,30 @@ class POCSignal:
 class POCEngine:
     """Stateful POC/VA engine tracking session POC migration and value areas."""
 
-    def __init__(self, va_pct: float = 0.70, poc_gap_ticks: int = 8):
-        self.va_pct = va_pct
-        self.poc_gap_ticks = poc_gap_ticks
+    def __init__(
+        self,
+        config: POCConfig | None = None,
+        va_pct: float | None = None,
+        poc_gap_ticks: int | None = None,
+    ):
+        if config is None:
+            # Support legacy kwargs for backward compat
+            kwargs: dict = {}
+            if va_pct is not None:
+                kwargs['va_pct'] = va_pct
+            if poc_gap_ticks is not None:
+                kwargs['poc_gap_ticks'] = poc_gap_ticks
+            config = POCConfig(**kwargs)
+        self.config = config
+        self.va_pct = config.va_pct          # keep attribute for any direct references
+        self.poc_gap_ticks = config.poc_gap_ticks
         self.session_poc: float = 0.0
         self.prev_poc: float = 0.0
         self.poc_streak: int = 0
         self.prev_vah: float = 0.0
         self.prev_val: float = 0.0
         self.poc_history: deque[float] = deque(maxlen=50)
+        self.poc_migration_history: deque[float] = deque(maxlen=self.config.migration_window)
 
     def reset(self) -> None:
         self.session_poc = 0.0
@@ -96,13 +112,13 @@ class POCEngine:
         body_top = max(bar.open, bar.close)
         body_bot = min(bar.open, bar.close)
 
-        if poc >= body_top and poc >= bar.high - bar.bar_range * 0.15:
+        if poc >= body_top and poc >= bar.high - bar.bar_range * self.config.extreme_top_pct:
             # POC at top = P-shaped profile (bearish reversal)
             signals.append(POCSignal(
                 POCType.EXTREME_POC_HIGH, -1, poc, 0.7,
                 f"EXTREME POC at HIGH {poc:.2f} — P-profile bearish reversal",
             ))
-        elif poc <= body_bot and poc <= bar.low + bar.bar_range * 0.15:
+        elif poc <= body_bot and poc <= bar.low + bar.bar_range * self.config.extreme_bot_pct:
             # POC at bottom = B-shaped profile (bullish reversal)
             signals.append(POCSignal(
                 POCType.EXTREME_POC_LOW, +1, poc, 0.7,
@@ -117,7 +133,7 @@ class POCEngine:
             else:
                 self.poc_streak = 1
 
-            if self.poc_streak >= 3:
+            if self.poc_streak >= self.config.continuous_streak_min:
                 signals.append(POCSignal(
                     POCType.CONTINUOUS_POC, 0, poc, min(self.poc_streak / 5.0, 1.0),
                     f"CONTINUOUS POC x{self.poc_streak} at {poc:.2f} — strong acceptance",
@@ -172,12 +188,12 @@ class POCEngine:
         # --- 8. BULLISH/BEARISH POC (POC-08) ---
         if bar.bar_range > 0:
             poc_position = (poc - bar.low) / bar.bar_range
-            if poc_position < 0.35 and bar.close > bar.open:
+            if poc_position < self.config.bullish_poc_position_max and bar.close > bar.open:
                 signals.append(POCSignal(
                     POCType.BULLISH_POC, +1, poc, 0.6,
                     f"BULLISH POC: POC at {poc_position*100:.0f}% (low) in green bar — B-profile",
                 ))
-            elif poc_position > 0.65 and bar.close < bar.open:
+            elif poc_position > self.config.bearish_poc_position_min and bar.close < bar.open:
                 signals.append(POCSignal(
                     POCType.BEARISH_POC, -1, poc, 0.6,
                     f"BEARISH POC: POC at {poc_position*100:.0f}% (high) in red bar — P-profile",
@@ -185,11 +201,28 @@ class POCEngine:
 
         # Update state for next bar
         self.prev_poc = poc
+        self.poc_migration_history.append(poc)
         self.prev_vah = vah
         self.prev_val = val
         self.session_poc = self._compute_session_poc()
 
         return signals
+
+    def get_migration(self) -> tuple[int, float]:
+        """Return (direction, velocity) of session POC migration.
+
+        direction: +1 (rising), -1 (falling), 0 (flat)
+        velocity: absolute ticks/bar over migration_window
+        VPRO-08: POC migration direction and velocity.
+        """
+        hist = list(self.poc_migration_history)
+        if len(hist) < 2:
+            return (0, 0.0)
+        ticks = [price_to_tick(p) for p in hist]
+        # Average tick change per bar
+        velocity = (ticks[-1] - ticks[0]) / (len(ticks) - 1)
+        direction = +1 if velocity > 0.5 else -1 if velocity < -0.5 else 0
+        return (direction, abs(velocity))
 
     def _compute_va(self, bar: FootprintBar) -> tuple[float, float]:
         """Compute Value Area High and Low for the bar (70% of volume)."""

@@ -21,6 +21,7 @@ from typing import Optional
 
 import numpy as np
 
+from deep6.engines.signal_config import VolumeProfileConfig
 from deep6.state.footprint import FootprintBar, price_to_tick, tick_to_price
 
 
@@ -53,28 +54,33 @@ class VolumeZone:
     inverted: bool = False   # True if zone has been flipped once
 
 
-@dataclass
 class SessionProfile:
     """Maintains cumulative session volume profile and zone registry."""
-    tick_size: float = 0.25
-    bins: dict[int, float] = field(default_factory=lambda: defaultdict(float))
-    zones: list[VolumeZone] = field(default_factory=list)
-    bar_count: int = 0
 
-    # Detection thresholds
-    lvn_threshold: float = 0.30   # bins < 30% of average = LVN
-    hvn_threshold: float = 1.70   # bins > 170% of average = HVN
-    min_zone_ticks: int = 2       # minimum zone width in ticks
-    max_zones: int = 80           # cap on active zones
-
-    # Scoring weights (VPRO-05)
-    w_type: float = 0.35
-    w_recency: float = 0.25
-    w_touches: float = 0.25
-    w_defense: float = 0.15
-
-    # Decay
-    zone_decay_rate: float = 0.005  # per bar (~140 bar half-life)
+    def __init__(
+        self,
+        config: VolumeProfileConfig | None = None,
+        prior_bins: dict | None = None,
+    ) -> None:
+        self.config = config or VolumeProfileConfig()
+        self.tick_size: float = 0.25
+        self.bins: dict[int, float] = defaultdict(float)
+        self.zones: list[VolumeZone] = []
+        self.bar_count: int = 0
+        # Expose config thresholds as attributes for code that accesses them directly
+        self.lvn_threshold = self.config.lvn_threshold
+        self.hvn_threshold = self.config.hvn_threshold
+        self.min_zone_ticks = self.config.min_zone_ticks
+        self.max_zones = self.config.max_zones
+        self.w_type = self.config.w_type
+        self.w_recency = self.config.w_recency
+        self.w_touches = self.config.w_touches
+        self.w_defense = self.config.w_defense
+        self.zone_decay_rate = self.config.zone_decay_rate
+        # VPRO-07: Multi-session persistence — decay prior session bins
+        if prior_bins:
+            for tick, vol in prior_bins.items():
+                self.bins[tick] = vol * self.config.session_decay_weight
 
     def add_bar(self, bar: FootprintBar) -> None:
         """Accumulate one bar's volume into the session profile."""

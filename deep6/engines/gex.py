@@ -23,6 +23,8 @@ from typing import Optional
 import numpy as np
 import requests
 
+from deep6.engines.signal_config import GexConfig
+
 
 class GexRegime(Enum):
     POSITIVE_DAMPENING = auto()   # Above gamma flip — mean-reverting, favor fading
@@ -71,15 +73,18 @@ class GexEngine:
     def __init__(
         self,
         api_key: str,
+        config: GexConfig | None = None,
         base_url: str = "https://api.polygon.io",
-        underlying: str = "QQQ",
-        staleness_seconds: float = 900.0,  # 15 min
+        underlying: str | None = None,
+        staleness_seconds: float | None = None,
         spot_price: float = 0.0,
     ):
+        self.config = config or GexConfig()
         self.api_key = api_key
         self.base_url = base_url
-        self.underlying = underlying
-        self.staleness_seconds = staleness_seconds
+        # Legacy kwargs override config (backward compat)
+        self.staleness_seconds = staleness_seconds if staleness_seconds is not None else self.config.staleness_seconds
+        self.underlying = underlying if underlying is not None else self.config.underlying
         self._levels: Optional[GexLevels] = None
         self._last_fetch: float = 0.0
 
@@ -128,11 +133,11 @@ class GexEngine:
             levels.stale = True
 
         # QQQ proxy price (approximate)
-        qqq_approx = nq_price / 40.0
+        qqq_approx = nq_price / self.config.nq_to_qqq_divisor
 
-        # Near wall detection (within 0.5%)
-        near_call = abs(qqq_approx - levels.call_wall) / levels.call_wall < 0.005 if levels.call_wall > 0 else False
-        near_put = abs(qqq_approx - levels.put_wall) / levels.put_wall < 0.005 if levels.put_wall > 0 else False
+        # Near wall detection (within near_wall_pct)
+        near_call = abs(qqq_approx - levels.call_wall) / levels.call_wall < self.config.near_wall_pct if levels.call_wall > 0 else False
+        near_put = abs(qqq_approx - levels.put_wall) / levels.put_wall < self.config.near_wall_pct if levels.put_wall > 0 else False
 
         # Regime determines direction preference
         if levels.regime == GexRegime.POSITIVE_DAMPENING:
@@ -152,7 +157,7 @@ class GexEngine:
 
         strength = 0.0
         if levels.net_gex_at_spot != 0:
-            strength = min(abs(levels.net_gex_at_spot) / 1e9, 1.0)  # Normalize
+            strength = min(abs(levels.net_gex_at_spot) / self.config.gex_normalize_divisor, 1.0)  # Normalize
 
         return GexSignal(
             regime=levels.regime,
