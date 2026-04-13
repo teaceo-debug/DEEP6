@@ -188,6 +188,9 @@ class GexEngine:
                 return []
             data = r.json()
             all_contracts.extend(data.get("results", []))
+            # T-05-02: Guard against infinite pagination from malformed next_url
+            if len(all_contracts) > 10000:
+                break
             url = data.get("next_url")
             params = {"apiKey": self.api_key}  # next_url has other params built in
 
