@@ -11,15 +11,22 @@ Per KRON-01..06:
   - CPU or GPU inference (GPU preferred)
 
 Integration: E10 contributes a directional bias score to the confluence scorer.
+
+Production use: KronosSubprocessBridge (subprocess-isolated, async-safe).
+Legacy use:     KronosEngine (synchronous, blocks event loop — for unit tests only).
 """
 from __future__ import annotations
 
+import asyncio
 import time
 from dataclasses import dataclass
 from typing import Optional
 
 import numpy as np
 import pandas as pd
+
+from deep6.engines.signal_config import KronosConfig
+from deep6.engines.kronos_worker import KronosWorkerProcess
 
 
 @dataclass
@@ -37,6 +44,9 @@ class KronosBias:
 
 class KronosEngine:
     """E10: Kronos bias engine with lazy model loading and inference caching.
+
+    Deprecated: Use KronosSubprocessBridge for production. Kept for unit testing
+    without subprocess overhead.
 
     The model is loaded on first use and kept in memory permanently.
     Inference runs every `inference_interval` bars; between inferences,
@@ -229,4 +239,85 @@ class KronosEngine:
             bars_since_inference=0,
             detail=f"KRONOS FALLBACK: momentum {'BULL' if direction > 0 else 'BEAR'} "
                    f"slope={slope:.2f} conf={confidence:.0f}%",
+        )
+
+
+class KronosSubprocessBridge:
+    """E10 production bridge: delegates inference to KronosWorkerProcess.
+
+    Manages the 5-bar re-inference cadence and per-bar confidence decay.
+    All inference is non-blocking — get_bias() uses run_in_executor.
+
+    Per KRON-01..06, D-01..D-04.
+    """
+
+    def __init__(self, cfg: KronosConfig) -> None:
+        self.cfg = cfg
+        self._worker = KronosWorkerProcess(cfg)
+        self._ohlcv_buffer: list[dict] = []
+        self._last_bias: Optional[KronosBias] = None
+        self._bars_since: int = 0
+
+    def start(self) -> None:
+        """Start the worker subprocess. Call once before any add_bar()."""
+        self._worker.start()
+
+    def stop(self) -> None:
+        """Cleanly shut down the worker subprocess."""
+        self._worker.stop()
+
+    def add_bar(self, open_: float, high: float, low: float, close: float, volume: float) -> None:
+        """Buffer one OHLCV bar. Call on every bar close before get_bias()."""
+        self._ohlcv_buffer.append({
+            "open": open_, "high": high, "low": low,
+            "close": close, "volume": volume,
+        })
+        if len(self._ohlcv_buffer) > self.cfg.lookback:
+            self._ohlcv_buffer = self._ohlcv_buffer[-self.cfg.lookback:]
+        self._bars_since += 1
+
+    async def get_bias(self) -> KronosBias:
+        """Get current E10 bias. Non-blocking — safe to await in event loop.
+
+        Returns fresh inference every cfg.inference_interval bars;
+        returns decayed cached result between inferences.
+        """
+        current_close = self._ohlcv_buffer[-1]["close"] if self._ohlcv_buffer else 0.0
+
+        if len(self._ohlcv_buffer) < 20:
+            return KronosBias(
+                direction=0, confidence=0, predicted_close=0,
+                current_close=current_close, samples=0,
+                inference_time_ms=0, bars_since_inference=self._bars_since,
+                detail="KRONOS: insufficient data (need 20+ bars)",
+            )
+
+        should_infer = (
+            self._last_bias is None
+            or self._bars_since >= self.cfg.inference_interval
+        )
+
+        if should_infer:
+            loop = asyncio.get_event_loop()
+            bias = await loop.run_in_executor(
+                None,
+                self._worker.request_inference,
+                list(self._ohlcv_buffer),
+                self.cfg.num_samples,
+            )
+            self._last_bias = bias
+            self._bars_since = 0
+            return bias
+
+        # Decay cached result
+        decayed = self._last_bias.confidence * (self.cfg.decay_factor ** self._bars_since)
+        return KronosBias(
+            direction=self._last_bias.direction,
+            confidence=decayed,
+            predicted_close=self._last_bias.predicted_close,
+            current_close=current_close,
+            samples=self._last_bias.samples,
+            inference_time_ms=self._last_bias.inference_time_ms,
+            bars_since_inference=self._bars_since,
+            detail=f"KRONOS: cached (decayed {decayed:.0f}%, {self._bars_since} bars ago)",
         )
