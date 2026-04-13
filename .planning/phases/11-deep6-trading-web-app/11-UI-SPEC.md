@@ -91,7 +91,7 @@ Exceptions:
 | Exception | Value | Reason |
 |-----------|-------|--------|
 | Touch targets (replay controls) | 44px min height | Accessibility — WCAG 2.5.5 |
-| Footprint cell row height | 20px | Density requirement — 30 rows visible in fixed chart height |
+| Footprint cell row height | 20px | Multiple-of-4 compliant density value — enables 30 rows visible in fixed chart height |
 | Signal feed row height | 48px | Accommodates two lines of text + badge at comfortable scan density |
 
 ---
@@ -176,6 +176,16 @@ Secondary accent usage (not "accent" budget, part of semantic palette):
 
 ---
 
+## Visuals
+
+### Primary Focal Point
+
+The 28px JetBrains Mono 600 confluence score number in the Score Widget is the single primary visual focal point of the entire layout. It must be the largest and most visually dominant number on screen. All other numeric elements (prices, volumes, delta) are 13px. The 28px score number must remain unambiguous at a glance — the operator's first look lands here to assess overall trade readiness.
+
+No other element in Phase 11 uses 28px or larger type.
+
+---
+
 ## Layout
 
 ### Overall Structure
@@ -183,29 +193,30 @@ Secondary accent usage (not "accent" budget, part of semantic palette):
 Three-column layout at 1440px design width. Fixed header strip. No scrolling page — each panel manages its own internal scroll.
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│  HEADER STRIP  [NQ  21,450.25]  [E10: LONG 72%]  [GEX: POS]  [WS●] │
-│  h: 40px  bg: #111118  border-b: #1e1e2e                            │
-├──────────────────────────┬──────────────────────┬───────────────────┤
-│                          │                      │                   │
-│   FOOTPRINT CHART        │   SIGNAL FEED        │   SCORE WIDGET    │
-│                          │   (scrollable)       │                   │
-│   flex: 1 1 auto         │   w: 320px           │   w: 240px        │
-│   min-w: 600px           │   fixed              │   fixed           │
-│                          │                      │                   │
-│   [LW Charts host]       │   20 entries vis.    │   Big score num   │
-│   [canvas overlay]       │   infinite scroll    │   Category bars   │
-│                          │                      │   Kronos bias     │
-│                          ├──────────────────────┤                   │
-│                          │                      │                   │
-│                          │   TAPE & SALES       │                   │
-│                          │   (last 50 T&S rows) │                   │
-│                          │   h: 200px           │                   │
-│                          │   border-t: #1e1e2e  │                   │
-├──────────────────────────┴──────────────────────┴───────────────────┤
-│  REPLAY CONTROLS  [|◀] [◀] [▶] [▶|]  bar: ___  speed: [1x▾]  [LIVE]│
-│  h: 48px  bg: #111118  border-t: #1e1e2e                            │
-└─────────────────────────────────────────────────────────────────────┘
++-----------------------------------------------------------------+
+| HEADER STRIP  [NQ  21,450.25]  [E10: LONG 72%]  [GEX: POS] [o] |
+| h: 40px  bg: #111118  border-b: #1e1e2e                         |
++-------------------------+--------------------+-------------------+
+|                         |                    |                   |
+| FOOTPRINT CHART         | SIGNAL FEED        | SCORE WIDGET      |
+|                         | (scrollable)       |                   |
+| flex: 1 1 auto          | w: 320px           | w: 240px          |
+| min-w: 600px            | fixed              | fixed             |
+|                         |                    |                   |
+| [LW Charts host]        | 20 entries vis.    | Big score num     |
+| [canvas overlay]        | infinite scroll    | Category bars     |
+|                         |                    | Kronos bias       |
+|                         +--------------------+                   |
+|                         |                    |                   |
+|                         | TAPE & SALES       |                   |
+|                         | (last 50 T&S rows) |                   |
+|                         | h: 200px           |                   |
+|                         | border-t: #1e1e2e  |                   |
++-------------------------+--------------------+-------------------+
+| REPLAY CONTROLS  [SkipBack][Play][Pause][SkipForward]           |
+|   bar: ___  speed: [1x v]  [LIVE]                               |
+| h: 48px  bg: #111118  border-t: #1e1e2e                         |
++-----------------------------------------------------------------+
 ```
 
 ### Column Widths
@@ -223,7 +234,7 @@ Height: 40px. Background `#111118`. Bottom border `1px solid #1e1e2e`.
 
 Contents (left to right):
 - DEEP6 wordmark (Inter 13px weight 600, `#fafafa`)
-- Instrument: `NQ` (Inter 13px 600) + current price (JetBrains Mono 14px 600, `#fafafa`)
+- Instrument: `NQ` (Inter 13px 600) + current price (JetBrains Mono 13px 600, `#fafafa`)
 - Separator `|`
 - E10 Kronos bias: label "E10" (Inter 13px muted) + value "LONG 72%" (Inter 13px 600, color `#22c55e` if long, `#ef4444` if short, `#6b7280` if neutral)
 - GEX regime: label "GEX" (Inter 13px muted) + value "POS GAMMA" / "NEG GAMMA" (Inter 13px 600, `#22c55e` / `#ef4444`)
@@ -234,8 +245,10 @@ Contents (left to right):
 Height: 48px (min touch target compliance). Background `#111118`. Top border `1px solid #1e1e2e`.
 
 Contents:
-- Prev-bar button `|◀` (shadcn `Button` variant ghost, 44px × 44px)
-- Next-bar button `▶|` (same)
+- Prev-bar button: lucide-react `SkipBack` icon (shadcn `Button` variant ghost, 44px × 44px)
+- Play button: lucide-react `Play` icon (same sizing)
+- Pause button: lucide-react `Pause` icon (same sizing)
+- Next-bar button: lucide-react `SkipForward` icon (same sizing)
 - Jump-to-bar input: shadcn `Input`, 80px wide, monospace, placeholder "bar #"
 - Playback speed selector: shadcn `Select`, options `1x / 2x / 5x / auto`, 72px wide
 - LIVE button: shadcn `Button` variant outline, 56px wide, label "LIVE", active state bg `#a3e635` text `#0a0a0f` (lime on dark)
@@ -322,12 +335,12 @@ The custom series renderer draws per bar:
 1. **OHLC candlestick body** — standard candle using open/close, colored `#22c55e` (bullish) or `#ef4444` (bearish).
 2. **Footprint cell grid** — for each `FootprintLevel` in the bar's visible range:
    - Row height: 20px
-   - Bid volume text: left-aligned, JetBrains Mono 11px, color `#ef4444`
-   - Ask volume text: right-aligned, JetBrains Mono 11px, color `#22c55e`
+   - Bid volume text: left-aligned, JetBrains Mono 12px, color `#ef4444`
+   - Ask volume text: right-aligned, JetBrains Mono 12px, color `#22c55e`
    - Background of cell: proportional fill — bid volume fills from left in `rgba(239,68,68,0.15)`, ask volume fills from right in `rgba(34,197,94,0.15)`
    - Imbalance highlight: when `isImbalance === true`, full cell background `rgba(163,230,53,0.25)` (lime wash)
    - POC row: full-width horizontal line `1px solid #facc15` at the poc price
-3. **Delta footer** — below the candle body, delta value in JetBrains Mono 11px, `#22c55e` if positive, `#ef4444` if negative.
+3. **Delta footer** — below the candle body, delta value in JetBrains Mono 12px, `#22c55e` if positive, `#ef4444` if negative.
 4. **Signal marker** — if `signalType` is set, render a colored triangle marker above the high:
    - TYPE_A: `#a3e635` (lime) upward or downward triangle, 8px
    - TYPE_B: `#facc15` (yellow)
@@ -362,20 +375,20 @@ Zone bands span the full width of the chart at the zone's price range. The canva
 Each `SignalFeedRow` is 48px tall. Layout:
 
 ```
-┌──────────────────────────────────────────────────────┐
-│ ▌  [TYPE_A]  ABSORBED @VAH  ·  21,450.25   08:32:14 │
-│    Score: 87  ·  E1+E6+E10 agree  ·  +delta          │
-└──────────────────────────────────────────────────────┘
++------------------------------------------------------+
+| |  [TYPE_A]  ABSORBED @VAH  .  21,450.25   08:32:14 |
+|    Score: 87  .  E1+E6+E10 agree  .  +delta          |
++------------------------------------------------------+
   ^      ^         ^                  ^          ^
-  │      │         │                  │          │
-  │      badge     narrative label    price      time
-  │
+  |      |         |                  |          |
+  |      badge     narrative label    price      time
+  |
   4px left border color (type-a=#a3e635, type-b=#facc15, type-c=#38bdf8)
 ```
 
 Left border: 4px solid, color matches signal type. This is the primary visual differentiator.
 
-Badge: shadcn `Badge`, 6px padding, 11px Inter 600, bg = type color at 20% opacity, text = type color full.
+Badge: shadcn `Badge`, 6px padding, 12px Inter 600, bg = type color at 20% opacity, text = type color full.
 
 Narrative label: Inter 13px 400, `#e4e4e7`.
 
@@ -431,35 +444,35 @@ Apply `signal-type-a-pulse` class to the row element via React `key` trick — a
 ### Layout (240px wide panel)
 
 ```
-┌─────────────────────────┐
-│  CONFLUENCE SCORE       │  ← Inter 13px 600 muted label
-│                         │
-│         87              │  ← JetBrains Mono 28px 600
-│      ████████░          │  ← progress bar, color by score range
-│                         │
-│  ─── Categories ─────── │
-│  Absorption   ■■■■■     │  (5 of 8 bars lit)
-│  Exhaustion   ■■■░░     │
-│  Imbalance    ■■■■░     │
-│  Delta        ■■░░░     │
-│  Auction      ■■■░░     │
-│  Volume       ■■■■░     │
-│  Trap         ■░░░░     │
-│  ML/Context   ■■■■░     │
-│                         │
-│  ─── Kronos E10 ──────  │
-│  LONG  ████████░  72%   │  ← bias bar
-│                         │
-│  ─── GEX Regime ──────  │
-│  POS GAMMA              │  ← text, green
-└─────────────────────────┘
++-------------------------+
+| CONFLUENCE SCORE        |  <- Inter 13px 600 muted label
+|                         |
+|         87              |  <- JetBrains Mono 28px 600 (PRIMARY FOCAL POINT)
+|      ########.          |  <- progress bar, color by score range
+|                         |
+| --- Categories -------- |
+| Absorption  #####       |  (5 of 8 bars lit)
+| Exhaustion  ###..       |
+| Imbalance   ####.       |
+| Delta       ##...       |
+| Auction     ###..       |
+| Volume      ####.       |
+| Trap        #....       |
+| ML/Context  ####.       |
+|                         |
+| --- Kronos E10 ------   |
+| LONG  ########.  72%    |  <- bias bar
+|                         |
+| --- GEX Regime ------   |
+| POS GAMMA               |  <- text, green
++-------------------------+
 ```
 
-**Score number**: JetBrains Mono 28px 600. Color: `#a3e635` if >=80, `#facc15` if 50-79, `#6b7280` if <50.
+**Score number**: JetBrains Mono 28px 600. This is the primary visual focal point of the entire layout — the largest number on screen. Color: `#a3e635` if >=80, `#facc15` if 50-79, `#6b7280` if <50.
 
 **Score progress bar**: full width minus 32px padding, 8px height, rounded. Fill color matches score color. Background `#1e1e2e`.
 
-**Category bars**: 8 rows at 20px each. Label Inter 12px 400 `#6b7280`, 80px wide. Bar: 5 cells (one per 20% of max category score), each cell 12px × 8px with 2px gap. Lit cells use category's signal type color (`#a3e635` for absorption/exhaustion/trap, `#38bdf8` for imbalance/auction, `#facc15` for delta/volume, `#a3e635` for ML/context). Unlit cells `#1e1e2e`.
+**Category bars**: 8 rows at 20px each. Label Inter 12px 400 `#6b7280`, 80px wide. Bar: 5 cells (one per 20% of max category score), each cell 8px × 8px with 4px gap. Lit cells use category's signal type color (`#a3e635` for absorption/exhaustion/trap, `#38bdf8` for imbalance/auction, `#facc15` for delta/volume, `#a3e635` for ML/context). Unlit cells `#1e1e2e`.
 
 **Kronos bias bar**: horizontal progress bar, direction label (LONG/SHORT/NEUTRAL), confidence percentage. Color: long = `#22c55e`, short = `#ef4444`, neutral = `#6b7280`.
 
@@ -473,7 +486,7 @@ Panel height: 200px. Fixed at bottom of right column. Background `#111118`. Top 
 
 50 rows visible, new entries prepend. Each row is 20px height. Auto-scroll to top always (user cannot prevent — T&S is always live).
 
-Row columns (JetBrains Mono 11px 400):
+Row columns (JetBrains Mono 12px 400):
 
 | Column | Width | Color |
 |--------|-------|-------|
@@ -494,8 +507,10 @@ Oversized trade (> N contracts configurable threshold): entire row background `r
 | Panel: signal feed | "Signals" |
 | Panel: score | "Confluence" |
 | Panel: tape | "Tape & Sales" |
-| Replay: previous bar | "← Prev" (aria-label: "Previous bar") |
-| Replay: next bar | "Next →" (aria-label: "Next bar") |
+| Replay: previous bar | "Prev" (aria-label: "Previous bar", icon: lucide-react SkipBack) |
+| Replay: play | "Play" (aria-label: "Play replay", icon: lucide-react Play) |
+| Replay: pause | "Pause" (aria-label: "Pause replay", icon: lucide-react Pause) |
+| Replay: next bar | "Next" (aria-label: "Next bar", icon: lucide-react SkipForward) |
 | Replay: live button | "LIVE" |
 | Replay: speed label | "Speed" |
 | Replay: bar input placeholder | "bar #" |
