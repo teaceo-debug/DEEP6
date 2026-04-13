@@ -21,6 +21,7 @@ from deep6.engines.delta import DeltaSignal
 from deep6.engines.auction import AuctionSignal
 from deep6.engines.poc import POCSignal
 from deep6.engines.volume_profile import VolumeZone, ZoneState
+from deep6.engines.gex import GexSignal, GexRegime
 from deep6.engines.signal_config import ScorerConfig, AbsorptionConfig
 
 
@@ -79,6 +80,7 @@ def score_bar(
     abs_config: AbsorptionConfig | None = None,
     bar_delta: int = 0,
     bar_index_in_session: int = -1,
+    gex_signal: GexSignal | None = None,
 ) -> ScorerResult:
     """Score a bar using two-layer confluence.
 
@@ -258,6 +260,20 @@ def score_bar(
     # First 60 bars of session get a score boost.
     ib_mult = 1.15 if 0 <= bar_index_in_session < 60 else 1.0
 
+    # --- GEX regime modifier ---
+    # Above gamma flip: dealers long gamma → stabilize price → absorption works
+    # Below gamma flip: dealers short gamma → amplify moves → absorption fails
+    gex_abs_mult = 1.0
+    gex_near_wall_bonus = 0.0
+    if gex_signal is not None and gex_signal.regime != GexRegime.NEUTRAL:
+        if gex_signal.regime == GexRegime.POSITIVE_DAMPENING:
+            gex_abs_mult = 1.3   # Boost absorption/exhaustion in positive gamma
+        elif gex_signal.regime == GexRegime.NEGATIVE_AMPLIFYING:
+            gex_abs_mult = 0.7   # Suppress absorption in negative gamma
+        # Near wall bonus
+        if gex_signal.near_call_wall or gex_signal.near_put_wall:
+            gex_near_wall_bonus = 3.0
+
     # --- Layer 2: Category confluence ---
     cat_count = len(categories_agreeing)
 
@@ -290,10 +306,14 @@ def score_bar(
     # --- Compute base score ---
     base_score = 0.0
     for cat in categories_agreeing:
-        base_score += CATEGORY_WEIGHTS.get(cat, 5.0)
+        weight = CATEGORY_WEIGHTS.get(cat, 5.0)
+        # GEX regime modifies absorption/exhaustion weight
+        if cat in ("absorption", "exhaustion"):
+            weight *= gex_abs_mult
+        base_score += weight
 
-    # Apply multiplier, zone bonus, and IB boost
-    total_score = min((base_score * confluence_mult + zone_bonus) * agreement * ib_mult, 100.0)
+    # Apply multiplier, zone bonus, GEX wall bonus, and IB boost
+    total_score = min((base_score * confluence_mult + zone_bonus + gex_near_wall_bonus) * agreement * ib_mult, 100.0)
 
     # D-01 (ABS-06): Apply confirmation bonus for each confirmed absorption
     if narrative.confirmed_absorptions:

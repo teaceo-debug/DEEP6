@@ -73,10 +73,19 @@ def run_backtest(bars: list[FootprintBar]) -> list[dict]:
 
     results = []
     vol_ema = 1000.0
+    # Rolling ATR(20) computed from prior bars only — no look-ahead
+    atr_values: list[float] = []
+    atr = 15.0  # seed until we have 20 bars
 
     for i, bar in enumerate(bars):
         if i > 0:
             vol_ema = vol_ema * 0.95 + bar.total_vol * 0.05
+        # Update rolling ATR from prior bars (no look-ahead bias)
+        atr_values.append(bar.bar_range)
+        if len(atr_values) >= 20:
+            atr = sum(atr_values[-20:]) / 20.0
+        elif len(atr_values) >= 5:
+            atr = sum(atr_values) / len(atr_values)
 
         # Volume profile
         profile.add_bar(bar)
@@ -87,7 +96,7 @@ def run_backtest(bars: list[FootprintBar]) -> list[dict]:
         # Run engines
         narrative = classify_bar(
             bar, prior_bar=bars[i - 1] if i > 0 else None,
-            bar_index=i, atr=15.0, vol_ema=vol_ema,
+            bar_index=i, atr=atr, vol_ema=vol_ema,
             abs_config=abs_config, exh_config=exh_config,
         )
         delta_sigs = delta_eng.process(bar)
@@ -108,10 +117,25 @@ def run_backtest(bars: list[FootprintBar]) -> list[dict]:
             bar_index_in_session=bar_index_in_session,
         )
 
-        # Future price for P&L (simple: close of bar +1, +3, +5)
+        # Future price for P&L with realistic costs
+        # Slippage: 1 tick per side (0.25 pts x 2 = 0.50 pts round-trip)
+        # Commission: $4.50/RT at $5/pt = 0.90 pts equivalent
+        SLIPPAGE_PTS = 0.50
+        COMMISSION_PTS = 0.90
+        COST_PER_TRADE = SLIPPAGE_PTS + COMMISSION_PTS  # 1.40 pts total
+
         close_1 = bars[i + 1].close if i + 1 < len(bars) else bar.close
         close_3 = bars[i + 3].close if i + 3 < len(bars) else bar.close
         close_5 = bars[i + 5].close if i + 5 < len(bars) else bar.close
+
+        # Raw P&L (directional)
+        raw_pnl_1 = (close_1 - bar.close) * result.direction
+        raw_pnl_3 = (close_3 - bar.close) * result.direction
+        raw_pnl_5 = (close_5 - bar.close) * result.direction
+
+        # Apply costs only to scored signals (QUIET has no trade)
+        is_trade = result.tier != SignalTier.QUIET
+        cost = COST_PER_TRADE if is_trade else 0.0
 
         results.append({
             "bar_index": i,
@@ -148,9 +172,9 @@ def run_backtest(bars: list[FootprintBar]) -> list[dict]:
             "close_1bar": close_1,
             "close_3bar": close_3,
             "close_5bar": close_5,
-            "pnl_1bar": round((close_1 - bar.close) * result.direction, 2),
-            "pnl_3bar": round((close_3 - bar.close) * result.direction, 2),
-            "pnl_5bar": round((close_5 - bar.close) * result.direction, 2),
+            "pnl_1bar": round(raw_pnl_1 - cost, 2),
+            "pnl_3bar": round(raw_pnl_3 - cost, 2),
+            "pnl_5bar": round(raw_pnl_5 - cost, 2),
         })
 
     return results

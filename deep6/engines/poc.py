@@ -74,6 +74,8 @@ class POCEngine:
         self.prev_val: float = 0.0
         self.poc_history: deque[float] = deque(maxlen=50)
         self.poc_migration_history: deque[float] = deque(maxlen=self.config.migration_window)
+        # Cumulative tick-level volume for true session POC (not mode of bar POCs)
+        self._session_volume: dict[int, int] = {}  # tick → cumulative volume
 
     def reset(self) -> None:
         self.session_poc = 0.0
@@ -82,6 +84,7 @@ class POCEngine:
         self.prev_vah = 0.0
         self.prev_val = 0.0
         self.poc_history.clear()
+        self._session_volume.clear()
 
     def process(self, bar: FootprintBar) -> list[POCSignal]:
         signals: list[POCSignal] = []
@@ -204,6 +207,7 @@ class POCEngine:
         self.poc_migration_history.append(poc)
         self.prev_vah = vah
         self.prev_val = val
+        self._accumulate_session_volume(bar)
         self.session_poc = self._compute_session_poc()
 
         return signals
@@ -252,10 +256,19 @@ class POCEngine:
         val = tick_to_price(min(ticks_in_va))
         return vah, val
 
+    def _accumulate_session_volume(self, bar: FootprintBar) -> None:
+        """Add bar's tick-level volume to cumulative session totals."""
+        for tick, level in bar.levels.items():
+            vol = level.ask_vol + level.bid_vol
+            self._session_volume[tick] = self._session_volume.get(tick, 0) + vol
+
     def _compute_session_poc(self) -> float:
-        """Simple session POC: most frequent POC price in history."""
-        if not self.poc_history:
+        """True session POC: tick with highest cumulative volume across ALL bars.
+
+        Previously used mode of bar-level POCs (methodological error — the most
+        frequent bar POC is NOT the same as the session's highest-volume tick).
+        """
+        if not self._session_volume:
             return 0.0
-        from collections import Counter
-        counts = Counter(self.poc_history)
-        return counts.most_common(1)[0][0]
+        max_tick = max(self._session_volume, key=self._session_volume.get)
+        return tick_to_price(max_tick)
