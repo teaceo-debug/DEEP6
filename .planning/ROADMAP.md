@@ -73,10 +73,10 @@ Plans:
 **Plans**: 4 plans (Wave 1: plan-01, plan-04 parallel; Wave 2: plan-02; Wave 3: plan-03)
 
 Plans:
-- [ ] 03-01-PLAN.md — ImbalanceConfig + DeltaConfig extraction, missing imbalance variants (IMB-02/07/09), missing delta variants (DELT-03/07)
-- [ ] 03-02-PLAN.md — AuctionConfig extraction, unfinished auction cross-session persistence in SQLite
-- [ ] 03-03-PLAN.md — Comprehensive test suite for all imbalance, delta, and auction variants
-- [ ] 03-04-PLAN.md — Pairwise Pearson correlation matrix script for all signals
+- [x] 03-01-PLAN.md — ImbalanceConfig + DeltaConfig extraction, missing imbalance variants (IMB-02/07/09), missing delta variants (DELT-03/07)
+- [x] 03-02-PLAN.md — AuctionConfig extraction, unfinished auction cross-session persistence in SQLite
+- [x] 03-03-PLAN.md — Comprehensive test suite for all imbalance, delta, and auction variants
+- [x] 03-04-PLAN.md — Pairwise Pearson correlation matrix script for all signals
 
 ### Phase 4: DOM Depth Signal Engines (E2, E3, E4, E5)
 **Goal**: Trapped trader signals, volume pattern signals, DOM queue imbalance, spoofing detection, iceberg detection, and Naive Bayes micro probability are all operational — providing the second tier of signal confirmation from order book depth and flow analysis.
