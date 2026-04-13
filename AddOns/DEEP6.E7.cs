@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -50,9 +49,20 @@ namespace NinjaTrader.NinjaScript.Indicators
                 Math.Min(Math.Abs(_cvd)/(Math.Max(!double.IsNaN(_emaVol)?_emaVol:1,1)*20),1.0),
                 GexReg==GexRegime.NegativeAmplifying?1.0:0.0,
                 Math.Max(Math.Min(_kVel/(TickSize*10),1.0),-1.0)};
-            double logit=w.Zip(x,(a,b)=>a*b).Sum()+.5,qP=1.0/(1.0+Math.Exp(-logit));
+            double dot = 0.0;
+            for (int i = 0; i < w.Length; i++) dot += w[i] * x[i];
+            double logit = dot + 0.5;
+            double qP = 1.0 / (1.0 + Math.Exp(-logit));
             _mlSc=qP*10; _mlH.Enqueue(qP); if(_mlH.Count>20)_mlH.Dequeue();
-            double bsl=_mlH.Count>0?_mlH.Average():qP,dev=bsl>0?(qP-bsl)/bsl*100:0;
+            double bsl;
+            if (_mlH.Count > 0)
+            {
+                double sum = 0.0;
+                foreach (double v in _mlH) sum += v;
+                bsl = sum / _mlH.Count;
+            }
+            else bsl = qP;
+            double dev=bsl>0?(qP-bsl)/bsl*100:0;
             _mlSt="P="+qP.ToString("0.00")+(dev>=0?"+":"")+dev.ToString("0")+"%";
         }
         #endregion

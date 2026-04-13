@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -37,7 +36,9 @@ namespace NinjaTrader.NinjaScript.Indicators
         private void Scorer()
         {
             int[] dirs={(int)_fpDir,_trDir,0,_icDir,_miDir,_dexDir,0};
-            int bE=dirs.Count(d=>d==+1),rE=dirs.Count(d=>d==-1);
+            int bE = 0, rE = 0;
+            for (int i = 0; i < dirs.Length; i++)
+            { if (dirs[i] == +1) bE++; else if (dirs[i] == -1) rE++; }
             bool ok=Math.Max(bE,rE)>=MinAgree;
             _sigDir=bE>rE?+1:rE>bE?-1:0;
             double raw=_fpSc+_trSc+_spSc+_icSc+_miSc+_vpSc+_mlSc;
