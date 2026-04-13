@@ -32,7 +32,7 @@ namespace NinjaTrader.NinjaScript.Indicators
             if (BarsInProgress == 1 || CurrentBar < BarsRequiredToPlot) return;
             if (Bars.IsFirstBarOfSession) SessionReset();
             UpdateSession();
-            RunE1(); RunE5(); RunE6(); RunE7(); Scorer();
+            RunE1(); RunE3(); RunE5(); RunE6(); RunE7(); Scorer();
             Values[0][0] = _total; Values[1][0] = _imbEma;
             if (_sigTyp >= SignalType.TypeB && _lastSig != Time[0])
             { _lastSig = Time[0]; MakeSigLabel(); PushFeed(); }
@@ -62,7 +62,7 @@ namespace NinjaTrader.NinjaScript.Indicators
                     _pLgHead = (_pLgHead + 1) % LG_CAP; if (_pLgCount < LG_CAP) _pLgCount++; } }
                 else { ChkSpoof(lv, false); _aV[lv] = 0; }
             }
-            RunE2(); RunE3();
+            RunE2();
         }
 
         protected override void OnMarketData(MarketDataEventArgs e)
