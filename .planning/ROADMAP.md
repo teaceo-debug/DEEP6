@@ -56,9 +56,9 @@ Plans:
 **Plans**: 3 plans (Wave 1: plan-01; Wave 2: plan-02; Wave 3: plan-03)
 
 Plans:
-- [ ] 02-01-PLAN.md — Config extraction (AbsorptionConfig/ExhaustionConfig), universal delta trajectory gate (EXH-07), narrative wiring
-- [ ] 02-02-PLAN.md — VA extremes conviction bonus (ABS-07), absorption confirmation logic (ABS-06)
-- [ ] 02-03-PLAN.md — Comprehensive test suite for all absorption/exhaustion variants, gate, cooldown, cascade, confirmation
+- [x] 02-01-PLAN.md — Config extraction (AbsorptionConfig/ExhaustionConfig), universal delta trajectory gate (EXH-07), narrative wiring
+- [x] 02-02-PLAN.md — VA extremes conviction bonus (ABS-07), absorption confirmation logic (ABS-06)
+- [x] 02-03-PLAN.md — Comprehensive test suite for all absorption/exhaustion variants, gate, cooldown, cascade, confirmation
 
 ### Phase 3: Footprint Signal Engines (E1, E8, E9)
 **Goal**: All 25 imbalance, delta, and auction theory signals are implemented in E1 FootprintEngine, E8 CVDEngine, and E9 AuctionFSM — every signal fires on the correct bar condition with the right tier/sub-type classification.
