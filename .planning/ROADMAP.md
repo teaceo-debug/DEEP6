@@ -104,8 +104,8 @@ Plans:
 **UI hint**: yes
 
 Plans:
-- [ ] 05-01-PLAN.md — POCConfig/VolumeProfileConfig/GexConfig extraction, VPRO-07 multi-session decay, VPRO-08 POC migration tracking
-- [ ] 05-02-PLAN.md — ZoneRegistry (ZONE-01..05), E6VPContextEngine + E7MLQualityEngine stub (ENG-06, ENG-07)
+- [x] 05-01-PLAN.md — POCConfig/VolumeProfileConfig/GexConfig extraction, VPRO-07 multi-session decay, VPRO-08 POC migration tracking
+- [x] 05-02-PLAN.md — ZoneRegistry (ZONE-01..05), E6VPContextEngine + E7MLQualityEngine stub (ENG-06, ENG-07)
 - [ ] 05-03-PLAN.md — Comprehensive test suite for all POC/VP/GEX/Zone/E6/E7 components
 
 ### Phase 6: Kronos E10 + TradingView MCP
