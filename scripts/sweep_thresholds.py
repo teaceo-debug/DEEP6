@@ -105,6 +105,7 @@ def run_backtest_with_configs(
         poc_sigs = poc_eng.process(bar)
         active_zones = profile.get_active_zones(min_score=20)
 
+        bar_index_in_session = i % 390
         result = score_bar(
             narrative=narrative,
             delta_signals=delta_sigs,
@@ -114,6 +115,8 @@ def run_backtest_with_configs(
             bar_close=bar.close,
             scorer_config=scorer_cfg,
             abs_config=abs_cfg,
+            bar_delta=bar.bar_delta,
+            bar_index_in_session=bar_index_in_session,
         )
 
         close_3 = bars[i + 3].close if i + 3 < len(bars) else bar.close

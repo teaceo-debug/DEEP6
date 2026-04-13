@@ -47,15 +47,20 @@ class ScorerResult:
 
 
 # Category weights — how much each category contributes to the base score
+# Optimized from backtest analysis (Apr 7-11, 4590 bars):
+#   - POC reduced from 7→3: combos with POC systematically underperform
+#     (35% win with POC vs 73% without in absorption+trapped combos)
+#   - Trapped raised from 10→14: trapped+absorption combo is highest alpha
+#   - Delta raised from 10→13: delta agreement is critical quality filter
 CATEGORY_WEIGHTS = {
     "absorption": 25.0,    # Highest weight — core alpha
     "exhaustion": 18.0,
+    "trapped": 14.0,       # Was 10 — trapped+absorption is highest alpha combo
+    "delta": 13.0,         # Was 10 — delta agreement is critical for signal quality
     "imbalance": 12.0,
-    "delta": 10.0,
-    "auction": 8.0,
-    "poc": 7.0,
     "volume_profile": 10.0,
-    "trapped": 10.0,
+    "auction": 8.0,
+    "poc": 3.0,            # Was 7 — POC fires too liberally, adds noise to combos
 }
 
 
