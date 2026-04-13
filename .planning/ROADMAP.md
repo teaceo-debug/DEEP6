@@ -35,7 +35,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. The aggressor field (TransactionType.BUY/SELL) is confirmed present in on_trade callback — not UNKNOWN — before any footprint accumulator is written
   4. Session state (IB anchor, CVD baseline, VWAP) survives a process restart mid-session and signals resume correctly without re-initialization
   5. DOM callbacks operate at 1,000+/sec with zero blocking — event loop lag stays under 1ms measured by asyncio instrumentation
-**Plans**: TBD
+**Plans**: 4 plans (Wave 1: plan-01; Wave 2: plan-02, plan-03 parallel; Wave 3: plan-04)
+
+Plans:
+- [ ] 01-01-PLAN.md — Python package scaffold, async-rithmic connection, DOMState, aggressor gate, SignalFlags stub
+- [ ] 01-02-PLAN.md — FootprintBar accumulator, dual-timeframe BarBuilder, SessionContext, ATRTracker
+- [ ] 01-03-PLAN.md — SQLite session persistence, FreezeGuard reconnection state, GC control, SharedState
+- [ ] 01-04-PLAN.md — Main entrypoint wiring, footprint validation script, loop lag measurement, human verification checkpoint
 
 ### Phase 2: Absorption + Exhaustion Core
 **Goal**: All 4 absorption variants and all 6 exhaustion variants fire correctly from live FootprintBar data with proper narrative prioritization — the system can identify the highest-conviction reversal signals.
@@ -155,7 +161,7 @@ Note: Phase 6 (Kronos + TVMCP) can begin after Phase 1 completes, running in par
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Data Pipeline + Architecture Foundation | 0/? | Not started | - |
+| 1. Data Pipeline + Architecture Foundation | 0/4 | Not started | - |
 | 2. Absorption + Exhaustion Core | 0/? | Not started | - |
 | 3. Footprint Signal Engines (E1, E8, E9) | 0/? | Not started | - |
 | 4. DOM Depth Signal Engines (E2, E3, E4, E5) | 0/? | Not started | - |
