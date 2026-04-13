@@ -18,10 +18,10 @@ from enum import IntEnum
 from typing import Optional
 
 from deep6.engines.absorption import AbsorptionSignal, detect_absorption
-from deep6.state.footprint import tick_to_price
 from deep6.engines.exhaustion import ExhaustionSignal, detect_exhaustion
 from deep6.engines.imbalance import ImbalanceSignal, detect_imbalances
-from deep6.state.footprint import FootprintBar
+from deep6.engines.signal_config import AbsorptionConfig, ExhaustionConfig
+from deep6.state.footprint import FootprintBar, tick_to_price
 
 
 class NarrativeType(IntEnum):
@@ -56,6 +56,8 @@ def classify_bar(
     vwap: float | None = None,
     vah: float | None = None,
     val: float | None = None,
+    abs_config: AbsorptionConfig | None = None,
+    exh_config: ExhaustionConfig | None = None,
 ) -> NarrativeResult:
     """Classify a bar using the narrative cascade.
 
@@ -70,10 +72,14 @@ def classify_bar(
         atr: ATR(20) for adaptive thresholds
         vol_ema: Running average volume
         vwap/vah/val: Value area levels for context labels
+        abs_config: AbsorptionConfig for threshold tuning (Phase 7 sweeps).
+                    If None, uses AbsorptionConfig() defaults — backward compat.
+        exh_config: ExhaustionConfig for threshold tuning (Phase 7 sweeps).
+                    If None, uses ExhaustionConfig() defaults — backward compat.
     """
-    # Detect all signal types
-    abs_signals = detect_absorption(bar, atr=atr, vol_ema=vol_ema)
-    exh_signals = detect_exhaustion(bar, prior_bar=prior_bar, bar_index=bar_index, atr=atr)
+    # Detect all signal types — pass config objects through to engines
+    abs_signals = detect_absorption(bar, atr=atr, vol_ema=vol_ema, config=abs_config)
+    exh_signals = detect_exhaustion(bar, prior_bar=prior_bar, bar_index=bar_index, atr=atr, config=exh_config)
     imb_signals = detect_imbalances(bar, prior_bar=prior_bar)
 
     total_signals = len(abs_signals) + len(exh_signals) + len(imb_signals)

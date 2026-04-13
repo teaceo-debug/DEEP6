@@ -18,6 +18,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from deep6.state.footprint import FootprintBar
 from deep6.engines.narrative import classify_bar, NarrativeType
+from deep6.engines.signal_config import AbsorptionConfig, ExhaustionConfig
 from deep6.engines.delta import DeltaEngine
 from deep6.engines.auction import AuctionEngine
 from deep6.engines.poc import POCEngine
@@ -66,6 +67,10 @@ def run_backtest(bars: list[FootprintBar]) -> list[dict]:
     profile = SessionProfile()
     reset_cooldowns()
 
+    # Config instances — default values per D-01 (no hand-tuning until Phase 7)
+    abs_config = AbsorptionConfig()
+    exh_config = ExhaustionConfig()
+
     results = []
     vol_ema = 1000.0
 
@@ -83,6 +88,7 @@ def run_backtest(bars: list[FootprintBar]) -> list[dict]:
         narrative = classify_bar(
             bar, prior_bar=bars[i - 1] if i > 0 else None,
             bar_index=i, atr=15.0, vol_ema=vol_ema,
+            abs_config=abs_config, exh_config=exh_config,
         )
         delta_sigs = delta_eng.process(bar)
         auction_sigs = auction_eng.process(bar)
