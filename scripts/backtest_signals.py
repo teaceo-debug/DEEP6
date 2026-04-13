@@ -94,8 +94,9 @@ def run_backtest(bars: list[FootprintBar]) -> list[dict]:
         auction_sigs = auction_eng.process(bar)
         poc_sigs = poc_eng.process(bar)
 
-        # Score
+        # Score — pass bar_delta and session position for optimization gates
         active_zones = profile.get_active_zones(min_score=20)
+        bar_index_in_session = i % 390  # 390 bars per RTH session
         result = score_bar(
             narrative=narrative,
             delta_signals=delta_sigs,
@@ -103,6 +104,8 @@ def run_backtest(bars: list[FootprintBar]) -> list[dict]:
             poc_signals=poc_sigs,
             active_zones=active_zones,
             bar_close=bar.close,
+            bar_delta=bar.bar_delta,
+            bar_index_in_session=bar_index_in_session,
         )
 
         # Future price for P&L (simple: close of bar +1, +3, +5)

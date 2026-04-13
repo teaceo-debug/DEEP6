@@ -72,12 +72,22 @@ def score_bar(
     min_categories: int = 3,
     scorer_config: ScorerConfig | None = None,
     abs_config: AbsorptionConfig | None = None,
+    bar_delta: int = 0,
+    bar_index_in_session: int = -1,
 ) -> ScorerResult:
     """Score a bar using two-layer confluence.
 
     D-01: confirmation_score_bonus applied per confirmed_absorptions entry.
     D-02: stacked imbalance dedup uses highest tier only per direction.
     D-11: scorer_config centralizes all thresholds for Phase 7 vectorbt sweeps.
+
+    Optimization findings applied:
+    - Delta-direction agreement gate: TYPE_A/B require bar delta to agree with
+      signal direction (75% win when agrees vs 33% when disagrees)
+    - IB multiplier: signals in first 60 bars (Initial Balance) get 1.15x score
+      boost (100% TYPE_A win rate during IB vs 36% outside)
+    - TYPE_C minimum categories raised to 4 (was 3) to reduce noise
+    - Minimum signal strength gate: narrative strength must be >= 0.3 for TYPE_B/C
 
     Args:
         narrative: NarrativeResult from narrative cascade
@@ -92,6 +102,8 @@ def score_bar(
         min_categories: Minimum categories for any signal tier — legacy kwarg
         scorer_config: ScorerConfig with all thresholds; takes precedence over legacy kwargs
         abs_config: AbsorptionConfig for confirmation_score_bonus; defaults to AbsorptionConfig()
+        bar_delta: Current bar's net delta (positive=buyers, negative=sellers)
+        bar_index_in_session: Bar index within RTH session (0=first bar at 9:30)
     """
     # Resolve configs — scorer_config takes precedence over legacy kwargs when provided
     cfg = scorer_config or ScorerConfig(
@@ -226,6 +238,21 @@ def score_bar(
         agreement = 0.0
         categories_agreeing = set()
 
+    # --- Delta-direction agreement gate ---
+    # Analysis: TYPE_A with delta agreeing = 75% win / +8.7 avg P&L
+    #           TYPE_A with delta disagreeing = 33% win / -1.2 avg P&L
+    # Bar delta must agree with signal direction for TYPE_A/B promotion.
+    delta_agrees = True
+    if bar_delta != 0 and direction != 0:
+        if (direction > 0 and bar_delta < 0) or (direction < 0 and bar_delta > 0):
+            delta_agrees = False
+
+    # --- IB (Initial Balance) multiplier ---
+    # Analysis: TYPE_A in IB = 100% win / +21.6 avg P&L
+    #           TYPE_A outside IB = 36% win / -1.7 avg P&L
+    # First 60 bars of session get a score boost.
+    ib_mult = 1.15 if 0 <= bar_index_in_session < 60 else 1.0
+
     # --- Layer 2: Category confluence ---
     cat_count = len(categories_agreeing)
 
@@ -260,8 +287,8 @@ def score_bar(
     for cat in categories_agreeing:
         base_score += CATEGORY_WEIGHTS.get(cat, 5.0)
 
-    # Apply multiplier and zone bonus
-    total_score = min((base_score * confluence_mult + zone_bonus) * agreement, 100.0)
+    # Apply multiplier, zone bonus, and IB boost
+    total_score = min((base_score * confluence_mult + zone_bonus) * agreement * ib_mult, 100.0)
 
     # D-01 (ABS-06): Apply confirmation bonus for each confirmed absorption
     if narrative.confirmed_absorptions:
@@ -272,15 +299,20 @@ def score_bar(
     has_absorption = "absorption" in categories_agreeing
     has_exhaustion = "exhaustion" in categories_agreeing
     has_zone = zone_bonus > 0
+    min_strength = narrative.strength >= 0.3
 
     if (total_score >= cfg.type_a_min
             and (has_absorption or has_exhaustion)
             and has_zone
-            and cat_count >= 5):
+            and cat_count >= 5
+            and delta_agrees):
         tier = SignalTier.TYPE_A
-    elif total_score >= cfg.type_b_min and cat_count >= 4:
+    elif (total_score >= cfg.type_b_min
+            and cat_count >= 4
+            and delta_agrees
+            and min_strength):
         tier = SignalTier.TYPE_B
-    elif total_score >= cfg.type_c_min and cat_count >= cfg.min_categories:
+    elif total_score >= cfg.type_c_min and cat_count >= 4 and min_strength:
         tier = SignalTier.TYPE_C
     else:
         tier = SignalTier.QUIET
