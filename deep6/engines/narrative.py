@@ -13,7 +13,7 @@ From Andrea Chimmy's orderflow framework:
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import IntEnum
 from typing import Optional
 
@@ -34,6 +34,37 @@ class NarrativeType(IntEnum):
 
 
 @dataclass
+class AbsorptionConfirmation:
+    """Tracks whether an absorption zone was defended within the confirmation window.
+
+    ABS-06 / D-06 / D-07: After an absorption signal fires, watch the next
+    confirmation_window_bars bars. If the zone holds (price doesn't breach by more
+    than confirmation_breach_ticks) AND a same-direction delta bar appears, mark confirmed.
+
+    NOTE: When confirmed=True, scorer.py should add AbsorptionConfig.confirmation_score_bonus
+    (+2.0) to the zone score. This class is the data carrier — scoring happens in scorer.py.
+    """
+    signal: AbsorptionSignal       # Original signal that triggered this tracker
+    bar_fired: int                  # bar_index when absorption fired
+    zone_price: float               # Absorption price level (reference for defense check)
+    direction: int                  # +1 bullish (sellers absorbed), -1 bearish (buyers absorbed)
+    confirmed: bool = False         # True when defense + same-direction delta observed
+    expired: bool = False           # True when window elapsed without confirmation
+
+
+# --- ABS-06 module-level confirmation state (T-02-05: reset at session start) ---
+_pending_confirmations: list[AbsorptionConfirmation] = []
+
+
+def reset_confirmations() -> None:
+    """Clear all pending confirmation trackers.
+
+    Call at session start to prevent cross-session state leakage (T-02-05).
+    """
+    _pending_confirmations.clear()
+
+
+@dataclass
 class NarrativeResult:
     """The classified narrative for one bar."""
     bar_type: NarrativeType
@@ -45,6 +76,9 @@ class NarrativeResult:
     exhaustion: list[ExhaustionSignal]
     imbalances: list[ImbalanceSignal]
     all_signals_count: int      # total signals detected before cascade
+    confirmed_absorptions: list[AbsorptionConfirmation] = field(default_factory=list)
+    # ABS-06: Confirmations that triggered on this bar (defense + same-direction delta observed).
+    # scorer.py should add AbsorptionConfig.confirmation_score_bonus to zone score for each entry.
 
 
 def classify_bar(
@@ -84,6 +118,54 @@ def classify_bar(
 
     total_signals = len(abs_signals) + len(exh_signals) + len(imb_signals)
 
+    # --- ABS-06: Absorption confirmation tracking (D-06, D-07) ---
+    # Resolve config for confirmation params (use defaults if not provided).
+    _abs_cfg = abs_config if abs_config is not None else AbsorptionConfig()
+    tick_size = 0.25
+    breach_points = _abs_cfg.confirmation_breach_ticks * tick_size
+
+    # 1. Register new absorption signals as pending confirmations
+    for sig in abs_signals:
+        _pending_confirmations.append(AbsorptionConfirmation(
+            signal=sig,
+            bar_fired=bar_index,
+            zone_price=sig.price,
+            direction=sig.direction,
+        ))
+
+    # 2. Evaluate existing pending confirmations against current bar
+    newly_confirmed: list[AbsorptionConfirmation] = []
+    for conf in _pending_confirmations:
+        if conf.confirmed or conf.expired:
+            continue
+
+        # Expire if window has elapsed
+        if bar_index - conf.bar_fired > _abs_cfg.confirmation_window_bars:
+            conf.expired = True
+            continue
+
+        # Skip the bar the signal fired on (bar_index == conf.bar_fired)
+        if bar_index == conf.bar_fired:
+            continue
+
+        # Defense check: price must not breach zone by more than breach_points
+        if conf.direction > 0:
+            # Bullish absorption: zone at low — bar.low must stay above zone - breach
+            price_holds = bar.low >= conf.zone_price - breach_points
+        else:
+            # Bearish absorption: zone at high — bar.high must stay below zone + breach
+            price_holds = bar.high <= conf.zone_price + breach_points
+
+        # Same-direction delta check
+        if conf.direction > 0:
+            delta_confirms = bar.bar_delta > 0
+        else:
+            delta_confirms = bar.bar_delta < 0
+
+        if price_holds and delta_confirms:
+            conf.confirmed = True
+            newly_confirmed.append(conf)
+
     # --- CASCADE: absorption > exhaustion > momentum > rejection > quiet ---
 
     # 1. ABSORPTION — highest priority
@@ -100,6 +182,7 @@ def classify_bar(
             exhaustion=exh_signals,
             imbalances=imb_signals,
             all_signals_count=total_signals,
+            confirmed_absorptions=newly_confirmed,
         )
 
     # 2. EXHAUSTION
@@ -116,6 +199,7 @@ def classify_bar(
             exhaustion=exh_signals,
             imbalances=imb_signals,
             all_signals_count=total_signals,
+            confirmed_absorptions=newly_confirmed,
         )
 
     # 3. MOMENTUM — body dominates + strong directional delta
@@ -147,6 +231,7 @@ def classify_bar(
             exhaustion=exh_signals,
             imbalances=imb_signals,
             all_signals_count=total_signals,
+            confirmed_absorptions=newly_confirmed,
         )
 
     # 4. REJECTION — wick volume dominates
@@ -190,6 +275,7 @@ def classify_bar(
                 exhaustion=exh_signals,
                 imbalances=imb_signals,
                 all_signals_count=total_signals,
+                confirmed_absorptions=newly_confirmed,
             )
 
     # 5. QUIET
@@ -203,6 +289,7 @@ def classify_bar(
         exhaustion=exh_signals,
         imbalances=imb_signals,
         all_signals_count=total_signals,
+        confirmed_absorptions=newly_confirmed,
     )
 
 
