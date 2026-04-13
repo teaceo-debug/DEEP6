@@ -121,7 +121,7 @@ Plans:
 **Plans**: 2 plans (Wave 1: plan-01, plan-02 parallel)
 
 Plans:
-- [ ] 06-01-PLAN.md — KronosConfig + subprocess worker + KronosSubprocessBridge + benchmark script
+- [x] 06-01-PLAN.md — KronosConfig + subprocess worker + KronosSubprocessBridge + benchmark script
 - [ ] 06-02-PLAN.md — TradingView MCP config, launch script, human verification checkpoint
 
 ### Phase 7: Scoring + Backtesting Framework
@@ -137,9 +137,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 07-01-PLAN.md — ScorerConfig + confirmation bonus (D-01) + stacked dedup (D-02) + scorer tests
-- [ ] 07-02-PLAN.md — vectorbt/optuna install + Optuna sweep framework (TEST-04, TEST-06)
-- [ ] 07-03-PLAN.md — Walk-forward validation, WFE gate, best_params.json, human checkpoint (TEST-05, TEST-07)
+- [x] 07-01-PLAN.md — ScorerConfig + confirmation bonus (D-01) + stacked dedup (D-02) + scorer tests
+- [x] 07-02-PLAN.md — vectorbt/optuna install + Optuna sweep framework (TEST-04, TEST-06)
+- [x] 07-03-PLAN.md — Walk-forward validation, WFE gate, best_params.json, human checkpoint (TEST-05, TEST-07)
 
 ### Phase 8: Auto-Execution + Risk Layer
 **Goal**: Direct Rithmic order submission fires from TypeA/B confluence signals with server-side bracket orders, full circuit-breaker risk management, reconnection freeze on disconnect, and a mandatory 30-day paper trading validation period before live capital.
