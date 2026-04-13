@@ -129,7 +129,12 @@ Plans:
   3. Databento MBO replay runs on historical NQ data and generates identical signals as the live engine on the same bars — divergence over 2% from live triggers investigation
   4. vectorbt parameter sweep tests all 44 thresholds over historical data and produces a ranked output by signal P&L attribution — identifying which signals add edge vs noise
   5. Walk-forward validation with WFE > 70% gate passes before any weight file is applied — purged splits prevent future leakage
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 07-01-PLAN.md — ScorerConfig + confirmation bonus (D-01) + stacked dedup (D-02) + scorer tests
+- [ ] 07-02-PLAN.md — vectorbt/optuna install + Optuna sweep framework (TEST-04, TEST-06)
+- [ ] 07-03-PLAN.md — Walk-forward validation, WFE gate, best_params.json, human checkpoint (TEST-05, TEST-07)
 
 ### Phase 8: Auto-Execution + Risk Layer
 **Goal**: Direct Rithmic order submission fires from TypeA/B confluence signals with server-side bracket orders, full circuit-breaker risk management, reconnection freeze on disconnect, and a mandatory 30-day paper trading validation period before live capital.
