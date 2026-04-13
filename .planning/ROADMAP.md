@@ -157,7 +157,13 @@ Plans:
   3. TRADING_FROZEN flag activates immediately on reconnection — no new orders are submitted until Rithmic position API confirms position reconciliation completes
   4. GEX regime gate disables execution in specified regimes (e.g., positive gamma mean-reversion mode with high HVL proximity) — no entries fire in excluded regimes regardless of signal score
   5. 30-day paper trading period completes with documented P&L, win rate, and drawdown before the live execution flag is enabled — operator cannot bypass this gate
-**Plans**: TBD
+**Plans**: 4 plans (Wave 1: plan-01; Wave 2: plan-02, plan-03 parallel; Wave 3: plan-04)
+
+Plans:
+- [ ] 08-01-PLAN.md — ExecutionConfig + ExecutionEngine + FreezeGuard position reconciliation
+- [ ] 08-02-PLAN.md — PositionManager (lifecycle, breakeven, events)
+- [ ] 08-03-PLAN.md — RiskManager (circuit breakers, GEX regime gate)
+- [ ] 08-04-PLAN.md — PaperTrader (slippage model, 30-day gate, full pipeline)
 
 ### Phase 9: ML Backend
 **Goal**: FastAPI receives all signal and trade events in the same asyncio event loop; XGBoost trains on signal history to produce optimized per-signal weights; Optuna sweeps all 44 thresholds; HMM detects market regime; no weight file deploys without human approval.
