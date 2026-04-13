@@ -184,11 +184,27 @@ Plans:
 **Plans**: TBD
 **UI hint**: yes
 
+### Phase 11: DEEP6 Trading Web App
+**Goal**: Full-stack trading platform replacing TradingView dependency — Next.js 15 frontend with Lightweight Charts v5.1 custom footprint rendering, one-click trade execution panel connected to Rithmic via FastAPI WebSocket, real-time signal alerts with full context, mobile push notifications for TYPE_A signals, and complete session replay with bar-by-bar stepping.
+**Depends on**: Phase 10
+**Requirements**: APP-01, APP-02, APP-03, APP-04, APP-05, APP-06, APP-07, APP-08
+**Success Criteria** (what must be TRUE):
+  1. Custom footprint chart renders bid/ask volume per price level per bar via Lightweight Charts v5.1 custom series plugin — LVN/HVN zones, GEX levels, absorption/exhaustion zones overlaid directly on chart
+  2. Trade execution panel shows live TYPE_A/B signals with full context (all category votes, GEX regime, zone info, Kronos bias) — operator can one-click confirm or auto-execute is enabled
+  3. Real-time WebSocket push from FastAPI delivers signal events, bar updates, position state, and P&L within 200ms of bar close — no polling
+  4. Session replay mode reconstructs any historical session with all signals, zones, orders visible — step forward/back bar by bar with full state at each step
+  5. Mobile-responsive with push notifications via service worker — TYPE_A alerts reach operator's phone within 5 seconds of signal firing
+  6. Portfolio dashboard shows live P&L, daily/weekly/monthly performance, win rate by tier, drawdown chart, and circuit breaker status
+  7. No TradingView dependency — entire trading workflow (chart analysis, signal review, execution, replay) happens within the DEEP6 web app
+  8. Authentication + multi-device support — operator can monitor from laptop and phone simultaneously
+**Plans**: TBD
+**UI hint**: yes
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10
-Note: Phase 6 (Kronos + TVMCP) can begin after Phase 1 completes, running in parallel with Phases 2-5.
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11
+Note: Phase 6 (Kronos + TVMCP) can begin after Phase 1 completes, running in parallel with Phases 2-5. Phase 6 TVMCP portion is optional — Phase 11 replaces TradingView as the primary trading interface.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -202,3 +218,4 @@ Note: Phase 6 (Kronos + TVMCP) can begin after Phase 1 completes, running in par
 | 8. Auto-Execution + Risk Layer | 0/? | Not started | - |
 | 9. ML Backend | 0/? | Not started | - |
 | 10. Analytics Dashboard | 0/? | Not started | - |
+| 11. DEEP6 Trading Web App | 0/? | Not started | - |
