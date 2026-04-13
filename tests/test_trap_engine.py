@@ -265,22 +265,29 @@ class TestFalseBreakoutTrap:
 
 class TestHighVolRejectionTrap:
     def test_fires_on_high_vol_upper_wick(self):
-        """High volume bar with large upper wick — direction -1 (longs rejected)."""
+        """High volume bar with large upper wick — direction -1 (longs rejected).
+
+        Bar range: 20990–21010 (range=20). Upper quarter: >= 21005.
+        We place 120 contracts in the upper zone out of 300 total → 40% > 35% threshold.
+        """
         from deep6.engines.trap import TrapEngine, TrapType
 
         engine = TrapEngine()
+        # Bar range: 20990–21010 = 20 pts. Upper zone price = 21010 - 5 = 21005.
+        # Place 120 contracts at 21005 and 21008 (upper quarter)
         levels = make_levels({
-            21000.0: (10, 10),
-            21005.0: (5, 60),   # heavy volume near high → upper wick
-            21010.0: (3, 5),
+            20990.0: (10, 10),  # 20 contracts — body/lower
+            20995.0: (10, 10),  # 20 contracts — body
+            21000.0: (10, 10),  # 20 contracts — body
+            21005.0: (5, 115),  # 120 contracts — upper wick zone (>= 21005)
         })
         bar = make_bar(
-            open_=21000.0,
-            high=21012.0,
-            low=20999.0,
-            close=21001.0,
-            total_vol=280,   # well above vol_ema * 2.5 = 100*2.5=250 threshold
-            bar_delta=50,
+            open_=20992.0,
+            high=21010.0,
+            low=20990.0,
+            close=20993.0,
+            total_vol=300,   # well above vol_ema * 2.5 = 250 threshold
+            bar_delta=110,
             levels=levels,
         )
         result = engine.process(bar, None, vol_ema=100.0, cvd_history=[])
@@ -292,7 +299,7 @@ class TestHighVolRejectionTrap:
         from deep6.engines.trap import TrapEngine, TrapType
 
         engine = TrapEngine()
-        bar = make_bar(total_vol=200, bar_range=10.0)  # vol_ema=100 → 2.0x < 2.5
+        bar = make_bar(total_vol=200)  # vol_ema=100 → 2.0x < 2.5 threshold
         result = engine.process(bar, None, vol_ema=100.0, cvd_history=[])
         trap_types = [s.trap_type for s in result]
         assert TrapType.HIGH_VOL_REJECTION_TRAP not in trap_types
