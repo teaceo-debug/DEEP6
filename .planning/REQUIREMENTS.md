@@ -8,7 +8,7 @@
 ### Architecture (ARCH)
 
 - [ ] **ARCH-01**: Monolithic DEEP6.cs decomposed into partial classes via AddOns pattern (~15 files, zero behavior change)
-- [ ] **ARCH-02**: GC hot-path fixes applied (Std() pre-allocation, brush caching, RemoveAll() replaced with index-based removal) before any signal expansion
+- [x] **ARCH-02**: GC hot-path fixes applied (Std() pre-allocation, brush caching, RemoveAll() replaced with index-based removal) before any signal expansion
 - [ ] **ARCH-03**: ATR(20) normalization layer provides volatility-adaptive thresholds for all 44 signals
 - [ ] **ARCH-04**: Pairwise signal correlation matrix computed to identify and document redundant signals before implementation
 - [ ] **ARCH-05**: SignalFlags bitmask (ulong) covers all 44 signals for O(popcount) scoring regardless of signal count
@@ -229,7 +229,7 @@ Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | ARCH-01 | Phase 1 | Pending |
-| ARCH-02 | Phase 1 | Pending |
+| ARCH-02 | Phase 1 | Complete |
 | ARCH-03 | Phase 2 | Pending |
 | ARCH-04 | Phase 2 | Pending |
 | ARCH-05 | Phase 2 | Pending |
