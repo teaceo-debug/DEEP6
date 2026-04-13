@@ -39,7 +39,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 Plans:
 - [x] 01-01-PLAN.md — Python package scaffold, async-rithmic connection, DOMState, aggressor gate, SignalFlags stub
-- [ ] 01-02-PLAN.md — FootprintBar accumulator, dual-timeframe BarBuilder, SessionContext, ATRTracker
+- [x] 01-02-PLAN.md — FootprintBar accumulator, dual-timeframe BarBuilder, SessionContext, ATRTracker
 - [ ] 01-03-PLAN.md — SQLite session persistence, FreezeGuard reconnection state, GC control, SharedState
 - [ ] 01-04-PLAN.md — Main entrypoint wiring, footprint validation script, loop lag measurement, human verification checkpoint
 
@@ -161,7 +161,7 @@ Note: Phase 6 (Kronos + TVMCP) can begin after Phase 1 completes, running in par
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Data Pipeline + Architecture Foundation | 0/4 | Not started | - |
+| 1. Data Pipeline + Architecture Foundation | 2/4 | In Progress|  |
 | 2. Absorption + Exhaustion Core | 0/? | Not started | - |
 | 3. Footprint Signal Engines (E1, E8, E9) | 0/? | Not started | - |
 | 4. DOM Depth Signal Engines (E2, E3, E4, E5) | 0/? | Not started | - |

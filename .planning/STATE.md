@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: executing
-stopped_at: "Completed 01-01-PLAN.md"
-last_updated: "2026-04-13T07:06:00Z"
-last_activity: "2026-04-13 -- Phase 1 Plan 01 complete: package structure, DOMState, aggressor gate, SignalFlags"
+stopped_at: Completed 01-data-pipeline-architecture-foundation-02-PLAN.md
+last_updated: "2026-04-13T07:13:45.773Z"
+last_activity: 2026-04-13
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 4
-  completed_plans: 1
-  percent: 2
+  completed_plans: 2
+  percent: 50
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-04-13)
 ## Current Position
 
 Phase: 1 of 10 (Data Pipeline + Architecture Foundation)
-Plan: 1 of 4 in current phase
-Status: Executing
-Last activity: 2026-04-13 -- Phase 1 Plan 01 complete: package structure, DOMState, aggressor gate, SignalFlags
+Plan: 2 of 4 in current phase
+Status: Ready to execute
+Last activity: 2026-04-13
 
 Progress: [░░░░░░░░░░] 2%
 
@@ -52,6 +52,7 @@ Progress: [░░░░░░░░░░] 2%
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 01-data-pipeline-architecture-foundation P02 | 229 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -67,6 +68,9 @@ Recent decisions affecting current work:
 - [01-01]: DOMState uses array.array 'd' not numpy for hot-path (numpy reserved for bar-close vectorized ops)
 - [01-01]: Aggressor gate is module-level state — safe under single asyncio event loop (T-01-02)
 - [01-01]: SignalFlags bit positions 0-43 are STABLE — do not reorder (serialization safety)
+- [Phase 01-data-pipeline-architecture-foundation]: BarHistory is a factory function (not class) returning deque(maxlen=200) to avoid mutable default issues
+- [Phase 01-data-pipeline-architecture-foundation]: price_to_tick uses round() not int() for floating-point safety at NQ tick boundaries
+- [Phase 01-data-pipeline-architecture-foundation]: RTH gate uses zoneinfo America/New_York for DST-correct Eastern time (not hardcoded offset)
 
 ### Pending Todos
 
@@ -80,6 +84,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-13T07:06:00Z
-Stopped at: Completed 01-01-PLAN.md
-Resume file: .planning/phases/01-data-pipeline-architecture-foundation/01-02-PLAN.md
+Last session: 2026-04-13T07:13:45.771Z
+Stopped at: Completed 01-data-pipeline-architecture-foundation-02-PLAN.md
+Resume file: None

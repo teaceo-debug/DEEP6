@@ -9,12 +9,12 @@
 
 - [x] **DATA-01**: async-rithmic connection established to Rithmic with L2 DOM subscription for NQ (40+ levels per side)
 - [x] **DATA-02**: Aggressor side field verified in async-rithmic tick callback — exchange-provided, not inferred
-- [ ] **DATA-03**: FootprintBar accumulator built from raw ticks — bid/ask volume per price level per bar using defaultdict[int, FootprintLevel]
-- [ ] **DATA-04**: BarBuilder coroutine fires on_bar_close at configurable intervals (1min default) with complete FootprintBar
+- [x] **DATA-03**: FootprintBar accumulator built from raw ticks — bid/ask volume per price level per bar using defaultdict[int, FootprintLevel]
+- [x] **DATA-04**: BarBuilder coroutine fires on_bar_close at configurable intervals (1min default) with complete FootprintBar
 - [x] **DATA-05**: DOM state maintained as pre-allocated arrays updated in-place — zero allocation per callback
 - [x] **DATA-06**: asyncio event loop with uvloop handles 1,000+ DOM callbacks/sec without blocking
 - [ ] **DATA-07**: Session state persistence to disk (SQLite) survives process restart without losing IB/VWAP/CVD
-- [ ] **DATA-08**: Reconnection logic with freeze state — no new orders until position reconciliation after reconnect
+- [x] **DATA-08**: Reconnection logic with freeze state — no new orders until position reconciliation after reconnect
 - [x] **DATA-09**: GC disabled during trading hours; manual GC at session breaks only
 - [ ] **DATA-10**: Footprint accuracy validated against ATAS/Quantower — bid/ask volumes per level per bar must match
 
@@ -22,8 +22,8 @@
 
 - [x] **ARCH-01**: Python package structure: deep6/{data, engines, signals, scoring, execution, ml, api, dashboard}
 - [x] **ARCH-02**: Process boundary: asyncio event loop (I/O) in main process, Kronos inference in dedicated subprocess via multiprocessing.Pipe
-- [ ] **ARCH-03**: ATR(20) normalization layer provides volatility-adaptive thresholds for all 44 signals
-- [ ] **ARCH-04**: Pairwise signal correlation matrix computed (Pearson) to identify and document redundant signals before implementation
+- [x] **ARCH-03**: ATR(20) normalization layer provides volatility-adaptive thresholds for all 44 signals
+- [x] **ARCH-04**: Pairwise signal correlation matrix computed (Pearson) to identify and document redundant signals before implementation
 - [x] **ARCH-05**: SignalFlags bitmask (int64) covers all 44 signals for O(popcount) scoring
 
 ### Absorption (ABS)
@@ -257,18 +257,18 @@ Updated during roadmap creation (2026-04-11).
 |-------------|-------|--------|
 | DATA-01 | Phase 1 | Pending |
 | DATA-02 | Phase 1 | Pending |
-| DATA-03 | Phase 1 | Pending |
-| DATA-04 | Phase 1 | Pending |
+| DATA-03 | Phase 1 | Complete |
+| DATA-04 | Phase 1 | Complete |
 | DATA-05 | Phase 1 | Pending |
 | DATA-06 | Phase 1 | Pending |
 | DATA-07 | Phase 1 | Pending |
-| DATA-08 | Phase 1 | Pending |
+| DATA-08 | Phase 1 | Complete |
 | DATA-09 | Phase 1 | Pending |
 | DATA-10 | Phase 1 | Pending |
 | ARCH-01 | Phase 1 | Pending |
 | ARCH-02 | Phase 1 | Pending |
-| ARCH-03 | Phase 1 | Pending |
-| ARCH-04 | Phase 1 | Pending |
+| ARCH-03 | Phase 1 | Complete |
+| ARCH-04 | Phase 1 | Complete |
 | ARCH-05 | Phase 1 | Pending |
 | ABS-01 | Phase 2 | Pending |
 | ABS-02 | Phase 2 | Pending |
