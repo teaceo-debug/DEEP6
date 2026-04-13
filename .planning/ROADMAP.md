@@ -175,7 +175,13 @@ Plans:
   3. Optuna Bayesian optimization sweeps all 44 signal thresholds and produces a candidate threshold file — any single-signal weight is capped at 3x baseline without manual override
   4. Walk-forward cross-validation with purged splits requires 200+ out-of-sample trades per signal before that signal's weights are updated — WFE > 70% gate enforced
   5. Weight file deploy requires explicit operator confirmation in the dashboard — system continues running on previous weights during review; ML-07 performance tracking shows before/after comparison
-**Plans**: TBD
+**Plans**: 4 plans (Wave 1: plan-01; Wave 2: plan-02; Wave 3: plan-03, plan-04 parallel)
+
+Plans:
+- [ ] 09-01-PLAN.md — FastAPI app factory + EventStore (aiosqlite signal_events + trade_events)
+- [ ] 09-02-PLAN.md — LightGBM meta-learner + HMM regime detector (3-state Gaussian)
+- [ ] 09-03-PLAN.md — Optuna sweep endpoint + full weight deploy gate (WFE + OOS count + token)
+- [ ] 09-04-PLAN.md — PerformanceTracker + E7 wiring + test suite
 
 ### Phase 10: Analytics Dashboard
 **Goal**: Next.js 15 dashboard provides real-time signal monitoring, signal performance analytics, regime visualization, ML parameter evolution, zone analysis, footprint chart rendering, and full session replay — all backed by WebSocket from FastAPI.
