@@ -40,7 +40,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 Plans:
 - [x] 01-01-PLAN.md — Python package scaffold, async-rithmic connection, DOMState, aggressor gate, SignalFlags stub
 - [x] 01-02-PLAN.md — FootprintBar accumulator, dual-timeframe BarBuilder, SessionContext, ATRTracker
-- [ ] 01-03-PLAN.md — SQLite session persistence, FreezeGuard reconnection state, GC control, SharedState
+- [x] 01-03-PLAN.md — SQLite session persistence, FreezeGuard reconnection state, GC control, SharedState
 - [ ] 01-04-PLAN.md — Main entrypoint wiring, footprint validation script, loop lag measurement, human verification checkpoint
 
 ### Phase 2: Absorption + Exhaustion Core

@@ -13,7 +13,7 @@
 - [x] **DATA-04**: BarBuilder coroutine fires on_bar_close at configurable intervals (1min default) with complete FootprintBar
 - [x] **DATA-05**: DOM state maintained as pre-allocated arrays updated in-place — zero allocation per callback
 - [x] **DATA-06**: asyncio event loop with uvloop handles 1,000+ DOM callbacks/sec without blocking
-- [ ] **DATA-07**: Session state persistence to disk (SQLite) survives process restart without losing IB/VWAP/CVD
+- [x] **DATA-07**: Session state persistence to disk (SQLite) survives process restart without losing IB/VWAP/CVD
 - [x] **DATA-08**: Reconnection logic with freeze state — no new orders until position reconciliation after reconnect
 - [x] **DATA-09**: GC disabled during trading hours; manual GC at session breaks only
 - [ ] **DATA-10**: Footprint accuracy validated against ATAS/Quantower — bid/ask volumes per level per bar must match
@@ -261,12 +261,12 @@ Updated during roadmap creation (2026-04-11).
 | DATA-04 | Phase 1 | Complete |
 | DATA-05 | Phase 1 | Pending |
 | DATA-06 | Phase 1 | Pending |
-| DATA-07 | Phase 1 | Pending |
+| DATA-07 | Phase 1 | Complete |
 | DATA-08 | Phase 1 | Complete |
-| DATA-09 | Phase 1 | Pending |
+| DATA-09 | Phase 1 | Complete |
 | DATA-10 | Phase 1 | Pending |
 | ARCH-01 | Phase 1 | Pending |
-| ARCH-02 | Phase 1 | Pending |
+| ARCH-02 | Phase 1 | Complete |
 | ARCH-03 | Phase 1 | Complete |
 | ARCH-04 | Phase 1 | Complete |
 | ARCH-05 | Phase 1 | Pending |

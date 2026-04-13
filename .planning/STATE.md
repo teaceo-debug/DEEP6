@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-data-pipeline-architecture-foundation-02-PLAN.md
-last_updated: "2026-04-13T07:13:45.773Z"
+stopped_at: Completed 01-03-PLAN.md
+last_updated: "2026-04-13T07:15:06.367Z"
 last_activity: 2026-04-13
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 4
-  completed_plans: 2
-  percent: 50
+  completed_plans: 3
+  percent: 75
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-13)
 ## Current Position
 
 Phase: 1 of 10 (Data Pipeline + Architecture Foundation)
-Plan: 2 of 4 in current phase
+Plan: 3 of 4 in current phase
 Status: Ready to execute
 Last activity: 2026-04-13
 
@@ -53,6 +53,7 @@ Progress: [░░░░░░░░░░] 2%
 
 *Updated after each plan completion*
 | Phase 01-data-pipeline-architecture-foundation P02 | 229 | 2 tasks | 4 files |
+| Phase 01 P03 | 25 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,9 @@ Recent decisions affecting current work:
 - [Phase 01-data-pipeline-architecture-foundation]: BarHistory is a factory function (not class) returning deque(maxlen=200) to avoid mutable default issues
 - [Phase 01-data-pipeline-architecture-foundation]: price_to_tick uses round() not int() for floating-point safety at NQ tick boundaries
 - [Phase 01-data-pipeline-architecture-foundation]: RTH gate uses zoneinfo America/New_York for DST-correct Eastern time (not hardcoded offset)
+- [Phase 01]: aiosqlite with one connection per operation (no pool) — safe for single event loop, avoids connection lifetime complexity
+- [Phase 01]: FreezeGuard._state is private string; is_frozen returns True for both FROZEN and RECONNECTING states — no partial bar processing during any part of reconnect cycle
+- [Phase 01]: SharedState.build() is the single assembly entry point; persistence.initialize() called separately in async context before first use
 
 ### Pending Todos
 
@@ -84,6 +88,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-13T07:13:45.771Z
-Stopped at: Completed 01-data-pipeline-architecture-foundation-02-PLAN.md
+Last session: 2026-04-13T07:15:06.364Z
+Stopped at: Completed 01-03-PLAN.md
 Resume file: None
