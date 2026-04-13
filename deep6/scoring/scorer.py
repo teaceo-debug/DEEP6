@@ -264,15 +264,29 @@ def score_bar(
     # Above gamma flip: dealers long gamma → stabilize price → absorption works
     # Below gamma flip: dealers short gamma → amplify moves → absorption fails
     gex_abs_mult = 1.0
+    gex_momentum_mult = 1.0
     gex_near_wall_bonus = 0.0
+    gex_direction_conflict = False
     if gex_signal is not None and gex_signal.regime != GexRegime.NEUTRAL:
         if gex_signal.regime == GexRegime.POSITIVE_DAMPENING:
-            gex_abs_mult = 1.3   # Boost absorption/exhaustion in positive gamma
+            gex_abs_mult = 1.3     # Boost absorption/exhaustion (dealers provide passive flow)
+            gex_momentum_mult = 0.8  # Suppress momentum (dealers fade trends)
         elif gex_signal.regime == GexRegime.NEGATIVE_AMPLIFYING:
-            gex_abs_mult = 0.7   # Suppress absorption in negative gamma
-        # Near wall bonus
-        if gex_signal.near_call_wall or gex_signal.near_put_wall:
-            gex_near_wall_bonus = 3.0
+            gex_abs_mult = 0.7     # Suppress absorption (dealers amplify, absorption breaks)
+            gex_momentum_mult = 1.3  # Boost momentum (dealers add to trends)
+
+        # Near wall bonus — but ONLY if direction aligns with wall defense
+        # At call wall: dealers SELL → only SHORT signals get bonus
+        # At put wall: dealers BUY → only LONG signals get bonus
+        if gex_signal.near_call_wall and direction <= 0:
+            gex_near_wall_bonus = 5.0  # Strong — dealer selling creates structural ceiling
+        elif gex_signal.near_put_wall and direction >= 0:
+            gex_near_wall_bonus = 5.0  # Strong — dealer buying creates structural floor
+        # Direction conflict: LONG at call wall or SHORT at put wall = fighting dealers
+        if gex_signal.near_call_wall and direction > 0:
+            gex_direction_conflict = True  # Going long into massive dealer selling
+        elif gex_signal.near_put_wall and direction < 0:
+            gex_direction_conflict = True  # Going short into massive dealer buying
 
     # --- Layer 2: Category confluence ---
     cat_count = len(categories_agreeing)
@@ -307,9 +321,11 @@ def score_bar(
     base_score = 0.0
     for cat in categories_agreeing:
         weight = CATEGORY_WEIGHTS.get(cat, 5.0)
-        # GEX regime modifies absorption/exhaustion weight
+        # GEX regime modifies category weights based on dealer positioning
         if cat in ("absorption", "exhaustion"):
-            weight *= gex_abs_mult
+            weight *= gex_abs_mult    # Positive gamma boosts, negative suppresses
+        elif cat in ("delta", "imbalance"):
+            weight *= gex_momentum_mult  # Negative gamma boosts momentum signals
         base_score += weight
 
     # Apply multiplier, zone bonus, GEX wall bonus, and IB boost
@@ -326,7 +342,15 @@ def score_bar(
     has_zone = zone_bonus > 0
     min_strength = narrative.strength >= 0.3
 
-    if (total_score >= cfg.type_a_min
+    # GEX direction conflict: going long at call wall or short at put wall
+    # = fighting massive dealer hedging flow. Demote to TYPE_C max.
+    if gex_direction_conflict:
+        # Can't be TYPE_A or TYPE_B when fighting dealer flow
+        if total_score >= cfg.type_c_min and cat_count >= 4 and min_strength:
+            tier = SignalTier.TYPE_C
+        else:
+            tier = SignalTier.QUIET
+    elif (total_score >= cfg.type_a_min
             and (has_absorption or has_exhaustion)
             and has_zone
             and cat_count >= 5
