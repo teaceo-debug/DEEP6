@@ -19,6 +19,9 @@ dependencies = [
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=1.2.0",
+    # Phase 7 parameter sweep and Bayesian optimization
+    "vectorbt>=0.26.0",   # portfolio simulation and metrics (installed: 0.28.5)
+    "optuna>=3.6.0",      # Bayesian threshold sweep via TPE sampler (installed: 4.8.0)
 ]
 
 [project.scripts]
