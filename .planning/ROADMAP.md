@@ -160,10 +160,10 @@ Plans:
 **Plans**: 4 plans (Wave 1: plan-01; Wave 2: plan-02, plan-03 parallel; Wave 3: plan-04)
 
 Plans:
-- [ ] 08-01-PLAN.md — ExecutionConfig + ExecutionEngine + FreezeGuard position reconciliation
+- [x] 08-01-PLAN.md — ExecutionConfig + ExecutionEngine + FreezeGuard position reconciliation
 - [ ] 08-02-PLAN.md — PositionManager (lifecycle, breakeven, events)
 - [ ] 08-03-PLAN.md — RiskManager (circuit breakers, GEX regime gate)
-- [ ] 08-04-PLAN.md — PaperTrader (slippage model, 30-day gate, full pipeline)
+- [x] 08-04-PLAN.md — PaperTrader (slippage model, 30-day gate, full pipeline)
 
 ### Phase 9: ML Backend
 **Goal**: FastAPI receives all signal and trade events in the same asyncio event loop; XGBoost trains on signal history to produce optimized per-signal weights; Optuna sweeps all 44 thresholds; HMM detects market regime; no weight file deploys without human approval.
