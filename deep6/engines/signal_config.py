@@ -125,3 +125,23 @@ class DeltaConfig:
     sweep_vol_increase_ratio: float = 1.5      # Vol increase ratio (second half / first half)
     # DELT-03: Reversal approximation — bar-level delta/direction mismatch
     reversal_min_delta_ratio: float = 0.15     # Min |delta|/vol for reversal signal to fire
+
+
+@dataclass(frozen=True)
+class AuctionConfig:
+    """Configuration for AuctionEngine — all tunable thresholds.
+
+    Per D-01: defaults match original hardcoded values in auction.py.
+    Phase 7 vectorbt sweeps will vary these to find optimal values.
+    """
+    # AUCT-03: Poor high/low — single-print or low-volume extreme
+    poor_extreme_vol_ratio: float = 0.3    # Max vol/avg_vol for poor high/low
+    # AUCT-04: Volume void — LVN gap within bar
+    void_vol_ratio: float = 0.05           # Max vol/max_vol for volume void level
+    void_min_levels: int = 3               # Min thin levels for void signal
+    # AUCT-05: Market sweep — rapid traversal with increasing volume
+    sweep_vol_increase: float = 1.5        # Min second-half/first-half vol ratio for sweep
+    sweep_min_levels: int = 10             # Min price levels for sweep detection
+    # E9 FSM thresholds
+    balance_count_threshold: int = 3       # Bars before BALANCED state
+    breakout_range_threshold: float = 2.0  # Range multiplier for BREAKOUT vs EXPLORING
