@@ -145,3 +145,53 @@ class AuctionConfig:
     # E9 FSM thresholds
     balance_count_threshold: int = 3       # Bars before BALANCED state
     breakout_range_threshold: float = 2.0  # Range multiplier for BREAKOUT vs EXPLORING
+
+
+@dataclass(frozen=True)
+class POCConfig:
+    """Configuration for POCEngine — all tunable thresholds.
+
+    Per D-01: extract from hardcoded constructor defaults.
+    Phase 7 vectorbt sweeps will vary these to find optimal values.
+    """
+    va_pct: float = 0.70                    # POC-01..08 Value Area coverage fraction
+    poc_gap_ticks: int = 8                  # POC-04 gap threshold in ticks
+    continuous_streak_min: int = 3          # POC-03 consecutive bars to fire
+    extreme_top_pct: float = 0.15           # POC-02 top-of-range boundary fraction
+    extreme_bot_pct: float = 0.15           # POC-02 bottom-of-range boundary fraction
+    bullish_poc_position_max: float = 0.35  # POC-08 POC position (low) for bullish
+    bearish_poc_position_min: float = 0.65  # POC-08 POC position (high) for bearish
+    migration_window: int = 5               # VPRO-08 bars for velocity calculation
+
+
+@dataclass(frozen=True)
+class VolumeProfileConfig:
+    """Configuration for SessionProfile — all tunable thresholds.
+
+    Per D-01/D-02: LVN=30%, HVN=170% per requirements; scoring weights per VPRO-05.
+    Phase 7 vectorbt sweeps will vary these to find optimal values.
+    """
+    lvn_threshold: float = 0.30    # VPRO-02 LVN: bins < 30% of session average
+    hvn_threshold: float = 1.70    # VPRO-03 HVN: bins > 170% of session average
+    min_zone_ticks: int = 2        # VPRO-01 minimum zone width in ticks
+    max_zones: int = 80            # cap on simultaneously active zones
+    w_type: float = 0.35           # VPRO-05 zone type weight
+    w_recency: float = 0.25        # VPRO-05 recency weight
+    w_touches: float = 0.25        # VPRO-05 touch count weight
+    w_defense: float = 0.15        # VPRO-05 defense weight
+    zone_decay_rate: float = 0.005  # per-bar score decay (~140 bar half-life)
+    session_decay_weight: float = 0.70  # VPRO-07 prior session bins decay factor (0.7 = 30% fade)
+
+
+@dataclass(frozen=True)
+class GexConfig:
+    """Configuration for GexEngine — all tunable thresholds.
+
+    Per D-04: staleness at 15 min default (GEX-06).
+    Phase 7 vectorbt sweeps can vary near_wall_pct and gex_normalize_divisor.
+    """
+    staleness_seconds: float = 900.0     # GEX-06 stale threshold (15 minutes)
+    underlying: str = "QQQ"              # GEX-01 proxy ticker for NQ (QQQ tracks NDX)
+    near_wall_pct: float = 0.005         # GEX-05 within 0.5% of wall = "near"
+    nq_to_qqq_divisor: float = 40.0     # NQ price ÷ 40 ≈ QQQ price
+    gex_normalize_divisor: float = 1e9  # GEX-05 strength normalization divisor
