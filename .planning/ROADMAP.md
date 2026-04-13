@@ -70,7 +70,13 @@ Plans:
   3. All 5 auction theory signals (unfinished business, finished auction, poor high/low, volume void, market sweep) detect correctly — unfinished auction levels persist cross-session in SQLite
   4. E8 CVDEngine runs numpy polyfit linear regression over 5-20 bar rolling window and divergence flag matches visual inspection on 10+ reference bars
   5. Pairwise Pearson correlation matrix is computed for all implemented signals — any pair with r > 0.7 is documented before Phase 7 scorer is finalized
-**Plans**: TBD
+**Plans**: 4 plans (Wave 1: plan-01, plan-04 parallel; Wave 2: plan-02; Wave 3: plan-03)
+
+Plans:
+- [ ] 03-01-PLAN.md — ImbalanceConfig + DeltaConfig extraction, missing imbalance variants (IMB-02/07/09), missing delta variants (DELT-03/07)
+- [ ] 03-02-PLAN.md — AuctionConfig extraction, unfinished auction cross-session persistence in SQLite
+- [ ] 03-03-PLAN.md — Comprehensive test suite for all imbalance, delta, and auction variants
+- [ ] 03-04-PLAN.md — Pairwise Pearson correlation matrix script for all signals
 
 ### Phase 4: DOM Depth Signal Engines (E2, E3, E4, E5)
 **Goal**: Trapped trader signals, volume pattern signals, DOM queue imbalance, spoofing detection, iceberg detection, and Naive Bayes micro probability are all operational — providing the second tier of signal confirmation from order book depth and flow analysis.
@@ -168,7 +174,7 @@ Note: Phase 6 (Kronos + TVMCP) can begin after Phase 1 completes, running in par
 |-------|----------------|--------|-----------|
 | 1. Data Pipeline + Architecture Foundation | 2/4 | In Progress|  |
 | 2. Absorption + Exhaustion Core | 0/3 | Not started | - |
-| 3. Footprint Signal Engines (E1, E8, E9) | 0/? | Not started | - |
+| 3. Footprint Signal Engines (E1, E8, E9) | 0/4 | Not started | - |
 | 4. DOM Depth Signal Engines (E2, E3, E4, E5) | 0/? | Not started | - |
 | 5. Volume Profile + GEX Context + Zone Registry | 0/? | Not started | - |
 | 6. Kronos E10 + TradingView MCP | 0/? | Not started | - |
