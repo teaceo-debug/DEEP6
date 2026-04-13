@@ -31,6 +31,10 @@ namespace NinjaTrader.NinjaScript.Indicators
         private SharpDX.DirectWrite.TextFormat _fC, _fS, _fL;
         private SharpDX.DirectWrite.Factory _dwF;
         private bool _dxOk;
+        // Pre-allocated imbalance brush palettes (32 shades each, indexed by alpha)
+        private const int PAL_SIZE = 32;
+        private readonly SharpDX.Direct2D1.SolidColorBrush[] _dxGPal = new SharpDX.Direct2D1.SolidColorBrush[PAL_SIZE];
+        private readonly SharpDX.Direct2D1.SolidColorBrush[] _dxRPal = new SharpDX.Direct2D1.SolidColorBrush[PAL_SIZE];
         #endregion
 
         #region SharpDX Rendering
@@ -57,6 +61,18 @@ namespace NinjaTrader.NinjaScript.Indicators
                 _dxP  = B(.61f,.35f,.71f); _dxBg = B(.04f,.05f,.09f,.92f);
                 _dxCB = B(0f,.31f,.16f,.65f); _dxCS = B(.31f,0f,0f,.65f);
                 _dxBd = B(1f,.84f,0f,.9f);
+                // Pre-allocate gradient palettes for RenderFP cell coloring
+                for (int i = 0; i < PAL_SIZE; i++)
+                {
+                    float t = (float)i / (PAL_SIZE - 1);                         // 0.0 .. 1.0
+                    float al = 0.30f + t * 0.55f;                                // alpha range 0.30..0.85
+                    float gIntensity = 0.35f + t * 0.10f;                        // green channel 0.35..0.45
+                    float rIntensity = 0.35f + t * 0.10f;                        // red channel 0.35..0.45
+                    _dxGPal[i] = new SharpDX.Direct2D1.SolidColorBrush(RenderTarget,
+                        new SharpDX.Color4(0f, gIntensity, 0.18f, al));           // green (buy imbalance)
+                    _dxRPal[i] = new SharpDX.Direct2D1.SolidColorBrush(RenderTarget,
+                        new SharpDX.Color4(rIntensity, 0f, 0f, al));              // red (sell imbalance)
+                }
                 _dwF  = new SharpDX.DirectWrite.Factory();
                 _fC   = new TextFormat(_dwF,"Consolas",8f){WordWrapping=WordWrapping.NoWrap};
                 _fS   = new TextFormat(_dwF,"Consolas",7f){WordWrapping=WordWrapping.NoWrap};
@@ -72,6 +88,11 @@ namespace NinjaTrader.NinjaScript.Indicators
             void D<T>(ref T x) where T:class,IDisposable{if(x!=null){try{x.Dispose();}catch{}x=null;}}
             D(ref _dxG);D(ref _dxR);D(ref _dxGo);D(ref _dxW);D(ref _dxGr);D(ref _dxO);
             D(ref _dxT);D(ref _dxC);D(ref _dxP);D(ref _dxBg);D(ref _dxCB);D(ref _dxCS);D(ref _dxBd);
+            for (int i = 0; i < PAL_SIZE; i++)
+            {
+                if (_dxGPal[i] != null) { try { _dxGPal[i].Dispose(); } catch { } _dxGPal[i] = null; }
+                if (_dxRPal[i] != null) { try { _dxRPal[i].Dispose(); } catch { } _dxRPal[i] = null; }
+            }
             D(ref _fC);D(ref _fS);D(ref _fL);D(ref _dwF);
         }
 
@@ -106,13 +127,17 @@ namespace NinjaTrader.NinjaScript.Indicators
                     bool buyI=ask>0&&bid>0&&ask/bid>=ImbRatio;
                     bool selI=ask>0&&bid>0&&bid/ask>=ImbRatio;
                     if (buyI)
-                    { float al=Math.Min((float)((ask/Math.Max(bid,1))/ImbRatio-1)*.5f+.3f,.85f);
-                      var b=new SharpDX.Direct2D1.SolidColorBrush(RenderTarget,new SharpDX.Color4(0f,.35f+al*.1f,.18f,al));
-                      RenderTarget.FillRectangle(new SharpDX.RectangleF(xL,yT,bW,cH),b);b.Dispose();}
+                    { float al = Math.Min((float)((ask / Math.Max(bid, 1)) / ImbRatio - 1) * .5f + .3f, .85f);
+                      int pi = (int)Math.Round((al - 0.30f) / 0.55f * (PAL_SIZE - 1));
+                      pi = Math.Max(0, Math.Min(pi, PAL_SIZE - 1));
+                      if (_dxGPal[pi] != null)
+                          RenderTarget.FillRectangle(new SharpDX.RectangleF(xL, yT, bW, cH), _dxGPal[pi]); }
                     else if (selI)
-                    { float al=Math.Min((float)((bid/Math.Max(ask,1))/ImbRatio-1)*.5f+.3f,.85f);
-                      var b=new SharpDX.Direct2D1.SolidColorBrush(RenderTarget,new SharpDX.Color4(.35f+al*.1f,0f,0f,al));
-                      RenderTarget.FillRectangle(new SharpDX.RectangleF(xL,yT,bW,cH),b);b.Dispose();}
+                    { float al = Math.Min((float)((bid / Math.Max(ask, 1)) / ImbRatio - 1) * .5f + .3f, .85f);
+                      int pi = (int)Math.Round((al - 0.30f) / 0.55f * (PAL_SIZE - 1));
+                      pi = Math.Max(0, Math.Min(pi, PAL_SIZE - 1));
+                      if (_dxRPal[pi] != null)
+                          RenderTarget.FillRectangle(new SharpDX.RectangleF(xL, yT, bW, cH), _dxRPal[pi]); }
                     if (isPoc) RenderTarget.DrawLine(new SharpDX.Vector2(xL,yT),new SharpDX.Vector2(xL,yB),_dxBd,2f);
                     if (cH>=8f&&bW>=26f)
                     { float cW=bW/3f;
