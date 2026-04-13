@@ -92,9 +92,9 @@ Plans:
 
 Plans:
 - [x] 04-01-PLAN.md — TrapEngine (TRAP-02..05) + VolPatternEngine (VOLP-01..06), config dataclasses
-- [ ] 04-02-PLAN.md — E2 TrespassEngine (ENG-02) + E3 CounterSpoofEngine (ENG-03)
-- [ ] 04-03-PLAN.md — E4 IcebergEngine (ENG-04) + E5 MicroEngine (ENG-05)
-- [ ] 04-04-PLAN.md — Comprehensive test suite for all Phase 4 engines
+- [x] 04-02-PLAN.md — E2 TrespassEngine (ENG-02) + E3 CounterSpoofEngine (ENG-03)
+- [x] 04-03-PLAN.md — E4 IcebergEngine (ENG-04) + E5 MicroEngine (ENG-05)
+- [x] 04-04-PLAN.md — Comprehensive test suite for all Phase 4 engines
 
 ### Phase 5: Volume Profile + GEX Context + Zone Registry (E6, E7)
 **Goal**: Session volume profile with LVN/HVN detection, the 5-state zone lifecycle FSM, GEX integration, centralized ZoneRegistry, and the E6/E7 engine scaffold are all operational — providing the macro context layer that all high-conviction signals require.
