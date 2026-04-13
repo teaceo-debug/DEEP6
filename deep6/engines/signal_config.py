@@ -292,6 +292,47 @@ class CounterSpoofConfig:
 
 
 @dataclass(frozen=True)
+class IcebergConfig:
+    """Configuration for IcebergEngine — E4 native + synthetic iceberg detection.
+
+    Per D-08: Native iceberg when trade size > dom_size * native_ratio.
+    Per D-09: Synthetic iceberg when same level refills within refill_window_ms
+              to >= peak_size * refill_ratio after depletion.
+    Per D-10: Conviction bonus +3 when iceberg at absorption zone.
+    Per T-02-01: frozen=True prevents mutation after creation.
+    """
+    # ENG-04: Native detection
+    native_ratio: float = 1.5          # trade_size > dom_size * this = native iceberg
+    iceberg_min_size: float = 30.0     # Min level size to track (skip tiny levels)
+
+    # ENG-04: Depletion tracking
+    depletion_threshold: float = 0.15  # Level drops to < this fraction of peak = depleted
+
+    # ENG-04: Synthetic detection (refill)
+    refill_window_ms: float = 250.0    # Max ms for synthetic iceberg refill
+    refill_ratio: float = 0.8          # Refill >= peak_size * this = iceberg
+    synthetic_min_refills: int = 2     # Refills needed for SYNTHETIC to fire
+
+    # ENG-04 / D-10: Absorption zone conviction bonus
+    conviction_bonus_at_zone: int = 3  # +3 score bonus when at absorption zone
+
+
+@dataclass(frozen=True)
+class MicroConfig:
+    """Configuration for MicroEngine — E5 Naive Bayes micro probability.
+
+    Per D-11: Three binary features: E2 trespass direction, E4 iceberg presence,
+              imbalance direction from narrative.
+    Per D-12: Output is probability 0-1 for next-tick direction.
+    Per D-13: Fallback 0.5 when DOM unavailable.
+    Per T-02-01: frozen=True prevents mutation after creation.
+    """
+    bull_likelihood: float = 0.65   # P(feature=bull | bull) prior per feature
+    bull_threshold: float = 0.6     # probability >= this = direction +1
+    bear_threshold: float = 0.4     # probability <= this = direction -1
+
+
+@dataclass(frozen=True)
 class GexConfig:
     """Configuration for GexEngine — all tunable thresholds.
 
