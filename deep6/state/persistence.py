@@ -21,6 +21,18 @@ CREATE TABLE IF NOT EXISTS session_state (
 );
 """
 
+AUCTION_SCHEMA = """
+CREATE TABLE IF NOT EXISTS auction_levels (
+    session_id TEXT NOT NULL,
+    price      REAL NOT NULL,
+    direction  INTEGER NOT NULL,
+    strength   REAL NOT NULL,
+    timestamp  REAL NOT NULL,
+    resolved   INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (session_id, price)
+);
+"""
+
 # Canonical session keys — all fields of SessionContext (D-07)
 SESSION_KEYS = [
     "cvd",
@@ -55,9 +67,10 @@ class SessionPersistence:
         self.db_path = db_path
 
     async def initialize(self) -> None:
-        """Create session_state table if not exists. Call once at startup."""
+        """Create session_state and auction_levels tables if not exists. Call once at startup."""
         async with aiosqlite.connect(self.db_path) as db:
             await db.execute(SCHEMA)
+            await db.execute(AUCTION_SCHEMA)
             await db.commit()
 
     async def write(self, session_id: str, key: str, value: str) -> None:
@@ -120,3 +133,56 @@ class SessionPersistence:
         if not data:
             return None
         return SessionContext.from_dict(data)
+
+    async def persist_auction_levels(self, session_id: str, levels: list[dict]) -> None:
+        """Persist unfinished auction levels for cross-session tracking.
+
+        Each level dict: {price: float, direction: int, strength: float, timestamp: float}
+
+        Per D-07: unfinished business levels must survive process restart.
+        Uses INSERT OR REPLACE so repeated calls are idempotent.
+        """
+        now = time.time()
+        async with aiosqlite.connect(self.db_path) as db:
+            for level in levels:
+                await db.execute(
+                    "INSERT OR REPLACE INTO auction_levels "
+                    "(session_id, price, direction, strength, timestamp, resolved) "
+                    "VALUES (?, ?, ?, ?, ?, 0)",
+                    (session_id, level["price"], level["direction"],
+                     level["strength"], level.get("timestamp", now)),
+                )
+            await db.commit()
+
+    async def restore_auction_levels(self, max_sessions: int = 5) -> list[dict]:
+        """Restore unresolved auction levels from recent sessions.
+
+        Returns levels from the most recent max_sessions sessions that
+        have not been resolved (price has not returned to that level).
+
+        Per T-03-05: limits rows to max_sessions * 50 to prevent unbounded growth.
+        """
+        async with aiosqlite.connect(self.db_path) as db:
+            async with db.execute(
+                "SELECT session_id, price, direction, strength, timestamp "
+                "FROM auction_levels WHERE resolved = 0 "
+                "ORDER BY timestamp DESC LIMIT ?",
+                (max_sessions * 50,),  # generous limit per T-03-05
+            ) as cursor:
+                return [
+                    {"session_id": row[0], "price": row[1], "direction": row[2],
+                     "strength": row[3], "timestamp": row[4]}
+                    async for row in cursor
+                ]
+
+    async def resolve_auction_level(self, price: float) -> None:
+        """Mark an auction level as resolved (price returned to it).
+
+        Sets resolved=1 for all unresolved rows at this price across all sessions.
+        """
+        async with aiosqlite.connect(self.db_path) as db:
+            await db.execute(
+                "UPDATE auction_levels SET resolved = 1 WHERE price = ? AND resolved = 0",
+                (price,),
+            )
+            await db.commit()
