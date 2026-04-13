@@ -260,6 +260,38 @@ class VolPatternConfig:
 
 
 @dataclass(frozen=True)
+class TrespassConfig:
+    """Configuration for TrespassEngine — E2 weighted DOM queue imbalance.
+
+    Per D-01: Weight decay is 1/(i+1) — computed at engine init, not configurable.
+    Per D-02: Heuristic thresholds until logistic regression model is trained (Phase 7).
+    Per T-02-01: frozen=True prevents mutation after creation.
+    """
+    trespass_depth: int = 10              # Top N levels to consider (of 40)
+    bull_ratio_threshold: float = 1.2    # imbalance_ratio > this = bullish
+    bear_ratio_threshold: float = 0.8    # imbalance_ratio < this = bearish
+
+
+@dataclass(frozen=True)
+class CounterSpoofConfig:
+    """Configuration for CounterSpoofEngine — E3 Wasserstein-1 DOM distribution monitor.
+
+    Per D-04: E3 samples every 100ms, NOT every callback.
+    Per D-05: W1 spike > w1_anomaly_sigma * std from rolling mean = anomaly.
+    Per D-06: Large order cancel: level > spoof_large_order drops to < spoof_cancel_threshold
+              within spoof_cancel_window_ms without a trade = potential spoof.
+    Per D-07: Alert-only — informational, not a trade signal.
+    Per T-02-01: frozen=True prevents mutation after creation.
+    """
+    spoof_history_len: int = 20           # Max snapshots in rolling window
+    spoof_large_order: float = 50.0       # Min size to track as "large" (contracts)
+    spoof_cancel_threshold: float = 10.0  # Size drop to < this = potential cancel
+    spoof_cancel_window_ms: float = 200.0  # Time window for cancel detection (ms)
+    w1_anomaly_sigma: float = 3.0         # Standard deviations for W1 spike
+    w1_min_samples: int = 5               # Min W1 history before anomaly fires
+
+
+@dataclass(frozen=True)
 class GexConfig:
     """Configuration for GexEngine — all tunable thresholds.
 
