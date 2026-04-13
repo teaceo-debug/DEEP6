@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS trade_events (
     bars_held    INTEGER NOT NULL,
     signal_tier  TEXT NOT NULL,
     signal_score REAL NOT NULL DEFAULT 0.0,
+    regime_label TEXT NOT NULL DEFAULT 'UNKNOWN',
     inserted_at  REAL NOT NULL
 )
 """
@@ -139,8 +140,8 @@ class EventStore:
                 INSERT INTO trade_events
                     (ts, position_id, event_type, side, entry_price,
                      exit_price, pnl, bars_held, signal_tier, signal_score,
-                     inserted_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     regime_label, inserted_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     ev.ts,
@@ -153,6 +154,7 @@ class EventStore:
                     ev.bars_held,
                     ev.signal_tier,
                     ev.signal_score,
+                    ev.regime_label,
                     now,
                 ),
             )

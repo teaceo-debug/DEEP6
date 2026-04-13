@@ -28,6 +28,7 @@ from fastapi import FastAPI
 from deep6.api.store import EventStore
 from deep6.api.routes import events as events_router
 from deep6.api.routes import weights as weights_router
+from deep6.api.routes import metrics as metrics_router
 
 
 @asynccontextmanager
@@ -60,6 +61,7 @@ def create_app() -> FastAPI:
     # Mount routers
     application.include_router(events_router.router)
     application.include_router(weights_router.router)
+    application.include_router(metrics_router.router)
 
     @application.get("/health", tags=["health"])
     async def health() -> dict:

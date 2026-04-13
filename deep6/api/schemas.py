@@ -41,6 +41,7 @@ class TradeEventIn(BaseModel):
     bars_held: int
     signal_tier: str
     signal_score: float
+    regime_label: str = "UNKNOWN"    # HMM regime at time of trade (D-23)
 
 
 class WeightFileOut(BaseModel):
