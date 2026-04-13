@@ -13,6 +13,9 @@ Variants (per EXH-01..06):
   5. Fading Momentum:  Delta trajectory diverges from price (E8 CVD — stub for now)
   6. Bid/Ask Fade:     Ask volume at extreme < 60% of prior bar's ask
 
+Universal delta trajectory gate (EXH-07 / D-08) applied to variants 2-6.
+Zero print (EXH-01) is exempt — it is structural, not delta-dependent.
+
 All thresholds are ATR-adaptive (ARCH-03, SCOR-05).
 """
 from __future__ import annotations
@@ -21,6 +24,7 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from typing import Optional
 
+from deep6.engines.signal_config import ExhaustionConfig
 from deep6.state.footprint import FootprintBar, tick_to_price, price_to_tick
 
 
@@ -63,16 +67,51 @@ def _set_cooldown(etype: ExhaustionType, bar_index: int) -> None:
     _cooldown[etype] = bar_index
 
 
+def _delta_trajectory_gate(bar: FootprintBar, config: ExhaustionConfig) -> bool:
+    """Universal delta trajectory divergence gate for exhaustion signals (EXH-07).
+
+    Returns True if the gate PASSES (signal allowed to fire).
+
+    Exhaustion only fires when cumulative delta is fading relative to price
+    direction — i.e., the aggressor is running out of steam:
+      - Bullish bar (close > open) + negative delta: buyers pushed price up
+        but sellers are winning on delta — buyer exhaustion confirmed.
+      - Bearish bar (close < open) + positive delta: sellers pushed price down
+        but buyers are winning on delta — seller exhaustion confirmed.
+
+    If delta is too small (< delta_gate_min_ratio), the gate does not block
+    because tiny delta is noise, not meaningful confirmation.
+
+    Per T-02-03: O(1) cost — safe to call on every bar.
+    """
+    if not config.delta_gate_enabled:
+        return True
+
+    if bar.total_vol == 0:
+        return True
+
+    delta_ratio = abs(bar.bar_delta) / bar.total_vol
+    if delta_ratio < config.delta_gate_min_ratio:
+        # Delta too small to be meaningful — don't block
+        return True
+
+    if bar.close > bar.open:
+        # Bullish bar: gate passes only if delta is negative (buyers fading)
+        return bar.bar_delta < 0
+    elif bar.close < bar.open:
+        # Bearish bar: gate passes only if delta is positive (sellers fading)
+        return bar.bar_delta > 0
+    else:
+        # Doji (close == open): no directional context — allow
+        return True
+
+
 def detect_exhaustion(
     bar: FootprintBar,
     prior_bar: Optional[FootprintBar] = None,
     bar_index: int = 0,
     atr: float = 15.0,
-    thin_pct: float = 0.05,
-    fat_mult: float = 2.0,
-    exhaust_wick_min: float = 35.0,
-    fade_threshold: float = 0.60,
-    cooldown_bars: int = 5,
+    config: ExhaustionConfig | None = None,
 ) -> list[ExhaustionSignal]:
     """Detect all exhaustion variants in a single bar.
 
@@ -80,16 +119,16 @@ def detect_exhaustion(
         bar: Finalized FootprintBar
         prior_bar: Previous bar (needed for bid/ask fade comparison)
         bar_index: Current bar index (for cooldown tracking)
-        atr: Current ATR(20) for adaptive thresholds
-        thin_pct: Max volume as fraction of bar max for thin print
-        fat_mult: Min volume as multiple of bar average for fat print
-        exhaust_wick_min: Min wick volume % for exhaustion print
-        fade_threshold: Ask/bid fade ratio threshold
-        cooldown_bars: Bars to suppress same sub-type after firing (EXH-08)
+        atr: Current ATR(20) for adaptive thresholds (runtime value)
+        config: ExhaustionConfig with all tunable thresholds. If None, uses
+                defaults — fully backward compatible with callers that omit config.
 
     Returns:
         List of ExhaustionSignal (usually 0-2 per bar)
     """
+    # Use provided config or create default (backward compat — D-02)
+    cfg = config if config is not None else ExhaustionConfig()
+
     signals: list[ExhaustionSignal] = []
 
     if not bar.levels or bar.total_vol == 0:
@@ -107,9 +146,10 @@ def detect_exhaustion(
     body_top = max(bar.open, bar.close)
     body_bot = min(bar.open, bar.close)
 
-    # --- 1. ZERO PRINT (EXH-01) ---
-    # Price level within bar body with 0 volume on both sides — fast-move gap
-    if _check_cooldown(ExhaustionType.ZERO_PRINT, bar_index, cooldown_bars):
+    # --- 1. ZERO PRINT (EXH-01) — GATE EXEMPT ---
+    # Structural gap: price level within bar body with 0 volume on both sides.
+    # Zero prints exist regardless of delta — do NOT apply the delta gate here.
+    if _check_cooldown(ExhaustionType.ZERO_PRINT, bar_index, cfg.cooldown_bars):
         for tick in sorted_ticks:
             px = tick_to_price(tick)
             level = bar.levels[tick]
@@ -125,15 +165,21 @@ def detect_exhaustion(
                 _set_cooldown(ExhaustionType.ZERO_PRINT, bar_index)
                 break  # One zero print signal per bar
 
+    # --- UNIVERSAL DELTA TRAJECTORY GATE (EXH-07 / D-08) ---
+    # Check AFTER zero print, BEFORE variants 2-6.
+    # If gate fails, return only zero print signals (if any).
+    if not _delta_trajectory_gate(bar, cfg):
+        return signals
+
     # --- 2. EXHAUSTION PRINT (EXH-02) ---
     # High single-side volume at bar extreme, no follow-through
-    if _check_cooldown(ExhaustionType.EXHAUSTION_PRINT, bar_index, cooldown_bars):
+    if _check_cooldown(ExhaustionType.EXHAUSTION_PRINT, bar_index, cfg.cooldown_bars):
         # Check bar high — buyers exhausted if heavy ask vol at top
         high_tick = sorted_ticks[-1]
         high_level = bar.levels[high_tick]
         if high_level.ask_vol > 0:
             high_pct = (high_level.ask_vol / bar.total_vol) * 100
-            eff_min = exhaust_wick_min * (1.2 if bar.bar_range > atr * 1.5 else 1.0)
+            eff_min = cfg.exhaust_wick_min * (1.2 if bar.bar_range > atr * 1.5 else 1.0)
             if high_pct >= eff_min / 3:  # Lower threshold since it's a single level
                 signals.append(ExhaustionSignal(
                     bar_type=ExhaustionType.EXHAUSTION_PRINT,
@@ -150,7 +196,7 @@ def detect_exhaustion(
         low_level = bar.levels[low_tick]
         if low_level.bid_vol > 0:
             low_pct = (low_level.bid_vol / bar.total_vol) * 100
-            if low_pct >= exhaust_wick_min / 3:
+            if low_pct >= cfg.exhaust_wick_min / 3:
                 signals.append(ExhaustionSignal(
                     bar_type=ExhaustionType.EXHAUSTION_PRINT,
                     direction=+1,  # Bullish — sellers exhausted at low
@@ -163,14 +209,14 @@ def detect_exhaustion(
 
     # --- 3. THIN PRINT (EXH-03) ---
     # Volume at price row < 5% of bar's max — confirms fast move through
-    if _check_cooldown(ExhaustionType.THIN_PRINT, bar_index, cooldown_bars):
+    if _check_cooldown(ExhaustionType.THIN_PRINT, bar_index, cfg.cooldown_bars):
         thin_count = 0
         for tick in sorted_ticks:
             px = tick_to_price(tick)
             level = bar.levels[tick]
             vol = level.ask_vol + level.bid_vol
             if body_bot <= px <= body_top and max_level_vol > 0:
-                if vol < max_level_vol * thin_pct:
+                if vol < max_level_vol * cfg.thin_pct:
                     thin_count += 1
 
         if thin_count >= 3:  # At least 3 thin levels = confirmed fast move
@@ -180,23 +226,23 @@ def detect_exhaustion(
                 direction=direction,
                 price=(bar.high + bar.low) / 2,
                 strength=min(thin_count / 7.0, 1.0),
-                detail=f"THIN PRINT: {thin_count} levels < {thin_pct*100:.0f}% max vol — fast move",
+                detail=f"THIN PRINT: {thin_count} levels < {cfg.thin_pct*100:.0f}% max vol — fast move",
             ))
             _set_cooldown(ExhaustionType.THIN_PRINT, bar_index)
 
     # --- 4. FAT PRINT (EXH-04) ---
     # Volume at price row > threshold × average — strong acceptance level (future S/R)
-    if _check_cooldown(ExhaustionType.FAT_PRINT, bar_index, cooldown_bars):
+    if _check_cooldown(ExhaustionType.FAT_PRINT, bar_index, cfg.cooldown_bars):
         for tick in sorted_ticks:
             level = bar.levels[tick]
             vol = level.ask_vol + level.bid_vol
-            if vol > avg_level_vol * fat_mult:
+            if vol > avg_level_vol * cfg.fat_mult:
                 px = tick_to_price(tick)
                 signals.append(ExhaustionSignal(
                     bar_type=ExhaustionType.FAT_PRINT,
                     direction=0,  # Neutral — acceptance, not directional
                     price=px,
-                    strength=min(vol / (avg_level_vol * fat_mult * 2), 1.0),
+                    strength=min(vol / (avg_level_vol * cfg.fat_mult * 2), 1.0),
                     detail=f"FAT PRINT at {px:.2f}: vol={vol} ({vol/avg_level_vol:.1f}x avg) — "
                            f"strong acceptance / future S/R",
                 ))
@@ -206,13 +252,14 @@ def detect_exhaustion(
     # --- 5. FADING MOMENTUM (EXH-05) ---
     # Delta trajectory diverges from price — requires E8 CVD engine (Phase 3)
     # Stub: will be implemented when E8 CVD engine provides linear regression slope
-    # For now, simple version: bar delta opposes bar direction
-    if _check_cooldown(ExhaustionType.FADING_MOMENTUM, bar_index, cooldown_bars):
+    # For now, simple version: bar delta opposes bar direction.
+    # The universal gate already confirmed delta divergence; keep the 0.15 threshold
+    # here as a STRONGER requirement — pronounced divergence, not just any fading.
+    if _check_cooldown(ExhaustionType.FADING_MOMENTUM, bar_index, cfg.cooldown_bars):
         if bar.bar_range > 0:
             bar_bullish = bar.close > bar.open
-            delta_opposes = (bar_bullish and bar.bar_delta < 0) or \
-                           (not bar_bullish and bar.bar_delta > 0)
-            if delta_opposes and abs(bar.bar_delta) > bar.total_vol * 0.15:
+            # Universal gate already confirmed delta_opposes — check stronger threshold
+            if abs(bar.bar_delta) > bar.total_vol * 0.15:
                 direction = -1 if bar_bullish else +1
                 signals.append(ExhaustionSignal(
                     bar_type=ExhaustionType.FADING_MOMENTUM,
@@ -227,7 +274,7 @@ def detect_exhaustion(
     # --- 6. BID/ASK FADE (EXH-06) ---
     # Ask volume at bar extreme < 60% of prior bar's ask at same relative position
     if (prior_bar and prior_bar.levels
-            and _check_cooldown(ExhaustionType.BID_ASK_FADE, bar_index, cooldown_bars)):
+            and _check_cooldown(ExhaustionType.BID_ASK_FADE, bar_index, cfg.cooldown_bars)):
 
         # Compare ask at current high vs prior bar's high
         curr_high_tick = sorted_ticks[-1]
@@ -238,14 +285,14 @@ def detect_exhaustion(
             prior_high_tick = prior_sorted[-1]
             prior_high_ask = prior_bar.levels[prior_high_tick].ask_vol
 
-            if prior_high_ask > 0 and curr_high_ask < prior_high_ask * fade_threshold:
+            if prior_high_ask > 0 and curr_high_ask < prior_high_ask * cfg.fade_threshold:
                 signals.append(ExhaustionSignal(
                     bar_type=ExhaustionType.BID_ASK_FADE,
                     direction=-1,  # Bearish — buyers fading at highs
                     price=tick_to_price(curr_high_tick),
                     strength=1.0 - (curr_high_ask / prior_high_ask if prior_high_ask > 0 else 0),
                     detail=f"ASK FADE at high: curr={curr_high_ask} vs prior={prior_high_ask} "
-                           f"({curr_high_ask/prior_high_ask*100:.0f}% — below {fade_threshold*100:.0f}%)",
+                           f"({curr_high_ask/prior_high_ask*100:.0f}% — below {cfg.fade_threshold*100:.0f}%)",
                 ))
                 _set_cooldown(ExhaustionType.BID_ASK_FADE, bar_index)
 
@@ -255,14 +302,14 @@ def detect_exhaustion(
             prior_low_tick = prior_sorted[0]
             prior_low_bid = prior_bar.levels[prior_low_tick].bid_vol
 
-            if prior_low_bid > 0 and curr_low_bid < prior_low_bid * fade_threshold:
+            if prior_low_bid > 0 and curr_low_bid < prior_low_bid * cfg.fade_threshold:
                 signals.append(ExhaustionSignal(
                     bar_type=ExhaustionType.BID_ASK_FADE,
                     direction=+1,  # Bullish — sellers fading at lows
                     price=tick_to_price(curr_low_tick),
                     strength=1.0 - (curr_low_bid / prior_low_bid if prior_low_bid > 0 else 0),
                     detail=f"BID FADE at low: curr={curr_low_bid} vs prior={prior_low_bid} "
-                           f"({curr_low_bid/prior_low_bid*100:.0f}% — below {fade_threshold*100:.0f}%)",
+                           f"({curr_low_bid/prior_low_bid*100:.0f}% — below {cfg.fade_threshold*100:.0f}%)",
                 ))
                 _set_cooldown(ExhaustionType.BID_ASK_FADE, bar_index)
 

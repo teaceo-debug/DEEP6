@@ -18,6 +18,7 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from typing import Optional
 
+from deep6.engines.signal_config import AbsorptionConfig
 from deep6.state.footprint import FootprintBar, tick_to_price, price_to_tick
 
 
@@ -44,32 +45,24 @@ class AbsorptionSignal:
 def detect_absorption(
     bar: FootprintBar,
     atr: float = 15.0,
-    absorb_wick_min: float = 30.0,
-    absorb_delta_max: float = 0.12,
-    passive_extreme_pct: float = 0.20,
-    passive_vol_pct: float = 0.60,
-    stop_vol_mult: float = 2.0,
-    evr_vol_mult: float = 1.5,
-    evr_range_cap: float = 0.30,
     vol_ema: float = 500.0,
+    config: AbsorptionConfig | None = None,
 ) -> list[AbsorptionSignal]:
     """Detect all absorption variants in a single bar.
 
     Args:
         bar: Finalized FootprintBar with levels populated
-        atr: Current ATR(20) value for adaptive thresholds
-        absorb_wick_min: Min wick volume % for classic absorption
-        absorb_delta_max: Max |delta|/volume ratio for balanced wick
-        passive_extreme_pct: Top/bottom % of range to check for passive absorption
-        passive_vol_pct: Min % of total volume in extreme zone for passive
-        stop_vol_mult: Volume must exceed this × vol_ema for stopping volume
-        evr_vol_mult: Volume must exceed this × vol_ema for effort vs result
-        evr_range_cap: Max bar range as fraction of ATR for effort vs result
-        vol_ema: Running average volume for comparison
+        atr: Current ATR(20) value for adaptive thresholds (runtime value)
+        vol_ema: Running average volume (runtime value)
+        config: AbsorptionConfig with all tunable thresholds. If None, uses
+                defaults — fully backward compatible with callers that omit config.
 
     Returns:
         List of AbsorptionSignal (usually 0 or 1 per bar; rarely 2)
     """
+    # Use provided config or create default (backward compat — D-02)
+    cfg = config if config is not None else AbsorptionConfig()
+
     signals: list[AbsorptionSignal] = []
 
     if not bar.levels or bar.total_vol == 0 or bar.bar_range == 0:
@@ -113,10 +106,10 @@ def detect_absorption(
         delta_ratio = abs(wick_delta) / wick_vol if wick_vol > 0 else 1.0
 
         # Scale thresholds with ATR
-        eff_wick_min = absorb_wick_min * (1.2 if bar.bar_range > atr * 1.5 else 1.0)
+        eff_wick_min = cfg.absorb_wick_min * (1.2 if bar.bar_range > atr * 1.5 else 1.0)
 
-        if wick_pct >= eff_wick_min and delta_ratio < absorb_delta_max:
-            strength = min(wick_pct / 60.0, 1.0) * (1.0 - delta_ratio / absorb_delta_max)
+        if wick_pct >= eff_wick_min and delta_ratio < cfg.absorb_delta_max:
+            strength = min(wick_pct / 60.0, 1.0) * (1.0 - delta_ratio / cfg.absorb_delta_max)
             signals.append(AbsorptionSignal(
                 bar_type=AbsorptionType.CLASSIC,
                 direction=direction,
@@ -132,7 +125,7 @@ def detect_absorption(
     # --- 2. PASSIVE ABSORPTION (ABS-02) ---
     # High volume concentrates at price extreme while price holds
     if bar.bar_range > 0:
-        extreme_range = bar.bar_range * passive_extreme_pct
+        extreme_range = bar.bar_range * cfg.passive_extreme_pct
         top_zone_vol = 0
         bot_zone_vol = 0
 
@@ -145,7 +138,7 @@ def detect_absorption(
                 bot_zone_vol += vol
 
         # Top zone passive: heavy volume at top but price didn't break higher
-        if top_zone_vol / total >= passive_vol_pct and bar.close < bar.high - extreme_range:
+        if top_zone_vol / total >= cfg.passive_vol_pct and bar.close < bar.high - extreme_range:
             signals.append(AbsorptionSignal(
                 bar_type=AbsorptionType.PASSIVE,
                 direction=-1,  # Bearish — passive sellers at top
@@ -158,7 +151,7 @@ def detect_absorption(
             ))
 
         # Bottom zone passive: heavy volume at bottom but price didn't break lower
-        if bot_zone_vol / total >= passive_vol_pct and bar.close > bar.low + extreme_range:
+        if bot_zone_vol / total >= cfg.passive_vol_pct and bar.close > bar.low + extreme_range:
             signals.append(AbsorptionSignal(
                 bar_type=AbsorptionType.PASSIVE,
                 direction=+1,  # Bullish — passive buyers at bottom
@@ -172,7 +165,7 @@ def detect_absorption(
 
     # --- 3. STOPPING VOLUME (ABS-03) ---
     # POC falls in wick + volume exceeds ATR-scaled peak threshold
-    if bar.total_vol > vol_ema * stop_vol_mult:
+    if bar.total_vol > vol_ema * cfg.stop_vol_mult:
         poc_in_upper_wick = bar.poc_price > body_top
         poc_in_lower_wick = bar.poc_price < body_bot
 
@@ -182,7 +175,7 @@ def detect_absorption(
                 direction=-1,  # Bearish — stopping at top
                 price=bar.poc_price,
                 wick="upper",
-                strength=min(bar.total_vol / (vol_ema * stop_vol_mult * 2), 1.0),
+                strength=min(bar.total_vol / (vol_ema * cfg.stop_vol_mult * 2), 1.0),
                 wick_pct=(upper_wick_vol / total) * 100 if total > 0 else 0,
                 delta_ratio=0.0,
                 detail=f"STOPPING VOL BEAR: POC={bar.poc_price:.2f} in upper wick, "
@@ -194,7 +187,7 @@ def detect_absorption(
                 direction=+1,  # Bullish — stopping at bottom
                 price=bar.poc_price,
                 wick="lower",
-                strength=min(bar.total_vol / (vol_ema * stop_vol_mult * 2), 1.0),
+                strength=min(bar.total_vol / (vol_ema * cfg.stop_vol_mult * 2), 1.0),
                 wick_pct=(lower_wick_vol / total) * 100 if total > 0 else 0,
                 delta_ratio=0.0,
                 detail=f"STOPPING VOL BULL: POC={bar.poc_price:.2f} in lower wick, "
@@ -203,9 +196,9 @@ def detect_absorption(
 
     # --- 4. EFFORT VS RESULT (ABS-04) ---
     # High volume + narrow range (lots of effort, no price movement)
-    if (bar.total_vol > vol_ema * evr_vol_mult
+    if (bar.total_vol > vol_ema * cfg.evr_vol_mult
             and atr > 0
-            and bar.bar_range < atr * evr_range_cap):
+            and bar.bar_range < atr * cfg.evr_range_cap):
         # Direction based on delta
         direction = +1 if bar.bar_delta < 0 else -1  # Negative delta + narrow = bull absorb
         signals.append(AbsorptionSignal(
@@ -213,7 +206,7 @@ def detect_absorption(
             direction=direction,
             price=(bar.high + bar.low) / 2,
             wick="body",
-            strength=min(bar.total_vol / (vol_ema * evr_vol_mult * 2), 1.0),
+            strength=min(bar.total_vol / (vol_ema * cfg.evr_vol_mult * 2), 1.0),
             wick_pct=0.0,
             delta_ratio=abs(bar.bar_delta) / bar.total_vol if bar.total_vol > 0 else 0,
             detail=f"EFFORT VS RESULT: vol={bar.total_vol} ({bar.total_vol/vol_ema:.1f}x avg) "
