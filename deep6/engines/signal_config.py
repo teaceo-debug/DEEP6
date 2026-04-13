@@ -195,3 +195,37 @@ class GexConfig:
     near_wall_pct: float = 0.005         # GEX-05 within 0.5% of wall = "near"
     nq_to_qqq_divisor: float = 40.0     # NQ price ÷ 40 ≈ QQQ price
     gex_normalize_divisor: float = 1e9  # GEX-05 strength normalization divisor
+
+
+@dataclass(frozen=True)
+class KronosConfig:
+    """Configuration for KronosSubprocessBridge (E10 bias engine).
+
+    Kronos-small runs in a dedicated subprocess. These fields control inference
+    cadence, confidence decay, and model selection.
+
+    Per D-07: all fields correspond to KronosEngine kwargs; defaults are unchanged
+    from the original implementation.
+    Per T-02-01: frozen=True prevents mutation after creation.
+    """
+    # Model identity
+    model_name: str = "NeoQuasar/Kronos-small"
+    tokenizer_name: str = "NeoQuasar/Kronos-Tokenizer-base"
+
+    # KRON-02: Inference cadence — re-infer every N bars
+    inference_interval: int = 5
+
+    # KRON-02: Stochastic sampling — 20 samples for confidence scoring
+    num_samples: int = 20
+
+    # KRON-01: Context window — use last N bars for inference
+    lookback: int = 100
+
+    # KRON-01: Prediction horizon — predict N bars ahead
+    pred_len: int = 5
+
+    # KRON-03: Confidence decay — 0.95/bar between inferences
+    decay_factor: float = 0.95
+
+    # Device selection: "auto" probes mps → cuda → cpu; or explicit "cpu"/"mps"/"cuda"
+    device: str = "auto"
