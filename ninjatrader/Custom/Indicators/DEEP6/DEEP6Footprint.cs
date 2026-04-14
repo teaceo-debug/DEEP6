@@ -22,9 +22,8 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
@@ -40,6 +39,12 @@ using NinjaTrader.NinjaScript.AddOns.DEEP6;
 using SharpDX;
 using SharpDX.Direct2D1;
 using SharpDX.DirectWrite;
+// Type aliases resolve System.Windows.Media vs SharpDX.Direct2D1 ambiguity.
+// Bare Brush / Color / SolidColorBrush = WPF. SharpDX variants always fully qualified.
+using Brush = System.Windows.Media.Brush;
+using Brushes = System.Windows.Media.Brushes;
+using Color = System.Windows.Media.Color;
+using SolidColorBrush = System.Windows.Media.SolidColorBrush;
 #endregion
 
 namespace NinjaTrader.NinjaScript.AddOns.DEEP6
@@ -802,23 +807,28 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
                     if (!resp.IsSuccessStatusCode) return null;
                     var json = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
 
-                    var parsed = ParseChain(json);
-                    foreach (var c in parsed.results)
+                    // Manual JSON parse — NT8's compile env doesn't reference
+                    // System.Runtime.Serialization.Json, so we walk each "results" item by brace matching.
+                    string nextUrl = ExtractStringField(json, "next_url");
+                    foreach (var obj in ExtractResultObjects(json))
                     {
-                        if (c.open_interest <= 0) continue;
-                        if (c.greeks == null) continue;
-                        if (c.details == null) continue;
-                        if (c.underlying_asset != null && c.underlying_asset.price > 0)
-                            spot = c.underlying_asset.price;
-                        double sign = string.Equals(c.details.contract_type, "call", StringComparison.OrdinalIgnoreCase) ? +1.0 : -1.0;
-                        double gamma = c.greeks.gamma;
-                        double gex = gamma * c.open_interest * 100.0 * spot * spot * 0.01 * sign;
-                        double strike = c.details.strike_price;
+                        int openInterest = ExtractIntField(obj, "open_interest");
+                        if (openInterest <= 0) continue;
+                        double gamma = ExtractDoubleField(obj, "gamma");
+                        if (gamma == 0) continue;
+                        double strike = ExtractDoubleField(obj, "strike_price");
+                        if (strike == 0) continue;
+                        string ctype = ExtractStringField(obj, "contract_type");
+                        if (string.IsNullOrEmpty(ctype)) continue;
+                        double localSpot = ExtractDoubleFieldInside(obj, "underlying_asset", "price");
+                        if (localSpot > 0) spot = localSpot;
+                        double sign = string.Equals(ctype, "call", StringComparison.OrdinalIgnoreCase) ? +1.0 : -1.0;
+                        double gex = gamma * openInterest * 100.0 * spot * spot * 0.01 * sign;
                         double acc;
                         byStrike.TryGetValue(strike, out acc);
                         byStrike[strike] = acc + gex;
                     }
-                    url = parsed.next_url;
+                    url = nextUrl;
                     if (!string.IsNullOrEmpty(url) && url.StartsWith(_baseUrl)) url = url.Substring(_baseUrl.Length);
                 }
 
@@ -831,59 +841,83 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
             }
         }
 
-        private static ChainResponse ParseChain(string json)
+        public void Dispose() { _http.Dispose(); }
+
+        // ---- Minimal JSON field extraction (no System.Runtime.Serialization dependency) ----
+
+        private static IEnumerable<string> ExtractResultObjects(string json)
         {
-            var ser = new DataContractJsonSerializer(typeof(ChainResponse));
-            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(json)))
+            // Locate "results": [...] and yield each top-level object in that array.
+            int arrIdx = json.IndexOf("\"results\"");
+            if (arrIdx < 0) yield break;
+            int arrStart = json.IndexOf('[', arrIdx);
+            if (arrStart < 0) yield break;
+
+            int i = arrStart + 1;
+            int n = json.Length;
+            while (i < n)
             {
-                return (ChainResponse)ser.ReadObject(ms);
+                // Skip whitespace and commas
+                while (i < n && (json[i] == ' ' || json[i] == '\t' || json[i] == '\n' || json[i] == '\r' || json[i] == ',')) i++;
+                if (i >= n) break;
+                if (json[i] == ']') yield break;
+                if (json[i] != '{') { i++; continue; }
+
+                int start = i;
+                int depth = 0;
+                bool inStr = false;
+                bool esc = false;
+                for (; i < n; i++)
+                {
+                    char c = json[i];
+                    if (esc) { esc = false; continue; }
+                    if (inStr)
+                    {
+                        if (c == '\\') esc = true;
+                        else if (c == '"') inStr = false;
+                        continue;
+                    }
+                    if (c == '"') { inStr = true; continue; }
+                    if (c == '{') depth++;
+                    else if (c == '}')
+                    {
+                        depth--;
+                        if (depth == 0) { i++; break; }
+                    }
+                }
+                yield return json.Substring(start, i - start);
             }
         }
 
-        public void Dispose() { _http.Dispose(); }
-
-        // --- DTOs (DataContract for .NET Framework 4.8 compatibility) ---
-
-        [DataContract]
-        private sealed class ChainResponse
+        private static string ExtractStringField(string json, string field)
         {
-            [DataMember(Name = "status")]    public string status;
-            [DataMember(Name = "next_url")]  public string next_url;
-            [DataMember(Name = "results")]   public List<OptionContract> results = new List<OptionContract>();
+            var m = Regex.Match(json, "\"" + Regex.Escape(field) + "\"\\s*:\\s*\"((?:\\\\.|[^\"\\\\])*)\"");
+            return m.Success ? Regex.Unescape(m.Groups[1].Value) : string.Empty;
         }
 
-        [DataContract]
-        private sealed class OptionContract
+        private static int ExtractIntField(string json, string field)
         {
-            [DataMember(Name = "open_interest")]    public int open_interest;
-            [DataMember(Name = "greeks")]           public Greeks greeks;
-            [DataMember(Name = "details")]          public Details details;
-            [DataMember(Name = "underlying_asset")] public UnderlyingAsset underlying_asset;
+            var m = Regex.Match(json, "\"" + Regex.Escape(field) + "\"\\s*:\\s*(-?\\d+)");
+            if (!m.Success) return 0;
+            int v;
+            return int.TryParse(m.Groups[1].Value, System.Globalization.NumberStyles.Integer,
+                System.Globalization.CultureInfo.InvariantCulture, out v) ? v : 0;
         }
 
-        [DataContract]
-        private sealed class Greeks
+        private static double ExtractDoubleField(string json, string field)
         {
-            [DataMember(Name = "delta")] public double delta;
-            [DataMember(Name = "gamma")] public double gamma;
-            [DataMember(Name = "theta")] public double theta;
-            [DataMember(Name = "vega")]  public double vega;
+            var m = Regex.Match(json, "\"" + Regex.Escape(field) + "\"\\s*:\\s*(-?\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?)");
+            if (!m.Success) return 0.0;
+            double v;
+            return double.TryParse(m.Groups[1].Value, System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out v) ? v : 0.0;
         }
 
-        [DataContract]
-        private sealed class Details
+        // Extract a double from a named sub-object: {"outer": {"inner": 123.45}}
+        private static double ExtractDoubleFieldInside(string json, string outer, string inner)
         {
-            [DataMember(Name = "ticker")]          public string ticker;
-            [DataMember(Name = "contract_type")]   public string contract_type;
-            [DataMember(Name = "strike_price")]    public double strike_price;
-            [DataMember(Name = "expiration_date")] public string expiration_date;
-        }
-
-        [DataContract]
-        private sealed class UnderlyingAsset
-        {
-            [DataMember(Name = "ticker")] public string ticker;
-            [DataMember(Name = "price")]  public double price;
+            var m = Regex.Match(json, "\"" + Regex.Escape(outer) + "\"\\s*:\\s*\\{([^{}]*)\\}");
+            return m.Success ? ExtractDoubleField(m.Groups[1].Value, inner) : 0.0;
         }
     }
 }
