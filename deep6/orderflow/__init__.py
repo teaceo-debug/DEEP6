@@ -14,6 +14,11 @@ from deep6.orderflow.setup_tracker import (
     SetupTransition,
     ActiveSetup,
 )
+from deep6.orderflow.walk_forward_live import (
+    WalkForwardTracker,
+    PendingOutcome,
+    ResolvedOutcome,
+)
 
 __all__ = [
     "VPINEngine",
@@ -23,4 +28,7 @@ __all__ = [
     "SetupTracker",
     "SetupTransition",
     "ActiveSetup",
+    "WalkForwardTracker",
+    "PendingOutcome",
+    "ResolvedOutcome",
 ]
