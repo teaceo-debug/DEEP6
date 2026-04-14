@@ -34,14 +34,14 @@ def test_bitmask_or_popcount():
 def test_fits_in_int64():
     max_val = max(int(f) for f in SignalFlags)
     assert max_val <= (1 << 63), "Flags exceed int64 capacity"
-    # Phase 12-03: TRAP_SHOT added at bit 44; highest bit is now 44.
-    assert max_val <= (1 << 44), "Highest flag exceeds reserved 45-bit range"
+    # Phase 15-03: meta-flags added at bits 45/46/47; highest bit is now 47.
+    assert max_val <= (1 << 47), "Highest flag exceeds reserved 48-bit range"
 
 
 def test_flag_count():
     non_none_flags = [f for f in SignalFlags if f != SignalFlags.NONE]
-    # Phase 12-03: 44 stable bits (0-43) + TRAP_SHOT (bit 44) = 45 flags
-    assert len(non_none_flags) == 45, f"Expected 45 signal flags, got {len(non_none_flags)}"
+    # Phase 15-03: 45 signal bits (0-44) + 3 meta-flag bits (45/46/47) = 48 flags
+    assert len(non_none_flags) == 48, f"Expected 48 flags, got {len(non_none_flags)}"
 
 
 def test_trap_shot_bit_44():

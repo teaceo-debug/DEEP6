@@ -357,6 +357,76 @@ class GexConfig:
 
 
 @dataclass(frozen=True)
+class ConfluenceRulesConfig:
+    """Configuration for ConfluenceRules.evaluate() — Phase 15-03 / D-16.
+
+    Per-rule enable flags: CALIBRATION-GATED rules default to OFF until
+    vectorbt sweeps (Phase 7) validate their thresholds. EASY and MEDIUM
+    rules default ON. Source-of-truth for tier assignment: RULES.md.
+
+    Proximity tunables (D-39): ported verbatim from Pine research defaults.
+    Calibration-gated thresholds (D-40, MS-08): surfaced as knobs so Phase 7
+    sweeps can walk them without touching rule bodies.
+    """
+    # ---------------- Per-rule enable flags (CR-01 .. CR-38) --------------
+    # EASY (default ON)
+    enable_CR_01: bool = True   # Absorption @ Put Wall
+    enable_CR_02: bool = True   # Exhaustion @ Call Wall
+    enable_CR_06: bool = True   # ABSORB + VA proximity
+    enable_CR_07: bool = True   # EXHAUST → ABSORB compound short
+    enable_CR_08: bool = True   # HVN + Put Wall suppress shorts
+    enable_CR_25: bool = True   # Round-number modifier
+    enable_CR_31: bool = True   # Failed IB extension
+    enable_CR_32: bool = True   # Naked POC magnet
+    enable_CR_35: bool = True   # Open-auction in-range
+
+    # MEDIUM (default ON)
+    enable_CR_03: bool = True   # LVN crossing gamma flip
+    enable_CR_04: bool = True   # VPOC pinned near largest gamma
+    enable_CR_05: bool = True   # Momentum through flipped zone
+    enable_CR_09: bool = True   # Basis-corrected GEX mapping
+    enable_CR_10: bool = True   # Regime gate on HVL
+    enable_CR_16: bool = True   # AbsorptionZ microstructure
+    enable_CR_17: bool = True   # Iceberg at level
+    enable_CR_18: bool = True   # Queue imbalance band
+    enable_CR_20: bool = True   # Kyle lambda compression
+    enable_CR_21: bool = True   # CVD divergence at level
+    enable_CR_23: bool = True   # Spoof suppressor (veto)
+    enable_CR_24: bool = True   # Aggressor dominance at L
+    enable_CR_26: bool = True   # Depth asymmetry
+    enable_CR_28: bool = True   # Open-Drive + ORU bullish
+    enable_CR_29: bool = True   # Open-Drive + ORD bearish
+    enable_CR_30: bool = True   # Overnight test + drive reversal
+    enable_CR_33: bool = True   # Poor high / poor low revisit
+    enable_CR_34: bool = True   # Buying-tail / selling-tail retest
+    enable_CR_36: bool = True   # Double-distribution single-print revisit
+    enable_CR_38: bool = True   # Neutral-extreme → gap-and-go
+
+    # CALIBRATION-GATED (default OFF — D-16)
+    enable_CR_11: bool = False  # Exhaustion × wall breach continuation
+    enable_CR_12: bool = False  # Last-30-min Baltussen regime play
+    enable_CR_13: bool = False  # Charm drift toward high-OI strike
+    enable_CR_14: bool = False  # 0DTE dominance guard
+    enable_CR_15: bool = False  # Negative-gamma risk scalar
+    enable_CR_19: bool = False  # VPIN regime shift
+    enable_CR_22: bool = False  # Hawkes branching critical
+    enable_CR_27: bool = False  # Exhaustion post-break
+    enable_CR_37: bool = False  # ABSORB + Kronos bearish + IB fail-up
+
+    # ---------------- Proximity tunables (D-39) -------------------------
+    proximity_tight_ticks: int = 6   # VPOC near largest gamma, HVN near put wall
+    proximity_med_ticks: int = 8     # ABSORB near put wall, EXHAUST near call wall
+    proximity_wide_ticks: int = 12   # LVN near gamma flip
+
+    # ---------------- Calibration-gated thresholds (surfaced knobs) -----
+    cr_08_shorts_multiplier: float = 0.6       # D-40 soft suppression
+    pin_regime_min_strikes: int = 3            # CR-04 bars pinned
+    regime_change_min_score_delta: float = 15.0
+    spoof_detection_min_cancel_ratio: float = 0.85  # MS-08
+    cr_25_round_number_mult: float = 1.25      # CR-25 modifier boost
+
+
+@dataclass(frozen=True)
 class KronosConfig:
     """Configuration for KronosSubprocessBridge (E10 bias engine).
 

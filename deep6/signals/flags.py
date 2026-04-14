@@ -1,7 +1,12 @@
-"""SignalFlags: 44-bit IntFlag covering all DEEP6 signals.
+"""SignalFlags: 44 signal bits + 3 meta-flag bits.
 
 Per ARCH-05: int64 bitmask for O(popcount) scoring.
 Bit positions are STABLE — do not reorder once committed (would break serialized state).
+
+Bits 0-44: SIGNAL bits (IMMUTABLE — phase 1-12).
+Bits 45+:  META-FLAGS emitted by ConfluenceRules (Phase 15, D-33). These are
+           NOT signals — they describe regime / veto state. Popcount-based
+           signal counting must mask these off via ``SIGNAL_BITS_MASK``.
 
 Signal groups and bit allocations (44 total):
   ABS  (Absorption):        bits  0-3   (4 signals: ABS-01..04)
@@ -119,3 +124,21 @@ class SignalFlags(IntFlag):
     # 12-04) can jump SCANNING→TRIGGERED directly. See
     # .planning/phases/12-*/12-CONTEXT.md for locked decisions.
     TRAP_SHOT       = 1 << 44  # OFP-02: multi-bar trapped-trader reversal (new phase 12-03)
+
+    # -----------------------------------------------------------------------
+    # Phase 15 META-FLAGS (bits 45+) — NOT signal bits.
+    # Emitted by deep6.engines.confluence_rules.ConfluenceRules.evaluate()
+    # and consumed by the scorer for regime awareness / veto enforcement.
+    # Popcount-based signal counting MUST mask these off via SIGNAL_BITS_MASK.
+    # -----------------------------------------------------------------------
+    PIN_REGIME_ACTIVE = 1 << 45  # D-33: VPOC pinned near largest-gamma strike
+    REGIME_CHANGE     = 1 << 46  # D-33: GEX regime transitioned this bar
+    SPOOF_VETO        = 1 << 47  # D-33: spoofing detected — scorer forces DISQUALIFIED
+
+
+# -------------------------------------------------------------------------
+# Mask constant: bits 0-44 inclusive (the 45 canonical signal bits).
+# Use ``flags & SIGNAL_BITS_MASK`` whenever counting signals so meta-flags
+# at bits 45+ do not inflate popcount / category counts.
+# -------------------------------------------------------------------------
+SIGNAL_BITS_MASK: int = (1 << 45) - 1
