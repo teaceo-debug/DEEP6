@@ -1,6 +1,7 @@
 'use client';
 import { useEffect } from 'react';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import { useInBrowserDemo } from '@/hooks/useInBrowserDemo';
 import { useReplayController } from '@/hooks/useReplayController';
 import { HeaderStrip } from '@/components/layout/HeaderStrip';
 import { FootprintChart } from '@/components/footprint/FootprintChart';
@@ -82,10 +83,14 @@ function ColSep() {
   );
 }
 
+const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
+const WS_URL = DEMO_MODE ? '' : (process.env.NEXT_PUBLIC_WS_URL ?? 'ws://localhost:8000/ws/live');
+
 export default function Home() {
-  const { reconnectNow } = useWebSocket(
-    process.env.NEXT_PUBLIC_WS_URL ?? 'ws://localhost:8000/ws/live',
-  );
+  // useWebSocket is a no-op when url is '' (demo mode skips backend connection)
+  const { reconnectNow } = useWebSocket(WS_URL);
+  // useInBrowserDemo is a no-op when enabled=false (live mode)
+  useInBrowserDemo(DEMO_MODE);
   useReplayController();
   useFeedStaleWatcher();
 

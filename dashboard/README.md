@@ -53,6 +53,36 @@ The dashboard connects automatically and retries with exponential backoff if the
 NEXT_PUBLIC_WS_URL=ws://your-backend:8000/ws/live
 ```
 
+## Demo Mode (Vercel / no backend)
+
+The dashboard ships with an in-browser demo mode that generates realistic NQ
+futures activity entirely client-side — no backend required.
+
+**Flip between modes via environment variable:**
+
+| Env var | Value | Behavior |
+|---------|-------|----------|
+| `NEXT_PUBLIC_DEMO_MODE` | `true` | In-browser demo; WebSocket disabled. Works on Vercel. |
+| `NEXT_PUBLIC_DEMO_MODE` | `false` (default) | Connects to real backend via WebSocket. |
+
+**Local demo run:**
+
+```bash
+NEXT_PUBLIC_DEMO_MODE=true npm run dev
+```
+
+**Vercel deployment:**
+
+Set `NEXT_PUBLIC_DEMO_MODE=true` in the Vercel project environment variables.
+No backend, no WebSocket URL needed.
+
+The demo ports `scripts/demo_broadcast.py` to TypeScript:
+- `PriceModel` — autocorrelated random walk, 0.25-tick snapped, bounded to NQ range
+- `ScoreModel` — sine-rippled oscillator 30-92, TYPE_A spikes, Kronos updates every 15-20s
+- `SignalScheduler` — Poisson timers (TYPE_C 8-15s, TYPE_B 30-60s, TYPE_A 90-180s)
+- `buildBar` — 31-row Gaussian-weighted footprint ladder, 30% one-sided bars
+- Dispatches directly to Zustand store at 500ms intervals (rate 2x equivalent)
+
 ## Docs
 
 - [ARCHITECTURE.md](docs/ARCHITECTURE.md) — data flow, store shape, rendering split, replay mode

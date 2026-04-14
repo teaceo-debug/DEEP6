@@ -26,6 +26,9 @@ export function useWebSocket(url: string): { reconnectNow: () => void } {
   const reconnectNow = useCallback(() => reconnectNowRef.current(), []);
 
   useEffect(() => {
+    // No-op when url is empty — used by demo mode to skip backend connection.
+    if (!url) return;
+
     // Reset intentional-close flag at the start of every effect run (e.g. HMR, url change).
     closedIntentionallyRef.current = false;
 
