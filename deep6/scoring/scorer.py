@@ -31,13 +31,44 @@ from deep6.engines.poc import POCSignal
 from deep6.engines.volume_profile import VolumeZone, ZoneState
 from deep6.engines.gex import GexSignal, GexRegime
 from deep6.engines.signal_config import ScorerConfig, AbsorptionConfig
+from deep6.signals.flags import SignalFlags
 
 
 class SignalTier(IntEnum):
+    # DISQUALIFIED is intentionally lowest (negative) — plan 15-03 / D-33.
+    # Vetoes (e.g. SPOOF_DETECTED from ConfluenceRules) force the result
+    # here regardless of raw score. Pre-existing code compares tiers as
+    # IntEnum ordinals; DISQUALIFIED < QUIET ensures "tier >= QUIET" gates
+    # (there are none today) would still exclude it.
+    DISQUALIFIED = -1
     QUIET = 0
     TYPE_C = 1
     TYPE_B = 2
     TYPE_A = 3
+
+
+# ---------------------------------------------------------------------------
+# Zone-compat shim
+# ---------------------------------------------------------------------------
+# Historically active_zones was list[VolumeZone] (with .bot_price / .top_price
+# / .state=ZoneState.*). Per phase 15-01, LevelBus.get_all_active() now
+# returns list[Level] (with .price_bot / .price_top / .state=LevelState.*).
+# These helpers read either shape via duck-typing so both pre-15 and
+# post-15 callers keep working while migration completes.
+
+
+def _zone_bot(z) -> float:
+    return getattr(z, "price_bot", None) if getattr(z, "price_bot", None) is not None else z.bot_price
+
+
+def _zone_top(z) -> float:
+    return getattr(z, "price_top", None) if getattr(z, "price_top", None) is not None else z.top_price
+
+
+def _zone_invalidated(z) -> bool:
+    st = z.state
+    # Both LevelState.INVALIDATED and ZoneState.INVALIDATED have name="INVALIDATED"
+    return getattr(st, "name", str(st)) == "INVALIDATED"
 
 
 @dataclass
@@ -53,6 +84,10 @@ class ScorerResult:
     narrative: NarrativeType
     label: str                  # human-readable
     categories_firing: list[str] = field(default_factory=list)
+    # Phase 15-03 / D-33: meta-flags (bits 45+) emitted by ConfluenceRules.
+    # Separate from the 45 stable signal bits so popcount-based signal
+    # counting is not inflated. 0 when no confluence_annotations provided.
+    meta_flags: int = 0
 
 
 # Category weights — how much each category contributes to the base score
@@ -92,6 +127,7 @@ def score_bar(
     bar_index_in_session: int = -1,
     gex_signal: GexSignal | None = None,
     vpin_modifier: float = 1.0,
+    confluence_annotations=None,  # ConfluenceAnnotations | None — see 15-03 D-32
 ) -> ScorerResult:
     """Score a bar using two-layer confluence.
 
@@ -299,15 +335,54 @@ def score_bar(
         elif gex_signal.near_put_wall and direction < 0:
             gex_direction_conflict = True  # Going short into massive dealer buying
 
+    # --- Phase 15-03 (D-32): ConfluenceAnnotations consumption ---
+    # Insertion site (CONTENT-anchored): AFTER GEX regime-modifier block,
+    # BEFORE "Layer 2: Category confluence". Applies rule-derived score
+    # mutations to Levels in active_zones (keyed by level.uid per C5),
+    # emits meta-flag bits, and registers vetoes for tier forcing.
+    meta_flags: int = 0
+    forced_disqualified: bool = False
+    if confluence_annotations is not None:
+        # 1. Apply score mutations to any Level-shaped zone in active_zones.
+        #    VolumeZone objects lack `uid` — they're skipped silently (keyed
+        #    by uid means a VolumeZone can never match; by design).
+        muts = confluence_annotations.score_mutations
+        if muts:
+            for z in active_zones:
+                uid = getattr(z, "uid", None)
+                if uid is None:
+                    continue
+                delta = muts.get(uid, 0.0)
+                if delta:
+                    z.score = max(0.0, min(100.0, z.score + delta))
+
+        # 2. Emit meta-flag bits. The stored scorer ints live in
+        #    ScorerResult.meta_flags — kept separate from the 45 signal
+        #    bits (0-44) so popcount of signal flags is unaffected.
+        if "PIN_REGIME_ACTIVE" in confluence_annotations.flags:
+            meta_flags |= int(SignalFlags.PIN_REGIME_ACTIVE)
+        if "REGIME_CHANGE" in confluence_annotations.flags:
+            meta_flags |= int(SignalFlags.REGIME_CHANGE)
+
+        # 3. Vetoes force DISQUALIFIED tier regardless of raw score.
+        if confluence_annotations.vetoes:
+            forced_disqualified = True
+            if "SPOOF_DETECTED" in confluence_annotations.vetoes:
+                meta_flags |= int(SignalFlags.SPOOF_VETO)
+
     # --- Layer 2: Category confluence ---
     cat_count = len(categories_agreeing)
 
     # Volume profile zone proximity adds a category (SCOR-03)
+    # Duck-typed over VolumeZone (legacy) and Level (post-15-01):
+    # uses _zone_bot / _zone_top / _zone_invalidated helpers.
     zone_bonus = 0.0
     for zone in active_zones:
-        if zone.state == ZoneState.INVALIDATED:
+        if _zone_invalidated(zone):
             continue
-        if zone.bot_price <= bar_close <= zone.top_price:
+        zbot = _zone_bot(zone)
+        ztop = _zone_top(zone)
+        if zbot <= bar_close <= ztop:
             if zone.score >= cfg.zone_high_min:
                 zone_bonus = cfg.zone_high_bonus
                 categories_agreeing.add("volume_profile")
@@ -316,8 +391,8 @@ def score_bar(
                 categories_agreeing.add("volume_profile")
             break
         # Within zone_near_ticks of zone edge
-        if (abs(bar_close - zone.bot_price) <= cfg.zone_near_ticks
-                or abs(bar_close - zone.top_price) <= cfg.zone_near_ticks):
+        if (abs(bar_close - zbot) <= cfg.zone_near_ticks
+                or abs(bar_close - ztop) <= cfg.zone_near_ticks):
             if zone.score >= cfg.zone_high_min:
                 zone_bonus = cfg.zone_near_bonus
                 categories_agreeing.add("volume_profile")
@@ -383,9 +458,12 @@ def score_bar(
             elif direction < 0 and bar_delta < 0:
                 type_a_delta_chase = True
 
-    # GEX direction conflict: going long at call wall or short at put wall
-    # = fighting massive dealer hedging flow. Demote to TYPE_C max.
-    if gex_direction_conflict:
+    # Phase 15-03 / D-32: Confluence vetoes force DISQUALIFIED regardless
+    # of raw score / tier logic below. This check fires before the normal
+    # tier ladder so spoofing etc. cannot leak into TYPE_* bands.
+    if forced_disqualified:
+        tier = SignalTier.DISQUALIFIED
+    elif gex_direction_conflict:
         # Can't be TYPE_A or TYPE_B when fighting dealer flow
         if total_score >= cfg.type_c_min and cat_count >= 4 and min_strength:
             tier = SignalTier.TYPE_C
@@ -411,7 +489,9 @@ def score_bar(
 
     # TIER-1 FIX 1: Midday window block — forensic finding bars 240-330
     # (10:30-13:00 ET) accumulate -$1,622 across 25 days. Force QUIET here.
-    if (bar_index_in_session >= cfg.midday_block_start
+    # DISQUALIFIED takes priority — do not demote to QUIET.
+    if (tier != SignalTier.DISQUALIFIED
+            and bar_index_in_session >= cfg.midday_block_start
             and bar_index_in_session <= cfg.midday_block_end):
         tier = SignalTier.QUIET
 
@@ -438,4 +518,5 @@ def score_bar(
         narrative=narrative.bar_type,
         label=label,
         categories_firing=sorted(categories_agreeing),
+        meta_flags=meta_flags,
     )
