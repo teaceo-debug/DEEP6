@@ -193,7 +193,14 @@ Plans:
   3. Footprint chart renders via Lightweight Charts v5.1 custom series — each bar displays bid/ask volume per price level with LVN/HVN zones overlaid
   4. Session replay reconstructs any historical session with all signal events, zone states, and orders visible — operator can step through bar by bar
   5. ML parameter evolution view shows threshold history over time and regime classification alongside market price — operator can see what the optimizer changed and why
-**Plans**: TBD
+**Plans**: 5 plans (Wave 1: plan-01; Wave 2: plan-02; Wave 3: plan-03, plan-04, plan-05 parallel)
+
+Plans:
+- [ ] 10-01-PLAN.md — FastAPI WebSocket endpoint + /backtest/* API + WS broadcast wiring
+- [ ] 10-02-PLAN.md — Next.js 15 scaffold + Tailwind dark theme + WS client + Zustand stores + two-tab shell
+- [ ] 10-03-PLAN.md — LIVE tab: SignalFeed + RegimePanel + KronosBiasGauge + PositionPanel
+- [ ] 10-04-PLAN.md — Footprint chart: LW Charts v5.1 custom series plugin + zone overlays
+- [ ] 10-05-PLAN.md — BACKTEST tab: config form + equity curve + trade table + Optuna sweep subtab
 **UI hint**: yes
 
 ### Phase 11: DEEP6 Trading Web App
