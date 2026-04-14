@@ -106,6 +106,50 @@ async def run(dbn_path: str, max_events: int, out_db: str) -> None:
     try:
         trades = con.execute("SELECT COUNT(*) FROM backtest_trades").fetchone()[0]
         print(f"trade rows: {trades}")
+        if trades > 0:
+            closed = con.execute(
+                "SELECT COUNT(*) FROM backtest_trades "
+                "WHERE exit_reason IS NOT NULL AND exit_reason <> 'TRUNCATED'"
+            ).fetchone()[0]
+            truncated = con.execute(
+                "SELECT COUNT(*) FROM backtest_trades "
+                "WHERE exit_reason = 'TRUNCATED'"
+            ).fetchone()[0]
+            total_pnl = con.execute(
+                "SELECT COALESCE(SUM(pnl), 0) FROM backtest_trades"
+            ).fetchone()[0]
+            wins = con.execute(
+                "SELECT COUNT(*) FROM backtest_trades WHERE pnl > 0"
+            ).fetchone()[0]
+            losses = con.execute(
+                "SELECT COUNT(*) FROM backtest_trades WHERE pnl < 0"
+            ).fetchone()[0]
+            avg_win = con.execute(
+                "SELECT COALESCE(AVG(pnl), 0) FROM backtest_trades WHERE pnl > 0"
+            ).fetchone()[0]
+            avg_loss = con.execute(
+                "SELECT COALESCE(AVG(pnl), 0) FROM backtest_trades WHERE pnl < 0"
+            ).fetchone()[0]
+            largest_win = con.execute(
+                "SELECT COALESCE(MAX(pnl), 0) FROM backtest_trades"
+            ).fetchone()[0]
+            largest_loss = con.execute(
+                "SELECT COALESCE(MIN(pnl), 0) FROM backtest_trades"
+            ).fetchone()[0]
+            reason_dist = con.execute(
+                "SELECT exit_reason, COUNT(*) FROM backtest_trades "
+                "GROUP BY exit_reason ORDER BY 2 DESC"
+            ).fetchall()
+            win_rate = (wins / trades * 100.0) if trades else 0.0
+            print(f"  closed (bracket/hold): {closed}")
+            print(f"  truncated:             {truncated}")
+            print(f"  exit_reason dist:      {reason_dist}")
+            print(f"  total pnl $:           {total_pnl:+.2f}")
+            print(f"  win rate:              {win_rate:.1f}% ({wins}W / {losses}L)")
+            print(f"  avg win:               ${avg_win:+.2f}")
+            print(f"  avg loss:              ${avg_loss:+.2f}")
+            print(f"  largest winner:        ${largest_win:+.2f}")
+            print(f"  largest loser:         ${largest_loss:+.2f}")
     except Exception as exc:
         print(f"(no trades table or empty: {exc})")
 
