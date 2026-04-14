@@ -223,8 +223,8 @@
 
 - [ ] **APP-01**: Custom footprint chart via Lightweight Charts v5.1 custom series — bid/ask volume per price level with zone overlays (LVN, HVN, GEX, absorption)
 - [ ] **APP-02**: One-click trade execution panel — TYPE_A/B signals displayed with full context (categories, GEX regime, zones, Kronos bias), confirm or auto-execute
-- [ ] **APP-03**: Real-time WebSocket from FastAPI — signal events, bar updates, position state, P&L pushed within 200ms of bar close
-- [ ] **APP-04**: Session replay — reconstruct any historical session bar-by-bar with all signals, zones, orders visible, step forward/back
+- [x] **APP-03**: Real-time WebSocket from FastAPI — signal events, bar updates, position state, P&L pushed within 200ms of bar close
+- [x] **APP-04**: Session replay — reconstruct any historical session bar-by-bar with all signals, zones, orders visible, step forward/back
 - [ ] **APP-05**: Mobile push notifications via service worker — TYPE_A alerts to phone within 5 seconds
 - [ ] **APP-06**: Portfolio dashboard — live P&L, daily/weekly/monthly performance, win rate by tier, drawdown, circuit breaker status
 - [ ] **APP-07**: Authentication + multi-device — operator monitors from laptop and phone simultaneously
@@ -420,8 +420,8 @@ Updated during roadmap creation (2026-04-11).
 
 | APP-01 | Phase 11 | Pending |
 | APP-02 | Phase 11 | Pending |
-| APP-03 | Phase 11 | Pending |
-| APP-04 | Phase 11 | Pending |
+| APP-03 | Phase 11 | Complete |
+| APP-04 | Phase 11 | Complete |
 | APP-05 | Phase 11 | Pending |
 | APP-06 | Phase 11 | Pending |
 | APP-07 | Phase 11 | Pending |

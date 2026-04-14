@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 12-05-PLAN.md (WalkForwardTracker + phase 12 complete)
-last_updated: "2026-04-14T01:30:00.000Z"
+stopped_at: Completed 11-01-PLAN.md
+last_updated: "2026-04-14T02:15:51.499Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 12
   completed_phases: 8
   total_plans: 45
-  completed_plans: 37
-  percent: 82
+  completed_plans: 38
+  percent: 84
 ---
 
 # Project State
@@ -67,6 +67,7 @@ Progress: [░░░░░░░░░░] 2%
 | Phase 12 P03 | 18 | 3 tasks | 7 files |
 | Phase 12 P04 | 45 | 3 tasks | 7 files |
 | Phase 12 P05 | 35 | 3 tasks | 8 files |
+| Phase 11 P01 | 25 | 3 tasks | 9 files |
 
 ## Quick Tasks Completed
 
@@ -101,6 +102,9 @@ Recent decisions affecting current work:
 - [Phase 12]: SlingshotDetector uses 2.0σ z-score over 200-bar session window; resets at RTH open to prevent overnight drift
 - [Phase 12]: SetupTracker MANAGING→COOLDOWN is explicit-close-only; reference footgun fixed, 30-bar failsafe added as wedge guard
 - [Phase 12]: Setup IDs prefixed by timeframe (1m-/5m-) enable cross-TF close_trade routing on SharedState
+- [Phase 11]: INSERT OR REPLACE on UNIQUE(session_id, bar_index) makes insert_bar idempotent
+- [Phase 11]: TypeAdapter(LiveMessage) validates test-broadcast payload before fan-out (T-11-01)
+- [Phase 11]: WSManager broadcast snapshots active set under lock, sends without lock
 
 ### Roadmap Evolution
 
@@ -118,6 +122,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-14T01:13:27.646Z
-Stopped at: Completed 12-04-PLAN.md (SetupTracker dual-TF + EventStore)
+Last session: 2026-04-14T02:15:51.493Z
+Stopped at: Completed 11-01-PLAN.md
 Resume file: None
