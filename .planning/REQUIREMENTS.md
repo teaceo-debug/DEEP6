@@ -179,11 +179,11 @@
 
 ### Auto-Execution (EXEC)
 
-- [ ] **EXEC-01**: Direct Rithmic order submission via async-rithmic from TypeA/B confluence signals
+- [x] **EXEC-01**: Direct Rithmic order submission via async-rithmic from TypeA/B confluence signals
 - [ ] **EXEC-02**: Risk management — circuit breakers (max daily loss), position sizing (max contracts), consecutive loss limits
-- [ ] **EXEC-03**: Entry timing — configurable delay after signal to confirm (avoid false triggers)
-- [ ] **EXEC-04**: Stop placement — stops placed beyond absorption/exhaustion zone boundary via server-side bracket orders
-- [ ] **EXEC-05**: Target placement — targets at opposing zone, VWAP, or next LVN/HVN level
+- [x] **EXEC-03**: Entry timing — configurable delay after signal to confirm (avoid false triggers)
+- [x] **EXEC-04**: Stop placement — stops placed beyond absorption/exhaustion zone boundary via server-side bracket orders
+- [x] **EXEC-05**: Target placement — targets at opposing zone, VWAP, or next LVN/HVN level
 - [ ] **EXEC-06**: Regime-aware execution — disabled in specific GEX regimes or low-volume conditions
 - [ ] **EXEC-07**: Reconnection freeze — halt all execution during reconnection until position reconciliation complete
 - [ ] **EXEC-08**: 30-day minimum paper trading before live capital
@@ -394,11 +394,11 @@ Updated during roadmap creation (2026-04-11).
 | TEST-05 | Phase 7 | Pending |
 | TEST-06 | Phase 7 | Pending |
 | TEST-07 | Phase 7 | Pending |
-| EXEC-01 | Phase 8 | Pending |
+| EXEC-01 | Phase 8 | Complete |
 | EXEC-02 | Phase 8 | Pending |
-| EXEC-03 | Phase 8 | Pending |
-| EXEC-04 | Phase 8 | Pending |
-| EXEC-05 | Phase 8 | Pending |
+| EXEC-03 | Phase 8 | Complete |
+| EXEC-04 | Phase 8 | Complete |
+| EXEC-05 | Phase 8 | Complete |
 | EXEC-06 | Phase 8 | Pending |
 | EXEC-07 | Phase 8 | Pending |
 | EXEC-08 | Phase 8 | Pending |

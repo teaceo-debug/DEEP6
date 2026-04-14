@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 15-03 ConfluenceRules + scorer integration
-last_updated: "2026-04-14T15:35:50.142Z"
+stopped_at: Completed 15-04-PLAN.md
+last_updated: "2026-04-14T15:54:45.978Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 17
   completed_phases: 12
   total_plans: 56
-  completed_plans: 50
-  percent: 89
+  completed_plans: 51
+  percent: 91
 ---
 
 # Project State
@@ -79,6 +79,7 @@ Progress: [░░░░░░░░░░] 2%
 | Phase 11.2 P03 | 8 | 2 tasks | 3 files |
 | Phase 11.2 P04 | 12 | 2 tasks | 9 files |
 | Phase 15 P03 | 35 | 3 tasks | 7 files |
+| Phase 15 P04 | 40 | 3 tasks | 9 files |
 
 ## Quick Tasks Completed
 
@@ -145,6 +146,7 @@ Recent decisions affecting current work:
 - [Phase 11.2]: TapeScroll uses manual div+onScroll instead of shadcn ScrollArea to expose scrollTop for userScrolled detection
 - [Phase 11.2]: ErrorBanner uses color-mix() for border-bottom opacity to keep CSS custom property names rather than hardcoded rgba values
 - [Phase 15]: 15-03: 38 CR-XX rules encoded with priority-based regime merge; meta-flags at bits 45/46/47; SignalTier.DISQUALIFIED=-1 added; scorer zone-bonus duck-typed for VolumeZone/Level migration
+- [Phase 15]: 15-04: 7-state TradeDecisionMachine + 11 transitions + 17 ET-XX + EventStore fsm_transitions persistence; ExecutionEngine evaluate() preserved as delegate with DeprecationWarning
 
 ### Roadmap Evolution
 
@@ -166,6 +168,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-14T15:35:50.139Z
-Stopped at: Completed 15-03 ConfluenceRules + scorer integration
+Last session: 2026-04-14T15:54:45.974Z
+Stopped at: Completed 15-04-PLAN.md
 Resume file: None
