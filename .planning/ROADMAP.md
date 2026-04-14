@@ -320,3 +320,13 @@ Plans:
 
 Plans:
 - [x] TBD (run /gsd-plan-phase 15 to break down) (completed 2026-04-14)
+
+### Phase 16: NinjaTrader 8 Footprint Indicator — standalone parallel deliverable (does NOT replace Python pivot). NinjaScript C# indicator + AddOn that renders footprint charts (bid×ask per price level, POC, VAH/VAL, delta) using NT8 native Rithmic L2 feed. Ports absorption + exhaustion detection logic from the Python signal engine. Overlays GEX levels fetched from massive.com API as horizontal lines. Read-only indicator — no order entry, no Kronos E10, no 44-signal stack. Deliverable: ninjatrader/ subdirectory with .cs files importable via NT8, plus setup docs.
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 15
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 16 to break down)

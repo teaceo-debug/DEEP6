@@ -88,6 +88,7 @@ Progress: [█████████░] 95%
 |----|------|-------------|-------|
 | 260413-s1d | 2026-04-14 | Fix databento_feed.py attribute bugs (total_vol, tick_size kwarg, open_time/close_time, CVD chain) | deep6/data/databento_feed.py |
 | 260414-gzv | 2026-04-13 | perf(r5): rAF audit + Zustand scoped selectors + ringBuffer toArray single-pass + animations.ts perf notes | store/ringBuffer.ts, store/tradingStore.ts, lib/animations.ts, store/tradingStore.test.ts |
+| 260413-r8t | 2026-04-13 | feat(11.3-r8): unified chart toolbar — consolidate ChartModeSelector + ChartLegend into single top-left ChartToolbar strip | dashboard/components/footprint/ChartToolbar.tsx, FootprintChart.tsx |
 
 ## Accumulated Context
 
@@ -158,6 +159,7 @@ Recent decisions affecting current work:
 - Phase 14 added: Databento Live Feed (retroactive roadmap entry for orphan context from 2026-04-14)
 - Phase 15 added: LevelBus + Confluence Rules + Trade Decision FSM — unifies VP/narrative/GEX levels into single bus, encodes ~47 research-derived confluence rules, replaces bar-close execution with 7-state trade-decision FSM. Basis: .planning/research/pine/ (12,500 words, 35 papers)
 - Phase 11.1 inserted after Phase 11: Phase 11 layout and visual polish (URGENT) — ScoreWidget sidebar collapse, SignalFeed overlay bleeding into chart, header-strip font-size cascade, footprint cell DPR scaling
+- Phase 16 added: NinjaTrader 8 Footprint Indicator — standalone parallel deliverable (NT8 NinjaScript C# indicator, native Rithmic L2, absorption/exhaustion, massive.com GEX overlay). Does NOT replace Python pivot.
 
 ### Pending Todos
 
