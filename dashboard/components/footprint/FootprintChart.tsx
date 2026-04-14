@@ -37,17 +37,17 @@ export function FootprintChart() {
 
     const chart = createChart(hostRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: '#0a0a0f' },
-        textColor: '#6b7280',
+        background: { type: ColorType.Solid, color: '#000000' }, // --void (UI-SPEC v2 §0)
+        textColor: '#8a8a8a', // --text-dim
       },
       grid: {
-        horzLines: { color: '#1e1e2e' },
-        vertLines: { color: '#1e1e2e' },
+        horzLines: { color: '#1f1f1f' }, // --rule
+        vertLines: { color: '#1f1f1f' }, // --rule
       },
       crosshair: { mode: 1 /* Magnet */ },
-      rightPriceScale: { borderColor: '#1e1e2e' },
+      rightPriceScale: { borderColor: '#1f1f1f' }, // --rule
       timeScale: {
-        borderColor: '#1e1e2e',
+        borderColor: '#1f1f1f', // --rule
         timeVisible: true,
         secondsVisible: false,
       },
