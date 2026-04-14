@@ -3,15 +3,18 @@
 E6VPContextEngine (ENG-06): Wires POCEngine + SessionProfile + GexEngine + ZoneRegistry
 into a single process() call, returning a unified VPContextResult per bar close.
 
-E7MLQualityEngine (ENG-07): Stub returning 1.0 (neutral quality multiplier) until
-Phase 9 implements Kalman filter + XGBoost classifier with 16+ features.
+E7MLQualityEngine (ENG-07): Returns a dynamic quality multiplier driven by live deployed
+weights (Phase 9). Falls back to 1.0 (neutral) when no weight_loader is provided or
+no weight file has been deployed yet.
 
 Per CONTEXT.md D-06, D-07: ZoneRegistry consolidation and confluence scoring live here.
+Per T-09-14: Weight file re-read uses mtime caching inside WeightLoader.read_current()
+             to avoid repeated disk I/O on every bar.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from deep6.engines.gex import GexEngine, GexSignal
 from deep6.engines.poc import POCEngine, POCSignal
@@ -19,6 +22,10 @@ from deep6.engines.signal_config import GexConfig, POCConfig, VolumeProfileConfi
 from deep6.engines.volume_profile import SessionProfile, VolumeZone
 from deep6.engines.zone_registry import ConfluenceResult, ZoneRegistry
 from deep6.state.footprint import FootprintBar
+
+if TYPE_CHECKING:
+    from deep6.ml.weight_loader import WeightLoader
+    from deep6.ml.hmm_regime import HMMRegimeDetector
 
 
 @dataclass
@@ -127,19 +134,85 @@ class E6VPContextEngine:
 
 
 class E7MLQualityEngine:
-    """E7 ML Quality Engine — stub returning neutral multiplier.
+    """E7 ML Quality Engine — live weight quality multiplier.
 
-    Returns 1.0 (no adjustment) until Phase 9 implements:
-      - Kalman filter for online signal weight estimation
-      - XGBoost classifier with 16+ features for quality scoring
-      - Per-regime quality adjustments
+    Reads deployed weights from WeightLoader on each bar (mtime-cached per T-09-14).
+    Returns a quality multiplier in [0.5, 1.5] derived from the mean signal weight.
+
+    Falls back to 1.0 (neutral) when:
+    - weight_loader is None (backward-compatible stub mode)
+    - No weight file has been deployed yet
+    - Weight file is unreadable
+
+    Optionally adjusts by HMM regime if regime_detector is provided and fitted.
 
     ENG-07: ML quality multiplier for confluence scorer.
+    Per T-09-14: File read is mtime-cached inside WeightLoader — re-reads only on change.
     """
 
-    def score(self, bar: FootprintBar | None = None) -> float:
-        """Return quality multiplier. Always 1.0 (neutral) until Phase 9.
+    def __init__(
+        self,
+        weight_loader: Optional["WeightLoader"] = None,
+        regime_detector: Optional["HMMRegimeDetector"] = None,
+    ) -> None:
+        """Initialise E7MLQualityEngine.
 
-        Phase 9 will replace this with XGBoost.score(features) -> float in [0.5, 1.5].
+        Args:
+            weight_loader:    WeightLoader instance for reading deployed weights.
+                              If None, engine operates in stub mode (returns 1.0).
+            regime_detector:  HMMRegimeDetector for optional regime-based adjustment.
+                              If None or not fitted, no regime adjustment is applied.
         """
-        return 1.0
+        self._weight_loader = weight_loader
+        self._regime_detector = regime_detector
+
+    def score(self, bar: FootprintBar | None = None) -> float:
+        """Return quality multiplier based on deployed weights.
+
+        Computation:
+          1. If no weight_loader → return 1.0 (stub mode).
+          2. Read current weights (mtime-cached — O(1) when file unchanged).
+          3. If no weights data → return 1.0.
+          4. Compute mean of signal weights and clamp to [0.5, 1.5].
+          5. If regime_detector is fitted, apply regime_adjustments multiplier.
+
+        Returns:
+            float in [0.5, 1.5] — quality multiplier for confluence scorer.
+        """
+        if self._weight_loader is None:
+            return 1.0
+
+        data = self._weight_loader.read_current()
+        if data is None:
+            return 1.0
+
+        weights: dict[str, float] = data.get("weights", {})
+        if not weights:
+            return 1.0
+
+        # Base quality = mean of all signal weights, clamped to [0.5, 1.5]
+        quality = sum(weights.values()) / len(weights)
+        quality = max(0.5, min(1.5, quality))
+
+        # Optional regime adjustment
+        if self._regime_detector is not None and self._regime_detector.is_fitted():
+            regime_adjustments: dict = data.get("regime_adjustments", {})
+            if regime_adjustments and bar is not None:
+                # Use last known regime (predict_current requires signal rows —
+                # here we apply a stored per-regime multiplier from the weight file)
+                # regime_adjustments shape: {regime_label: {signal: float}}
+                # For quality adjustment we use a dedicated "quality_multiplier" key
+                # if present, otherwise skip.
+                for regime_label, adj in regime_adjustments.items():
+                    if isinstance(adj, dict):
+                        multiplier = adj.get("quality_multiplier")
+                        if multiplier is not None:
+                            quality = max(0.5, min(1.5, quality * float(multiplier)))
+                            break
+
+        return quality
+
+    # Alias for plan compatibility (process is the standard engine method name)
+    def process(self, bar: FootprintBar | None = None) -> float:
+        """Alias for score() — standard engine process() interface."""
+        return self.score(bar)

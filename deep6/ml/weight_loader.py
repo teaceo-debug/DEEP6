@@ -41,6 +41,11 @@ class WeightLoader:
 
     Thread safety: os.replace() is atomic on POSIX and macOS. No explicit
     lock is needed for the scorer's per-bar read path.
+
+    Per T-09-14 (mitigate): read_current() uses mtime-based caching —
+    re-reads the file only when its mtime has changed. This prevents
+    repeated disk I/O at 1,000+ callbacks/sec while ensuring stale
+    weights are never served after a deploy (write_atomic invalidates cache).
     """
 
     def __init__(
@@ -52,6 +57,9 @@ class WeightLoader:
         self.weights_path = str(Path(weights_path).expanduser().resolve())
         self.backup_path = str(Path(backup_path).expanduser().resolve())
         self.backup_ttl_days = backup_ttl_days
+        # T-09-14: mtime cache — avoids redundant disk reads
+        self._cached_mtime: float | None = None
+        self._cached_data: dict[str, Any] | None = None
 
     # ------------------------------------------------------------------
     # Write + rollback
@@ -96,6 +104,10 @@ class WeightLoader:
             if os.path.exists(tmp_path):
                 os.unlink(tmp_path)
             raise
+
+        # T-09-14: Invalidate mtime cache so next read_current() re-reads from disk
+        self._cached_mtime = None
+        self._cached_data = None
 
         log.info(
             "weight_loader.write_atomic.complete",
@@ -143,15 +155,38 @@ class WeightLoader:
     # ------------------------------------------------------------------
 
     def read_current(self) -> dict[str, Any] | None:
-        """Read the current weight file JSON.
+        """Read the current weight file JSON, using mtime cache (T-09-14).
 
-        Scorer calls this once per bar. No lock needed — os.replace is
-        atomic on POSIX/macOS; a concurrent write produces a complete file.
+        Re-reads from disk only when the file's mtime has changed since the
+        last successful read. Returns cached data otherwise — O(1) hot path
+        for the scorer at 1,000+ callbacks/sec.
+
+        No lock needed — os.replace is atomic on POSIX/macOS; a concurrent
+        write produces a complete file. write_atomic() invalidates the cache.
 
         Returns:
             Parsed JSON dict, or None if file does not exist.
         """
-        return self._read_json(self.weights_path)
+        if not os.path.exists(self.weights_path):
+            self._cached_mtime = None
+            self._cached_data = None
+            return None
+
+        try:
+            current_mtime = os.path.getmtime(self.weights_path)
+        except OSError:
+            return None
+
+        # Cache hit — file unchanged since last read
+        if self._cached_mtime is not None and current_mtime == self._cached_mtime:
+            return self._cached_data
+
+        # Cache miss — read from disk and update cache
+        data = self._read_json(self.weights_path)
+        if data is not None:
+            self._cached_mtime = current_mtime
+            self._cached_data = data
+        return data
 
     def read_previous(self) -> dict[str, Any] | None:
         """Read the backup weight file JSON.
