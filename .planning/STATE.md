@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 11 UI-SPEC approved
-last_updated: "2026-04-14T00:14:15.278Z"
+stopped_at: Completed 12-01-PLAN.md (VPIN confidence modifier)
+last_updated: "2026-04-14T00:18:13.394Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 12
   completed_phases: 6
   total_plans: 36
-  completed_plans: 27
-  percent: 75
+  completed_plans: 28
+  percent: 78
 ---
 
 # Project State
@@ -61,6 +61,7 @@ Progress: [░░░░░░░░░░] 2%
 *Updated after each plan completion*
 | Phase 01-data-pipeline-architecture-foundation P02 | 229 | 2 tasks | 4 files |
 | Phase 01 P03 | 25 | 2 tasks | 4 files |
+| Phase 12 P01 | 12 | 3 tasks | 8 files |
 
 ## Quick Tasks Completed
 
@@ -88,6 +89,7 @@ Recent decisions affecting current work:
 - [Phase 01]: aiosqlite with one connection per operation (no pool) — safe for single event loop, avoids connection lifetime complexity
 - [Phase 01]: FreezeGuard._state is private string; is_frozen returns True for both FROZEN and RECONNECTING states — no partial bar processing during any part of reconnect cycle
 - [Phase 01]: SharedState.build() is the single assembly entry point; persistence.initialize() called separately in async context before first use
+- [Phase 12]: VPIN modulates FUSED score only, never stacks with IB multiplier; exact aggressor split replaces BVC per DATA-02
 
 ### Roadmap Evolution
 
@@ -105,6 +107,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-13T23:58:16.180Z
-Stopped at: Phase 11 UI-SPEC approved
-Resume file: .planning/phases/11-deep6-trading-web-app/11-UI-SPEC.md
+Last session: 2026-04-14T00:18:13.392Z
+Stopped at: Completed 12-01-PLAN.md (VPIN confidence modifier)
+Resume file: None
