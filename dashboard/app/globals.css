@@ -78,6 +78,7 @@ html, body {
 
 /* =====================================================================
    Vignette — body::before, pulls focus to center (UI-SPEC §6)
+   Transparency curve: transparent at 60%, steps to black at 100%
    ===================================================================== */
 body::before {
   content: "";
@@ -85,7 +86,30 @@ body::before {
   inset: 0;
   pointer-events: none;
   z-index: 1;
-  background: radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.4) 100%);
+  background: radial-gradient(
+    ellipse at center,
+    transparent 0%,
+    transparent 55%,
+    rgba(0, 0, 0, 0.15) 70%,
+    rgba(0, 0, 0, 0.35) 85%,
+    rgba(0, 0, 0, 0.5) 100%
+  );
+}
+
+/* =====================================================================
+   Selection — lime on void (UI-SPEC §1)
+   ===================================================================== */
+::selection {
+  background: var(--lime);
+  color: var(--void);
+}
+
+/* =====================================================================
+   Focus ring — lime at 60% opacity, 2px, 2px offset
+   ===================================================================== */
+:focus-visible {
+  outline: 2px solid color-mix(in oklch, var(--lime) 60%, transparent);
+  outline-offset: 2px;
 }
 
 /* =====================================================================
@@ -110,10 +134,10 @@ body::before {
 }
 
 .text-display {
-  font-size: 56px;
+  font-size: 64px;
   line-height: 1.0;
   font-weight: 700;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.05em;
 }
 
 /* =====================================================================
@@ -128,6 +152,15 @@ body::before {
    ===================================================================== */
 .label-tracked {
   letter-spacing: 0.08em;
+}
+
+/* =====================================================================
+   Iconography override — thin strokes, terminal feel (UI-SPEC §7)
+   ===================================================================== */
+.icon {
+  stroke-width: 1.25;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
 }
 
 /* =====================================================================
@@ -177,27 +210,101 @@ body::before {
 }
 
 /* =====================================================================
-   Connection dot pulse animation (UI-SPEC §5, §4.7)
+   Scrollbar — thin terminal style for signal / tape scroll areas
    ===================================================================== */
+.scroll-terminal::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.scroll-terminal::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scroll-terminal::-webkit-scrollbar-thumb {
+  background: var(--rule-bright);
+  border-radius: 2px;
+}
+.scroll-terminal::-webkit-scrollbar-thumb:hover {
+  background: var(--text-mute);
+}
+
+/* =====================================================================
+   Keyframes
+   ===================================================================== */
+
+/* Grain — subtle positional drift, 8-frame steps */
+@keyframes grain-shift {
+  0%   { background-position: 0px 0px; }
+  12%  { background-position: -1px 1px; }
+  25%  { background-position: 2px -1px; }
+  37%  { background-position: -2px 2px; }
+  50%  { background-position: 1px -2px; }
+  62%  { background-position: -1px -1px; }
+  75%  { background-position: 2px 1px; }
+  87%  { background-position: -2px -2px; }
+  100% { background-position: 0px 0px; }
+}
+
+/* TYPE_A flash — 200ms white-hot → category color (caller applies color after) */
+@keyframes typeA-flash {
+  0%   { color: #ffffff; filter: drop-shadow(0 0 8px #ffffff) drop-shadow(0 0 24px #ffffff); }
+  100% { color: var(--lime); filter: drop-shadow(0 0 4px color-mix(in oklch, var(--lime) 80%, transparent)) drop-shadow(0 0 12px color-mix(in oklch, var(--lime) 40%, transparent)); }
+}
+
+/* LIVE pill / connection dot — 1.5s breathe */
+@keyframes pulse-breathe {
+  0%, 100% { opacity: 0.7; }
+  50%       { opacity: 1.0; }
+}
+
+/* Pulse arc rings — 2.5s breathe */
+@keyframes arc-breathe {
+  0%, 100% { opacity: 0.85; }
+  50%       { opacity: 1.0; }
+}
+
+/* Digit roll hint — new digit fades in */
+@keyframes digit-roll-hint {
+  0%   { opacity: 0; transform: translateY(4px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* CRT scan sweep — 1px line top → bottom every 8s */
+@keyframes scan-sweep {
+  0%   { transform: translateY(0vh); opacity: 0; }
+  2%   { opacity: 1; }
+  98%  { opacity: 1; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+
+/* Cursor blink — 1s steps(2) */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* TYPE_A screen-shake — 100ms, 4px (UI-SPEC §4.1 step 4) */
+@keyframes screen-shake {
+  0%   { transform: translate(0, 0); }
+  20%  { transform: translate(-4px, 2px); }
+  40%  { transform: translate(4px, -2px); }
+  60%  { transform: translate(-3px, 3px); }
+  80%  { transform: translate(3px, -1px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* Connection dot pulse */
 @keyframes pulse-dot {
   0%, 100% { transform: scale(1.0); opacity: 0.6; }
   50%       { transform: scale(1.15); opacity: 1.0; }
 }
 
-.animate-pulse-dot {
-  animation: pulse-dot 2000ms ease-in-out infinite;
-}
-
+/* Amber flash (disconnecting / reconnecting) */
 @keyframes flash-amber {
   0%, 100% { opacity: 0.5; }
   50%       { opacity: 1.0; }
 }
 
-.animate-flash-amber {
-  animation: flash-amber 600ms ease-in-out infinite;
-}
-
-/* Price flash keyframes (UI-SPEC §4.7) */
+/* Price tick flash */
 @keyframes flash-ask {
   0%   { color: var(--ask); }
   100% { color: var(--text); }
@@ -208,6 +315,36 @@ body::before {
   100% { color: var(--text); }
 }
 
+/* TYPE_A signal row background flash */
+@keyframes typeAPulse {
+  0%   { background-color: rgba(163, 255, 0, 0); }
+  50%  { background-color: rgba(163, 255, 0, 0.18); }
+  100% { background-color: rgba(163, 255, 0, 0); }
+}
+
+/* =====================================================================
+   Animation utility classes
+   ===================================================================== */
+.animate-pulse-dot {
+  animation: pulse-dot 2000ms ease-in-out infinite;
+}
+
+.animate-pulse-breathe {
+  animation: pulse-breathe 1500ms ease-in-out infinite;
+}
+
+.animate-arc-breathe {
+  animation: arc-breathe 2500ms ease-in-out infinite;
+}
+
+.animate-flash-amber {
+  animation: flash-amber 600ms ease-in-out infinite;
+}
+
+.animate-blink {
+  animation: blink 1s steps(2) infinite;
+}
+
 .flash-ask {
   animation: flash-ask 300ms ease-out forwards;
 }
@@ -216,46 +353,34 @@ body::before {
   animation: flash-bid 300ms ease-out forwards;
 }
 
-/* TYPE_A pulse (signal feed) */
-@keyframes typeAPulse {
-  0%   { background-color: rgba(163, 255, 0, 0); }
-  50%  { background-color: rgba(163, 255, 0, 0.18); }
-  100% { background-color: rgba(163, 255, 0, 0); }
-}
-
 .signal-type-a-pulse {
   animation: typeAPulse 1000ms ease-in-out 1 forwards;
 }
 
-/* =====================================================================
-   TYPE_A screen-shake (UI-SPEC §4.1 step 4) — 4px translate, 80ms
-   Applied to body.shake — respects prefers-reduced-motion below
-   ===================================================================== */
-@keyframes screen-shake {
-  0%   { transform: translate(0, 0); }
-  20%  { transform: translate(-4px, 2px); }
-  40%  { transform: translate(4px, -2px); }
-  60%  { transform: translate(-3px, 3px); }
-  80%  { transform: translate(3px, -1px); }
-  100% { transform: translate(0, 0); }
-}
-
 body.shake {
-  animation: screen-shake 80ms ease-out 1 forwards;
+  animation: screen-shake 100ms ease-out 1 forwards;
 }
 
 /* =====================================================================
-   Reduced motion — disable all animations
+   Grain animation class — applied by Grain component
+   ===================================================================== */
+.grain-animated {
+  animation: grain-shift 12s steps(8) infinite;
+}
+
+/* CRT sweep CSS-only class — applied by CRTSweep component */
+.crt-sweep {
+  animation: scan-sweep 8s linear infinite;
+}
+
+/* =====================================================================
+   Reduced motion — global kill-switch for all animations
    ===================================================================== */
 @media (prefers-reduced-motion: reduce) {
-  body.shake {
-    animation: none;
-  }
-  .animate-pulse-dot,
-  .animate-flash-amber,
-  .flash-ask,
-  .flash-bid,
-  .signal-type-a-pulse {
-    animation: none;
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
