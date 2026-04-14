@@ -83,8 +83,12 @@ const MIDDLE_RADIUS = 130;
 const MIDDLE_STROKE_WIDTH = 10;
 
 // Connection spokes: inner/outer radii
+// SPOKE_OUTER_R is 144 (not 150) to keep stroke + glow filter inside outer ring.
+// At r=150 with strokeWidth=1.5 + feGaussianBlur stdDeviation=3, the glow bleeds ~9px
+// beyond r=150 — visually manifests as a rogue cyan arc outside the outer ring.
+// 144 + 4 (half of outer stroke-width 8) + 3 (blur clearance) = 151 — safe by design.
 const SPOKE_INNER_R = 60;
-const SPOKE_OUTER_R = 150;
+const SPOKE_OUTER_R = 144;
 
 // Ambient glow halo outer radius (behind outer ring)
 const AMBIENT_GLOW_R = 200;
@@ -902,33 +906,48 @@ export function ConfluencePulse() {
         </motion.g>
 
         {/* ── Connection spokes (TYPE_A only) ────────────────────────── */}
-        {spokesVisible && !reduced && (
-          <g>
-            {SPOKE_PATHS.map((spoke, i) => (
-              <motion.path
-                key={`spoke-${i}`}
-                d={spoke.path}
-                fill="none"
-                stroke={spoke.hexColor}
-                strokeWidth={1.5}
-                strokeLinecap="round"
-                filter={`url(#${FILTER_ID_SPOKE_GLOW})`}
-                initial={{ opacity: 0, strokeWidth: 1.5 }}
-                animate={
-                  isTypeA
-                    ? (spokeBreathKeyframes as Record<string, number[]>)
-                    : { opacity: 0, strokeWidth: 1.5 }
-                }
-                transition={
-                  isTypeA
-                    ? { ...spokeBreathTransition, delay: i * 0.05 }
-                    : { duration: 0.4, ease: 'easeOut' }
-                }
-                style={{ pointerEvents: 'none' }}
-              />
-            ))}
-          </g>
-        )}
+        {/* spokesVisible stays true for 500ms after tier drops so spokes can
+            fade out — but we only attach the glow filter when isTypeA is true
+            to prevent the feGaussianBlur halo from bleeding outside the outer
+            ring during the fade. AnimatePresence removes the g from the DOM
+            after the exit animation completes. */}
+        <AnimatePresence>
+          {spokesVisible && !reduced && (
+            <motion.g
+              key="connection-spokes"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: isTypeA ? 1 : 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4, ease: 'easeOut' }}
+              style={{ pointerEvents: 'none' }}
+            >
+              {SPOKE_PATHS.map((spoke, i) => (
+                <motion.path
+                  key={`spoke-${i}`}
+                  d={spoke.path}
+                  fill="none"
+                  stroke={spoke.hexColor}
+                  strokeWidth={1.5}
+                  strokeLinecap="round"
+                  // Only apply glow filter when actively TYPE_A — the blur
+                  // bleeds outward and can create a rogue arc outside r=150
+                  filter={isTypeA ? `url(#${FILTER_ID_SPOKE_GLOW})` : undefined}
+                  initial={{ opacity: 0, strokeWidth: 1.5 }}
+                  animate={
+                    isTypeA
+                      ? (spokeBreathKeyframes as Record<string, number[]>)
+                      : { opacity: 0, strokeWidth: 1.5 }
+                  }
+                  transition={
+                    isTypeA
+                      ? { ...spokeBreathTransition, delay: i * 0.05 }
+                      : { duration: 0.4, ease: 'easeOut' }
+                  }
+                />
+              ))}
+            </motion.g>
+          )}
+        </AnimatePresence>
 
         {/* ── Inner core via foreignObject ─────────────────────────── */}
         <motion.g

@@ -317,7 +317,7 @@ export const scoreThresholdDownTransition = {
 // ---------------------------------------------------------------------------
 
 export const spokeBreathKeyframes: { opacity: number[]; strokeWidth: number[] } = {
-  opacity: [0.6, 1.0, 0.6],
+  opacity: [0.4, 0.6, 0.4],  // max 0.6 — spokes are structural, not focal
   strokeWidth: [1.5, 2.0, 1.5],
 };
 
