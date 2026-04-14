@@ -71,82 +71,90 @@ describe('useWebSocket', () => {
     expect(useTradingStore.getState().status.connected).toBe(true);
   });
 
-  it('Test 2: reconnects with exponential backoff 1s→2s→4s (verified via timing windows)', () => {
-    // Verify backoff via fake timers: each successive reconnect fires at the
-    // expected delay (1000→2000→4000ms) without calling fireOpen() so the
-    // attempt counter is not reset.
+  it('Test 2: reconnects with 300ms fast-first retry then exponential backoff 1s→2s→4s', () => {
+    // BACKOFF_SEQUENCE is now [300, 1000, 2000, 4000, 8000, 16000, 30000].
+    // First disconnect → 300ms, second → 1000ms, third → 2000ms, fourth → 4000ms.
     const { unmount } = renderHook(() => useWebSocket('ws://test/ws/live'));
 
     // ws1 is created immediately on mount; close it without firing open
     const ws1 = MockWS.instances[0];
     expect(MockWS.instances.length).toBe(1);
-    ws1.close(); // schedules reconnect at 1000ms
+    ws1.close(); // schedules reconnect at 300ms (attempt 0)
 
     // Nothing new yet
     expect(MockWS.instances.length).toBe(1);
 
-    // Advance 999ms — still no new WS
-    vi.advanceTimersByTime(999);
+    // Advance 299ms — still no new WS
+    vi.advanceTimersByTime(299);
     expect(MockWS.instances.length).toBe(1);
 
-    // Advance 1ms to hit the 1000ms mark — ws2 should appear
+    // Advance 1ms to hit the 300ms mark — ws2 should appear
     vi.advanceTimersByTime(1);
     expect(MockWS.instances.length).toBe(2);
     const ws2 = MockWS.instances[1];
-    ws2.close(); // schedules reconnect at 2000ms
+    ws2.close(); // schedules reconnect at 1000ms (attempt 1)
 
-    // Advance 1999ms — still only ws2
-    vi.advanceTimersByTime(1999);
+    // Advance 999ms — still only ws2
+    vi.advanceTimersByTime(999);
     expect(MockWS.instances.length).toBe(2);
 
-    // Advance 1ms to hit the 2000ms mark — ws3 should appear
+    // Advance 1ms to hit the 1000ms mark — ws3 should appear
     vi.advanceTimersByTime(1);
     expect(MockWS.instances.length).toBe(3);
     const ws3 = MockWS.instances[2];
-    ws3.close(); // schedules reconnect at 4000ms
+    ws3.close(); // schedules reconnect at 2000ms (attempt 2)
 
-    // Advance 3999ms — still only ws3
-    vi.advanceTimersByTime(3999);
+    // Advance 1999ms — still only ws3
+    vi.advanceTimersByTime(1999);
     expect(MockWS.instances.length).toBe(3);
 
-    // Advance 1ms to hit the 4000ms mark — ws4 should appear
+    // Advance 1ms to hit the 2000ms mark — ws4 should appear
     vi.advanceTimersByTime(1);
     expect(MockWS.instances.length).toBe(4);
+    const ws4 = MockWS.instances[3];
+    ws4.close(); // schedules reconnect at 4000ms (attempt 3)
+
+    // Advance 3999ms — still only ws4
+    vi.advanceTimersByTime(3999);
+    expect(MockWS.instances.length).toBe(4);
+
+    // Advance 1ms to hit the 4000ms mark — ws5 should appear
+    vi.advanceTimersByTime(1);
+    expect(MockWS.instances.length).toBe(5);
 
     unmount();
   });
 
-  it('Test 3: no reconnect scheduled when document is hidden at disconnect', () => {
+  it('Test 3: initial connect always attempted regardless of visibility; reconnect parked when hidden', () => {
+    // New semantics: connect() no longer bails out when the tab is hidden on
+    // initial mount. Only scheduleReconnect() parks when hidden.
     Object.defineProperty(document, 'visibilityState', {
       configurable: true,
       get: () => 'hidden',
     });
 
     const { unmount } = renderHook(() => useWebSocket('ws://test/ws/live'));
-    // connect() bails out when hidden
-    expect(MockWS.instances.length).toBe(0);
-
-    // Restore visible and fire visibilitychange
-    Object.defineProperty(document, 'visibilityState', {
-      configurable: true,
-      get: () => 'visible',
-    });
-    document.dispatchEvent(new Event('visibilitychange'));
+    // connect() runs unconditionally — ws1 must exist even though tab is hidden
     expect(MockWS.instances.length).toBe(1);
-
     const ws = MockWS.instances[0];
+
     ws.fireOpen();
 
-    // Go hidden, then disconnect — should NOT schedule reconnect
-    Object.defineProperty(document, 'visibilityState', {
-      configurable: true,
-      get: () => 'hidden',
-    });
+    // While hidden, disconnect — scheduleReconnect should park (no setTimeout)
     const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout');
     ws.close();
 
     const timedCalls = setTimeoutSpy.mock.calls.filter(c => typeof c[1] === 'number');
     expect(timedCalls.length).toBe(0);
+
+    // Restore visible and fire visibilitychange — onVis resets attempt and connects
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      get: () => 'visible',
+    });
+    document.dispatchEvent(new Event('visibilitychange'));
+    expect(MockWS.instances.length).toBe(2);
+    MockWS.instances[1].fireOpen();
 
     unmount();
   });
