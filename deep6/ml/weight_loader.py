@@ -31,6 +31,62 @@ from deep6.ml.lgbm_trainer import WeightFile
 log = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# Phase 12-05: WalkForward override merging
+# ---------------------------------------------------------------------------
+
+
+def apply_walk_forward_overrides(
+    weight_file: WeightFile, tracker: object | None
+) -> WeightFile:
+    """Merge WalkForwardTracker disable mask into ``regime_adjustments``.
+
+    Phase 12-05 feedback loop: the tracker's ``get_weights_override()`` returns
+    a ``regime → category → multiplier`` map where 0.0 means the (regime,
+    category) cell is currently auto-disabled. This function merges that map
+    multiplicatively into ``weight_file.regime_adjustments`` so downstream
+    LightGBM fusion naturally suppresses disabled cells.
+
+    Returns a NEW WeightFile (no in-place mutation) so callers can safely
+    snapshot the merged value at bar-close without races (FOOTGUN 3 — no
+    mid-bar weight flip).
+
+    If ``tracker`` is None or has no overrides, returns the original
+    ``weight_file`` unchanged.
+    """
+    if tracker is None:
+        return weight_file
+    try:
+        overrides = tracker.get_weights_override()  # type: ignore[attr-defined]
+    except Exception:
+        log.warning("walk_forward.overrides.unavailable", exc_info=True)
+        return weight_file
+    if not overrides:
+        return weight_file
+
+    # Multiplicative composition with any pre-existing adjustments.
+    merged: dict[str, dict[str, float]] = {
+        regime: dict(cats) for regime, cats in (weight_file.regime_adjustments or {}).items()
+    }
+    for regime, cat_map in overrides.items():
+        dst = merged.setdefault(regime, {})
+        for category, mult in cat_map.items():
+            existing = dst.get(category, 1.0)
+            dst[category] = float(existing) * float(mult)
+
+    return WeightFile(
+        weights=dict(weight_file.weights),
+        regime_adjustments=merged,
+        feature_importances=dict(weight_file.feature_importances),
+        training_date=weight_file.training_date,
+        n_samples=weight_file.n_samples,
+        metrics=dict(weight_file.metrics),
+        wfe=weight_file.wfe,
+        model_path=weight_file.model_path,
+        model_checksum=weight_file.model_checksum,
+    )
+
+
 class WeightLoader:
     """Manages atomic weight file reads, writes, and rollbacks.
 

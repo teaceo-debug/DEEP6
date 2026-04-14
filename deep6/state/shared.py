@@ -22,6 +22,7 @@ from deep6.signals.atr import ATRTracker
 from deep6.orderflow.vpin import VPINEngine
 from deep6.orderflow.slingshot import SlingshotDetector, SlingshotResult
 from deep6.orderflow.setup_tracker import SetupTracker, SetupTransition
+from deep6.orderflow.walk_forward_live import WalkForwardTracker
 from deep6.signals.flags import SignalFlags
 
 
@@ -103,6 +104,22 @@ class SharedState:
     # the trackers, they just aren't written to disk.
     event_store: object | None = field(default=None, repr=False)
 
+    # Phase 12-05: Per-regime walk-forward tracker. Records every voting
+    # category at bar-close; resolves 5/10/20-bar outcomes. Drives auto-disable
+    # of (regime, category) cells into LightGBM fusion via weight_loader.
+    # Lazily instantiated when the EventStore is attached (build() leaves
+    # None so unit tests that don't need persistence stay trivial).
+    walk_forward: WalkForwardTracker | None = field(default=None, repr=False)
+
+    # Provider for "bars until RTH close" — set by __main__.py from SessionManager.
+    # Signature: () -> int. None defaults to a large value (effectively never
+    # expires), matching the test/offline default.
+    bars_until_rth_close_provider: Callable | None = field(default=None, repr=False)
+
+    # Current regime label provider (phase 09-02 HMMRegimeDetector). Signature:
+    # () -> str. Defaults to "UNKNOWN" when not wired.
+    current_regime_provider: Callable | None = field(default=None, repr=False)
+
     # Optional on_bar_close override (set by signal pipeline in Phase 2+)
     _on_bar_close_fn: Callable | None = field(default=None, repr=False)
 
@@ -146,8 +163,44 @@ class SharedState:
         except Exception:
             log.exception("slingshot.detect_failed", label=label)
 
+        # Phase 12-05: advance walk-forward tracker price stream on 1m bars.
+        # Drives 5/10/20-bar resolution against the live price. Must never
+        # break the bar-close path.
+        if label == "1m" and self.walk_forward is not None:
+            try:
+                bar_index = int(getattr(bar, "bar_index_in_session", 0))
+                session_id = str(getattr(bar, "session_id", "default"))
+                bars_until_close = self._bars_until_rth_close()
+                await self.walk_forward.update_price(
+                    close_price=float(bar.close),
+                    bar_index=bar_index,
+                    session_id=session_id,
+                    bars_until_rth_close=bars_until_close,
+                )
+            except Exception:
+                log.exception("walk_forward.update_failed", label=label)
+
         if self._on_bar_close_fn is not None:
             await self._on_bar_close_fn(label, bar)
+
+    def _bars_until_rth_close(self) -> int:
+        """Resolve bars-until-RTH-close via provider; defaults to a large value
+        so tests/offline harnesses that don't wire session plumbing never
+        inadvertently label outcomes EXPIRED."""
+        if self.bars_until_rth_close_provider is None:
+            return 10_000
+        try:
+            return int(self.bars_until_rth_close_provider())
+        except Exception:
+            return 10_000
+
+    def _current_regime(self) -> str:
+        if self.current_regime_provider is None:
+            return "UNKNOWN"
+        try:
+            return str(self.current_regime_provider())
+        except Exception:
+            return "UNKNOWN"
 
     def _run_slingshot(self, label: str, bar) -> int:
         """Run SlingshotDetector for the given timeframe and return the flag bitmask.
@@ -217,7 +270,70 @@ class SharedState:
         )
         if transition is not None and self.event_store is not None:
             await self._persist_transition(transition)
+
+        # Phase 12-05: record one walk-forward entry per voting category when
+        # the scorer emits a tradeable tier. 1m only (matches VPIN/walk-forward
+        # timeframe lock). Wrapped in try/except — the tracker must never
+        # break feed_scorer_result.
+        if label == "1m" and self.walk_forward is not None:
+            try:
+                await self._record_walk_forward_from_scorer(
+                    scorer_result, current_bar_index
+                )
+            except Exception:
+                import structlog as _sl
+                _sl.get_logger().exception("walk_forward.record_failed")
         return transition
+
+    async def _record_walk_forward_from_scorer(
+        self, scorer_result, current_bar_index: int
+    ) -> None:
+        """Emit record_signal for each voting category on the current bar."""
+        if self.walk_forward is None:
+            return
+        if scorer_result is None:
+            return
+        # Resolve tier string — supports SignalTier enum, str, or missing.
+        tier = getattr(scorer_result, "tier", None)
+        tier_name = (
+            tier.name if hasattr(tier, "name") else str(tier) if tier is not None else "NONE"
+        )
+        if tier_name in ("NONE", "None", "QUIET"):
+            return
+        cats = getattr(scorer_result, "categories_firing", None) or []
+        if not cats:
+            return
+        direction_raw = getattr(scorer_result, "direction", 0)
+        if isinstance(direction_raw, str):
+            direction = direction_raw
+        else:
+            try:
+                d = int(direction_raw)
+            except (TypeError, ValueError):
+                d = 0
+            if d > 0:
+                direction = "LONG"
+            elif d < 0:
+                direction = "SHORT"
+            else:
+                return  # neutral — nothing to record
+        entry_price = float(getattr(scorer_result, "entry_price", 0.0) or 0.0)
+        if entry_price == 0.0:
+            entry_price = float(getattr(scorer_result, "bar_close", 0.0) or 0.0)
+        regime = self._current_regime()
+        session_id = getattr(scorer_result, "session_id", None) or "default"
+        bars_until_close = self._bars_until_rth_close()
+        for cat in cats:
+            await self.walk_forward.record_signal(
+                category=cat,
+                regime=regime,
+                direction=direction,
+                entry_price=entry_price,
+                bar_index=int(current_bar_index),
+                session_id=str(session_id),
+                signal_event_id=getattr(scorer_result, "signal_event_id", None),
+                bars_until_rth_close=int(bars_until_close),
+            )
 
     def close_trade(
         self, setup_id: str, outcome: str = "CLOSED"
@@ -297,6 +413,13 @@ class SharedState:
         self.last_slingshot_1m = None
         self.last_slingshot_5m = None
 
+        # Clear per-signal cooldowns / confirmation state so they cannot
+        # straddle the overnight gap (see engines' module-level caches).
+        from deep6.engines.exhaustion import reset_cooldowns
+        from deep6.engines.narrative import reset_confirmations
+        reset_cooldowns()
+        reset_confirmations()
+
     @classmethod
     def build(cls, config: Config) -> "SharedState":
         """Factory: build SharedState with all sub-components wired up.
@@ -314,6 +437,18 @@ class SharedState:
         persistence = SessionPersistence(config.db_path)
         state = cls(config=config, persistence=persistence)
         return state
+
+    def attach_event_store(self, store: object) -> None:
+        """Attach an EventStore and instantiate dependent trackers.
+
+        Called by the FastAPI lifespan (phase 09-01) or by offline harnesses
+        after the store has been initialize()'d. Wires phase 12-05
+        WalkForwardTracker against the store so live bar-close price updates
+        drive outcome resolution.
+        """
+        self.event_store = store
+        if self.walk_forward is None:
+            self.walk_forward = WalkForwardTracker(store=store)
 
     def session_manager(self) -> SessionManager:
         """Return a SessionManager bound to this state.
