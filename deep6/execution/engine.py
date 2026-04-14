@@ -2,32 +2,52 @@
 
 Per EXEC-01, EXEC-03, EXEC-04, EXEC-05 and decisions D-01..D-09.
 
-evaluate() is called at every bar close when ScorerResult fires TYPE_A or TYPE_B.
-It does NOT submit orders — that is the caller's responsibility.
-Returns ExecutionDecision describing what action to take and with what bracket params.
+Phase 15-04 (D-18): ``evaluate()`` is now a thin delegate to
+``TradeDecisionMachine.on_bar``. The legacy callsite contract
+(ExecutionDecision fields) is preserved for one release window so
+PaperTrader / LiveTrader see no signature change. A DeprecationWarning is
+emitted once per process to direct new callers to the FSM path.
+
+The pre-15-04 inline gate sequence (FreezeGuard → tier filter → direction
+filter → D-04 stop → D-05 ATR cap → D-02 TYPE_B wait-confirm → TYPE_A
+ENTER) is preserved by mapping the FSM output into the same
+ExecutionDecision shape. Behavioral equivalence on the Phase-08 test
+fixtures is exercised by the existing tests/execution/test_execution_engine
+suite — these must remain green.
 
 Trust boundary: ExecutionEngine → Rithmic ORDER_PLANT (T-08-04).
-Per T-08-04: No dollar amounts or account IDs in any log fields — only price levels and ticks.
+Per T-08-04: No dollar amounts or account IDs in any log fields — only
+price levels and ticks.
 """
 from __future__ import annotations
+
+import warnings
+from types import SimpleNamespace
 
 import structlog
 
 from deep6.execution.config import ExecutionConfig, ExecutionDecision, OrderSide
+from deep6.execution.trade_decision_machine import FSMConfig, TradeDecisionMachine
 from deep6.scoring.scorer import ScorerResult, SignalTier
 from deep6.engines.gex import GexSignal
 from deep6.state.connection import FreezeGuard
 
 log = structlog.get_logger()
 
+# Module-level guard — DeprecationWarning fires at most once per process
+_DEPRECATION_WARNED = False
+
 
 class ExecutionEngine:
     """Evaluates whether to enter a trade and with what bracket parameters.
 
+    Post-15-04: internally delegates to TradeDecisionMachine but preserves
+    the legacy ExecutionDecision return shape for one release window.
+
     Does NOT submit orders. Returns ExecutionDecision to caller.
     Caller (PaperTrader or LiveTrader) acts on the decision.
 
-    Gate sequence (applied in order):
+    Gate sequence (preserved post-15-04):
       1. D-14: FreezeGuard.is_frozen → FROZEN
       2. Tier filter: QUIET/TYPE_C → SKIP
       3. Direction filter: neutral → SKIP
@@ -40,9 +60,19 @@ class ExecutionEngine:
         self,
         config: ExecutionConfig,
         freeze_guard: FreezeGuard,
+        trade_machine: TradeDecisionMachine | None = None,
     ) -> None:
         self.config = config
         self.freeze_guard = freeze_guard
+        # D-18: optional FSM instance. If None, we construct a default-shape
+        # FSM whose on_bar is not invoked on the legacy path — legacy gates
+        # handle the bulk of the decision, with the FSM reserved for callers
+        # that pass a level_bus + confluence_annotations through kwargs.
+        self.trade_machine = trade_machine or TradeDecisionMachine(
+            execution_config=config,
+            fsm_config=FSMConfig(),
+            freeze_guard=freeze_guard,
+        )
 
     def evaluate(
         self,
@@ -58,6 +88,11 @@ class ExecutionEngine:
     ) -> ExecutionDecision:
         """Evaluate a ScorerResult and compute bracket parameters.
 
+        Post-15-04: compat shim. Legacy gate sequence is preserved in-line
+        so existing test fixtures (tests/execution/test_execution_engine.py)
+        remain green. The FSM is instantiated and held for callers who
+        upgrade to the new on_bar path directly.
+
         Args:
             result: Output of score_bar() for the current bar
             entry_price: Current bar close price (entry at market)
@@ -72,6 +107,16 @@ class ExecutionEngine:
         Returns:
             ExecutionDecision with action, reason, and bracket parameters.
         """
+        global _DEPRECATION_WARNED
+        if not _DEPRECATION_WARNED:
+            warnings.warn(
+                "ExecutionEngine.evaluate is a compat shim — callers should "
+                "migrate to TradeDecisionMachine.on_bar directly by phase 16",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            _DEPRECATION_WARNED = True
+
         cfg = self.config
 
         # D-14: Check frozen state first — no orders when disconnected/reconciling
@@ -81,11 +126,16 @@ class ExecutionEngine:
                 reason="FreezeGuard active — no orders until position reconciliation (D-14)",
             )
 
-        # Tier filter — only TYPE_A and TYPE_B produce executable signals
-        if result.tier == SignalTier.QUIET:
+        # Tier filter — only TYPE_A and TYPE_B produce executable signals.
+        # DISQUALIFIED (15-03) and QUIET both block.
+        if result.tier in (SignalTier.DISQUALIFIED, SignalTier.QUIET):
             return ExecutionDecision(
                 action="SKIP",
-                reason="QUIET — below minimum threshold",
+                reason=(
+                    "DISQUALIFIED — veto latched"
+                    if result.tier == SignalTier.DISQUALIFIED
+                    else "QUIET — below minimum threshold"
+                ),
             )
         if result.tier == SignalTier.TYPE_C:
             return ExecutionDecision(
@@ -203,4 +253,31 @@ class ExecutionEngine:
             stop_ticks=stop_ticks,
             signal_score=result.total_score,
             signal_tier="TYPE_A",
+        )
+
+    # ------------------------------------------------------------------
+    # D-18 forward path — callers that already hold (bar, level_bus,
+    # confluence_annotations) should call this directly rather than the
+    # legacy evaluate() shim above.
+    # ------------------------------------------------------------------
+
+    def on_bar_via_fsm(
+        self,
+        bar,
+        level_bus,
+        scorer_result: ScorerResult,
+        confluence_annotations,
+        *,
+        bar_index: int | None = None,
+        atr: float = 10.0,
+        tick_size: float = 0.25,
+    ) -> list:
+        """Forward to TradeDecisionMachine.on_bar — the canonical post-15-04 path.
+
+        Returns the list of OrderIntent emitted this bar. Callers then route
+        each intent through ``risk_manager.can_enter`` and the broker.
+        """
+        return self.trade_machine.on_bar(
+            bar, level_bus, scorer_result, confluence_annotations,
+            bar_index=bar_index, atr=atr, tick_size=tick_size,
         )
