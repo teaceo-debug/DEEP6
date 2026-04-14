@@ -40,7 +40,7 @@ import {
   AnimatePresence,
 } from 'motion/react';
 import { useTradingStore } from '@/store/tradingStore';
-import { prefersReducedMotion } from '@/lib/animations';
+import { prefersReducedMotion, DURATION, EASING, SPRING } from '@/lib/animations';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -97,8 +97,8 @@ function AnimatedNumber({ value, color }: AnimatedNumberProps) {
       return;
     }
     const controls = animate(motionVal, value, {
-      duration: 0.6,
-      ease: [0.16, 1, 0.3, 1],
+      duration: DURATION.slow / 1000 * 1.2, // 600ms digit roll — EASING.spring
+      ease: EASING.spring as [number, number, number, number],
     });
     return () => controls.stop();
   }, [value, motionVal, reduced]);
@@ -133,8 +133,8 @@ function AnimatedSigma({ value }: AnimatedSigmaProps) {
       return;
     }
     const controls = animate(motionVal, value, {
-      duration: 0.6,
-      ease: [0.16, 1, 0.3, 1],
+      duration: DURATION.slow / 1000 * 1.2, // 600ms sigma roll — EASING.spring
+      ease: EASING.spring as [number, number, number, number],
     });
     return () => controls.stop();
   }, [value, motionVal, reduced]);
@@ -175,8 +175,8 @@ function PingSweep({ pingKey }: PingSweepProps) {
         animate={{ scaleX: 1, opacity: [1, 1, 0] }}
         exit={{}}
         transition={{
-          scaleX: { duration: 0.3, ease: 'easeOut' },
-          opacity: { duration: 0.5, ease: 'easeOut', times: [0, 0.6, 1] },
+          scaleX: { duration: DURATION.normal / 1000, ease: 'easeOut' },       // 250ms ping sweep
+          opacity: { duration: DURATION.slow / 1000, ease: 'easeOut', times: [0, 0.6, 1] }, // 500ms fade
         }}
         style={{
           position: 'absolute',
@@ -213,8 +213,7 @@ function AnimatedBarFill({ pct, dirColor }: AnimatedBarFillProps) {
     }
     const controls = animate(motionPct, pct, {
       type: 'spring',
-      stiffness: 200,
-      damping: 25,
+      ...SPRING.snap, // stiffness:200, damping:25 — bar fill spring
     });
     return () => controls.stop();
   }, [pct, motionPct, reduced]);
@@ -264,7 +263,7 @@ function DirectionText({ direction, color }: DirectionTextProps) {
           initial={reduced ? undefined : { y: 12, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={reduced ? undefined : { y: -12, opacity: 0 }}
-          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: DURATION.normal / 1000, ease: EASING.spring as [number, number, number, number] }}
         >
           {label}
         </motion.span>
@@ -523,7 +522,7 @@ export function KronosBar() {
         <motion.div
           animate={{ opacity: [0.5, 1.0, 0.5] }}
           transition={{
-            duration: 2,
+            duration: DURATION.slow / 1000 * 4, // 2000ms — pulsing dot breathe loop
             repeat: Infinity,
             ease: 'easeInOut',
           }}
@@ -618,7 +617,7 @@ export function KronosBar() {
           animate={{ width: `${biasAbs}%` }}
           transition={prefersReducedMotion()
             ? { duration: 0 }
-            : { type: 'spring', stiffness: 200, damping: 25 }
+            : { type: 'spring', ...SPRING.snap } // stiffness:200, damping:25
           }
           style={{
             height: '100%',

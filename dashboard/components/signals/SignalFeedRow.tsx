@@ -14,6 +14,7 @@
 import { useState, useEffect } from 'react';
 import { motion, useReducedMotion, AnimatePresence } from 'motion/react';
 import type { SignalEvent } from '@/types/deep6';
+import { DURATION, EASING, SPRING } from '@/lib/animations';
 
 // -- Tier color maps ----------------------------------------------------------
 
@@ -163,24 +164,24 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
   const rowTransition: Record<string, unknown> = {
     clipPath: reduced
       ? { duration: 0 }
-      : { duration: 0.4, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
+      : { duration: DURATION.entrance / 1000 * 0.5, ease: EASING.spring as [number, number, number, number] }, // 400ms entrance spring
   };
 
   if (triggerArrival && !reduced) {
     rowAnimate.backgroundColor = ['rgba(163,255,0,0.25)', 'rgba(163,255,0,0)'];
-    rowTransition.backgroundColor = { duration: 1.2, ease: 'easeOut' };
+    rowTransition.backgroundColor = { duration: DURATION.flash / 1000, ease: 'easeOut' }; // 1200ms flash decay
     rowAnimate.filter = [
       'drop-shadow(0 0 12px rgba(163,255,0,0.7)) drop-shadow(0 0 4px rgba(163,255,0,0.5))',
       'drop-shadow(0 0 0px rgba(163,255,0,0))',
     ];
-    rowTransition.filter = { duration: 1.8, ease: 'easeOut' };
+    rowTransition.filter = { duration: DURATION.flash / 1000 * 1.5, ease: 'easeOut' }; // 1800ms glow decay
   }
 
   const borderWidthAnimate = borderPulsing && !reduced
     ? { borderLeftWidth: ['4px', '8px', '4px', '8px', '4px', '8px', '4px'] }
     : { borderLeftWidth: '4px' };
   const borderTransition = borderPulsing && !reduced
-    ? { duration: 0.6, ease: 'easeInOut' as const }
+    ? { duration: DURATION.normal / 1000 * 2.4, ease: 'easeInOut' as const } // 600ms border pulse
     : { duration: 0 };
 
   // Scale 1.0 to 1.25 per spec (unified for TYPE_A and others)
@@ -205,7 +206,7 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
             initial={{ opacity: 0.3 }}
             animate={{ opacity: 0 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 1.8, ease: 'easeOut' }}
+            transition={{ duration: DURATION.flash / 1000 * 1.5, ease: 'easeOut' }} // 1800ms glow decay
             style={{
               position: 'absolute',
               inset: 0,
@@ -225,7 +226,7 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
             initial={{ left: '-2px', opacity: 0.8 }}
             animate={{ left: '102%', opacity: 0 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.5, ease: 'linear' }}
+            transition={{ duration: DURATION.slow / 1000, ease: 'linear' }} // 500ms scan sweep
             style={{
               position: 'absolute',
               top: 0,
@@ -264,7 +265,7 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
           cursor: 'default',
           overflow: 'hidden',
           backgroundColor: hovered ? 'var(--surface-1)' : undefined,
-          transition: 'background-color 300ms ease',
+          transition: `background-color ${DURATION.normal}ms ease`, // 250ms hover bg
         }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
@@ -275,7 +276,7 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
           transition={
             reduced
               ? { duration: 0 }
-              : { type: 'spring', stiffness: 180, damping: 20 }
+              : { type: 'spring', stiffness: 180, damping: 20 } // hover expand — intentionally softer than SPRING.snap
           }
           style={{ overflow: 'hidden' }}
         >
@@ -297,7 +298,7 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
               }
               transition={
                 dotPulsing && !reduced
-                  ? { duration: 1.2, repeat: Infinity, ease: 'easeInOut' }
+                  ? { duration: DURATION.slow / 1000 * 2.4, repeat: Infinity, ease: 'easeInOut' } // 1200ms dot pulse loop
                   : { duration: 0 }
               }
               style={{
@@ -401,7 +402,7 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
+                transition={{ duration: DURATION.fast / 1000 }} // 150ms microinteraction
                 style={{
                   marginTop: 5,
                   display: 'flex',
@@ -437,7 +438,7 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
                         width: `${Math.min(100, Math.round(sig.engine_agreement))}%`,
                         background: color,
                         borderRadius: 2,
-                        transition: 'width 400ms ease',
+                        transition: `width ${DURATION.entrance / 2}ms ease`, // 400ms bar fill
                       }}
                     />
                   </div>
@@ -562,7 +563,7 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
                             boxShadow: lit
                               ? `0 0 3px color-mix(in oklch, ${color} 60%, transparent)`
                               : 'none',
-                            transition: 'background 200ms',
+                            transition: `background ${DURATION.fast}ms`, // 150ms dot color flick
                           }}
                         />
                       );
@@ -606,7 +607,7 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
               width: `${scoreBarPct}%`,
               background: color,
               opacity: 0.75,
-              transition: 'width 600ms ease',
+              transition: `width ${DURATION.slow}ms ease`, // 500ms score bar update
             }}
           />
         </div>

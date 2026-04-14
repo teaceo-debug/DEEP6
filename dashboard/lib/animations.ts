@@ -5,6 +5,43 @@
  */
 
 // ---------------------------------------------------------------------------
+// Unified animation tokens (UI-SPEC v2 §5 — animation vocabulary)
+//
+// Usage:
+//   import { DURATION, EASING, SPRING } from '@/lib/animations';
+//   transition={{ duration: DURATION.normal / 1000, ease: EASING.standard }}
+//   transition={{ type: 'spring', ...SPRING.snap }}
+// ---------------------------------------------------------------------------
+
+/** Duration in milliseconds. Divide by 1000 for framer-motion `duration`. */
+export const DURATION = {
+  fast:     150,  // microinteractions: hover, click feedback
+  normal:   250,  // state transitions: tier change, direction flip
+  slow:     500,  // emphasis: digit roll, sparkline update
+  entrance: 800,  // new element arrivals: signal row, bar append
+  flash:    1200, // TYPE_A decay tail
+} as const;
+
+/**
+ * Easing cubic-bezier tuples for framer-motion `ease` prop.
+ * Also works as CSS `transition-timing-function` values via string form.
+ */
+export const EASING = {
+  standard: [0.4, 0, 0.2, 1] as const,   // Material standard ease
+  enter:    [0, 0, 0.2, 1] as const,     // Decelerate (elements entering)
+  exit:     [0.4, 0, 1, 1] as const,     // Accelerate (elements leaving)
+  spring:   [0.16, 1, 0.3, 1] as const,  // Slight overshoot (digit rolls)
+  bounce:   [0.34, 1.56, 0.64, 1] as const, // Overshoot for celebration (threshold cross)
+} as const;
+
+/** Spring physics presets for framer-motion `type: 'spring'` transitions. */
+export const SPRING = {
+  soft: { stiffness: 120, damping: 22 },  // gentle settle (digit roll, bar fill)
+  snap: { stiffness: 200, damping: 25 },  // crisp state transition (tier, direction)
+  pop:  { stiffness: 300, damping: 20 },  // energetic appear (overlay pill, glyph flip)
+} as const;
+
+// ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
@@ -20,11 +57,12 @@ export type CategoryKey =
 
 // ---------------------------------------------------------------------------
 // Digit-roll transition — spring physics for satisfying settle (UI-SPEC §5)
+// Maps to: DURATION.slow + EASING.spring (soft spring variant)
 // ---------------------------------------------------------------------------
 
 export const digitRollTransition = {
   type: 'spring' as const,
-  stiffness: 120,
+  stiffness: SPRING.soft.stiffness,  // 120
   damping: 18,
   mass: 1,
 } as const;
@@ -34,8 +72,8 @@ export const digitRollTransition = {
 // ---------------------------------------------------------------------------
 
 export const arcIgniteTransition = {
-  duration: 0.2,
-  ease: [0.4, 0, 0.2, 1] as [number, number, number, number],
+  duration: DURATION.normal / 1000, // 0.25s — EASING.standard
+  ease: EASING.standard as [number, number, number, number],
 } as const;
 
 /**
@@ -90,7 +128,7 @@ export const radialBloomKeyframes: {
 };
 
 export const radialBloomTransition = {
-  duration: 1.2,
+  duration: DURATION.flash / 1000, // 1.2s → flash token (close enough; TYPE_A decay tail)
   ease: 'easeOut' as const,
 };
 
@@ -136,13 +174,13 @@ export const backgroundFlashTransition = {
 // ---------------------------------------------------------------------------
 
 export const arcFlashTransition = {
-  duration: 0.12,
-  ease: [0.4, 0, 0.2, 1] as [number, number, number, number],
+  duration: 0.12, // intentional: white-hot phase is 120ms fixed (not a token)
+  ease: EASING.standard as [number, number, number, number],
 };
 
 export const arcSettleTransition = {
-  duration: 0.3,
-  ease: [0.4, 0, 0.2, 1] as [number, number, number, number],
+  duration: DURATION.normal / 1000, // 0.25s — state transition after flash
+  ease: EASING.standard as [number, number, number, number],
   delay: 0.12,
 };
 
@@ -152,8 +190,7 @@ export const arcSettleTransition = {
 
 export const directionFlipTransition = {
   type: 'spring' as const,
-  stiffness: 300,
-  damping: 25,
+  ...SPRING.pop,  // stiffness:300, damping:20 — energetic glyph flip
   mass: 0.8,
 };
 
@@ -166,8 +203,8 @@ export const levelUpKeyframes = {
 };
 
 export const levelUpTransition = {
-  duration: 0.25,
-  ease: [0.34, 1.56, 0.64, 1] as [number, number, number, number], // ease-out-back
+  duration: DURATION.normal / 1000, // 0.25s — EASING.bounce (ease-out-back)
+  ease: EASING.bounce as [number, number, number, number],
 };
 
 // ---------------------------------------------------------------------------
@@ -279,9 +316,9 @@ export const signalRowArrivalAnimate = {
 } as const;
 
 export const signalRowArrivalTransition = {
-  clipPath: { duration: 0.32, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
-  backgroundColor: { duration: 0.8, ease: 'easeOut' as const },
-  filter: { duration: 1.2, ease: 'easeOut' as const },
+  clipPath: { duration: DURATION.entrance / 1000 * 0.4, ease: EASING.spring as [number, number, number, number] }, // ~320ms entrance spring
+  backgroundColor: { duration: DURATION.slow / 1000 * 1.6, ease: 'easeOut' as const }, // ~800ms
+  filter: { duration: DURATION.flash / 1000, ease: 'easeOut' as const }, // 1200ms flash decay
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -296,7 +333,7 @@ export const scoreThresholdUpKeyframes: { color: string[]; scale: number[] } = {
 };
 
 export const scoreThresholdUpTransition = {
-  duration: 0.2,
+  duration: DURATION.normal / 1000, // 0.25s — threshold cross upgrade flash
   ease: 'easeOut' as const,
   times: [0, 0.15, 1],
 };
@@ -307,7 +344,7 @@ export const scoreThresholdDownKeyframes: { color: string[]; scale: number[] } =
 };
 
 export const scoreThresholdDownTransition = {
-  duration: 0.3,
+  duration: DURATION.normal / 1000 * 1.2, // 0.3s — slightly slower decline
   ease: 'easeOut' as const,
   times: [0, 0.1, 1],
 };
@@ -337,7 +374,7 @@ export const directionHaloKeyframes: { opacity: number[]; scale: number[] } = {
 };
 
 export const directionHaloTransition = {
-  duration: 0.4,
+  duration: DURATION.normal / 1000 * 1.6, // 0.4s — direction halo dissipation
   ease: 'easeOut' as const,
 };
 
@@ -351,7 +388,7 @@ export const directionCrossKeyframes: { opacity: number[]; scale: number[] } = {
 };
 
 export const directionCrossTransition = {
-  duration: 0.25,
+  duration: DURATION.normal / 1000, // 0.25s — cross-flash on polarity flip
   ease: 'easeOut' as const,
 };
 

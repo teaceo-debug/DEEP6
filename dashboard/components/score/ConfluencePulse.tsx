@@ -62,6 +62,8 @@ import {
   scoreThresholdDownKeyframes,
   scoreThresholdDownTransition,
   prefersReducedMotion,
+  DURATION,
+  EASING,
 } from '@/lib/animations';
 
 // ---------------------------------------------------------------------------
@@ -249,7 +251,7 @@ function Shockwave({ id, cx, cy, color, onDone }: ShockwaveProps) {
       strokeWidth={1.5}
       initial={{ r: 4, opacity: 0.8, strokeWidth: 1.5 }}
       animate={{ r: 18, opacity: 0, strokeWidth: 0 }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
+      transition={{ duration: DURATION.normal / 1000, ease: 'easeOut' }} // 250ms shockwave expand
       onAnimationComplete={() => onDone(id)}
       style={{ pointerEvents: 'none' }}
     />
@@ -725,7 +727,7 @@ export function ConfluencePulse() {
             stroke="none"
             initial={{ opacity: 0 }}
             animate={{ opacity: isTypeA ? 1 : 0 }}
-            transition={{ duration: 0.4, ease: 'easeInOut' }}
+            transition={{ duration: DURATION.normal / 1000 * 1.6, ease: 'easeInOut' }} // 400ms ambient glow fade
             style={{ pointerEvents: 'none' }}
           />
         )}
@@ -785,7 +787,7 @@ export function ConfluencePulse() {
             strokeLinecap="round"
             strokeOpacity={0.4}
             animate={{ rotate: 360 }}
-            transition={{ repeat: Infinity, duration: 4, ease: 'linear' }}
+            transition={{ repeat: Infinity, duration: DURATION.slow / 1000 * 8, ease: 'linear' }} // 4s scanner rotation
             style={{ transformOrigin: `${CENTER}px ${CENTER}px` }}
           />
         )}
@@ -845,7 +847,7 @@ export function ConfluencePulse() {
                   : isFired && !isFlashWhite
                     ? {
                         strokeOpacity: {
-                          duration: 2.5,
+                          duration: DURATION.slow / 1000 * 5, // 2500ms arc breathing loop
                           ease: 'easeInOut',
                           repeat: Infinity,
                           delay: igniteDelay + (breathingPhaseRef.current[arc.index] / 1000),
@@ -887,7 +889,7 @@ export function ConfluencePulse() {
                   strokeWidth={MIDDLE_STROKE_WIDTH}
                   strokeLinecap="butt"
                   animate={{ opacity }}
-                  transition={reduced ? { duration: 0 } : { duration: 0.4 }}
+                  transition={reduced ? { duration: 0 } : { duration: DURATION.normal / 1000 * 1.6 }} // 400ms sector opacity
                   style={{ opacity }}
                 />
                 <motion.path
@@ -897,7 +899,7 @@ export function ConfluencePulse() {
                   strokeWidth={MIDDLE_STROKE_WIDTH}
                   strokeLinecap="butt"
                   animate={{ opacity }}
-                  transition={reduced ? { duration: 0 } : { duration: 0.4 }}
+                  transition={reduced ? { duration: 0 } : { duration: DURATION.normal / 1000 * 1.6 }} // 400ms sector opacity
                   style={{ opacity }}
                 />
               </g>
@@ -918,7 +920,7 @@ export function ConfluencePulse() {
               initial={{ opacity: 0 }}
               animate={{ opacity: isTypeA ? 1 : 0 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.4, ease: 'easeOut' }}
+              transition={{ duration: DURATION.normal / 1000 * 1.6, ease: 'easeOut' }} // 400ms spokes group fade
               style={{ pointerEvents: 'none' }}
             >
               {SPOKE_PATHS.map((spoke, i) => (
@@ -941,7 +943,7 @@ export function ConfluencePulse() {
                   transition={
                     isTypeA
                       ? { ...spokeBreathTransition, delay: i * 0.05 }
-                      : { duration: 0.4, ease: 'easeOut' }
+                      : { duration: DURATION.normal / 1000 * 1.6, ease: 'easeOut' } // 400ms spoke fade-out
                   }
                 />
               ))}
@@ -963,7 +965,7 @@ export function ConfluencePulse() {
               ? typeAFlashTransition
               : levelUpActive && !reduced
                 ? levelUpTransition
-                : { duration: 0.3 }
+                : { duration: DURATION.normal / 1000 * 1.2 } // 300ms core filter settle
           }
           style={{ transformOrigin: `${CENTER}px ${CENTER}px` }}
         >
@@ -1012,7 +1014,7 @@ export function ConfluencePulse() {
                       ? scoreThresholdUpTransition
                       : thresholdFlash === 'down-80' || thresholdFlash === 'down-50'
                         ? scoreThresholdDownTransition
-                        : { duration: 0.2 }
+                        : { duration: DURATION.fast / 1000 } // 150ms score color settle
                   }
                   style={{
                     color: scoreNumberColor,
@@ -1037,7 +1039,7 @@ export function ConfluencePulse() {
                       originX: 0.5,
                     }}
                     animate={{ width: `${clampedUnderline}%` }}
-                    transition={reduced ? { duration: 0 } : { duration: 0.2, ease: 'easeOut' }}
+                    transition={reduced ? { duration: 0 } : { duration: DURATION.fast / 1000, ease: 'easeOut' }} // 150ms underline grow
                     initial={{ width: '0%' }}
                   />
                 )}

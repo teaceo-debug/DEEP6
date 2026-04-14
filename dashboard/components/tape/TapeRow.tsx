@@ -12,6 +12,7 @@
  */
 import { motion, useReducedMotion } from 'motion/react';
 import type { TapeEntry } from '@/types/deep6';
+import { DURATION } from '@/lib/animations';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -86,7 +87,10 @@ export function TapeRow({
       animate={{ backgroundColor: 'transparent', opacity: 1 }}
       transition={
         isNew && !reduced
-          ? { backgroundColor: { duration: pulseDuration, ease: 'easeOut' }, opacity: { duration: 0.1, ease: 'easeOut' } }
+          ? {
+              backgroundColor: { duration: pulseDuration, ease: 'easeOut' }, // large: 400ms / normal: 300ms (intentional per-size variation)
+              opacity: { duration: DURATION.fast / 1000, ease: 'easeOut' },   // 150ms opacity snap-in
+            }
           : { duration: 0 }
       }
       style={{

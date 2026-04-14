@@ -11,6 +11,7 @@
 'use client';
 import { motion, useReducedMotion } from 'motion/react';
 import { useReplayStore } from '@/store/replayStore';
+import { DURATION, SPRING } from '@/lib/animations';
 
 // ── Shared pill styles ────────────────────────────────────────────────────────
 
@@ -53,7 +54,7 @@ export function ReturnToLivePill() {
           transition={
             reduced
               ? { duration: 0 }
-              : { duration: 1.5, repeat: Infinity, ease: 'easeInOut' }
+              : { duration: DURATION.slow / 1000 * 3, repeat: Infinity, ease: 'easeInOut' } // 1500ms live pill breathe
           }
           style={{
             ...BASE_PILL,
@@ -111,7 +112,7 @@ export function ReturnToLivePill() {
           transition={
             reduced
               ? { duration: 0 }
-              : { type: 'spring', stiffness: 400, damping: 28 }
+              : { type: 'spring', stiffness: 400, damping: 28 } // intentionally above SPRING.pop — extra-snappy overlay appear
           }
           style={{
             position: 'fixed',
