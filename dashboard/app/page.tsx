@@ -59,7 +59,7 @@ export default function Home() {
       <ErrorBanner />
 
       {/* Main 3-column region */}
-      <div className="flex-1 flex min-h-0">
+      <div className="flex-1 flex min-h-0 overflow-hidden">
         {/* Footprint chart — flex 1, min 600px */}
         <FootprintChart />
 

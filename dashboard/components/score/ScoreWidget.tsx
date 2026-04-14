@@ -71,7 +71,7 @@ export function ScoreWidget() {
     'text-muted';
 
   return (
-    <div className="w-60 bg-bg-surface p-4 flex flex-col gap-3 border-l border-border-subtle overflow-y-auto">
+    <div className="w-60 shrink-0 bg-bg-surface p-4 flex flex-col gap-3 border-l border-border-subtle overflow-y-auto">
       {/* Label */}
       <p className="text-[13px] font-semibold text-muted tracking-wide uppercase">
         Confluence Score
