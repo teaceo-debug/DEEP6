@@ -8,5 +8,6 @@ with the IB multiplier on per-signal values.
 See phase 12-01 CONTEXT for locked design decisions.
 """
 from deep6.orderflow.vpin import VPINEngine, FlowRegime
+from deep6.orderflow.slingshot import SlingshotDetector, SlingshotResult
 
-__all__ = ["VPINEngine", "FlowRegime"]
+__all__ = ["VPINEngine", "FlowRegime", "SlingshotDetector", "SlingshotResult"]
