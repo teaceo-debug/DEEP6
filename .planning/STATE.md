@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 11-03-PLAN.md
-last_updated: "2026-04-14T02:41:37.645Z"
+stopped_at: Completed 11-04 Tasks 1+2; Task 3 awaits operator smoke-test gate
+last_updated: "2026-04-14T02:46:48.877Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 12
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 45
-  completed_plans: 40
-  percent: 89
+  completed_plans: 41
+  percent: 91
 ---
 
 # Project State
@@ -71,6 +71,7 @@ Progress: [░░░░░░░░░░] 2%
 | Phase 11 P02 | 25 | 2 tasks | 14 files |
 | Phase 11 P03 | 45m | 3 tasks | 23 files |
 | Phase 11 P03 | 40 | 3 tasks | 23 files |
+| Phase 11 P04 | 251 | 2 tasks | 13 files |
 
 ## Quick Tasks Completed
 
@@ -113,6 +114,8 @@ Recent decisions affecting current work:
 - [Phase 11]: ZoneOverlay uses priceScale getVisibleRange not getVisiblePriceRange (corrected from plan pseudocode)
 - [Phase 11]: Plan 11-03: LW Charts v5.1 FootprintSeries + FootprintRenderer + Zone overlay canvas + WS reconnect hook — view-only dashboard streams live
 - [Phase 11]: Plan 11-03: RingBuffer direction clarified (oldest→newest) and auto-fixed across HeaderStrip/ZoneOverlay/useFootprintData/FootprintChart
+- [Phase 11]: replayStore uses plain Zustand create(); FootprintChart uses manual prevPanned tracking for pan-reset subscription
+- [Phase 11]: useFeedStaleWatcher polls lastTs every 1s in live mode to drive feedStale flag in tradingStore
 
 ### Roadmap Evolution
 
@@ -130,6 +133,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-14T02:41:31.989Z
-Stopped at: Completed 11-03-PLAN.md
+Last session: 2026-04-14T02:46:48.874Z
+Stopped at: Completed 11-04 Tasks 1+2; Task 3 awaits operator smoke-test gate
 Resume file: None

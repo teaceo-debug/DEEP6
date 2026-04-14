@@ -226,7 +226,7 @@
 - [x] **APP-03**: Real-time WebSocket from FastAPI — signal events, bar updates, position state, P&L pushed within 200ms of bar close
 - [x] **APP-04**: Session replay — reconstruct any historical session bar-by-bar with all signals, zones, orders visible, step forward/back
 - [ ] **APP-05**: Mobile push notifications via service worker — TYPE_A alerts to phone within 5 seconds
-- [ ] **APP-06**: Portfolio dashboard — live P&L, daily/weekly/monthly performance, win rate by tier, drawdown, circuit breaker status
+- [x] **APP-06**: Portfolio dashboard — live P&L, daily/weekly/monthly performance, win rate by tier, drawdown, circuit breaker status
 - [ ] **APP-07**: Authentication + multi-device — operator monitors from laptop and phone simultaneously
 - [x] **APP-08**: Zero TradingView dependency — complete trading workflow (chart, signals, execution, replay) within DEEP6 web app
 
@@ -423,7 +423,7 @@ Updated during roadmap creation (2026-04-11).
 | APP-03 | Phase 11 | Complete |
 | APP-04 | Phase 11 | Complete |
 | APP-05 | Phase 11 | Pending |
-| APP-06 | Phase 11 | Pending |
+| APP-06 | Phase 11 | Complete |
 | APP-07 | Phase 11 | Pending |
 | APP-08 | Phase 11 | Complete |
 

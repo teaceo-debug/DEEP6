@@ -222,7 +222,7 @@ Plans:
 - [x] 11-01-PLAN.md — Backend extensions: bar_history EventStore table + WSManager + /ws/live multiplexed WebSocket + /api/replay endpoints (APP-03, APP-04 prerequisite)
 - [x] 11-02-PLAN.md — Next.js 15 + Tailwind + shadcn scaffold; UI-SPEC design tokens; shared TypeScript types mirroring LiveMessage union; Zustand store with ring buffers + dispatcher tests
 - [x] 11-03-PLAN.md — useWebSocket hook, LW Charts v5.1 footprint custom series + renderer, ZoneOverlay canvas, SignalFeed, TapeScroll, ScoreWidget (28px focal point), HeaderStrip
-- [ ] 11-04-PLAN.md — Replay mode (store + controller + controls), ReturnToLivePill, PnlStatus (APP-06 lite), ErrorBanner, operator smoke-test checkpoint
+- [x] 11-04-PLAN.md — Replay mode (store + controller + controls), ReturnToLivePill, PnlStatus (APP-06 lite), ErrorBanner, operator smoke-test checkpoint
 **UI hint**: yes
 
 ## Progress
@@ -243,7 +243,7 @@ Note: Phase 6 (Kronos + TVMCP) can begin after Phase 1 completes, running in par
 | 8. Auto-Execution + Risk Layer | 0/? | Not started | - |
 | 9. ML Backend | 0/? | Not started | - |
 | 10. Analytics Dashboard | 5/5 | Complete    | 2026-04-14 |
-| 11. DEEP6 Trading Web App | 3/4 | In Progress|  |
+| 11. DEEP6 Trading Web App | 4/4 | Complete   | 2026-04-14 |
 
 ### Phase 12: Integrate borrowed orderflow patterns: VPIN confidence modifier, Delta Slingshot, Delta At Extreme, setup state machine, per-regime walk-forward tracker
 
