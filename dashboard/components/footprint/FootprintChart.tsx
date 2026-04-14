@@ -9,11 +9,14 @@ import {
 } from 'lightweight-charts';
 import { useTradingStore } from '@/store/tradingStore';
 import { useReplayStore } from '@/store/replayStore';
+import { useChartModeStore } from '@/store/chartModeStore';
 import type { FootprintBar } from '@/types/deep6';
 import { FootprintSeries, footprintSeriesDefaults, type FootprintBarLW } from '@/lib/lw-charts/FootprintSeries';
 import { ZoneOverlay } from './ZoneOverlay';
 import { VolumeProfile } from './VolumeProfile';
+import { ChartModeSelector } from './ChartModeSelector';
 import { ReturnToLivePill } from '@/components/replay/ReturnToLivePill';
+import { ChartLegend } from './ChartLegend';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -52,6 +55,17 @@ export function FootprintChart() {
   const hostRef   = useRef<HTMLDivElement | null>(null);
   const chartRef  = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<'Custom'> | null>(null);
+
+  // Subscribe to chart mode — drives renderer branching (numbers / wings / heatmap).
+  // We use the store's getState() pattern inside the canvas renderer (singleton-safe).
+  const mode = useChartModeStore((s) => s.mode);
+
+  // Push mode into the custom series options on every mode change.
+  useEffect(() => {
+    if (seriesRef.current) {
+      seriesRef.current.applyOptions({ mode } as Parameters<typeof seriesRef.current.applyOptions>[0]);
+    }
+  }, [mode]);
 
   useEffect(() => {
     if (!hostRef.current) return;
@@ -159,9 +173,11 @@ export function FootprintChart() {
   return (
     <div className="relative flex-1 min-w-0 overflow-hidden bg-bg-base border-r border-border-subtle">
       <div ref={hostRef} className="absolute inset-0" />
+      <ChartModeSelector />
       <VolumeProfile chartRef={chartRef} />
       <ZoneOverlay chartRef={chartRef} />
       <ReturnToLivePill />
+      <ChartLegend />
     </div>
   );
 }
