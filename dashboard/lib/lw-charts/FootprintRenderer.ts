@@ -46,8 +46,9 @@ const MIN_ROW_H_CSS = 14;
 // POC line height (bitmap px) — taller than 1px for presence
 const POC_LINE_H = 1.5;
 
-// Wing max reach: 45% of halfBarW at full volume (Bookmap-style proportional wings)
-const WING_MAX_RATIO = 0.45;
+// Wing max reach: 47% of halfBarW at full volume (Bookmap-style proportional wings)
+// 0.47 → combined wings reach 94% of full column width at max volume
+const WING_MAX_RATIO = 0.47;
 
 // Signal marker dimensions (CSS px)
 const MARKER_ABOVE_CSS = 8;
@@ -60,6 +61,11 @@ const DELTA_TEXT_SIZE_CSS  = 10;
 
 // CVD dot radius (CSS px)
 const CVD_DOT_R_CSS = 1.5;
+
+// Bar header: timestamp + volume bar constants
+const HEADER_FONT_SIZE_CSS   = 9;    // tiny HH:MM label (px)
+const HEADER_VOL_BAR_H_CSS   = 3;    // height of bid/ask split bar (px)
+const HEADER_MIN_SPACING_CSS = 80;   // min barSpacing (CSS px) to show header
 
 // DoS guards
 const MAX_DISPLAY_VOL = 99999;
@@ -154,6 +160,20 @@ export class FootprintRenderer implements ICustomSeriesPaneRenderer {
         if (!bar?.originalData) continue;
         const absDelta = Math.abs(bar.originalData.bar_delta ?? 0);
         if (absDelta > maxAbsDelta) maxAbsDelta = absDelta;
+      }
+
+      // ── Compute max total_vol across visible bars for header volume bar ──
+      let maxTotalVolBar = 1;
+      for (let ii = range.from; ii <= to; ii++) {
+        const bbar = data.bars[ii];
+        if (!bbar?.originalData?.levels) continue;
+        let ttVol = 0;
+        for (const kk of Object.keys(bbar.originalData.levels)) {
+          const llv = bbar.originalData.levels[kk];
+          if (!llv) continue;
+          ttVol += clampVol(llv.bid_vol) + clampVol(llv.ask_vol);
+        }
+        if (ttVol > maxTotalVolBar) maxTotalVolBar = ttVol;
       }
 
       // ── Collect CVD dot positions for trend line rendering ────────────────
@@ -258,9 +278,26 @@ export class FootprintRenderer implements ICustomSeriesPaneRenderer {
         ctx.rect(colLeft, 0, halfBarW * 2, canvasH);
         ctx.clip();
 
+        // top-3 volume threshold for heavy-zone tint (heavy = not POC but in top 3 by total vol)
+        const rowVolumes: number[] = rows.map(r => r.bidVol + r.askVol);
+        const sortedVols = rowVolumes.slice().sort((a, b) => b - a);
+        const top3Threshold = sortedVols.length >= 3 ? sortedVols[2] : (sortedVols[0] ?? 0);
+
+        // bar total bid/ask for header volume bar
+        let barTotalBidVol = 0;
+        let barTotalAskVol = 0;
+        for (const key of levelKeys) {
+          const lv = d.levels[key];
+          if (!lv) continue;
+          barTotalBidVol += clampVol(lv.bid_vol);
+          barTotalAskVol += clampVol(lv.ask_vol);
+        }
+
         for (const row of rows) {
           const isPoc = pocPrice !== null && Math.abs(row.price - pocPrice) < 0.01;
-          _drawRow(ctx, row, xC, halfBarW, maxVol, rowH, fontSize, hpr, vpr, isPoc);
+          const rowTotal = row.bidVol + row.askVol;
+          const isHeavyVol = !isPoc && top3Threshold > 0 && rowTotal >= top3Threshold;
+          _drawRow(ctx, row, xC, halfBarW, maxVol, rowH, fontSize, hpr, vpr, isPoc, isHeavyVol);
         }
 
         ctx.restore();   // clip ends
@@ -354,6 +391,28 @@ export class FootprintRenderer implements ICustomSeriesPaneRenderer {
             }
           }
         }
+
+        // ── BAR HEADER: tiny timestamp + bid/ask volume bar ─────────────────
+        // Only rendered when barSpacing > HEADER_MIN_SPACING_CSS (avoid overlap at narrow zoom)
+        if (data.barSpacing > HEADER_MIN_SPACING_CSS) {
+          // Find topmost row y
+          let topRowY = canvasH;
+          for (const row of rows) {
+            const rowTop = row.yBitmap - Math.floor(rowH / 2);
+            if (rowTop < topRowY) topRowY = rowTop;
+          }
+          // Skip first bar if column would overlap left edge
+          const isFirstBar = (i === range.from);
+          const wouldClipLeft = colLeft < Math.round(30 * hpr);
+          if (!(isFirstBar && wouldClipLeft)) {
+            const barTotalVol = barTotalBidVol + barTotalAskVol;
+            _drawBarHeader(
+              ctx, xC, halfBarW, topRowY,
+              barTotalBidVol, barTotalAskVol, barTotalVol, maxTotalVolBar,
+              d.time, hpr, vpr,
+            );
+          }
+        }
       }
 
       // ── 12. CVD trend line — connecting consecutive CVD dots ─────────────
@@ -395,19 +454,20 @@ function _drawColumnPresence(
 }
 
 // ── Per-row draw helper ───────────────────────────────────────────────────────
-// v4: volume-proportional wings + tiny-dot at ratio<0.05 + high-vol inner edge highlight
+// v5: gradient-taper wings + row dividers + heavy-volume amber tint
 
 function _drawRow(
-  ctx:       CanvasRenderingContext2D,
-  row:       RowInfo,
-  xC:        number,
-  halfBarW:  number,
-  maxVol:    number,
-  rowH:      number,
-  fontSize:  number,
-  hpr:       number,
-  vpr:       number,
-  isPoc:     boolean,
+  ctx:        CanvasRenderingContext2D,
+  row:        RowInfo,
+  xC:         number,
+  halfBarW:   number,
+  maxVol:     number,
+  rowH:       number,
+  fontSize:   number,
+  hpr:        number,
+  vpr:        number,
+  isPoc:      boolean,
+  isHeavyVol: boolean,
 ): void {
   const { yBitmap, bidVol, askVol, isImbalanceBid, isImbalanceAsk } = row;
 
@@ -458,6 +518,25 @@ function _drawRow(
     ctx.restore();
   }
 
+  // ── Heavy-volume amber tint (top 3 rows, not POC) ─────────────────────────
+  // 8% amber background tint to create visible "heavy zones" per bar without clutter
+  if (isHeavyVol && !isPoc) {
+    ctx.save();
+    ctx.fillStyle   = C_AMBER;
+    ctx.globalAlpha = 0.08;
+    ctx.fillRect(xC - halfBarW, cellTop, halfBarW * 2, cellH);
+    ctx.restore();
+  }
+
+  // ── Row divider line (1px --rule at 40% opacity between rows) ────────────
+  {
+    ctx.save();
+    ctx.fillStyle   = C_RULE;
+    ctx.globalAlpha = 0.40;
+    ctx.fillRect(xC - halfBarW, cellTop + cellH, halfBarW * 2, Math.max(1, Math.round(vpr)));
+    ctx.restore();
+  }
+
   // ── Bid wing (left of centerline, extending left) ─────────────────────────
   if (bidWingW > 0 && bidAlpha > 0) {
     // Tiny-dot rendering for very low volume (ratio < 0.05)
@@ -470,10 +549,13 @@ function _drawRow(
       ctx.fillRect(dotX, dotY, 2, 2);
       ctx.globalAlpha = 1;
     } else {
-      ctx.globalAlpha = bidAlpha;
-      ctx.fillStyle   = C_BID;
-      ctx.fillRect(xC - bidWingW, cellTop, bidWingW, cellH);
+      // Gradient taper: full saturation at centerline, 30% at outer edge ("bleeding tape")
+      const bidGrad = ctx.createLinearGradient(xC, cellTop, xC - bidWingW, cellTop);
+      bidGrad.addColorStop(0, `rgba(255, 46, 99, ${bidAlpha})`);       // full C_BID
+      bidGrad.addColorStop(1, `rgba(255, 46, 99, ${bidAlpha * 0.30})`); // 30% fade
+      ctx.fillStyle   = bidGrad;
       ctx.globalAlpha = 1;
+      ctx.fillRect(xC - bidWingW, cellTop, bidWingW, cellH);
 
       // High-vol inner edge highlight (ratio > 0.8): 1px lighter line on inner edge
       if (bidRatio > 0.8 && !isImbalanceBid) {
@@ -513,10 +595,13 @@ function _drawRow(
       ctx.fillRect(dotX, dotY, 2, 2);
       ctx.globalAlpha = 1;
     } else {
-      ctx.globalAlpha = askAlpha;
-      ctx.fillStyle   = C_ASK;
-      ctx.fillRect(xC, cellTop, askWingW, cellH);
+      // Gradient taper: full saturation at centerline, 30% at outer edge
+      const askGrad = ctx.createLinearGradient(xC, cellTop, xC + askWingW, cellTop);
+      askGrad.addColorStop(0, `rgba(0, 255, 136, ${askAlpha})`);       // full C_ASK
+      askGrad.addColorStop(1, `rgba(0, 255, 136, ${askAlpha * 0.30})`); // 30% fade
+      ctx.fillStyle   = askGrad;
       ctx.globalAlpha = 1;
+      ctx.fillRect(xC, cellTop, askWingW, cellH);
 
       // High-vol inner edge highlight (ratio > 0.8): 1px lighter line on inner edge
       if (askRatio > 0.8 && !isImbalanceAsk) {
@@ -678,21 +763,42 @@ function _scanAndDrawRun(
     }
     ctx.restore();
 
-    // Dot markers at each imbalanced row edge
-    const dotSize = Math.max(3, Math.round(3 * (vpr > 1 ? vpr : 1)));
+    // Triangle markers at each imbalanced row edge
+    // Filled 3x4px triangles pointing in the imbalance direction.
+    // Consecutive same-direction triangles form a visible "arrow column".
     ctx.save();
     ctx.fillStyle   = C_LIME;
     ctx.globalAlpha = 0.9;
     ctx.shadowColor = C_LIME;
     ctx.shadowBlur  = Math.round(4 * vpr);
 
+    const triW = Math.max(3, Math.round(3 * (vpr > 1 ? vpr : 1)));   // 3px wide
+    const triH = Math.max(4, Math.round(4 * (vpr > 1 ? vpr : 1)));   // 4px tall
+
     for (let ri = runStart; ri < endIdx; ri++) {
       const r = rows[ri];
-      const dotY = r.yBitmap - Math.floor(dotSize / 2);
+      const triCY = r.yBitmap;
+
       if (side === 'bid') {
-        ctx.fillRect(xC - halfBarW - Math.floor(dotSize / 2), dotY, dotSize, dotSize);
+        // Triangle pointing LEFT (bid imbalance) — tip at left edge, base on right
+        const tipX  = xC - halfBarW - Math.round(lineW * 1.5);
+        const baseX = tipX + triW;
+        ctx.beginPath();
+        ctx.moveTo(tipX, triCY);
+        ctx.lineTo(baseX, triCY - Math.floor(triH / 2));
+        ctx.lineTo(baseX, triCY + Math.ceil(triH / 2));
+        ctx.closePath();
+        ctx.fill();
       } else {
-        ctx.fillRect(xC + halfBarW - Math.floor(dotSize / 2), dotY, dotSize, dotSize);
+        // Triangle pointing RIGHT (ask imbalance) — tip at right edge, base on left
+        const tipX  = xC + halfBarW + Math.round(lineW * 1.5);
+        const baseX = tipX - triW;
+        ctx.beginPath();
+        ctx.moveTo(tipX, triCY);
+        ctx.lineTo(baseX, triCY - Math.floor(triH / 2));
+        ctx.lineTo(baseX, triCY + Math.ceil(triH / 2));
+        ctx.closePath();
+        ctx.fill();
       }
     }
     ctx.restore();
@@ -740,6 +846,27 @@ function _drawDeltaFooter(
   const barX      = xC - Math.floor(barW / 2);
 
   const color     = barDelta > 0 ? C_ASK : barDelta < 0 ? C_BID : C_GREY;
+
+  // ── Vertical connector line from delta bar up into the bar column ─────────
+  // Anchored at right edge for positive delta, left edge for negative.
+  // 30% opacity, 1px wide — visually tethers footer to column.
+  if (barDelta !== 0) {
+    const connX = barDelta > 0
+      ? xC + Math.floor(barW / 2)   // right anchor for positive
+      : xC - Math.floor(barW / 2);  // left anchor for negative
+    const connTopY = bottomRowY - gapH;  // reaches up into bar column
+    const connBotY = barY + footerH;
+
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth   = Math.max(1, Math.round(hpr));
+    ctx.globalAlpha = 0.30;
+    ctx.beginPath();
+    ctx.moveTo(connX, connTopY);
+    ctx.lineTo(connX, connBotY);
+    ctx.stroke();
+    ctx.restore();
+  }
 
   // Colored width bar
   ctx.fillStyle   = color;
@@ -810,6 +937,78 @@ function _drawDeltaBaseline(
   ctx.globalAlpha = 0.5;
   ctx.fillRect(0, baselineY, 99999, Math.max(1, Math.round(hpr)));
   ctx.restore();
+}
+
+// ── Bar header — tiny timestamp + bid/ask volume bar ─────────────────────────
+// Rendered above each bar when barSpacing > HEADER_MIN_SPACING_CSS.
+// - HH:MM label in JetBrains Mono 9px, --text-mute at 70% opacity
+// - 3px horizontal bar: bid/ask split gradient, width proportional to total vol vs max
+
+function _drawBarHeader(
+  ctx:         CanvasRenderingContext2D,
+  xC:          number,
+  halfBarW:    number,
+  topRowY:     number,
+  bidVol:      number,
+  askVol:      number,
+  totalVol:    number,
+  maxTotalVol: number,
+  barTime:     Time,
+  hpr:         number,
+  vpr:         number,
+): void {
+  const volBarH  = Math.max(2, Math.round(HEADER_VOL_BAR_H_CSS * vpr));
+  const fontSzPx = Math.max(5, Math.round(HEADER_FONT_SIZE_CSS * vpr));
+  const labelGap = Math.round(2 * vpr);
+
+  // Volume bar: proportional width to this bar's total vs max across visible bars
+  const volRatio = maxTotalVol > 0 ? Math.min(1, totalVol / maxTotalVol) : 0;
+  const volBarW  = Math.max(2, Math.round(halfBarW * 2 * volRatio));
+  const volBarX  = xC - Math.floor(volBarW / 2);
+  const volBarY  = topRowY - volBarH - Math.round(1 * vpr);
+
+  // Bid/ask split gradient: left=bid color, right=ask color
+  if (volBarW > 0 && (bidVol > 0 || askVol > 0)) {
+    const totalForSplit = bidVol + askVol;
+    const bidFrac = totalForSplit > 0 ? bidVol / totalForSplit : 0.5;
+
+    ctx.save();
+    const volGrad = ctx.createLinearGradient(volBarX, volBarY, volBarX + volBarW, volBarY);
+    volGrad.addColorStop(0,       'rgba(255, 46,  99,  0.85)');  // C_BID
+    volGrad.addColorStop(bidFrac, 'rgba(255, 46,  99,  0.85)');  // split
+    volGrad.addColorStop(bidFrac, 'rgba(0,   255, 136, 0.85)');  // ask start
+    volGrad.addColorStop(1,       'rgba(0,   255, 136, 0.85)');  // C_ASK
+    ctx.fillStyle   = volGrad;
+    ctx.globalAlpha = 1;
+    ctx.fillRect(volBarX, volBarY, volBarW, volBarH);
+    ctx.restore();
+  }
+
+  // Timestamp label: "HH:MM"
+  const labelY = volBarY - labelGap - fontSzPx;
+  let timeStr = '';
+  if (typeof barTime === 'number') {
+    const dt = new Date(barTime * 1000);
+    const hh = String(dt.getUTCHours()).padStart(2, '0');
+    const mm = String(dt.getUTCMinutes()).padStart(2, '0');
+    timeStr = `${hh}:${mm}`;
+  } else if (typeof barTime === 'string') {
+    // ISO string — extract HH:MM
+    timeStr = (barTime as string).length >= 16 ? (barTime as string).slice(11, 16) : (barTime as string);
+  }
+
+  if (timeStr) {
+    ctx.save();
+    ctx.font         = `400 ${fontSzPx}px ${FONT_FAMILY}`;
+    ctx.fillStyle    = C_TEXT_MUTE;
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'top';
+    ctx.globalAlpha  = 0.7;
+    ctx.fillText(timeStr, xC, labelY);
+    ctx.restore();
+  }
+
+  void hpr;
 }
 
 // ── CVD dot ───────────────────────────────────────────────────────────────────
