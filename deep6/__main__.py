@@ -141,8 +141,14 @@ async def main(config: Config) -> None:
         from deep6.data.factory import create_feed
 
         feed = create_feed("databento", config)
+        async def _feed_wrapper():
+            try:
+                await feed.start(state)
+            except Exception:
+                log.exception("databento_feed.crashed")
+                raise
         tasks.append(
-            asyncio.create_task(feed.start(state), name="databento_live_feed")
+            asyncio.create_task(_feed_wrapper(), name="databento_live_feed")
         )
         log.info(
             "deep6.databento_subscribed",
