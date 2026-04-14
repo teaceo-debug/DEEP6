@@ -22,6 +22,37 @@ import aiosqlite
 
 from deep6.api.schemas import SignalEventIn, TradeEventIn
 
+# Phase 11-01: bar_history — one row per closed FootprintBar per session.
+# UNIQUE(session_id, bar_index) makes insert idempotent (INSERT OR REPLACE).
+# levels_json: {"tick_int_str": {"bid_vol": N, "ask_vol": N}, ...}
+# Tick keys are strings so JSON round-trip is lossless; client converts
+# back to price via tick_int * 0.25 (D-11).
+BAR_HISTORY_SCHEMA = """
+CREATE TABLE IF NOT EXISTS bar_history (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id    TEXT NOT NULL,
+    bar_index     INTEGER NOT NULL,
+    ts            REAL NOT NULL,
+    open          REAL NOT NULL,
+    high          REAL NOT NULL,
+    low           REAL NOT NULL,
+    close         REAL NOT NULL,
+    total_vol     INTEGER NOT NULL,
+    bar_delta     INTEGER NOT NULL,
+    cvd           INTEGER NOT NULL,
+    poc_price     REAL NOT NULL,
+    bar_range     REAL NOT NULL,
+    running_delta INTEGER NOT NULL DEFAULT 0,
+    max_delta     INTEGER NOT NULL DEFAULT 0,
+    min_delta     INTEGER NOT NULL DEFAULT 0,
+    levels_json   TEXT NOT NULL,
+    inserted_at   REAL NOT NULL,
+    UNIQUE(session_id, bar_index)
+);
+CREATE INDEX IF NOT EXISTS idx_bar_history_session
+    ON bar_history(session_id, bar_index);
+"""
+
 SIGNAL_EVENTS_SCHEMA = """
 CREATE TABLE IF NOT EXISTS signal_events (
     id               INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -120,7 +151,7 @@ class EventStore:
         self._mem_conn: Optional[aiosqlite.Connection] = None
 
     async def initialize(self) -> None:
-        """Create signal_events and trade_events tables if they don't exist.
+        """Create all tables if they don't exist.
 
         For in-memory DBs: opens and holds the persistent connection.
         For file DBs: opens a connection, creates tables, closes.
@@ -132,6 +163,9 @@ class EventStore:
             await self._mem_conn.execute(TRADE_EVENTS_SCHEMA)
             await self._mem_conn.execute(SETUP_TRANSITIONS_SCHEMA)
             await self._mem_conn.execute(WALK_FORWARD_OUTCOMES_SCHEMA)
+            # BAR_HISTORY_SCHEMA has two statements (CREATE TABLE + CREATE INDEX);
+            # executescript() handles the semicolon-separated pair.
+            await self._mem_conn.executescript(BAR_HISTORY_SCHEMA)
             await self._mem_conn.commit()
         else:
             async with aiosqlite.connect(self.db_path) as db:
@@ -139,6 +173,7 @@ class EventStore:
                 await db.execute(TRADE_EVENTS_SCHEMA)
                 await db.execute(SETUP_TRANSITIONS_SCHEMA)
                 await db.execute(WALK_FORWARD_OUTCOMES_SCHEMA)
+                await db.executescript(BAR_HISTORY_SCHEMA)
                 await db.commit()
 
     def _conn(self):
@@ -423,6 +458,144 @@ class EventStore:
             async with db.execute(sql, tuple(params)) as cursor:
                 rows = await cursor.fetchall()
                 return [dict(row) for row in rows]
+
+    # ------------------------------------------------------------------
+    # Phase 11-01: bar_history CRUD
+    # ------------------------------------------------------------------
+
+    async def insert_bar(
+        self,
+        session_id: str,
+        bar_index: int,
+        bar: "FootprintBar",  # noqa: F821 — lazy import below
+    ) -> int:
+        """Persist a closed FootprintBar row.
+
+        Uses INSERT OR REPLACE so re-ingestion is idempotent
+        (per UNIQUE(session_id, bar_index) constraint).
+
+        Returns the autoincrement id of the inserted/replaced row.
+        """
+        # Lazy import to avoid circular import (footprint → store → schemas → …)
+        from deep6.state.footprint import FootprintBar as _FP  # noqa: F401
+
+        levels_serializable = {
+            str(tick_int): {"bid_vol": lvl.bid_vol, "ask_vol": lvl.ask_vol}
+            for tick_int, lvl in bar.levels.items()
+        }
+        now = time.time()
+        async with self._conn() as db:
+            cursor = await db.execute(
+                """
+                INSERT OR REPLACE INTO bar_history
+                    (session_id, bar_index, ts, open, high, low, close,
+                     total_vol, bar_delta, cvd, poc_price, bar_range,
+                     running_delta, max_delta, min_delta,
+                     levels_json, inserted_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    session_id,
+                    bar_index,
+                    bar.timestamp,
+                    bar.open,
+                    bar.high,
+                    bar.low,
+                    bar.close,
+                    bar.total_vol,
+                    bar.bar_delta,
+                    bar.cvd,
+                    bar.poc_price,
+                    bar.bar_range,
+                    bar.running_delta,
+                    bar.max_delta,
+                    bar.min_delta,
+                    json.dumps(levels_serializable),
+                    now,
+                ),
+            )
+            await db.commit()
+            return cursor.lastrowid  # type: ignore[return-value]
+
+    async def fetch_bars_for_session(
+        self,
+        session_id: str,
+        start_index: int | None = None,
+        end_index: int | None = None,
+        limit: int = 10000,
+    ) -> list[dict]:
+        """Fetch bar_history rows for a session, ordered by bar_index ASC.
+
+        Args:
+            session_id: Session label (e.g. "2026-04-13").
+            start_index: If provided, only rows with bar_index >= start_index.
+            end_index:   If provided, only rows with bar_index <= end_index.
+            limit:       Maximum rows returned (caps unbounded scans).
+
+        Returns:
+            List of dicts; each has a ``levels`` key with parsed dict
+            (tick_int_str → {bid_vol, ask_vol}).
+        """
+        clauses = ["session_id = ?"]
+        params: list = [session_id]
+        if start_index is not None:
+            clauses.append("bar_index >= ?")
+            params.append(start_index)
+        if end_index is not None:
+            clauses.append("bar_index <= ?")
+            params.append(end_index)
+        params.append(limit)
+        sql = (
+            f"SELECT * FROM bar_history WHERE {' AND '.join(clauses)} "
+            f"ORDER BY bar_index ASC LIMIT ?"
+        )
+        async with self._conn() as db:
+            db.row_factory = aiosqlite.Row
+            async with db.execute(sql, tuple(params)) as cursor:
+                rows = await cursor.fetchall()
+        result = []
+        for row in rows:
+            d = dict(row)
+            d["levels"] = json.loads(d.pop("levels_json"))
+            result.append(d)
+        return result
+
+    async def fetch_bar(self, session_id: str, bar_index: int) -> dict | None:
+        """Return exactly one bar dict, or None if not found."""
+        sql = (
+            "SELECT * FROM bar_history "
+            "WHERE session_id = ? AND bar_index = ? LIMIT 1"
+        )
+        async with self._conn() as db:
+            db.row_factory = aiosqlite.Row
+            async with db.execute(sql, (session_id, bar_index)) as cursor:
+                row = await cursor.fetchone()
+        if row is None:
+            return None
+        d = dict(row)
+        d["levels"] = json.loads(d.pop("levels_json"))
+        return d
+
+    async def list_sessions(self) -> list[dict]:
+        """Return per-session aggregate stats ordered by last_ts DESC.
+
+        Returns:
+            List of dicts with keys: session_id, bar_count, first_ts, last_ts.
+        """
+        sql = (
+            "SELECT session_id, "
+            "COUNT(*) AS bar_count, "
+            "MIN(ts) AS first_ts, "
+            "MAX(ts) AS last_ts "
+            "FROM bar_history "
+            "GROUP BY session_id "
+            "ORDER BY last_ts DESC"
+        )
+        async with self._conn() as db:
+            db.row_factory = aiosqlite.Row
+            async with db.execute(sql) as cursor:
+                rows = await cursor.fetchall()
+        return [dict(row) for row in rows]
 
     async def count_oos_trades_per_signal(self) -> dict[str, int]:
         """Return count of closed trades grouped by signal_tier.

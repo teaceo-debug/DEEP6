@@ -3,10 +3,22 @@
 SignalEventIn  — matches ScorerResult shape from deep6.scoring.scorer
 TradeEventIn   — matches PositionEvent.to_dict() shape from deep6.execution.position_manager
 WeightFileOut  — weight file JSON returned by GET /weights/current
+
+Phase 11-01 additions:
+BarLevelOut        — bid/ask volume at one tick level
+BarEventIn         — full FootprintBar wire shape (ingest + WS push)
+ReplayBarOut       — same shape, returned by replay endpoints
+LiveBarMessage     — WS multiplexed bar message (type="bar")
+LiveSignalMessage  — WS multiplexed signal message (type="signal")
+LiveScoreMessage   — WS multiplexed confluence score message (type="score")
+LiveStatusMessage  — WS multiplexed connection/status message (type="status")
+LiveMessage        — discriminated Union of the four live message types
 """
 from __future__ import annotations
 
-from pydantic import BaseModel
+from typing import Literal, Union
+
+from pydantic import BaseModel, Field
 
 
 class SignalEventIn(BaseModel):
@@ -53,3 +65,97 @@ class WeightFileOut(BaseModel):
     n_samples: int
     wfe: float | None
     metadata: dict = {}
+
+
+# ---------------------------------------------------------------------------
+# Phase 11-01: Bar + Live WebSocket message models
+# ---------------------------------------------------------------------------
+
+class BarLevelOut(BaseModel):
+    """Bid and ask volume at a single price level (one tick width)."""
+    bid_vol: int
+    ask_vol: int
+
+
+class BarEventIn(BaseModel):
+    """Wire shape for a closed FootprintBar.
+
+    Used both for HTTP ingest (POST /events/bar) and WebSocket push
+    (LiveBarMessage.bar). Tick keys in ``levels`` are strings so the JSON
+    round-trip is lossless; clients convert tick → price via tick_int * 0.25
+    (D-11: backend pushes complete FootprintBar objects on bar close).
+    """
+    session_id: str
+    bar_index: int
+    ts: float
+    open: float
+    high: float
+    low: float
+    close: float
+    total_vol: int
+    bar_delta: int
+    cvd: int
+    poc_price: float
+    bar_range: float
+    running_delta: int = 0
+    max_delta: int = 0
+    min_delta: int = 0
+    levels: dict[str, BarLevelOut] = Field(default_factory=dict)  # key = str(tick_int)
+
+
+class ReplayBarOut(BarEventIn):
+    """Same shape as BarEventIn — returned by the replay endpoints.
+
+    Separate class so the API router can annotate response types distinctly
+    while sharing the validation logic.
+    """
+    pass
+
+
+# --- Live WebSocket discriminated union (D-10: single multiplexed WS) ------
+
+class LiveBarMessage(BaseModel):
+    """Backend → client: a closed FootprintBar on bar close."""
+    type: Literal["bar"] = "bar"
+    session_id: str
+    bar_index: int
+    bar: BarEventIn
+
+
+class LiveSignalMessage(BaseModel):
+    """Backend → client: a signal event from the confluence scorer."""
+    type: Literal["signal"] = "signal"
+    event: SignalEventIn
+    narrative: str = ""    # human label e.g. "ABSORBED @VAH"
+
+
+class LiveScoreMessage(BaseModel):
+    """Backend → client: confluence score update after each bar close."""
+    type: Literal["score"] = "score"
+    total_score: float
+    tier: str
+    direction: int
+    categories_firing: list[str]
+    category_scores: dict[str, float] = Field(default_factory=dict)  # 8 buckets
+    kronos_bias: float = 0.0          # E10 score 0-100
+    kronos_direction: str = "NEUTRAL"  # "LONG" | "SHORT" | "NEUTRAL"
+    gex_regime: str = "NEUTRAL"
+
+
+class LiveStatusMessage(BaseModel):
+    """Backend → client: connection / P&L / circuit-breaker state.
+
+    Sent immediately on WS connect and whenever connection state changes.
+    Per D-05: minimal status widget — live P&L total + circuit breaker state.
+    """
+    type: Literal["status"] = "status"
+    connected: bool
+    pnl: float = 0.0
+    circuit_breaker_active: bool = False
+    feed_stale: bool = False   # True when no update in > 10 s
+    ts: float
+
+
+#: Discriminated union of all live message types.
+#: Client dispatches on the ``type`` field.
+LiveMessage = Union[LiveBarMessage, LiveSignalMessage, LiveScoreMessage, LiveStatusMessage]
