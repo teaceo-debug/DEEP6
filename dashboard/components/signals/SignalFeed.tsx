@@ -13,8 +13,7 @@ export function SignalFeed() {
   // Read the actual signal array non-reactively via getState to avoid extra render
   const signals: SignalEvent[] = useTradingStore.getState().signals.toArray();
 
-  // Track which signal is "just arrived" for the 1s TYPE_A pulse.
-  // prevVersionRef lets us detect the frame when version increments by 1.
+  // Track which signal is "just arrived" for TYPE_A animation.
   const prevVersionRef = useRef(lastSignalVersion);
   const justArrivedRef = useRef(false);
 
@@ -26,12 +25,24 @@ export function SignalFeed() {
   }
 
   // RingBuffer.toArray() returns oldest→newest; reverse for newest-first display.
-  const displaySignals = [...signals].reverse();
+  // Cap at 12 visible rows per UI-SPEC §4.3 (threat T-11.2-09 cap).
+  const displaySignals = [...signals].reverse().slice(0, 12);
 
   if (displaySignals.length === 0) {
     return (
-      <div className="flex-1 flex items-start p-4">
-        <p className="text-[13px] text-muted">No signals yet. Waiting for market data.</p>
+      <div
+        className="flex-1 flex flex-col items-center justify-center gap-1"
+        style={{ padding: '16px' }}
+      >
+        <p className="text-sm" style={{ color: 'var(--text-mute)' }}>
+          [ NO SIGNALS ]
+        </p>
+        <p
+          className="text-xs"
+          style={{ color: 'var(--text-mute)', fontStyle: 'italic' }}
+        >
+          tail -f /dev/orderflow
+        </p>
       </div>
     );
   }

@@ -150,6 +150,34 @@ export const SIGNAL_BIT_CATEGORIES: ReadonlyArray<CategoryKey> = Object.freeze([
   'volume', 'volume',
 ]) as ReadonlyArray<CategoryKey>;
 
+// ---------------------------------------------------------------------------
+// signalRowArrival — clip-path + bg-flash + glow for TYPE_A signal row
+// UI-SPEC §4.3 / §5: 320ms reveal, 800ms flash, 1200ms glow
+// ---------------------------------------------------------------------------
+
+/** Initial state for a newly-arrived TYPE_A row (pre-animation). */
+export const signalRowArrivalInitial = {
+  clipPath: 'inset(0 100% 0 0)',
+  backgroundColor: 'rgba(163,255,0,0)',
+  filter: 'drop-shadow(0 0 0px rgba(163,255,0,0))',
+} as const;
+
+/** animate prop — drives all three phases. */
+export const signalRowArrivalAnimate = {
+  clipPath: 'inset(0 0% 0 0)',
+  backgroundColor: ['rgba(163,255,0,0.2)', 'rgba(163,255,0,0)'],
+  filter: [
+    'drop-shadow(0 0 8px rgba(163,255,0,0.5))',
+    'drop-shadow(0 0 0px rgba(163,255,0,0))',
+  ],
+} as const;
+
+export const signalRowArrivalTransition = {
+  clipPath: { duration: 0.32, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
+  backgroundColor: { duration: 0.8, ease: 'easeOut' as const },
+  filter: { duration: 1.2, ease: 'easeOut' as const },
+} as const;
+
 // Verify at module load (development guard)
 if (process.env.NODE_ENV !== 'production') {
   if (SIGNAL_BIT_CATEGORIES.length !== 44) {
