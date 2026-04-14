@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 11 plans approved (4 plans, 4 waves)
-last_updated: "2026-04-14T01:04:27.426Z"
+stopped_at: Completed 12-04-PLAN.md (SetupTracker dual-TF + EventStore)
+last_updated: "2026-04-14T01:13:36.136Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 12
   completed_phases: 7
   total_plans: 45
-  completed_plans: 35
-  percent: 78
+  completed_plans: 36
+  percent: 80
 ---
 
 # Project State
@@ -65,6 +65,7 @@ Progress: [░░░░░░░░░░] 2%
 | Phase 12 P01 | 12 | 3 tasks | 8 files |
 | Phase 12 P02 | 12 | 2 tasks | 4 files |
 | Phase 12 P03 | 18 | 3 tasks | 7 files |
+| Phase 12 P04 | 45 | 3 tasks | 7 files |
 
 ## Quick Tasks Completed
 
@@ -97,6 +98,8 @@ Recent decisions affecting current work:
 - [Phase 12]: delta_quality_scalar delivered via non-breaking process_with_quality() sibling method
 - [Phase 12]: TRAP_SHOT at bit 44 — multi-bar trapped-trader reversal; DELT_SLINGSHOT bit 28 untouched (different pattern)
 - [Phase 12]: SlingshotDetector uses 2.0σ z-score over 200-bar session window; resets at RTH open to prevent overnight drift
+- [Phase 12]: SetupTracker MANAGING→COOLDOWN is explicit-close-only; reference footgun fixed, 30-bar failsafe added as wedge guard
+- [Phase 12]: Setup IDs prefixed by timeframe (1m-/5m-) enable cross-TF close_trade routing on SharedState
 
 ### Roadmap Evolution
 
@@ -114,6 +117,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-14T00:43:02.296Z
-Stopped at: Phase 11 plans approved (4 plans, 4 waves)
-Resume file: .planning/phases/11-deep6-trading-web-app/11-01-PLAN.md
+Last session: 2026-04-14T01:13:27.646Z
+Stopped at: Completed 12-04-PLAN.md (SetupTracker dual-TF + EventStore)
+Resume file: None
