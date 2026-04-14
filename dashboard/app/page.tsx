@@ -6,7 +6,6 @@ import { HeaderStrip } from '@/components/layout/HeaderStrip';
 import { FootprintChart } from '@/components/footprint/FootprintChart';
 import { SignalFeed } from '@/components/signals/SignalFeed';
 import { TapeScroll } from '@/components/tape/TapeScroll';
-import { ScoreWidget } from '@/components/score/ScoreWidget';
 import { ReplayControls } from '@/components/replay/ReplayControls';
 import { ErrorBanner } from '@/components/common/ErrorBanner';
 import { useTradingStore } from '@/store/tradingStore';
@@ -51,37 +50,119 @@ export default function Home() {
   useFeedStaleWatcher();
 
   return (
-    <main className="h-screen w-screen flex flex-col" style={{ background: 'var(--bg-base)' }}>
-      {/* Header strip — 40px — driven by store */}
+    <div
+      style={{
+        height: '100dvh',
+        width: '100vw',
+        display: 'flex',
+        flexDirection: 'column',
+        background: 'var(--void)',
+        color: 'var(--text)',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Header strip — 44px */}
       <HeaderStrip />
 
       {/* Error banner — surfaces connection loss, feed stall, replay errors */}
       <ErrorBanner />
 
-      {/* Main 3-column region */}
-      <div className="flex-1 flex min-h-0 overflow-hidden">
-        {/* Footprint chart — flex 1, min 600px */}
-        <FootprintChart />
-
-        {/* Signal feed + T&S — 320px fixed */}
+      {/* Main 3-column asymmetric region — flex-1 | 320px hero | 300px right */}
+      <main
+        style={{
+          flex: 1,
+          display: 'flex',
+          minHeight: 0,
+        }}
+      >
+        {/* Footprint chart — flex-1, min-w-0 */}
         <section
-          className="flex flex-col shrink-0"
           style={{
-            width: '320px',
-            background: 'var(--bg-surface)',
-            borderRight: '1px solid var(--border-subtle)',
+            flex: 1,
+            minWidth: 0,
+            borderRight: '1px solid var(--rule)',
           }}
         >
-          <SignalFeed />
-          <TapeScroll />
+          <FootprintChart />
         </section>
 
-        {/* Score widget — 240px fixed */}
-        <ScoreWidget />
-      </div>
+        {/* Hero column — 320px fixed (Confluence Pulse + Kronos + Zone List) */}
+        <aside
+          style={{
+            width: '320px',
+            flexShrink: 0,
+            borderRight: '1px solid var(--rule)',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          {/* Confluence Pulse slot — filled by Plan 11.2-02 */}
+          <div
+            data-slot="confluence-pulse"
+            style={{
+              height: '360px',
+              borderBottom: '1px solid var(--rule)',
+            }}
+          />
+          {/* Kronos E10 bar slot — filled by Plan 11.2-02 */}
+          <div
+            data-slot="kronos-bar"
+            style={{
+              height: '88px',
+              borderBottom: '1px solid var(--rule)',
+            }}
+          />
+          {/* Zone list slot — filled by Plan 11.2-02 */}
+          <div
+            data-slot="zone-list"
+            style={{
+              flex: 1,
+              minHeight: 0,
+            }}
+          />
+        </aside>
 
-      {/* Replay controls strip — 48px */}
-      <ReplayControls />
-    </main>
+        {/* Right column — 300px fixed (Signal Feed + T&S Tape) */}
+        <aside
+          style={{
+            width: '300px',
+            flexShrink: 0,
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          {/* Signal feed — top half */}
+          <div
+            style={{
+              flex: 1,
+              minHeight: 0,
+              borderBottom: '1px solid var(--rule)',
+            }}
+          >
+            <SignalFeed />
+          </div>
+          {/* T&S tape — bottom half */}
+          <div
+            style={{
+              flex: 1,
+              minHeight: 0,
+            }}
+          >
+            <TapeScroll />
+          </div>
+        </aside>
+      </main>
+
+      {/* Replay strip — 52px */}
+      <footer
+        style={{
+          height: '52px',
+          flexShrink: 0,
+          borderTop: '1px solid var(--rule)',
+        }}
+      >
+        <ReplayControls />
+      </footer>
+    </div>
   );
 }
