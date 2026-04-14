@@ -131,7 +131,7 @@ async def connect_rithmic(config: Config) -> RithmicClient:
         "rithmic.connected",
         uri=config.rithmic_uri,
         system=config.rithmic_system_name,
-        ts=time.time(),
+        ts=time.time(),  # live-only: network-layer connection event, never runs in replay
     )
     return client
 
@@ -155,15 +155,17 @@ def register_callbacks(client: RithmicClient, state: "SharedState") -> None:
 
 def _on_connected() -> None:
     """Log reconnection event (D-19)."""
-    log.info("rithmic.on_connected", ts=time.time())
+    log.info("rithmic.on_connected", ts=time.time())  # live-only: network-layer event
 
 
 def _on_disconnected(state: "SharedState") -> None:
     """Activate FROZEN state immediately on disconnect (D-17, D-19).
 
     No new bar processing occurs until reconnection + position reconciliation.
+    Phase 13-01: ts sourced from ``state.clock`` so replay-mode disconnect
+    simulation (if ever exercised) advances with event time.
     """
-    ts = time.time()
+    ts = state.clock.now()
     log.warning("rithmic.disconnected", ts=ts)
     if hasattr(state, "freeze_guard"):
         state.freeze_guard.on_disconnect(ts)

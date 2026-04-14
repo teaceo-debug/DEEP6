@@ -45,8 +45,12 @@ class GexLevels:
     stale: bool = False             # True if data > staleness threshold
     strikes: dict[float, float] = field(default_factory=dict)  # strike → net GEX
 
-    def age_seconds(self) -> float:
-        return time.time() - self.timestamp if self.timestamp > 0 else float('inf')
+    def age_seconds(self, now: float | None = None) -> float:
+        # Phase 13-01: accept an optional ``now`` override so replay can pass
+        # ``state.clock.now()``. Default remains ``time.time()`` — live
+        # callers are unchanged.
+        ref = now if now is not None else time.time()  # live-only fallback
+        return ref - self.timestamp if self.timestamp > 0 else float('inf')
 
 
 @dataclass

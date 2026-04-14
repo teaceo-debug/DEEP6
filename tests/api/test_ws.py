@@ -124,19 +124,32 @@ class TestWebSocketEndpoint:
                     ws.receive_text()
 
     def test_ws_accepts_connection_with_correct_token(self):
-        """WS endpoint accepts connection with correct token and responds to ping."""
+        """WS endpoint accepts connection with correct token and responds to ping.
+
+        Per D-23 / commit 7235cdf: token is passed via Sec-WebSocket-Protocol
+        subprotocol (not query param). ``["bearer", "<token>"]`` is the
+        canonical form; the server echoes ``bearer`` as the accepted subprotocol.
+        """
         app = self._get_app()
         with TestClient(app) as client:
-            with client.websocket_connect("/ws?token=test-secret-token") as ws:
+            with client.websocket_connect(
+                "/ws", subprotocols=["bearer", "test-secret-token"]
+            ) as ws:
                 ws.send_text("ping")
                 response = ws.receive_text()
                 assert response == "pong"
 
     def test_ws_responds_to_ping_with_pong(self):
-        """WS endpoint echoes pong in response to ping message."""
+        """WS endpoint echoes pong in response to ping message.
+
+        Uses first-message handshake auth: connect without a subprotocol,
+        send the token as the first text frame, then exchange ping/pong.
+        """
         app = self._get_app()
         with TestClient(app) as client:
-            with client.websocket_connect("/ws?token=test-secret-token") as ws:
+            with client.websocket_connect("/ws") as ws:
+                # First message must be the auth token (raw string form)
+                ws.send_text("test-secret-token")
                 ws.send_text("ping")
                 msg = ws.receive_text()
                 assert msg == "pong"

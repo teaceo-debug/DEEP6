@@ -26,14 +26,22 @@ RTH_CLOSE_HOUR = 16
 RTH_CLOSE_MIN = 0
 
 
-def next_boundary(period_seconds: int) -> datetime:
+def next_boundary(period_seconds: int, clock=None) -> datetime:
     """Compute the next UTC bar boundary (next multiple of period_seconds).
 
     Returns a UTC-aware datetime whose timestamp is divisible by period_seconds.
     This aligns bars to clock boundaries (e.g., 60s -> on the minute).
+
+    Phase 13-01: accepts an optional Clock so replay mode advances bar
+    boundaries using MBO event time rather than real wall time. When
+    ``clock`` is None the legacy ``time.time()`` source is used —
+    preserves live behaviour byte-for-byte.
     """
-    import time
-    now_ts = time.time()
+    if clock is not None:
+        now_ts = clock.now()
+    else:
+        import time
+        now_ts = time.time()
     next_ts = (now_ts // period_seconds + 1) * period_seconds
     return datetime.fromtimestamp(next_ts, tz=timezone.utc)
 
@@ -60,8 +68,11 @@ class BarBuilder:
 
         Uses zoneinfo.ZoneInfo("America/New_York") for DST-correct handling.
         Per T-02-04: called synchronously on every on_trade() -- cannot be bypassed.
+
+        Phase 13-01: reads time through ``self.state.clock`` so replay
+        correctly gates off RTH using MBO event time.
         """
-        now_et = datetime.now(EASTERN)
+        now_et = datetime.fromtimestamp(self.state.clock.now(), tz=EASTERN)
         rth_open  = now_et.replace(hour=RTH_OPEN_HOUR,  minute=RTH_OPEN_MIN,  second=0, microsecond=0)
         rth_close = now_et.replace(hour=RTH_CLOSE_HOUR, minute=RTH_CLOSE_MIN, second=0, microsecond=0)
         return rth_open <= now_et < rth_close
@@ -86,8 +97,8 @@ class BarBuilder:
         FROZEN state results in a silent reset (D-17).
         """
         while True:
-            target = next_boundary(self.period)
-            now = datetime.now(timezone.utc)
+            target = next_boundary(self.period, clock=self.state.clock)
+            now = datetime.fromtimestamp(self.state.clock.now(), tz=timezone.utc)
             sleep_secs = (target - now).total_seconds()
             if sleep_secs > 0:
                 await asyncio.sleep(sleep_secs)

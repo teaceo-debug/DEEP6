@@ -1,0 +1,103 @@
+//@version=6
+indicator("Bookmap Liquidity Mapper [TReset]", "BookmapMapper", overlay=true, max_boxes_count=600, max_labels_count=500, max_lines_count=100)
+
+// -----------------------------------------------------------------------------
+// Assumptions
+// -----------------------------------------------------------------------------
+// - Designed for America/New_York session defaults; configurable via inputs.
+// - Approximates order-book liquidity using intrabar OHLCV aggregations (no true DOM access).
+
+// -----------------------------------------------------------------------------
+// Inputs
+// -----------------------------------------------------------------------------
+string intrabar_tf = input.timeframe("15S", "Intrabar timeframe", group="Intrabar Data")
+bool use_intrabar = input.bool(true, "Enable intrabar sampling", group="Intrabar Data")
+bool handle_invalid_tf = input.bool(true, "Fallback when lower TF unavailable", group="Intrabar Data")
+
+int bucket_tick_multiple = input.int(1, "Bucket size (ticks)", group="Heatmap")
+int price_window_ticks = input.int(50, "Price window per side (ticks)", group="Heatmap")
+int heat_history_target = input.int(45, "Heatmap depth (bars)", group="Heatmap")
+float age_decay = input.float(0.92, "Historical decay factor", step=0.01, group="Heatmap")
+string intensity_mode = input.string("Sqrt", "Intensity scaling", options=["Linear", "Sqrt", "Log"], group="Heatmap")
+
+bool enable_bubbles = input.bool(true, "Enable signals", group="Signals")
+string bubble_placement = input.string("Narrative", "Mode", options=["Narrative", "Candle Zones", "Raw Buckets"], group="Signals")
+int bubble_capacity = input.int(250, "Max labels", group="Signals")
+float vol_significance = input.float(0.9, "Vol significance (× avg)", step=0.1, group="Signals", tooltip="Bar volume must exceed this multiple of running avg to show any signal. Higher = fewer, higher-conviction signals.")
+int   min_volume = input.int(0, "Min absolute volume", group="Signals", tooltip="Minimum total volume per bar to emit any signal. 0 = disabled. Chimmy uses 4000-5000 on ES/NQ.")
+float regime_hi_mult = input.float(1.5, "High-vol regime ratio", step=0.1, group="Signals", tooltip="Bar range / avg range above this = HIGH volatility. Raises wick thresholds 20%.")
+float regime_lo_mult = input.float(0.7, "Low-vol regime ratio", step=0.1, group="Signals", tooltip="Bar range / avg range below this = LOW volatility.")
+
+float absorb_delta_max = input.float(0.12, "Absorption |δ|/vol max", step=0.01, group="Narrative Thresholds", tooltip="Max delta ratio for balanced wick = absorption. Lower = stricter.")
+float absorb_wick_min = input.float(30.0, "Absorption min wick %", step=5, group="Narrative Thresholds", tooltip="Wick must contain this % of bar volume to qualify as absorption")
+float exhaust_wick_min = input.float(35.0, "Exhaustion min wick %", step=5, group="Narrative Thresholds")
+float momentum_body_min = input.float(72.0, "Momentum min body %", step=1, group="Narrative Thresholds")
+float momentum_delta_min = input.float(0.25, "Momentum min |δ|/vol", step=0.05, group="Narrative Thresholds")
+float rejection_wick_min = input.float(55.0, "Rejection min wick %", step=5, group="Narrative Thresholds")
+int delta_traj_lookback = input.int(5, "Delta trajectory lookback", group="Exhaustion Intelligence", tooltip="Bars to measure whether aggression is fading. Exhaustion requires cumulative delta to diverge from price direction over this window.")
+bool use_delta_traj = input.bool(true, "Require delta divergence", group="Exhaustion Intelligence", tooltip="When enabled, exhaustion only fires when cumulative delta is fading relative to price — the theoretical definition of true exhaustion.")
+float delta_traj_strength = input.float(0.3, "Delta fade strength", step=0.05, group="Exhaustion Intelligence", tooltip="How much must delta diverge from price? 0.0 = any divergence (loosest), 1.0 = full sign reversal (strictest). At 0.3, cumulative delta must be below 70% of what price direction would predict.")
+int exhaust_cooldown_bars = input.int(5, "Exhaustion cooldown (bars)", group="Exhaustion Intelligence", tooltip="After an exhaustion signal fires, suppress the same sub-type for this many bars. Prevents clustering.")
+
+bool   enable_levels         = input.bool(true, "Enable price levels", group="Price Levels")
+bool   lvl_absorb            = input.bool(true, "Absorption levels", group="Price Levels")
+bool   lvl_exhaust           = input.bool(true, "Exhaustion levels", group="Price Levels")
+bool   lvl_rejection         = input.bool(true, "Rejection levels", group="Price Levels")
+bool   lvl_momentum          = input.bool(true, "Momentum levels", group="Price Levels")
+int    max_levels            = input.int(80, "Max active levels", group="Price Levels")
+float  break_vol_mult        = input.float(1.0, "Break volume multiplier", step=0.1, group="Price Levels", tooltip="Zone break requires bar volume >= this × avg. 1.0 = any volume. Higher = only strong breaks count.")
+int    max_visible           = input.int(6, "Max visible levels", group="Price Levels", tooltip="Only the top N zones by strength score are shown. Rest are tracked but hidden.")
+float  zone_decay            = input.float(0.005, "Zone age decay rate", step=0.001, group="Price Levels", tooltip="Exponential decay per bar. 0.005 = half-life ~140 bars (~2.3hrs on 1-min). Higher = faster fade.")
+int    touch_max             = input.int(3, "Touches for max score", group="Zone Scoring", tooltip="How many successful defenses needed for full touch score (25 pts). Lower = zones strengthen faster.")
+float  vol_ratio_cap         = input.float(2.0, "Volume ratio cap", step=0.5, group="Zone Scoring", tooltip="Bar volume / avg volume ratio that gives max volume score. Lower = easier to max out volume points.")
+float  w_type                = input.float(25.0, "Weight: signal type", step=5, group="Zone Scoring", tooltip="Max points for signal type component (ABSORB gets full, others proportional)")
+float  w_vol                 = input.float(25.0, "Weight: volume", step=5, group="Zone Scoring", tooltip="Max points for volume-relative-to-average component")
+float  w_touch               = input.float(25.0, "Weight: touches", step=5, group="Zone Scoring", tooltip="Max points for successful defense count")
+float  w_recency             = input.float(25.0, "Weight: recency", step=5, group="Zone Scoring", tooltip="Max points for how recently the zone was created or touched")
+float  tier_strong           = input.float(60.0, "Strong zone threshold", step=5, group="Zone Scoring", tooltip="Score above this = thick border, most visible")
+float  tier_mid              = input.float(35.0, "Medium zone threshold", step=5, group="Zone Scoring", tooltip="Score above this but below strong = normal border")
+float  peak_cluster_pct      = input.float(0.30, "Peak cluster threshold", step=0.05, group="Zone Scoring", tooltip="Expand from peak bucket while volume >= this fraction of peak. Lower = wider zones, higher = tighter.")
+float  va_boost_pts          = input.float(15.0, "VA extreme bonus pts", step=5, group="Zone Scoring", tooltip="Extra score points when zone forms near VAH/VAL (VWAP +/- 1 sigma)")
+int    confirm_window        = input.int(10, "Confirmation window (bars)", group="Zone Scoring", tooltip="Bars after absorption to look for defense or momentum confirmation")
+float  confirm_boost_pts     = input.float(20.0, "Confirmation bonus pts", step=5, group="Zone Scoring", tooltip="Score boost when absorption is confirmed by defense or same-direction momentum")
+
+// NOTE: Full 1000+ line indicator body stored in conversation; this file captures
+// the level/signal architecture: ABSORB/EXHAUST/MOMENTUM/REJECTION classification,
+// merge-or-create zone logic, break/flip/defense mechanics, session VWAP±1σ value
+// area, confirmation cross-boosting, and composite scoring (type+vol+touch+recency
+// +VA boost+confirm boost). See chat transcript dated 2026-04-13 for full source.
+// Key structural elements reproduced below for cross-referencing.
+
+// Scoring weights sum to 100 (type 25 + vol 25 + touch 25 + recency 25) with two
+// optional boosts: VA proximity (+15) and absorption/exhaustion confirmation by
+// momentum or defense (+20). Tiering: >=60 strong, >=35 mid, else hidden.
+
+// Signal → zone-type map:
+//   ABSORB     → borders colored #FFD600, width 2, highest type weight (1.0)
+//   EXHAUST    → dashed teal/red border, weight 0.72
+//   REJECTION  → dotted orange border, weight 0.48
+//   MOMENTUM   → solid teal/red, weight 0.40; zone spans body_top..body_bot
+
+// Break/flip rule:
+//   Close through zone boundary AND bar volume >= break_vol_mult × vol_ema
+//   First break → invert dir (S↔R), mark inv=true, dashed border
+//   Second break → delete zone (thesis invalidated)
+
+// Defense (touch w/ close outside) → touches++, last_act=bar_index,
+// optional label FIRST DEFENSE / HELD x2 / HELD x3+
+
+// Confirmation cascade:
+//   ABSORB then DEFENSE within confirm_window at same origin_bar
+//     → +confirm_boost_pts, border #FFD700 width 3, "ABSORPTION CONFIRMED ENGAGE LONG/SHORT"
+//   ABSORB then MOMENTUM same-dir within window → same boost
+//   EXHAUST then MOMENTUM same-dir within window → same boost
+//   EXHAUST then ABSORB at same zone → +0.5 × boost, "EXHAUST + ABSORB NOW WATCH"
+
+// Value area (session VWAP ±1σ):
+//   sess_vwap_num/den accumulated from per-bar VWAP × total_zone_vol
+//   VAH = vwap + stddev, VAL = vwap - stddev
+//   Zones within ±0.5σ of VAH/VAL get +va_boost_pts (15)
+
+// Merge-or-create:
+//   Overlap with same-direction zone → widen top/bot, boost score, touches++
+//   No overlap → create new (evict weakest if at max_levels cap)

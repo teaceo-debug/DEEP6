@@ -96,8 +96,13 @@ class FreezeGuard:
         No new bar processing occurs from this point until on_reconnect() completes.
 
         Per D-19: logs ts= for post-session disconnect/reconnect review.
+
+        Phase 13-01: callers pass ``ts`` sourced from ``state.clock.now()``
+        when available. Fallback to ``time.time()`` keeps live behaviour
+        unchanged for any callers that don't (yet) have a state ref —
+        this is documented as a live-only fallback path.
         """
-        ts = ts or time.time()
+        ts = ts or time.time()  # live-only fallback: caller should pass state.clock.now()
         self._state = ConnectionState.FROZEN
         log.warning(
             "connection.disconnected",
@@ -139,7 +144,7 @@ class FreezeGuard:
             "connection.restored",
             state=self._state,
             position=self._last_known_position,
-            ts=time.time(),
+            ts=time.time(),  # live-only: audit log timestamp, not replay-correctness path
         )
 
     @property
@@ -170,8 +175,10 @@ class SessionManager:
         """True between 9:30 AM and 4:00 PM Eastern.
 
         Uses zoneinfo for DST-correct handling — no hardcoded UTC offset.
+        Phase 13-01: reads through ``state.clock`` so replay sessions
+        transition on event time, not real time.
         """
-        now_et = datetime.now(EASTERN)
+        now_et = datetime.fromtimestamp(self.state.clock.now(), tz=EASTERN)
         return (
             (now_et.hour == 9 and now_et.minute >= 30)
             or (10 <= now_et.hour < 16)
@@ -181,8 +188,11 @@ class SessionManager:
         """Session ID = UTC date string YYYYMMDD.
 
         UTC-based so session ID is stable regardless of server timezone.
+        Phase 13-01: routes through ``state.clock`` for replay correctness.
         """
-        return datetime.now(timezone.utc).strftime("%Y%m%d")
+        return datetime.fromtimestamp(
+            self.state.clock.now(), tz=timezone.utc
+        ).strftime("%Y%m%d")
 
     async def run(self) -> None:
         """Background coroutine: poll RTH boundaries every 1 second.

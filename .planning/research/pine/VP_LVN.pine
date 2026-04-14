@@ -1,0 +1,132 @@
+//@version=6
+indicator("VP Low-TF LVN Levels", shorttitle="VP LVN", overlay=true, max_lines_count=500, max_bars_back=5000)
+
+//══════════════════════════════════════════════════════════════════════════════
+// INPUTS
+//══════════════════════════════════════════════════════════════════════════════
+var g_VP = "🧱 VP Low-TF (Session Profile)"
+rows       = input.int(200, "Rows", group=g_VP)
+tf_vp      = input.timeframe("1M", "Profile Timeframe", group=g_VP)
+ltf_in     = input.timeframe("1", "Resolution Timeframe", group=g_VP)
+
+var g_LVN = "🟧 LVN Settings"
+lvn_color_bull = input.color(color.new(#1E3A8A, 0), "Bull Color", inline="LVN", group=g_LVN)
+lvn_color_bear = input.color(color.new(#2563EB, 0), "Bear Color", inline="LVN", group=g_LVN)
+lvn_strength   = input.int(15, "LVN Strength", group=g_LVN)
+lvn_width      = input.int(5, "Line Width", group=g_LVN)
+
+//══════════════════════════════════════════════════════════════════════════════
+// VARS
+//══════════════════════════════════════════════════════════════════════════════
+int VP_MAX_BACK = 4999
+var float[] vp_values = array.new_float()
+var int[]   vp_x_vol  = array.new_int()
+var float[] vp_y_vol  = array.new_float()
+var line[]  lvn_lines = array.new_line()
+var float[] lvn_Ly    = array.new_float()
+var int vp_lb_idx  = na
+var int vp_lb_time = na
+
+bool ltf_ok = timeframe.in_seconds(ltf_in) > 0 and timeframe.in_seconds(ltf_in) <= timeframe.in_seconds(timeframe.period)
+string safe_ltf = ltf_ok ? ltf_in : timeframe.period
+[vp_ltfH, vp_ltfL, vp_ltfV] = request.security_lower_tf(syminfo.tickerid, safe_ltf, [high, low, volume])
+
+//══════════════════════════════════════════════════════════════════════════════
+// LVN DETECTION
+//══════════════════════════════════════════════════════════════════════════════
+vp_get_lvn() =>
+    if array.size(vp_values) > lvn_strength
+        for i = 0 to array.size(vp_values) - 1
+            float start = array.get(vp_values, i)
+            bool valid = true
+            for j = -lvn_strength to lvn_strength
+                int k = i + j
+                if k < 0 or k > array.size(vp_values) - 1
+                    continue
+                if j != 0 and array.get(vp_values, k) < start
+                    valid := false
+                    break
+            if valid
+                int idx = array.indexof(vp_values, start)
+                if idx != -1
+                    float y1  = array.get(vp_y_vol, idx)
+                    float y2  = array.get(vp_y_vol, idx)
+                    float val = array.get(vp_y_vol, idx)
+                    if i < array.size(vp_values) - 1
+                        for m = i to array.size(vp_values) - 2
+                            if array.get(vp_values, m + 1) < array.get(vp_values, m)
+                                y1 := array.get(vp_y_vol, m)
+                                break
+                    if i > 0
+                        for m = i to 1
+                            if array.get(vp_values, m - 1) < array.get(vp_values, m)
+                                y2 := array.get(vp_y_vol, m)
+                                break
+                    color new_color = close[1] > math.avg(y1, y2) ? lvn_color_bear : lvn_color_bull
+                    if array.indexof(lvn_Ly, val) == -1
+                        array.unshift(lvn_Ly, val)
+                        array.unshift(lvn_lines, line.new(time, val, time + timeframe.in_seconds(tf_vp) * 1000, val, xloc=xloc.bar_time, color=color.new(new_color, 0), style=start == array.min(vp_values) ? line.style_solid : line.style_dotted, width=lvn_width))
+
+//══════════════════════════════════════════════════════════════════════════════
+// PROFILE BUILDER
+//══════════════════════════════════════════════════════════════════════════════
+if barstate.isfirst
+    vp_lb_idx  := bar_index
+    vp_lb_time := time
+
+int vp_wantBack = bar_index - nz(vp_lb_idx, bar_index)
+int vp_back     = math.max(1, math.min(vp_wantBack, VP_MAX_BACK))
+float vp_y_max = ta.highest(high[1], vp_back)
+float vp_y_min = ta.lowest(low[1], vp_back)
+bool vp_do_build = timeframe.change(tf_vp) or barstate.islastconfirmedhistory
+
+if vp_do_build and not na(vp_lb_idx)
+    array.clear(vp_x_vol), array.clear(vp_y_vol), array.clear(vp_values)
+
+    for i = 0 to rows
+        float y = vp_y_min + i * (vp_y_max - vp_y_min) / rows
+        array.push(vp_x_vol, vp_lb_time)
+        array.push(vp_y_vol, y)
+        array.push(vp_values, 0.0)
+
+    float step = (vp_y_max - vp_y_min) / rows
+    step := step == 0.0 ? syminfo.mintick : step
+
+    for i = vp_back to 1
+        if ltf_ok
+            volArr = vp_ltfV[i]
+            hArr   = vp_ltfH[i]
+            lArr   = vp_ltfL[i]
+            if volArr.size() > 0
+                for k = 0 to volArr.size() - 1
+                    float Hk = hArr.get(k)
+                    float Lk = lArr.get(k)
+                    float Vk = volArr.get(k)
+                    int r1 = int(math.floor((math.min(Lk, Hk) - vp_y_min) / step))
+                    int r2 = int(math.floor((math.max(Lk, Hk) - vp_y_min) / step))
+                    r1 := math.max(0, math.min(r1, rows))
+                    r2 := math.max(0, math.min(r2, rows))
+                    int span = r2 - r1 + 1
+                    float addv = span > 0 ? (Vk / span) : 0.0
+                    for r = r1 to r2
+                        vp_values.set(r, vp_values.get(r) + addv)
+        else
+            float Hk = high[i]
+            float Lk = low[i]
+            float Vk = volume[i]
+            int r1 = int(math.floor((math.min(Lk, Hk) - vp_y_min) / step))
+            int r2 = int(math.floor((math.max(Lk, Hk) - vp_y_min) / step))
+            r1 := math.max(0, math.min(r1, rows))
+            r2 := math.max(0, math.min(r2, rows))
+            int span = r2 - r1 + 1
+            float addv = span > 0 ? (Vk / span) : 0.0
+            for r = r1 to r2
+                vp_values.set(r, vp_values.get(r) + addv)
+
+if timeframe.change(tf_vp)
+    vp_lb_idx  := bar_index
+    vp_lb_time := time
+    while array.size(lvn_lines) > 0
+        line.delete(array.pop(lvn_lines))
+    array.clear(lvn_Ly)
+    vp_get_lvn()

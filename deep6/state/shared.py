@@ -13,6 +13,7 @@ import asyncio
 from dataclasses import dataclass, field
 from typing import Callable
 
+from deep6.backtest.clock import Clock, WallClock
 from deep6.config import Config
 from deep6.state.dom import DOMState
 from deep6.state.session import SessionContext
@@ -47,6 +48,11 @@ class SharedState:
     """
 
     config: Config
+    # Pluggable time source. WallClock preserves live semantics; ReplaySession
+    # overrides with EventClock so session boundaries, persistence timestamps,
+    # and backoff timing advance with MBO event time rather than real wall
+    # time. See deep6/backtest/clock.py (phase 13-01).
+    clock: Clock = field(default_factory=WallClock)
     dom: DOMState = field(default_factory=DOMState)
     session: SessionContext = field(default_factory=SessionContext)
     freeze_guard: FreezeGuard = field(default_factory=FreezeGuard)
