@@ -21,6 +21,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={jetbrainsMono.variable}>
       <body>
+        {/* Visually-hidden h1 for screen readers — dashboard has no visible heading */}
+        <h1 style={{
+          position: 'absolute',
+          width: '1px',
+          height: '1px',
+          padding: 0,
+          margin: '-1px',
+          overflow: 'hidden',
+          clip: 'rect(0,0,0,0)',
+          whiteSpace: 'nowrap',
+          borderWidth: 0,
+        }}>
+          DEEP6 — NQ Footprint Trading Dashboard
+        </h1>
         {/* Atmosphere layers — fixed, pointer-events none, z-index 2-4 */}
         <Grain />
         <Scanlines />

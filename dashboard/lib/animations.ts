@@ -442,3 +442,17 @@ export const CATEGORY_ARC_COUNTS: Readonly<Record<CategoryKey, number>> = Object
   volume:     2,
   ml:         0, // ML (E10) is not a bit-signal; handled via Kronos separately
 });
+
+// ---------------------------------------------------------------------------
+// Harmonized digit-roll transition alias — canonical name for digit-roll.tsx
+// Alias of digitRollTransition to maintain a single source of truth.
+// ---------------------------------------------------------------------------
+
+/** @alias digitRollTransition — use this name in digit-roll.tsx consumers */
+export const harmonizedDigitRollTransition = digitRollTransition;
+
+// Delta indicator — 800ms visibility window for ▲/▼ arrows
+export const DELTA_VISIBLE_MS = 800;
+
+// Flash hint — 300ms fade-out for background colour change
+export const FLASH_DURATION_MS = 300;

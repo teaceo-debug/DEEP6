@@ -8,7 +8,7 @@
  * 400×320px, --surface-2 bg, --rule-bright border, JetBrains Mono throughout.
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -41,6 +41,22 @@ const SHORTCUTS = [
 
 export function KeyboardHelp({ open, onClose }: KeyboardHelpProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
+
+  // Focus management: save trigger, move focus into dialog on open, restore on close
+  useEffect(() => {
+    if (open) {
+      triggerRef.current = document.activeElement as HTMLElement;
+      // Defer to next frame so the dialog is painted before we focus
+      const id = requestAnimationFrame(() => {
+        closeBtnRef.current?.focus();
+      });
+      return () => cancelAnimationFrame(id);
+    } else {
+      triggerRef.current?.focus();
+    }
+  }, [open]);
 
   // Global `?` key opens the modal
   useEffect(() => {
@@ -62,9 +78,9 @@ export function KeyboardHelp({ open, onClose }: KeyboardHelpProps) {
   }, [open, onClose]);
 
   // Click-outside to close
-  function handleOverlayClick(e: React.MouseEvent<HTMLDivElement>) {
+  const handleOverlayClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === overlayRef.current) onClose();
-  }
+  }, [onClose]);
 
   if (!open) return null;
 
@@ -116,6 +132,7 @@ export function KeyboardHelp({ open, onClose }: KeyboardHelpProps) {
             KEYBOARD SHORTCUTS
           </span>
           <button
+            ref={closeBtnRef}
             aria-label="Close keyboard help"
             onClick={onClose}
             style={{

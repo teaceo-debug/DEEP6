@@ -1,9 +1,11 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { AnimatePresence } from 'motion/react';
 import { HelpCircle } from 'lucide-react';
 import { useTradingStore } from '@/store/tradingStore';
 import { KeyboardHelp } from '@/components/common/KeyboardHelp';
+import { DigitRoll, DeltaIndicator, useDeltaIndicator } from '@/lib/digit-roll';
 
 /**
  * HeaderStrip — 44px terminal header per UI-SPEC §4.7
@@ -19,6 +21,9 @@ import { KeyboardHelp } from '@/components/common/KeyboardHelp';
  *  - Connection dot: hover tooltip with connected/last-tick/pnl
  *  - E10/GEX labels: 0.08em letter-spacing, 11px, --text-mute
  *  - PipeSep: 16px tall, vertically centered
+ *
+ * v3 enhancements (digit-roll harmonization):
+ *  - Price uses shared DigitRoll (spring-animated, tabular-nums) + DeltaIndicator (▲▼ 800ms)
  */
 
 // ─── Price Sparkline ──────────────────────────────────────────────────────────
@@ -123,7 +128,6 @@ function SpmChart({ bins }: SpmChartProps) {
       {bins.map((bin, i) => {
         const x = i * (BAR_W + BAR_GAP);
         const barH = Math.max(1, (bin.total / maxTotal) * MAX_H);
-        const y = H - barH;
 
         // Stacked: TYPE_A (lime) bottom, TYPE_B (amber) middle, TYPE_C (cyan) top
         const tA = bin.typeA / Math.max(1, bin.total);
@@ -237,6 +241,59 @@ function StatsTip({ barCount, signalCount, sessionAge, visible }: StatsTipProps)
       }}
     >
       {barCount} bars received • {signalCount} signals fired • session started {sessionAge}
+    </span>
+  );
+}
+
+// ─── PriceDisplay — animated digit-roll with delta indicator ─────────────────
+
+interface PriceDisplayProps {
+  price: number | null;
+  priceColor: string;
+  priceFlash: 'ask' | 'bid' | null;
+}
+
+/**
+ * Renders the NQ price with spring-animated digit-roll (harmonized with Kronos/Pulse)
+ * plus a brief ▲▼ delta arrow for 800ms after each price change.
+ * Falls back to "—" when no price data yet.
+ */
+function PriceDisplay({ price, priceColor, priceFlash }: PriceDisplayProps) {
+  const safePrice = price ?? 0;
+  const delta = useDeltaIndicator(safePrice, 2);
+
+  if (price === null) {
+    return (
+      <span className="text-md tnum" style={{ color: 'var(--text-mute)', marginRight: '6px' }}>
+        —
+      </span>
+    );
+  }
+
+  return (
+    <span
+      style={{
+        position: 'relative',
+        display: 'inline-flex',
+        alignItems: 'center',
+        marginRight: '6px',
+        paddingRight: delta.visible ? '44px' : undefined,
+      }}
+    >
+      <DigitRoll
+        value={safePrice}
+        precision={2}
+        className="text-md tnum"
+        style={{
+          color: priceColor,
+          transition: priceFlash ? undefined : 'color 150ms ease-out',
+        }}
+      />
+      <AnimatePresence>
+        {delta.visible && (
+          <DeltaIndicator key="price-delta" delta={delta} precision={2} fontSize={10} />
+        )}
+      </AnimatePresence>
     </span>
   );
 }
@@ -567,24 +624,10 @@ export function HeaderStrip() {
           ▸
         </span>
 
-        {/* Price — flash on tick, settle to --text */}
-        <span
-          className="text-md tnum"
-          style={{
-            color: priceColor,
-            transition: priceFlash ? undefined : 'color 150ms ease-out',
-            marginRight: '6px',
-          }}
-        >
-          {price !== null
-            ? price.toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })
-            : '—'}
-        </span>
+        {/* Price — spring digit-roll + ▲▼ delta indicator (800ms) */}
+        <PriceDisplay price={price} priceColor={priceColor} priceFlash={priceFlash} />
 
-        {/* Delta */}
+        {/* Bar-to-bar delta — cumulative tick direction indicator */}
         {price !== null && priceDelta !== 0 ? (
           <span className="text-sm tnum" style={{ color: deltaColor }}>
             {deltaSymbol}{deltaIsPositive ? '+' : ''}

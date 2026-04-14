@@ -11,7 +11,14 @@
   --rule: #1f1f1f;
   --rule-bright: #2a2a2a;
 
-  /* Text */
+  /* Text
+   * WCAG AA contrast ratios on --void (#000000) background:
+   *   --text:      #f5f5f5  →  ~20.4:1  (passes AA + AAA for all sizes)
+   *   --text-dim:  #8a8a8a  →  ~5.5:1   (passes AA for body ≥4.5:1, passes AAA for large)
+   *   --text-mute: #4a4a4a  →  ~2.6:1   (FAILS AA for body text — use only for decorative /
+   *                                       disabled / large UI chrome ≥24px where 3:1 applies)
+   *   If --text-mute must carry body-weight text, brighten to #6a6a6a (~4.5:1 on #000).
+   */
   --text: #f5f5f5;
   --text-dim: #8a8a8a;
   --text-mute: #4a4a4a;

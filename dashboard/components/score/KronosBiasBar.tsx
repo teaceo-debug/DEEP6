@@ -31,7 +31,7 @@ export function KronosBiasBar({ direction, bias }: KronosBiasBarProps) {
         style={{ height: '6px', background: 'var(--border-subtle)' }}
       >
         <div
-          className="h-full rounded-full transition-all duration-300"
+          className="h-full rounded-full motion-safe:transition-all motion-safe:duration-300"
           style={{
             width: `${clampedBias}%`,
             background: fillColor,
