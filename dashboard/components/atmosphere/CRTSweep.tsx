@@ -18,7 +18,7 @@ export function CRTSweep() {
         left: 0,
         right: 0,
         height: '1px',
-        background: 'rgba(255,255,255,0.05)',
+        background: 'rgba(255,255,255,0.03)',
         pointerEvents: 'none',
         zIndex: 4,
         // Ensure no sub-pixel rounding makes this disappear on Retina

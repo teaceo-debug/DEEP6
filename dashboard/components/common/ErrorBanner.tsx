@@ -172,8 +172,8 @@ export function ErrorBanner() {
           // 4px icon breathing room on left, 8px gap between icon and text via flex gap
           paddingLeft: 20,
           paddingRight: 16,
-          paddingTop: 6,
-          paddingBottom: 6,
+          paddingTop: 4,
+          paddingBottom: 4,
           color: accentColor,
           display: 'flex',
           alignItems: 'center',

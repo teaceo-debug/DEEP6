@@ -328,78 +328,80 @@ export function ReplayControls() {
           )}
         </div>
 
-        {/* Bar index input */}
-        <input
-          type="number"
-          aria-label="Jump to bar"
-          title="Jump to bar #"
-          placeholder="bar #"
-          min={1}
-          max={totalBars}
-          value={barInputValue}
-          disabled={replayDisabled}
-          onChange={(e) => setBarInputValue(e.target.value)}
-          onFocus={(e) => {
-            inputFocusedRef.current = true;
-            (e.currentTarget as HTMLInputElement).style.borderColor = 'var(--lime)';
-            (e.currentTarget as HTMLInputElement).style.boxShadow = '0 0 0 2px color-mix(in srgb, var(--lime) 25%, transparent)';
-          }}
-          onBlur={(e) => {
-            inputFocusedRef.current = false;
-            (e.currentTarget as HTMLInputElement).style.borderColor = 'var(--rule)';
-            (e.currentTarget as HTMLInputElement).style.boxShadow = 'none';
-            const n = parseInt((e.target as HTMLInputElement).value, 10);
-            if (!Number.isNaN(n)) {
-              actions().jumpToBar(n - 1); // UI is 1-based, store is 0-based
-            } else {
-              setBarInputValue(String(currentBarIndex + 1));
-            }
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
+        {/* Bar index input — replay mode only */}
+        {!replayDisabled && (
+          <input
+            type="number"
+            aria-label="Jump to bar"
+            title="Jump to bar #"
+            placeholder="bar #"
+            min={1}
+            max={totalBars}
+            value={barInputValue}
+            onChange={(e) => setBarInputValue(e.target.value)}
+            onFocus={(e) => {
+              inputFocusedRef.current = true;
+              (e.currentTarget as HTMLInputElement).style.borderColor = 'var(--lime)';
+              (e.currentTarget as HTMLInputElement).style.boxShadow = '0 0 0 2px color-mix(in srgb, var(--lime) 25%, transparent)';
+            }}
+            onBlur={(e) => {
+              inputFocusedRef.current = false;
+              (e.currentTarget as HTMLInputElement).style.borderColor = 'var(--rule)';
+              (e.currentTarget as HTMLInputElement).style.boxShadow = 'none';
               const n = parseInt((e.target as HTMLInputElement).value, 10);
-              if (!Number.isNaN(n)) actions().jumpToBar(n - 1);
-              (e.target as HTMLInputElement).blur();
-            }
-          }}
-          style={{
-            width: 72,
-            height: 36,
-            background: 'var(--surface-2)',
-            border: '1px solid var(--rule)',
-            borderRadius: 4,
-            color: replayDisabled ? 'var(--text-mute)' : 'var(--text)',
-            fontSize: 13,
-            fontVariantNumeric: 'tabular-nums',
-            fontFamily: 'var(--font-jetbrains-mono)',
-            textAlign: 'center',
-            padding: '0 4px',
-            outline: 'none',
-            opacity: replayDisabled ? 0.4 : 1,
-          }}
-        />
+              if (!Number.isNaN(n)) {
+                actions().jumpToBar(n - 1); // UI is 1-based, store is 0-based
+              } else {
+                setBarInputValue(String(currentBarIndex + 1));
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                const n = parseInt((e.target as HTMLInputElement).value, 10);
+                if (!Number.isNaN(n)) actions().jumpToBar(n - 1);
+                (e.target as HTMLInputElement).blur();
+              }
+            }}
+            style={{
+              width: 72,
+              height: 36,
+              background: 'var(--surface-2)',
+              border: '1px solid var(--rule)',
+              borderRadius: 4,
+              color: 'var(--text)',
+              fontSize: 13,
+              fontVariantNumeric: 'tabular-nums',
+              fontFamily: 'var(--font-jetbrains-mono)',
+              textAlign: 'center',
+              padding: '0 4px',
+              outline: 'none',
+            }}
+          />
+        )}
 
-        {/* Bar position readout */}
-        <span
-          className="text-sm tnum"
-          style={{
-            color: 'var(--text-dim)',
-            flexShrink: 0,
-            display: 'flex',
-            alignItems: 'baseline',
-            gap: 2,
-          }}
-        >
-          {displayIndex}
-          <span style={{ color: 'var(--text-mute)', margin: '0 2px' }}>/</span>
-          {totalBars}
+        {/* Bar position readout — replay mode only */}
+        {!replayDisabled && (
           <span
-            className="text-xs"
-            style={{ color: 'var(--text-mute)', marginLeft: 4 }}
+            className="text-sm tnum"
+            style={{
+              color: 'var(--text-dim)',
+              flexShrink: 0,
+              display: 'flex',
+              alignItems: 'baseline',
+              gap: 2,
+            }}
           >
-            ({pct}%)
+            {displayIndex}
+            <span style={{ color: 'var(--text-mute)', margin: '0 2px' }}>/</span>
+            {totalBars}
+            <span
+              className="text-xs"
+              style={{ color: 'var(--text-mute)', marginLeft: 4 }}
+            >
+              ({pct}%)
+            </span>
           </span>
-        </span>
+        )}
 
         {/* Speed selector */}
         <Select
