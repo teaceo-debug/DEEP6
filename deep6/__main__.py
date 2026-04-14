@@ -129,34 +129,47 @@ async def main(config: Config) -> None:
     state.bar_builders = [bb_1m, bb_5m]
     log.info("deep6.bar_builders_ready", timeframes=["1m", "5m"])
 
-    # 3. Connect Rithmic (Issue #49: connect_rithmic includes 500ms delay)
-    client = await connect_rithmic(config)
-    register_callbacks(client, state)
-    log.info("deep6.rithmic_connected")
-
-    # 4. Subscribe to market data (D-01: 40+ L2 levels for NQ)
-    await client.subscribe_to_market_data(
-        config.instrument, config.exchange, DataType.ORDER_BOOK
-    )
-    await client.subscribe_to_market_data(
-        config.instrument, config.exchange, DataType.LAST_TRADE
-    )
-    await client.subscribe_to_market_data(
-        config.instrument, config.exchange, DataType.BBO
-    )
-    log.info(
-        "deep6.subscribed",
-        instrument=config.instrument,
-        data_types=["ORDER_BOOK", "LAST_TRADE", "BBO"],
-    )
-
-    # 5. Launch long-running tasks
+    # 3. Connect the selected data source (phase 14: Databento Live or Rithmic)
     session_mgr = state.session_manager()
     tasks = [
         asyncio.create_task(bb_1m.run(),        name="bar_builder_1m"),
         asyncio.create_task(bb_5m.run(),        name="bar_builder_5m"),
         asyncio.create_task(session_mgr.run(),  name="session_manager"),
     ]
+
+    if config.data_source == "databento":
+        from deep6.data.factory import create_feed
+
+        feed = create_feed("databento", config)
+        tasks.append(
+            asyncio.create_task(feed.start(state), name="databento_live_feed")
+        )
+        log.info(
+            "deep6.databento_subscribed",
+            instrument=config.instrument,
+            symbol="NQ.c.0",
+            schema="mbo",
+        )
+    else:
+        client = await connect_rithmic(config)
+        register_callbacks(client, state)
+        log.info("deep6.rithmic_connected")
+
+        # 4. Subscribe to market data (D-01: 40+ L2 levels for NQ)
+        await client.subscribe_to_market_data(
+            config.instrument, config.exchange, DataType.ORDER_BOOK
+        )
+        await client.subscribe_to_market_data(
+            config.instrument, config.exchange, DataType.LAST_TRADE
+        )
+        await client.subscribe_to_market_data(
+            config.instrument, config.exchange, DataType.BBO
+        )
+        log.info(
+            "deep6.subscribed",
+            instrument=config.instrument,
+            data_types=["ORDER_BOOK", "LAST_TRADE", "BBO"],
+        )
     log.info("deep6.running", task_count=len(tasks))
 
     # 6. Register POSIX signal handlers for graceful shutdown.

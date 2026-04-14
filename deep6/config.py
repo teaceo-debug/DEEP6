@@ -33,6 +33,10 @@ class Config:
     aggressor_sample_size: int = 50
     aggressor_max_unknown_pct: float = 0.10
 
+    # Phase 14: data source selection — "databento" (default) or "rithmic".
+    data_source: str = "databento"
+    databento_api_key: str = ""
+
     @classmethod
     def from_env(cls) -> "Config":
         """Load configuration from environment variables.
@@ -40,13 +44,15 @@ class Config:
         Raises KeyError if required env vars are missing.
         """
         return cls(
-            rithmic_user=os.environ["RITHMIC_USER"],
-            rithmic_password=os.environ["RITHMIC_PASSWORD"],
+            rithmic_user=os.environ.get("RITHMIC_USER", ""),
+            rithmic_password=os.environ.get("RITHMIC_PASSWORD", ""),
             rithmic_system_name=os.environ.get("RITHMIC_SYSTEM_NAME", "Rithmic Test"),
             rithmic_uri=os.environ.get("RITHMIC_URI", "wss://rituz00100.rithmic.com:443"),
             db_path=os.environ.get("DEEP6_DB_PATH", "./deep6_session.db"),
             api_host=os.environ.get("DEEP6_API_HOST", "127.0.0.1"),
             api_port=int(os.environ.get("DEEP6_API_PORT", "8765")),
+            data_source=os.environ.get("DEEP6_DATA_SOURCE", "databento"),
+            databento_api_key=os.environ.get("DATABENTO_API_KEY", ""),
         )
 
     def safe_log_fields(self) -> dict:
