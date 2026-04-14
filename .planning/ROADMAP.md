@@ -21,7 +21,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 7: Scoring + Backtesting Framework** - Two-layer confluence scorer, zone bonuses, TypeA/B/C classification, Databento MBO replay, vectorbt parameter sweeps, walk-forward validation
 - [ ] **Phase 8: Auto-Execution + Risk Layer** - Direct Rithmic order submission, bracket orders, circuit breakers, reconnection freeze, 30-day paper trading gate
 - [ ] **Phase 9: ML Backend** - FastAPI signal/trade event ingestion, XGBoost weight optimization, Optuna threshold tuning, HMM regime detection, walk-forward with purged splits
-- [ ] **Phase 10: Analytics Dashboard** - Next.js 15 dashboard with WebSocket real-time updates, signal performance view, regime viz, parameter evolution, footprint chart rendering, session replay
+- [x] **Phase 10: Analytics Dashboard** - Next.js 15 dashboard with WebSocket real-time updates, signal performance view, regime viz, parameter evolution, footprint chart rendering, session replay (completed 2026-04-14)
 
 ## Phase Details
 
@@ -197,10 +197,10 @@ Plans:
 
 Plans:
 - [x] 10-01-PLAN.md — FastAPI WebSocket endpoint + /backtest/* API + WS broadcast wiring
-- [ ] 10-02-PLAN.md — Next.js 15 scaffold + Tailwind dark theme + WS client + Zustand stores + two-tab shell
-- [ ] 10-03-PLAN.md — LIVE tab: SignalFeed + RegimePanel + KronosBiasGauge + PositionPanel
-- [ ] 10-04-PLAN.md — Footprint chart: LW Charts v5.1 custom series plugin + zone overlays
-- [ ] 10-05-PLAN.md — BACKTEST tab: config form + equity curve + trade table + Optuna sweep subtab
+- [x] 10-02-PLAN.md — Next.js 15 scaffold + Tailwind dark theme + WS client + Zustand stores + two-tab shell
+- [x] 10-03-PLAN.md — LIVE tab: SignalFeed + RegimePanel + KronosBiasGauge + PositionPanel
+- [x] 10-04-PLAN.md — Footprint chart: LW Charts v5.1 custom series plugin + zone overlays
+- [x] 10-05-PLAN.md — BACKTEST tab: config form + equity curve + trade table + Optuna sweep subtab
 **UI hint**: yes
 
 ### Phase 11: DEEP6 Trading Web App
@@ -242,7 +242,7 @@ Note: Phase 6 (Kronos + TVMCP) can begin after Phase 1 completes, running in par
 | 7. Scoring + Backtesting Framework | 0/? | Not started | - |
 | 8. Auto-Execution + Risk Layer | 0/? | Not started | - |
 | 9. ML Backend | 0/? | Not started | - |
-| 10. Analytics Dashboard | 1/5 | In Progress|  |
+| 10. Analytics Dashboard | 5/5 | Complete    | 2026-04-14 |
 | 11. DEEP6 Trading Web App | 0/? | Not started | - |
 
 ### Phase 12: Integrate borrowed orderflow patterns: VPIN confidence modifier, Delta Slingshot, Delta At Extreme, setup state machine, per-regime walk-forward tracker
