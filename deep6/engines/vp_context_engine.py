@@ -17,6 +17,8 @@ from dataclasses import dataclass, field
 from typing import Optional, TYPE_CHECKING
 
 from deep6.engines.gex import GexEngine, GexSignal
+from deep6.engines.level_factory import from_narrative
+from deep6.engines.narrative import NarrativeResult
 from deep6.engines.poc import POCEngine, POCSignal
 from deep6.engines.signal_config import GexConfig, POCConfig, VolumeProfileConfig
 from deep6.engines.volume_profile import SessionProfile, VolumeZone
@@ -64,12 +66,22 @@ class E6VPContextEngine:
         self._bar_count: int = 0
         self._ml_engine = E7MLQualityEngine()
 
-    def process(self, bar: FootprintBar) -> VPContextResult:
+    def process(
+        self,
+        bar: FootprintBar,
+        narrative_result: NarrativeResult | None = None,
+    ) -> VPContextResult:
         """Process one bar close. Returns unified VP+Context result.
 
         Steps:
           1. Accumulate bar volume into session profile (VPRO-01)
           2. Detect new LVN/HVN zones and load into registry (VPRO-02/03, ZONE-01)
+          2.5 (Plan 15-02, D-31): Persist narrative signals as Levels when
+              strength ≥ 0.4 (D-06). ABSORB/EXHAUST Levels use full-wick
+              geometry (D-07); MOMENTUM/REJECTION use body geometry.
+              Insertion is AFTER the detect_zones loop and BEFORE the
+              update_zones call so narrative Levels enter the registry
+              before the zone-lifecycle step.
           3. Update zone lifecycle — fired events returned as strings (VPRO-04)
           4. Process POC signals from bar (POC-01..08)
           5. Get GEX signal for current price (GEX-02..05)
@@ -85,6 +97,19 @@ class E6VPContextEngine:
         new_zones = self.session_profile.detect_zones(bar.close)
         for z in new_zones:
             self.registry.add_zone(z)
+
+        # 2.5. Narrative → LevelBus (Plan 15-02, D-31, D-06, D-07).
+        # Strength filter (>= 0.4) is applied inside LevelFactory.from_narrative.
+        if narrative_result is not None:
+            tick_size = getattr(self.registry, "tick_size", 0.25)
+            for lvl in from_narrative(
+                narrative_result,
+                strength_threshold=0.4,
+                bar_index=self._bar_count,
+                tick_size=tick_size,
+                bar=bar,
+            ):
+                self.registry.add_level(lvl)
 
         # 3. Update zone lifecycle
         zone_events = self.session_profile.update_zones(bar, self._bar_count)
