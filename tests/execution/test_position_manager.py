@@ -227,6 +227,71 @@ class TestOnBar:
         assert len(breakeven_events) == 0
 
 
+class TestScaleOut:
+    def test_plus_1R_triggers_partial_and_be_stop(self):
+        cfg = ExecutionConfig(max_position_contracts=3)
+        pm, events = _make_manager(cfg)
+        # entry=19000 stop=18990 -> r_distance=10; +1R at 19010
+        dec = ExecutionDecision(
+            action="ENTER", reason="test", side=OrderSide.LONG,
+            entry_price=19000.0, stop_price=18990.0, target_price=19050.0,
+            stop_ticks=40.0, signal_score=90.0, signal_tier="TYPE_A",
+        )
+        pos = pm.open_position(dec, contracts=3)
+        assert pos.initial_contracts == 3
+        assert pos.remaining_contracts == 3
+        assert pos.r_distance == pytest.approx(10.0)
+
+        # Bar at +1R (close=19010) — should trigger PARTIAL_EXIT + BE-1tick stop
+        result = _make_scorer_result(categories=[])
+        fired = pm.on_bar(bar_close=19010.0, bar_high=19012.0, bar_low=19005.0, result=result)
+        partials = [e for e in fired if e.event_type == PositionEventType.PARTIAL_EXIT]
+        assert len(partials) == 1
+        # 1/3 of 3 = 1 contract off
+        assert pos.remaining_contracts == 2
+        # Stop moved to BE-1tick (entry 19000 - 0.25)
+        assert pos.stop_price == pytest.approx(19000.0 - 0.25)
+        assert pos.breakeven_moved_at is not None
+
+    def test_plus_1_5R_triggers_second_partial(self):
+        cfg = ExecutionConfig(max_position_contracts=3)
+        pm, _ = _make_manager(cfg)
+        dec = ExecutionDecision(
+            action="ENTER", reason="test", side=OrderSide.LONG,
+            entry_price=19000.0, stop_price=18990.0, target_price=19050.0,
+            stop_ticks=40.0, signal_score=90.0, signal_tier="TYPE_A",
+        )
+        pos = pm.open_position(dec, contracts=3)
+        result = _make_scorer_result(categories=[])
+        # First bar at +1R
+        pm.on_bar(19010.0, 19012.0, 19005.0, result)
+        assert len(pos.partial_exits) == 1
+        # Next bar at +1.5R
+        pm.on_bar(19015.0, 19016.0, 19011.0, result)
+        assert len(pos.partial_exits) == 2
+        assert pos.remaining_contracts == 1
+
+    def test_trailing_last_third_long(self):
+        cfg = ExecutionConfig(max_position_contracts=3, max_hold_bars=100)
+        pm, _ = _make_manager(cfg)
+        dec = ExecutionDecision(
+            action="ENTER", reason="test", side=OrderSide.LONG,
+            entry_price=19000.0, stop_price=18990.0, target_price=19500.0,
+            stop_ticks=40.0, signal_score=90.0, signal_tier="TYPE_A",
+        )
+        pos = pm.open_position(dec, contracts=3)
+        result = _make_scorer_result(categories=[])
+        # Get through both partials
+        pm.on_bar(19010.0, 19012.0, 19005.0, result)  # +1R
+        pm.on_bar(19015.0, 19016.0, 19014.0, result)  # +1.5R
+        assert len(pos.partial_exits) == 2
+        stop_before = pos.stop_price
+        # Price advances — trail should ratchet up
+        pm.on_bar(19030.0, 19032.0, 19025.0, result, atr=10.0)
+        assert pos.trail_stop is not None
+        assert pos.stop_price >= stop_before
+
+
 class TestClosePosition:
     def test_manual_exit_emits_event(self):
         pm, events = _make_manager()

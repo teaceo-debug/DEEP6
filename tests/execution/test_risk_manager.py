@@ -70,7 +70,8 @@ class TestDailyLossLimit:
 
     def test_daily_loss_below_limit_allows_entry(self):
         rm = _make_rm()
-        rm.record_trade(-499.0)
+        # Keep within -1R so graduated DD gates don't fire (risk_per_trade_R default=100)
+        rm.record_trade(-50.0)
         gate = rm.can_enter(_make_result())
         assert gate.allowed is True
 
@@ -205,4 +206,151 @@ class TestNoGexSignal:
         rm = _make_rm()
         result = _make_result(tier=SignalTier.TYPE_A)
         gate = rm.can_enter(result, gex_signal=None)
+        assert gate.allowed is True
+
+
+# ---------------------------------------------------------------------------
+# Variable sizing tests
+# ---------------------------------------------------------------------------
+
+class _FakeNarrative:
+    def __init__(self, strength=1.0):
+        self.strength = strength
+
+
+class _FakeVPINRegime:
+    def __init__(self, name):
+        self.name = name
+
+
+class _FakeVPIN:
+    def __init__(self, name):
+        self.flow_regime = _FakeVPINRegime(name)
+
+
+class TestSizeContracts:
+    def test_size_score_95_returns_3(self):
+        rm = _make_rm()
+        res = _make_result(tier=SignalTier.TYPE_A)
+        res = ScorerResult(
+            total_score=95.0, tier=SignalTier.TYPE_A, direction=1,
+            engine_agreement=0.9, category_count=3, confluence_mult=1.3,
+            zone_bonus=0, narrative=res.narrative, label="x", categories_firing=[],
+        )
+        n = _FakeNarrative(strength=1.0)
+        assert rm.size_contracts(res, n) == 3
+
+    def test_size_score_72_returns_1(self):
+        rm = _make_rm()
+        res = ScorerResult(
+            total_score=72.0, tier=SignalTier.TYPE_A, direction=1,
+            engine_agreement=0.6, category_count=2, confluence_mult=1.0,
+            zone_bonus=0, narrative=None, label="x", categories_firing=[],
+        )
+        assert rm.size_contracts(res, _FakeNarrative(1.0)) == 1
+
+    def test_size_vpin_toxic_returns_0(self):
+        rm = _make_rm()
+        res = ScorerResult(
+            total_score=95.0, tier=SignalTier.TYPE_A, direction=1,
+            engine_agreement=0.9, category_count=3, confluence_mult=1.3,
+            zone_bonus=0, narrative=None, label="x", categories_firing=[],
+        )
+        assert rm.size_contracts(res, _FakeNarrative(1.0), vpin=_FakeVPIN("TOXIC")) == 0
+
+    def test_size_hmm_chaotic_returns_0(self):
+        rm = _make_rm()
+        res = ScorerResult(
+            total_score=95.0, tier=SignalTier.TYPE_A, direction=1,
+            engine_agreement=0.9, category_count=3, confluence_mult=1.3,
+            zone_bonus=0, narrative=None, label="x", categories_firing=[],
+        )
+        assert rm.size_contracts(res, _FakeNarrative(1.0), hmm_regime="CHAOTIC") == 0
+
+    def test_size_type_b_low_score_returns_0(self):
+        rm = _make_rm()
+        res = ScorerResult(
+            total_score=75.0, tier=SignalTier.TYPE_B, direction=1,
+            engine_agreement=0.6, category_count=2, confluence_mult=1.0,
+            zone_bonus=0, narrative=None, label="x", categories_firing=[],
+        )
+        assert rm.size_contracts(res, _FakeNarrative(1.0)) == 0
+
+
+# ---------------------------------------------------------------------------
+# Graduated drawdown tests
+# ---------------------------------------------------------------------------
+
+class TestGraduatedDrawdown:
+    def test_at_minus_2R_rejects_type_b(self):
+        rm = _make_rm()
+        rm.record_trade(-200.0)  # -2R with default risk_per_trade_R=100
+        res = _make_result(tier=SignalTier.TYPE_B)
+        res = ScorerResult(
+            total_score=85.0, tier=SignalTier.TYPE_B, direction=1,
+            engine_agreement=0.8, category_count=3, confluence_mult=1.0,
+            zone_bonus=0, narrative=None, label="x", categories_firing=[],
+        )
+        gate = rm.can_enter(res)
+        assert gate.allowed is False
+        assert "-2R" in gate.reason or "TYPE_B" in gate.reason
+
+    def test_at_minus_3R_only_type_a_score_90_absorption(self):
+        rm = _make_rm()
+        rm.record_trade(-300.0)  # -3R
+        # TYPE_A score 90 with absorption should pass
+        ok = ScorerResult(
+            total_score=90.0, tier=SignalTier.TYPE_A, direction=1,
+            engine_agreement=0.9, category_count=3, confluence_mult=1.2,
+            zone_bonus=0, narrative=None, label="x", categories_firing=["absorption"],
+        )
+        assert rm.can_enter(ok).allowed is True
+        # TYPE_A score 90 WITHOUT absorption fails
+        no_abs = ScorerResult(
+            total_score=90.0, tier=SignalTier.TYPE_A, direction=1,
+            engine_agreement=0.9, category_count=3, confluence_mult=1.2,
+            zone_bonus=0, narrative=None, label="x", categories_firing=["imbalance"],
+        )
+        assert rm.can_enter(no_abs).allowed is False
+        # TYPE_A score 85 fails
+        low = ScorerResult(
+            total_score=85.0, tier=SignalTier.TYPE_A, direction=1,
+            engine_agreement=0.9, category_count=3, confluence_mult=1.2,
+            zone_bonus=0, narrative=None, label="x", categories_firing=["absorption"],
+        )
+        assert rm.can_enter(low).allowed is False
+
+
+# ---------------------------------------------------------------------------
+# Heat management test
+# ---------------------------------------------------------------------------
+
+class _FakeOpenPos:
+    def __init__(self, r_distance, contracts, entry_price=19000.0, stop_price=0.0):
+        self.r_distance = r_distance
+        self.contracts = contracts
+        self.remaining_contracts = contracts
+        self.entry_price = entry_price
+        self.stop_price = stop_price
+
+
+class TestHeatCap:
+    def test_two_positions_cant_exceed_2R_combined(self):
+        # With max_open_risk_usd=100.0, 2 positions of r_distance=1.0 * 1 contract * $50 = $50 each
+        # total = $100 -> at cap. Adding more would exceed.
+        cfg = ExecutionConfig(max_open_risk_usd=100.0)
+        rm = RiskManager(cfg)
+        open_pos = [
+            _FakeOpenPos(r_distance=1.0, contracts=1),  # $50
+            _FakeOpenPos(r_distance=1.5, contracts=1),  # $75 -> total $125 > $100
+        ]
+        gate = rm.can_enter(_make_result(), open_positions=open_pos)
+        assert gate.allowed is False
+        assert "Heat cap" in gate.reason or "open risk" in gate.reason.lower()
+
+    def test_within_heat_cap_allows(self):
+        cfg = ExecutionConfig(max_open_risk_usd=100.0)
+        rm = RiskManager(cfg)
+        open_pos = [_FakeOpenPos(r_distance=1.0, contracts=1)]  # $50 < $100
+        gate = rm.can_enter(_make_result(), open_positions=open_pos)
         assert gate.allowed is True

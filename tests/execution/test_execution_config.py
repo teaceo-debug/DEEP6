@@ -33,7 +33,7 @@ def test_execution_config_defaults():
     assert cfg.pause_minutes == 30.0
 
     # D-12: Position size
-    assert cfg.max_position_contracts == 1
+    assert cfg.max_position_contracts == 3
 
     # D-13: Max trades
     assert cfg.max_trades_per_day == 10
