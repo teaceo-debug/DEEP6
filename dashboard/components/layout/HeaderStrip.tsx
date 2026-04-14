@@ -6,44 +6,288 @@ import { useTradingStore } from '@/store/tradingStore';
 /**
  * HeaderStrip — 44px terminal header per UI-SPEC §4.7
  *
- * Layout: DEEP6 ▸ NQ ▸ price delta │ E10 │ GEX │ clock │ B:/S: stats ● connection
+ * Layout: DEEP6 ▸ NQ ▸ price delta [sparkline] │ E10 │ GEX │ clock │ [signals-per-min] B:/S: stats ● connection
  *
- * Improvements over v1:
- *  - ▸ separators at 80% size, --text-mute, baseline aligned
- *  - Pipe │ replaced with 1px --rule vertical lines, 18px tall
- *  - Section pills with hover border
- *  - Connection dot 10px, 2px border glow when connected
- *  - Connection dot states: connected (--ask, pulse-breathe), connecting (--amber, fast flash),
- *    disconnected (--bid, no animation), stale (--amber, slow breathe)
- *  - Session stats block: B: bars count, S: signals count, updated every 2s
- *  - Clock: HH:MM:SS ET in New York time
+ * v2 enhancements:
+ *  - Price sparkline: 60×18px SVG showing last 30 close prices inline after delta
+ *  - Signals-per-minute: 10-bar mini chart (last 10 minutes) right side
+ *  - Session stats: tabular-nums right-aligned, hover tooltip
+ *  - Clock: HH:MM:SS.● ET with 1Hz pulsing fractional-second dot
+ *  - Price flash: up tick = --ask, down tick = --bid, settle in 300ms via useRef guard
+ *  - Connection dot: hover tooltip with connected/last-tick/pnl
+ *  - E10/GEX labels: 0.08em letter-spacing, 11px, --text-mute
+ *  - PipeSep: 16px tall, vertically centered
  */
+
+// ─── Price Sparkline ──────────────────────────────────────────────────────────
+
+interface SparklineProps {
+  prices: number[];
+}
+
+function PriceSparkline({ prices }: SparklineProps) {
+  if (prices.length < 5) return null;
+
+  const W = 60;
+  const H = 18;
+  const DOT_R = 1.5;
+
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  const range = max - min || 1;
+
+  const scaleY = (v: number) => H - DOT_R - ((v - min) / range) * (H - DOT_R * 2);
+  const scaleX = (i: number) => (i / (prices.length - 1)) * (W - DOT_R * 2) + DOT_R;
+
+  const points = prices.map((p, i) => `${scaleX(i).toFixed(2)},${scaleY(p).toFixed(2)}`).join(' ');
+
+  const first = prices[0];
+  const last = prices[prices.length - 1];
+  const diff = last - first;
+  const lineColor =
+    diff > 0 ? 'var(--ask)' : diff < 0 ? 'var(--bid)' : 'var(--text-mute)';
+
+  const dotX = scaleX(prices.length - 1);
+  const dotY = scaleY(last);
+
+  return (
+    <svg
+      width={W}
+      height={H}
+      viewBox={`0 0 ${W} ${H}`}
+      style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0, marginLeft: 5 }}
+      aria-hidden
+    >
+      <polyline
+        points={points}
+        fill="none"
+        stroke={lineColor}
+        strokeWidth="1"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+      <circle cx={dotX} cy={dotY} r={DOT_R} fill={lineColor} />
+    </svg>
+  );
+}
+
+// ─── Signals-per-Minute Bar Chart ─────────────────────────────────────────────
+
+interface SignalBin {
+  typeA: number;
+  typeB: number;
+  typeC: number;
+  total: number;
+}
+
+interface SpmChartProps {
+  bins: SignalBin[];
+}
+
+function SpmChart({ bins }: SpmChartProps) {
+  const BAR_W = 2;
+  const BAR_GAP = 1;
+  const MAX_H = 12;
+  const W = bins.length * (BAR_W + BAR_GAP) - BAR_GAP;
+  const H = MAX_H;
+
+  const maxTotal = Math.max(1, ...bins.map((b) => b.total));
+
+  const hasAny = bins.some((b) => b.total > 0);
+
+  if (!hasAny) {
+    // Flat 1px lime line at bottom
+    return (
+      <svg
+        width={W}
+        height={H}
+        viewBox={`0 0 ${W} ${H}`}
+        style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0 }}
+        aria-hidden
+      >
+        <line x1={0} y1={H - 0.5} x2={W} y2={H - 0.5} stroke="var(--lime, #84cc16)" strokeWidth="1" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg
+      width={W}
+      height={H}
+      viewBox={`0 0 ${W} ${H}`}
+      style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0 }}
+      aria-hidden
+    >
+      {bins.map((bin, i) => {
+        const x = i * (BAR_W + BAR_GAP);
+        const barH = Math.max(1, (bin.total / maxTotal) * MAX_H);
+        const y = H - barH;
+
+        // Stacked: TYPE_A (lime) bottom, TYPE_B (amber) middle, TYPE_C (cyan) top
+        const tA = bin.typeA / Math.max(1, bin.total);
+        const tB = bin.typeB / Math.max(1, bin.total);
+        const tC = bin.typeC / Math.max(1, bin.total);
+
+        const hA = barH * tA;
+        const hB = barH * tB;
+        const hC = barH * tC;
+
+        return (
+          <g key={i}>
+            {hA > 0 && (
+              <rect
+                x={x} y={H - hA}
+                width={BAR_W} height={hA}
+                fill="var(--lime, #84cc16)"
+              />
+            )}
+            {hB > 0 && (
+              <rect
+                x={x} y={H - hA - hB}
+                width={BAR_W} height={hB}
+                fill="var(--amber, #f59e0b)"
+              />
+            )}
+            {hC > 0 && (
+              <rect
+                x={x} y={H - hA - hB - hC}
+                width={BAR_W} height={hC}
+                fill="var(--cyan, #06b6d4)"
+              />
+            )}
+            {bin.total === 0 && (
+              <line
+                x1={x} y1={H - 0.5} x2={x + BAR_W} y2={H - 0.5}
+                stroke="var(--lime, #84cc16)" strokeWidth="1"
+              />
+            )}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+// ─── Connection Dot Tooltip ───────────────────────────────────────────────────
+
+interface DotTooltipProps {
+  connected: boolean;
+  lastTickAgo: string;
+  pnl: number;
+  visible: boolean;
+}
+
+function DotTooltip({ connected, lastTickAgo, pnl, visible }: DotTooltipProps) {
+  if (!visible) return null;
+  const pnlStr = (pnl >= 0 ? '+' : '') + '$' + pnl.toFixed(2);
+  return (
+    <span
+      style={{
+        position: 'absolute',
+        top: '36px',
+        right: '16px',
+        fontFamily: "'JetBrains Mono', monospace",
+        fontSize: '11px',
+        color: 'var(--text)',
+        background: 'var(--surface-2)',
+        padding: '4px 6px',
+        borderRadius: '3px',
+        border: '1px solid var(--rule)',
+        whiteSpace: 'nowrap',
+        pointerEvents: 'none',
+        zIndex: 100,
+        lineHeight: 1.4,
+      }}
+    >
+      connected: {connected ? 'true' : 'false'} • last tick: {lastTickAgo} • pnl: {pnlStr}
+    </span>
+  );
+}
+
+// ─── Session Stats Tooltip ────────────────────────────────────────────────────
+
+interface StatsTipProps {
+  barCount: number;
+  signalCount: number;
+  sessionAge: string;
+  visible: boolean;
+}
+
+function StatsTip({ barCount, signalCount, sessionAge, visible }: StatsTipProps) {
+  if (!visible) return null;
+  return (
+    <span
+      style={{
+        position: 'absolute',
+        top: '36px',
+        right: '40px',
+        fontFamily: "'JetBrains Mono', monospace",
+        fontSize: '11px',
+        color: 'var(--text)',
+        background: 'var(--surface-2)',
+        padding: '4px 6px',
+        borderRadius: '3px',
+        border: '1px solid var(--rule)',
+        whiteSpace: 'nowrap',
+        pointerEvents: 'none',
+        zIndex: 100,
+        lineHeight: 1.4,
+      }}
+    >
+      {barCount} bars received • {signalCount} signals fired • session started {sessionAge}
+    </span>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+
 export function HeaderStrip() {
   // Store selectors — READ ONLY, never mutate
   const score = useTradingStore((s) => s.score);
   const status = useTradingStore((s) => s.status);
   const lastBarVersion = useTradingStore((s) => s.lastBarVersion);
-  void lastBarVersion; // trigger re-render on new bar
+  const lastSignalVersion = useTradingStore((s) => s.lastSignalVersion);
+  void lastBarVersion;
+  void lastSignalVersion;
 
-  // Price + direction tracking
+  // ── Price + direction tracking ──
   const priceRef = useRef<number | null>(null);
   const [price, setPrice] = useState<number | null>(null);
   const [priceDelta, setPriceDelta] = useState<number>(0);
   const [priceFlash, setPriceFlash] = useState<'ask' | 'bid' | null>(null);
   const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Session stats — updated every 2s to avoid re-render thrash
+  // ── Sparkline prices (last 30 close prices) ──
+  const [sparkPrices, setSparkPrices] = useState<number[]>([]);
+
+  // ── Signals-per-minute bins ──
+  const [spmBins, setSpmBins] = useState<SignalBin[]>(() =>
+    Array.from({ length: 10 }, () => ({ typeA: 0, typeB: 0, typeC: 0, total: 0 }))
+  );
+
+  // ── Session stats ──
   const [barCount, setBarCount] = useState(0);
   const [signalCount, setSignalCount] = useState(0);
+  const sessionStartRef = useRef<number>(Date.now());
 
-  // Update price from latest bar
+  // ── Clock ──
+  const [clockBase, setClockBase] = useState('--:--:-- ET');
+  const [dotVisible, setDotVisible] = useState(false);
+
+  // ── Tooltip state ──
+  const [dotHovered, setDotHovered] = useState(false);
+  const [statsHovered, setStatsHovered] = useState(false);
+
+  // ── Update price + sparkline from latest bar ──
   useEffect(() => {
-    const latestBar = useTradingStore.getState().bars.latest;
+    const state = useTradingStore.getState();
+    const latestBar = state.bars.latest;
     if (!latestBar) return;
+
     const newPrice = latestBar.close;
     const prev = priceRef.current;
-    priceRef.current = newPrice;
-    setPrice(newPrice);
+
+    // Only flash if price actually changed (guards against remount)
     if (prev !== null && prev !== newPrice) {
       const delta = newPrice - prev;
       setPriceDelta(delta);
@@ -52,11 +296,17 @@ export function HeaderStrip() {
       if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
       flashTimerRef.current = setTimeout(() => setPriceFlash(null), 300);
     }
+    priceRef.current = newPrice;
+    setPrice(newPrice);
+
+    // Extract last 30 close prices
+    const allBars = state.bars.toArray();
+    const last30 = allBars.slice(-30).map((b) => b.close);
+    setSparkPrices(last30);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastBarVersion]);
 
-  // Clock — ET (America/New_York)
-  const [clock, setClock] = useState('--:--:-- ET');
+  // ── Clock — ET (America/New_York) with pulsing dot ──
   useEffect(() => {
     function tick() {
       const now = new Date();
@@ -67,26 +317,51 @@ export function HeaderStrip() {
         second: '2-digit',
         hour12: false,
       });
-      setClock(`${et} ET`);
+      setClockBase(`${et} ET`);
+      // Pulse: dot visible for first 300ms of each second
+      const ms = now.getMilliseconds();
+      setDotVisible(ms < 300);
     }
     tick();
-    const id = setInterval(tick, 1000);
+    // Tick every 100ms to catch the pulse window reliably
+    const id = setInterval(tick, 100);
     return () => clearInterval(id);
   }, []);
 
-  // Session stats — poll every 2s
+  // ── Session stats + SPM bins — poll every 2s ──
   useEffect(() => {
     function sample() {
       const state = useTradingStore.getState();
       setBarCount(state.bars.size);
       setSignalCount(state.signals.size);
+
+      // Compute signals-per-minute over last 10 minutes
+      const nowSec = Date.now() / 1000;
+      const bins: SignalBin[] = Array.from({ length: 10 }, () => ({
+        typeA: 0, typeB: 0, typeC: 0, total: 0,
+      }));
+
+      const allSignals = state.signals.toArray();
+      for (const sig of allSignals) {
+        const ageMin = (nowSec - sig.ts) / 60;
+        const binIdx = Math.floor(ageMin); // 0 = current minute, 9 = 9 min ago
+        if (binIdx >= 0 && binIdx < 10) {
+          bins[9 - binIdx].total++;
+          if (sig.tier === 'TYPE_A') bins[9 - binIdx].typeA++;
+          else if (sig.tier === 'TYPE_B') bins[9 - binIdx].typeB++;
+          else if (sig.tier === 'TYPE_C') bins[9 - binIdx].typeC++;
+        }
+      }
+      setSpmBins(bins);
     }
     sample();
     const id = setInterval(sample, 2000);
     return () => clearInterval(id);
   }, []);
 
-  // Price color
+  // ── Derived values ──
+
+  // Price color — flash overrides, settles to --text
   const priceColor =
     priceFlash === 'ask'
       ? 'var(--ask)'
@@ -94,12 +369,10 @@ export function HeaderStrip() {
       ? 'var(--bid)'
       : 'var(--text)';
 
-  // Delta display
   const deltaIsPositive = priceDelta >= 0;
   const deltaSymbol = deltaIsPositive ? '▲' : '▼';
   const deltaColor = deltaIsPositive ? 'var(--ask)' : 'var(--bid)';
 
-  // E10 direction color
   const e10Color =
     score.kronosDirection === 'LONG'
       ? 'var(--ask)'
@@ -107,7 +380,6 @@ export function HeaderStrip() {
       ? 'var(--bid)'
       : 'var(--text-mute)';
 
-  // GEX regime color
   const gexColor =
     score.gexRegime === 'POS_GAMMA'
       ? 'var(--ask)'
@@ -115,15 +387,10 @@ export function HeaderStrip() {
       ? 'var(--bid)'
       : 'var(--text-mute)';
 
-  // Connection dot state
+  // Connection dot
   let dotColor: string;
   let dotClass: string;
   let dotGlow: string;
-  const dotTooltip = status.connected
-    ? `connected: true / last-tick: ${status.lastTs > 0 ? ((Date.now() / 1000 - status.lastTs).toFixed(1) + 's ago') : 'n/a'} / pnl: ${status.pnl >= 0 ? '+' : ''}$${status.pnl.toFixed(2)}`
-    : status.feedStale
-    ? 'Feed stale — reconnecting…'
-    : 'Disconnected';
 
   if (status.connected && !status.feedStale) {
     dotColor = 'var(--ask)';
@@ -139,14 +406,28 @@ export function HeaderStrip() {
     dotGlow = 'none';
   }
 
-  // Thin vertical rule separator
+  // Last tick age for tooltip
+  const lastTickAgo =
+    status.lastTs > 0
+      ? (Date.now() / 1000 - status.lastTs).toFixed(1) + 's ago'
+      : 'n/a';
+
+  // Session age
+  const sessionAgeSec = Math.floor((Date.now() - sessionStartRef.current) / 1000);
+  const sessionAgeStr =
+    sessionAgeSec < 60
+      ? `${sessionAgeSec}s ago`
+      : `${Math.floor(sessionAgeSec / 60)}m ago`;
+
+  // ── Sub-components (inline to avoid prop-drilling) ──
+
   const PipeSep = () => (
     <span
       aria-hidden
       style={{
         display: 'inline-block',
         width: '1px',
-        height: '18px',
+        height: '16px',
         background: 'var(--rule)',
         flexShrink: 0,
         margin: '0 12px',
@@ -155,7 +436,6 @@ export function HeaderStrip() {
     />
   );
 
-  // Section pill — subtle hover border top+bottom
   const SectionPill = ({ children }: { children: React.ReactNode }) => {
     const [hovered, setHovered] = useState(false);
     return (
@@ -180,7 +460,7 @@ export function HeaderStrip() {
 
   return (
     <>
-      {/* Inline keyframes — avoids touching globals.css */}
+      {/* Inline keyframes */}
       <style>{`
         @keyframes dot-breathe-connected {
           0%, 100% { opacity: 0.7; transform: scale(1.0); }
@@ -196,9 +476,18 @@ export function HeaderStrip() {
         .dot-breathe-stale {
           animation: dot-breathe-stale 2s ease-in-out infinite;
         }
+        @keyframes clock-dot-pulse {
+          0%   { opacity: 1.0; }
+          60%  { opacity: 0.15; }
+          100% { opacity: 0.15; }
+        }
+        .clock-dot-pulse {
+          animation: clock-dot-pulse 1s steps(1, end) infinite;
+        }
         @media (prefers-reduced-motion: reduce) {
           .dot-breathe-connected,
-          .dot-breathe-stale {
+          .dot-breathe-stale,
+          .clock-dot-pulse {
             animation: none;
           }
         }
@@ -218,12 +507,11 @@ export function HeaderStrip() {
           position: 'relative',
         }}
       >
-        {/* DEEP6 ▸ NQ ▸ price delta */}
+        {/* DEEP6 ▸ NQ ▸ price delta [sparkline] */}
         <span className="text-md label-tracked" style={{ color: 'var(--text)' }}>
           DEEP6
         </span>
 
-        {/* ▸ — smaller, muted, baseline aligned */}
         <span
           style={{
             fontSize: '80%',
@@ -254,9 +542,9 @@ export function HeaderStrip() {
           ▸
         </span>
 
-        {/* Price — flash color, then settle */}
+        {/* Price — flash on tick, settle to --text */}
         <span
-          className={`text-md tnum${priceFlash ? ` flash-${priceFlash}` : ''}`}
+          className="text-md tnum"
           style={{
             color: priceColor,
             transition: priceFlash ? undefined : 'color 150ms ease-out',
@@ -271,7 +559,7 @@ export function HeaderStrip() {
             : '—'}
         </span>
 
-        {/* Delta — static direction color, never flashing */}
+        {/* Delta */}
         {price !== null && priceDelta !== 0 ? (
           <span className="text-sm tnum" style={{ color: deltaColor }}>
             {deltaSymbol}{deltaIsPositive ? '+' : ''}
@@ -281,17 +569,41 @@ export function HeaderStrip() {
           <span style={{ minWidth: 52 }} />
         )}
 
+        {/* Sparkline — inline after delta */}
+        <PriceSparkline prices={sparkPrices} />
+
         <PipeSep />
 
         {/* E10 section */}
         <SectionPill>
-          <span className="text-xs label-tracked" style={{ color: 'var(--text-dim)' }}>
+          <span
+            style={{
+              fontSize: '11px',
+              letterSpacing: '0.08em',
+              color: 'var(--text-mute)',
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
             E10
           </span>
-          <span className="text-sm tnum" style={{ color: 'var(--magenta)' }}>
+          <span
+            style={{
+              fontSize: '13px',
+              fontWeight: 600,
+              fontVariantNumeric: 'tabular-nums',
+              color: 'var(--magenta)',
+            }}
+          >
             {score.kronosBias ? `${Math.round(score.kronosBias)}%` : '—'}
           </span>
-          <span className="text-sm label-tracked" style={{ color: e10Color }}>
+          <span
+            style={{
+              fontSize: '13px',
+              fontWeight: 600,
+              letterSpacing: '0.04em',
+              color: e10Color,
+            }}
+          >
             {score.kronosDirection || 'NEUTRAL'}
           </span>
         </SectionPill>
@@ -300,50 +612,123 @@ export function HeaderStrip() {
 
         {/* GEX section */}
         <SectionPill>
-          <span className="text-xs label-tracked" style={{ color: 'var(--text-dim)' }}>
+          <span
+            style={{
+              fontSize: '11px',
+              letterSpacing: '0.08em',
+              color: 'var(--text-mute)',
+            }}
+          >
             GEX
           </span>
-          <span className="text-sm label-tracked" style={{ color: gexColor }}>
+          <span
+            style={{
+              fontSize: '13px',
+              fontWeight: 600,
+              letterSpacing: '0.04em',
+              color: gexColor,
+            }}
+          >
             {score.gexRegime || 'NEUTRAL'}
           </span>
         </SectionPill>
 
         <PipeSep />
 
-        {/* Clock section */}
+        {/* Clock — HH:MM:SS.● ET, dot pulses 1Hz */}
         <SectionPill>
-          <span className="text-xs tnum" style={{ color: 'var(--text-dim)' }}>
-            {clock}
+          <span
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: '13px',
+              fontVariantNumeric: 'tabular-nums',
+              color: 'var(--text-dim)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 1,
+            }}
+          >
+            {clockBase.replace(' ET', '')}
+            <span
+              style={{
+                display: 'inline-block',
+                width: '4px',
+                height: '4px',
+                borderRadius: '50%',
+                background: 'var(--text-mute)',
+                opacity: dotVisible ? 1 : 0.15,
+                transition: 'opacity 80ms ease',
+                marginLeft: 1,
+                marginRight: 2,
+                flexShrink: 0,
+                alignSelf: 'center',
+              }}
+            />
+            <span style={{ color: 'var(--text-dim)', fontSize: '11px', letterSpacing: '0.04em' }}>ET</span>
           </span>
         </SectionPill>
 
-        {/* Right side — pushed to far right */}
+        {/* Right side */}
         <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
           <PipeSep />
 
-          {/* Session stats B:/S: */}
+          {/* Signals-per-minute chart */}
+          <span
+            title="Signals fired per minute (last 10 min). Lime=TYPE_A, Amber=TYPE_B, Cyan=TYPE_C"
+            style={{ display: 'inline-flex', alignItems: 'center' }}
+          >
+            <SpmChart bins={spmBins} />
+          </span>
+
+          <PipeSep />
+
+          {/* Session stats B:/S: — tabular nums, right-aligned 3-digit */}
           <span
             className="text-xs tnum"
+            onMouseEnter={() => setStatsHovered(true)}
+            onMouseLeave={() => setStatsHovered(false)}
             style={{
               color: 'var(--text-dim)',
-              display: 'flex',
+              display: 'inline-flex',
               gap: 10,
               letterSpacing: 0,
+              cursor: 'default',
+              fontVariantNumeric: 'tabular-nums',
             }}
           >
             <span>
-              B:{' '}
-              <span style={{ color: 'var(--text-mute)' }}>{barCount}</span>
+              {'B:'}
+              <span
+                style={{
+                  color: 'var(--text-mute)',
+                  display: 'inline-block',
+                  minWidth: '3ch',
+                  textAlign: 'right',
+                  paddingLeft: 3,
+                }}
+              >
+                {barCount}
+              </span>
             </span>
             <span>
-              S:{' '}
-              <span style={{ color: 'var(--text-mute)' }}>{signalCount}</span>
+              {'S:'}
+              <span
+                style={{
+                  color: 'var(--text-mute)',
+                  display: 'inline-block',
+                  minWidth: '3ch',
+                  textAlign: 'right',
+                  paddingLeft: 3,
+                }}
+              >
+                {signalCount}
+              </span>
             </span>
           </span>
 
           <PipeSep />
 
-          {/* Connection dot — 10px, glow when connected */}
+          {/* Connection dot */}
           <span
             className={dotClass}
             aria-label={
@@ -353,7 +738,8 @@ export function HeaderStrip() {
                 ? 'feed stale'
                 : 'disconnected'
             }
-            title={dotTooltip}
+            onMouseEnter={() => setDotHovered(true)}
+            onMouseLeave={() => setDotHovered(false)}
             style={{
               width: '10px',
               height: '10px',
@@ -362,9 +748,26 @@ export function HeaderStrip() {
               display: 'inline-block',
               flexShrink: 0,
               boxShadow: dotGlow,
+              cursor: 'default',
             }}
           />
         </span>
+
+        {/* Dot tooltip */}
+        <DotTooltip
+          connected={status.connected}
+          lastTickAgo={lastTickAgo}
+          pnl={status.pnl}
+          visible={dotHovered}
+        />
+
+        {/* Stats tooltip */}
+        <StatsTip
+          barCount={barCount}
+          signalCount={signalCount}
+          sessionAge={sessionAgeStr}
+          visible={statsHovered}
+        />
       </header>
     </>
   );
