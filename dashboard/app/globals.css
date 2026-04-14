@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+/* === DEEP6 Design Tokens (per UI-SPEC §Color) === */
+:root {
+  --bg-base: #0a0a0f;
+  --bg-surface: #111118;
+  --bg-elevated: #16161f;
+  --border-subtle: #1e1e2e;
+
+  --bid: #ef4444;
+  --ask: #22c55e;
+
+  --type-a: #a3e635;
+  --type-b: #facc15;
+  --type-c: #38bdf8;
+
+  --score-high: #a3e635;
+  --score-mid: #facc15;
+  --score-low: #6b7280;
+
+  --muted: #6b7280;
+  --foreground: #e4e4e7;
+  --foreground-strong: #fafafa;
+
+  --destructive: #ef4444;
+
+  /* Zone overlays — all with transparency */
+  --zone-lvn: rgba(56, 189, 248, 0.12);
+  --zone-hvn: rgba(250, 204, 21, 0.10);
+  --zone-absorption: rgba(163, 230, 53, 0.15);
+  --zone-gex-call: rgba(34, 197, 94, 0.10);
+  --zone-gex-put: rgba(239, 68, 68, 0.10);
+
+  /* LW Charts specific — must be passed as hex/rgba strings to chart options */
+  --lw-bg: #0a0a0f;
+  --lw-grid: #1e1e2e;
+  --lw-crosshair: #6b7280;
+  --lw-scale-text: #6b7280;
+
+  /* Font stacks */
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+}
+
+/* === Tailwind v4 theme mapping === */
+@theme inline {
+  --color-bg-base: var(--bg-base);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-border-subtle: var(--border-subtle);
+  --color-bid: var(--bid);
+  --color-ask: var(--ask);
+  --color-type-a: var(--type-a);
+  --color-type-b: var(--type-b);
+  --color-type-c: var(--type-c);
+  --color-score-high: var(--score-high);
+  --color-score-mid: var(--score-mid);
+  --color-score-low: var(--score-low);
+  --color-muted: var(--muted);
+  --color-fg: var(--foreground);
+  --color-fg-strong: var(--foreground-strong);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+html, body {
+  background: var(--bg-base);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.font-mono, .mono { font-family: var(--font-mono); line-height: 1.0; }
+
+/* TYPE_A pulse — per UI-SPEC §Signal Feed §Animation */
+@keyframes typeAPulse {
+  0%   { background-color: rgba(163, 230, 53, 0); }
+  50%  { background-color: rgba(163, 230, 53, 0.18); }
+  100% { background-color: rgba(163, 230, 53, 0); }
+}
+
+.signal-type-a-pulse {
+  animation: typeAPulse 1000ms ease-in-out 1 forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .signal-type-a-pulse { animation: none; }
+}
