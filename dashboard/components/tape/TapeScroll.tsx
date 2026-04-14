@@ -1,16 +1,39 @@
 'use client';
 /**
- * TapeScroll.tsx — per UI-SPEC v2 §4.4
+ * TapeScroll.tsx — per UI-SPEC v2 §4.4 (11.3 upgrade)
  *
- * - 18px rows (TapeRow)
- * - Auto-scroll to top on new rows UNLESS user has scrolled up
- * - "↓ NEW (N)" pill at bottom-right when user has scrolled up
- * - Empty state: // no prints yet
+ * Upgrades from 11.2 baseline:
+ * - 20px rows via TapeRow upgrade
+ * - Floating "↓ NEW (N)" pill styled as surface-2 / rule-bright / lime count
+ * - Empty state with blinking cursor: // no prints yet_
+ * - Scroll pill right-aligned, floats above content
  */
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { useTradingStore } from '@/store/tradingStore';
 import { TapeRow } from './TapeRow';
 import type { TapeEntry } from '@/types/deep6';
+
+// ── Blinking cursor ───────────────────────────────────────────────────────────
+
+function BlinkingCursor() {
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    const id = setInterval(() => setVisible((v) => !v), 500);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <span
+      style={{
+        color: 'var(--text-mute)',
+        opacity: visible ? 1 : 0,
+        transition: 'opacity 60ms',
+        userSelect: 'none',
+      }}
+    >
+      _
+    </span>
+  );
+}
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -57,10 +80,12 @@ export function TapeScroll() {
 
   const scrollToTop = useCallback(() => {
     const el = containerRef.current;
-    if (el) el.scrollTop = 0;
+    if (el) el.scrollTo({ top: 0, behavior: 'smooth' });
     setUserScrolled(false);
     setNewCount(0);
   }, []);
+
+  // ── Empty state ─────────────────────────────────────────────────────────────
 
   if (displayTape.length === 0) {
     return (
@@ -74,14 +99,20 @@ export function TapeScroll() {
         }}
       >
         <span
-          className="text-xs"
-          style={{ color: 'var(--text-mute)', fontStyle: 'normal' }}
+          style={{
+            color: 'var(--text-mute)',
+            fontSize: 11,
+            fontStyle: 'normal',
+          }}
         >
           // no prints yet
+          <BlinkingCursor />
         </span>
       </div>
     );
   }
+
+  // ── Tape list ───────────────────────────────────────────────────────────────
 
   return (
     <div
@@ -110,7 +141,7 @@ export function TapeScroll() {
         ))}
       </div>
 
-      {/* "↓ NEW (N)" pill */}
+      {/* Floating "↓ NEW (N)" pill — styled per spec: surface-2 bg, rule-bright border, lime N */}
       {userScrolled && newCount > 0 && (
         <button
           onClick={scrollToTop}
@@ -119,16 +150,23 @@ export function TapeScroll() {
             bottom: 8,
             right: 8,
             background: 'var(--surface-2)',
-            color: 'var(--text)',
             border: '1px solid var(--rule-bright)',
             borderRadius: 9999,
-            padding: '2px 8px',
+            padding: '3px 10px',
             fontSize: 11,
             cursor: 'pointer',
             zIndex: 10,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            color: 'var(--text-dim)',
+            letterSpacing: '0.04em',
           }}
         >
-          ↓ NEW ({newCount})
+          <span>↓ NEW</span>
+          <span style={{ color: 'var(--lime)', fontWeight: 700 }}>
+            ({newCount})
+          </span>
         </button>
       )}
     </div>
