@@ -3,8 +3,8 @@
 /**
  * CRTSweep — 1px horizontal bar sweeping top→bottom every 8s (UI-SPEC §6).
  * Pure CSS keyframe animation via `crt-sweep` class defined in globals.css.
- * Reduced-motion is handled by the global @media rule in globals.css —
- * the animation-duration collapses to 0.01ms so it effectively disappears.
+ * Opacity bumped to 5% for slightly more visibility on dark backgrounds.
+ * Reduced-motion: CSS @media in globals.css collapses animation-duration to 0.01ms.
  * pointer-events: none, z-index: 4.
  */
 export function CRTSweep() {
@@ -18,9 +18,11 @@ export function CRTSweep() {
         left: 0,
         right: 0,
         height: '1px',
-        background: 'rgba(255,255,255,0.04)',
+        background: 'rgba(255,255,255,0.05)',
         pointerEvents: 'none',
         zIndex: 4,
+        // Ensure no sub-pixel rounding makes this disappear on Retina
+        willChange: 'transform',
       }}
     />
   );

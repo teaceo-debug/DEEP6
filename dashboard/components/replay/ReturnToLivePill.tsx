@@ -5,8 +5,10 @@
  * Replay mode: outlined --rule-bright border, --text-dim text, ● (grey) LIVE,
  *              click → setMode('live') + setPanned(false)
  *
- * Also renders as absolute top-right pill when userHasPanned is true (ReturnToLive overlay).
- * That overlay uses scale spring on appear, fade+scale on dismiss.
+ * Pill: auto-width, min 90px, 6px 12px padding, 1px --rule-bright border.
+ * Dot: exactly 6px × 6px, border-radius 50%, vertically centered via flex.
+ * Hover: scale(1.05) 150ms ease.
+ * Also renders as absolute top-right pill (12px from edges) when userHasPanned.
  */
 'use client';
 import { motion, useReducedMotion } from 'motion/react';
@@ -18,14 +20,26 @@ import { DURATION, SPRING } from '@/lib/animations';
 const BASE_PILL: React.CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
-  gap: 5,
+  gap: 6,
   fontWeight: 600,
   fontSize: 11,
-  padding: '4px 10px',
+  padding: '6px 12px',
   borderRadius: 9999,
   letterSpacing: '0.08em',
   fontFamily: 'var(--font-jetbrains-mono)',
   userSelect: 'none',
+  minWidth: 90,
+  border: '1px solid var(--rule-bright)',
+  whiteSpace: 'nowrap',
+};
+
+// Exactly 6px dot, vertically centered via flex parent
+const DOT_BASE: React.CSSProperties = {
+  width: 6,
+  height: 6,
+  borderRadius: '50%',
+  flexShrink: 0,
+  display: 'block',
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -54,54 +68,39 @@ export function ReturnToLivePill() {
           transition={
             reduced
               ? { duration: 0 }
-              : { duration: DURATION.slow / 1000 * 3, repeat: Infinity, ease: 'easeInOut' } // 1500ms live pill breathe
+              : { duration: DURATION.slow / 1000 * 3, repeat: Infinity, ease: 'easeInOut' }
           }
           style={{
             ...BASE_PILL,
             background: 'var(--ask)',
+            borderColor: 'var(--ask)',
             color: '#000000',
             cursor: 'default',
           }}
         >
-          {/* Green dot */}
-          <span
-            style={{
-              width: 6,
-              height: 6,
-              borderRadius: '50%',
-              background: '#000000',
-              opacity: 0.6,
-              flexShrink: 0,
-            }}
-          />
+          {/* Green dot — contrasting on --ask fill */}
+          <span style={{ ...DOT_BASE, background: 'rgba(0,0,0,0.5)' }} />
           LIVE
         </motion.div>
       ) : (
         // Replay: outlined, click returns to live
-        <button
+        <motion.button
           onClick={handleClick}
           title="Switch to live mode"
           aria-label="Switch to live mode"
+          whileHover={reduced ? {} : { scale: 1.05 }}
+          transition={{ duration: 0.15, ease: 'easeOut' }}
           style={{
             ...BASE_PILL,
             background: 'transparent',
             color: 'var(--text-dim)',
-            border: '1px solid var(--rule-bright)',
             cursor: 'pointer',
           }}
         >
           {/* Grey dot */}
-          <span
-            style={{
-              width: 6,
-              height: 6,
-              borderRadius: '50%',
-              background: 'var(--text-mute)',
-              flexShrink: 0,
-            }}
-          />
+          <span style={{ ...DOT_BASE, background: 'var(--text-mute)' }} />
           LIVE
-        </button>
+        </motion.button>
       )}
 
       {/* ── Chart overlay pill — appears when user has panned away ── */}
@@ -111,20 +110,21 @@ export function ReturnToLivePill() {
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.85 }}
+          whileHover={reduced ? {} : { scale: 1.05 }}
           transition={
             reduced
               ? { duration: 0 }
-              : { type: 'spring', stiffness: 400, damping: 28 } // intentionally above SPRING.pop — extra-snappy overlay appear
+              : { type: 'spring', stiffness: 400, damping: 28 }
           }
           style={{
             position: 'fixed',
-            top: 56,   // below header + small gap
+            top: 56,
             right: 12,
             zIndex: 20,
             ...BASE_PILL,
             background: 'var(--surface-1)',
             color: 'var(--lime)',
-            border: '1px solid var(--rule-bright)',
+            borderColor: 'var(--rule-bright)',
             cursor: 'pointer',
             fontSize: 11,
           }}
