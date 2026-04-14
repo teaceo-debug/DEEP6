@@ -789,56 +789,59 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
         }
 
         // Aggregates chain gamma × OI × 100 × spot² × 0.01 × sign(call=+1, put=-1) per strike.
-        // Returns null on failure (caller logs and keeps last good profile).
+        // Throws on HTTP/parse failure with a descriptive message — caller catches and Prints.
         public async Task<GexProfile> FetchAsync(string underlying, CancellationToken ct = default(CancellationToken))
         {
-            try
-            {
-                var byStrike = new Dictionary<double, double>();
-                double spot = 0;
-                string url = string.Format("/v3/snapshot/options/{0}?limit=250", underlying);
-                int safetyPages = 0;
+            var byStrike = new Dictionary<double, double>();
+            double spot = 0;
+            int contractsParsed = 0;
+            string url = string.Format("/v3/snapshot/options/{0}?limit=250", underlying);
+            int safetyPages = 0;
 
-                while (!string.IsNullOrEmpty(url) && safetyPages < 20)
+            while (!string.IsNullOrEmpty(url) && safetyPages < 20)
+            {
+                safetyPages++;
+                var req = new HttpRequestMessage(HttpMethod.Get, url);
+                var resp = await _http.SendAsync(req, ct).ConfigureAwait(false);
+                if (!resp.IsSuccessStatusCode)
                 {
-                    safetyPages++;
-                    var req = new HttpRequestMessage(HttpMethod.Get, url);
-                    var resp = await _http.SendAsync(req, ct).ConfigureAwait(false);
-                    if (!resp.IsSuccessStatusCode) return null;
-                    var json = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-                    // Manual JSON parse — NT8's compile env doesn't reference
-                    // System.Runtime.Serialization.Json, so we walk each "results" item by brace matching.
-                    string nextUrl = ExtractStringField(json, "next_url");
-                    foreach (var obj in ExtractResultObjects(json))
-                    {
-                        int openInterest = ExtractIntField(obj, "open_interest");
-                        if (openInterest <= 0) continue;
-                        double gamma = ExtractDoubleField(obj, "gamma");
-                        if (gamma == 0) continue;
-                        double strike = ExtractDoubleField(obj, "strike_price");
-                        if (strike == 0) continue;
-                        string ctype = ExtractStringField(obj, "contract_type");
-                        if (string.IsNullOrEmpty(ctype)) continue;
-                        double localSpot = ExtractDoubleFieldInside(obj, "underlying_asset", "price");
-                        if (localSpot > 0) spot = localSpot;
-                        double sign = string.Equals(ctype, "call", StringComparison.OrdinalIgnoreCase) ? +1.0 : -1.0;
-                        double gex = gamma * openInterest * 100.0 * spot * spot * 0.01 * sign;
-                        double acc;
-                        byStrike.TryGetValue(strike, out acc);
-                        byStrike[strike] = acc + gex;
-                    }
-                    url = nextUrl;
-                    if (!string.IsNullOrEmpty(url) && url.StartsWith(_baseUrl)) url = url.Substring(_baseUrl.Length);
+                    string body = string.Empty;
+                    try { body = await resp.Content.ReadAsStringAsync().ConfigureAwait(false); } catch { }
+                    if (body.Length > 200) body = body.Substring(0, 200);
+                    throw new HttpRequestException(string.Format("HTTP {0} {1} for {2}. Body: {3}",
+                        (int)resp.StatusCode, resp.StatusCode, url, body));
                 }
+                var json = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
 
-                if (spot == 0 || byStrike.Count == 0) return null;
-                return GexProfile.FromChain(underlying, spot, byStrike);
+                string nextUrl = ExtractStringField(json, "next_url");
+                foreach (var obj in ExtractResultObjects(json))
+                {
+                    int openInterest = ExtractIntField(obj, "open_interest");
+                    if (openInterest <= 0) continue;
+                    double gamma = ExtractDoubleField(obj, "gamma");
+                    if (gamma == 0) continue;
+                    double strike = ExtractDoubleField(obj, "strike_price");
+                    if (strike == 0) continue;
+                    string ctype = ExtractStringField(obj, "contract_type");
+                    if (string.IsNullOrEmpty(ctype)) continue;
+                    double localSpot = ExtractDoubleFieldInside(obj, "underlying_asset", "price");
+                    if (localSpot > 0) spot = localSpot;
+                    double sign = string.Equals(ctype, "call", StringComparison.OrdinalIgnoreCase) ? +1.0 : -1.0;
+                    double gex = gamma * openInterest * 100.0 * spot * spot * 0.01 * sign;
+                    double acc;
+                    byStrike.TryGetValue(strike, out acc);
+                    byStrike[strike] = acc + gex;
+                    contractsParsed++;
+                }
+                url = nextUrl;
+                if (!string.IsNullOrEmpty(url) && url.StartsWith(_baseUrl)) url = url.Substring(_baseUrl.Length);
             }
-            catch
-            {
-                return null;
-            }
+
+            if (spot == 0 || byStrike.Count == 0)
+                throw new InvalidOperationException(string.Format(
+                    "Parsed {0} contracts but spot={1}, strikes={2}. Likely API returned empty results array — verify symbol '{3}' and that your massive.com plan covers options chain snapshots.",
+                    contractsParsed, spot, byStrike.Count, underlying));
+            return GexProfile.FromChain(underlying, spot, byStrike);
         }
 
         public void Dispose() { _http.Dispose(); }
@@ -933,6 +936,21 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         private long _priorCvd;
         private FootprintBar _priorFinalized;
 
+        // ---- L2 Liquidity Walls (from Rithmic native depth feed) ----
+        // Per-price state: max size ever observed at this level + last-update timestamp + iceberg refill counter.
+        // OnMarketDepth populates these on the data thread; OnRender reads on the chart thread (locked snapshot).
+        private sealed class L2LevelState
+        {
+            public long CurrentSize;
+            public long MaxSize;
+            public DateTime LastUpdate;
+            public int RefillCount;
+        }
+        private readonly Dictionary<double, L2LevelState> _l2Bids = new Dictionary<double, L2LevelState>();
+        private readonly Dictionary<double, L2LevelState> _l2Asks = new Dictionary<double, L2LevelState>();
+        private readonly object _l2Lock = new object();
+        private DateTime _lastL2Prune = DateTime.MinValue;
+
         // volume EMA (for absorption thresholds) — simple 20-period EMA of TotalVol
         private double _volEma;
         private const double VolEmaAlpha = 2.0 / (20.0 + 1.0);
@@ -953,6 +971,8 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         private DateTime _lastGexFetch = DateTime.MinValue;
         private readonly TimeSpan _gexInterval = TimeSpan.FromMinutes(2);
         private CancellationTokenSource _gexCts;
+        // Status string updated through every fetch path; visible at top-right of chart and in NT8 Output Window.
+        private volatile string _gexStatus = "GEX: idle (no key)";
 
         // session reset tracking
         private DateTime _lastSessionDate = DateTime.MinValue;
@@ -960,7 +980,8 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         // SharpDX brushes (device-dependent)
         private SharpDX.Direct2D1.Brush _bidDx, _askDx, _textDx, _imbalBuyDx, _imbalSellDx,
                                          _pocDx, _vahDx, _valDx, _gexFlipDx, _gexCallWallDx,
-                                         _gexPutWallDx, _gexPosDx, _gexNegDx, _gridDx;
+                                         _gexPutWallDx, _gexPosDx, _gexNegDx, _gridDx,
+                                         _wallBidDx, _wallAskDx;
         private TextFormat _cellFont, _labelFont;
 
         protected override void OnStateChange()
@@ -991,6 +1012,10 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                 ExhaustWickMinPct       = 35.0;
                 CellFontSize            = 9f;
                 CellColumnWidth         = 80;
+                ShowLiquidityWalls      = true;
+                LiquidityWallMin        = 100;
+                LiquidityWallStaleSec   = 90;
+                LiquidityMaxPerSide     = 4;
 
                 BidCellBrush      = Brushes.IndianRed;
                 AskCellBrush      = Brushes.LimeGreen;
@@ -1005,6 +1030,8 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                 GexPutWallBrush   = Brushes.OrangeRed;
                 GexPositiveBrush  = MakeFrozenBrush(Color.FromArgb(180, 0, 180, 120));
                 GexNegativeBrush  = MakeFrozenBrush(Color.FromArgb(180, 200, 70, 70));
+                WallBidBrush      = MakeFrozenBrush(Color.FromArgb(220, 43, 140, 255));   // bright blue
+                WallAskBrush      = MakeFrozenBrush(Color.FromArgb(220, 255, 138, 61));   // warm orange
             }
             else if (State == State.Configure)
             {
@@ -1020,10 +1047,23 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                 _priorCvd = 0;
                 _priorFinalized = null;
 
-                if (ShowGexLevels && !string.IsNullOrWhiteSpace(GexApiKey))
+                if (!ShowGexLevels)
+                {
+                    _gexStatus = "GEX: disabled";
+                }
+                else if (string.IsNullOrWhiteSpace(GexApiKey))
+                {
+                    _gexStatus = "GEX: NO API KEY (set in indicator properties)";
+                    Print("[DEEP6] GEX disabled — set massive.com API key in indicator properties.");
+                }
+                else
                 {
                     _gexClient = new MassiveGexClient(GexApiKey);
                     _gexCts = new CancellationTokenSource();
+                    _gexStatus = "GEX: initializing — first fetch in progress";
+                    Print("[DEEP6] GEX client initialized. Fetching " + GexUnderlying + " chain from massive.com…");
+                    // Force first fetch immediately instead of waiting 2 minutes.
+                    _lastGexFetch = DateTime.MinValue;
                 }
             }
             else if (State == State.Terminated)
@@ -1057,6 +1097,54 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                 _bars[CurrentBar] = bar;
             }
             bar.AddTrade(e.Price, (long)e.Volume, aggressor);
+        }
+
+        // ---- L2 depth intake — populates _l2Bids / _l2Asks for Liquidity Wall detection ----
+
+        protected override void OnMarketDepth(MarketDepthEventArgs e)
+        {
+            if (!ShowLiquidityWalls) return;
+            if (e.Position >= 10) return;   // only top 10 ladder rungs
+
+            Dictionary<double, L2LevelState> dict;
+            if (e.MarketDataType == MarketDataType.Bid) dict = _l2Bids;
+            else if (e.MarketDataType == MarketDataType.Ask) dict = _l2Asks;
+            else return;
+
+            long newSize = e.Operation == Operation.Remove ? 0 : (long)e.Volume;
+
+            lock (_l2Lock)
+            {
+                L2LevelState st;
+                if (!dict.TryGetValue(e.Price, out st))
+                {
+                    st = new L2LevelState();
+                    dict[e.Price] = st;
+                }
+                // Iceberg detection: counted when level was hit hard then refilled to >50% of historical max.
+                if (st.MaxSize > 0 && st.CurrentSize < st.MaxSize * 0.5 && newSize >= st.MaxSize * 0.5)
+                    st.RefillCount++;
+                st.CurrentSize = newSize;
+                if (newSize > st.MaxSize) st.MaxSize = newSize;
+                st.LastUpdate = DateTime.UtcNow;
+
+                // Periodic prune of stale entries (price levels no longer active).
+                if ((DateTime.UtcNow - _lastL2Prune).TotalSeconds > 30)
+                {
+                    PruneL2(_l2Bids);
+                    PruneL2(_l2Asks);
+                    _lastL2Prune = DateTime.UtcNow;
+                }
+            }
+        }
+
+        private static void PruneL2(Dictionary<double, L2LevelState> dict)
+        {
+            var cutoff = DateTime.UtcNow.AddMinutes(-15);
+            var stale = new List<double>();
+            foreach (var kv in dict)
+                if (kv.Value.LastUpdate < cutoff) stale.Add(kv.Key);
+            foreach (var k in stale) dict.Remove(k);
         }
 
         // WPF brushes created off the UI thread (NT8 calls SetDefaults / OnRenderTargetChanged
@@ -1173,15 +1261,33 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             var ctsTok = _gexCts == null ? CancellationToken.None : _gexCts.Token;
             var client = _gexClient;
             var underlying = GexUnderlying;
+            var indicator = this;
+
+            _gexStatus = "GEX: fetching " + underlying + "…";
+            Print("[DEEP6] GEX fetch start: " + underlying + " @ " + DateTime.Now.ToString("HH:mm:ss"));
 
             Task.Run(async () =>
             {
                 try
                 {
                     var profile = await client.FetchAsync(underlying, ctsTok).ConfigureAwait(false);
-                    if (profile != null) _gexProfile = profile;
+                    if (profile != null && profile.Levels.Count > 0)
+                    {
+                        indicator._gexProfile = profile;
+                        indicator._gexStatus = "GEX: " + profile.Levels.Count + " levels @ " + DateTime.Now.ToString("HH:mm");
+                        indicator.Print("[DEEP6] GEX OK: " + profile.Levels.Count + " levels, spot " + profile.Spot.ToString("F2") + ", flip " + profile.GammaFlip.ToString("F2"));
+                    }
+                    else
+                    {
+                        indicator._gexStatus = "GEX: empty response (check API key, plan, underlying)";
+                        indicator.Print("[DEEP6] GEX FAIL: empty response. Verify (1) API key valid, (2) plan covers options chain snapshot, (3) underlying '" + underlying + "' exists, (4) auth header is Bearer.");
+                    }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    indicator._gexStatus = "GEX: ERROR " + ex.GetType().Name;
+                    indicator.Print("[DEEP6] GEX EXCEPTION: " + ex.GetType().Name + " — " + ex.Message);
+                }
             });
         }
 
@@ -1206,6 +1312,8 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             _gexPutWallDx = GexPutWallBrush.ToDxBrush(RenderTarget);
             _gexPosDx     = GexPositiveBrush.ToDxBrush(RenderTarget);
             _gexNegDx     = GexNegativeBrush.ToDxBrush(RenderTarget);
+            _wallBidDx    = WallBidBrush.ToDxBrush(RenderTarget);
+            _wallAskDx    = WallAskBrush.ToDxBrush(RenderTarget);
 
             _cellFont = new TextFormat(NinjaTrader.Core.Globals.DirectWriteFactory, "Consolas", CellFontSize)
             {
@@ -1227,6 +1335,7 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             DisposeBrush(ref _gridDx);
             DisposeBrush(ref _gexFlipDx); DisposeBrush(ref _gexCallWallDx); DisposeBrush(ref _gexPutWallDx);
             DisposeBrush(ref _gexPosDx); DisposeBrush(ref _gexNegDx);
+            DisposeBrush(ref _wallBidDx); DisposeBrush(ref _wallAskDx);
             if (_cellFont != null) { _cellFont.Dispose(); _cellFont = null; }
             if (_labelFont != null) { _labelFont.Dispose(); _labelFont = null; }
         }
@@ -1245,9 +1354,39 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             double tickSize = chartControl.Instrument.MasterInstrument.TickSize;
             float panelRight = (float)(ChartPanel.X + ChartPanel.W);
 
+            // GEX status badge in top-right corner — always visible so the user knows
+            // why levels are/aren't rendering. Color: green=OK, red=ERROR/NO KEY, gray=disabled.
+            {
+                string status = _gexStatus ?? string.Empty;
+                if (!string.IsNullOrEmpty(status))
+                {
+                    SharpDX.Direct2D1.Brush statusBrush;
+                    if (status.IndexOf("ERROR", StringComparison.Ordinal) >= 0 ||
+                        status.IndexOf("NO API KEY", StringComparison.Ordinal) >= 0 ||
+                        status.IndexOf("empty", StringComparison.Ordinal) >= 0)
+                        statusBrush = _gexPutWallDx;
+                    else if (status.IndexOf("levels", StringComparison.Ordinal) >= 0)
+                        statusBrush = _gexCallWallDx;
+                    else
+                        statusBrush = _textDx;
+
+                    using (var statusLayout = new TextLayout(NinjaTrader.Core.Globals.DirectWriteFactory,
+                                                              status, _labelFont, 380f, 18f))
+                    {
+                        RenderTarget.DrawTextLayout(
+                            new Vector2(panelRight - 384, (float)ChartPanel.Y + 4),
+                            statusLayout, statusBrush);
+                    }
+                }
+            }
+
             // GEX horizontal levels first (behind everything)
             if (ShowGexLevels && _gexProfile != null)
                 RenderGex(_gexProfile, chartControl, chartScale, panelRight);
+
+            // Liquidity Walls from Rithmic L2 — large persistent resting orders
+            if (ShowLiquidityWalls)
+                RenderLiquidityWalls(chartScale, panelRight);
 
             if (!ShowFootprintCells && !ShowPoc && !ShowValueArea) return;
 
@@ -1370,6 +1509,73 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             }
         }
 
+        // Renders Liquidity Walls (large persistent resting bids/asks from Rithmic L2).
+        // Only shows top N walls per side ranked by max-size; only shows fresh walls (recent depth update);
+        // line thickness scales with size; iceberg refills annotated with "ICE" tag.
+        private void RenderLiquidityWalls(ChartScale cs, float panelRight)
+        {
+            if (_wallBidDx == null || _wallAskDx == null) return;
+            double minVis = cs.MinValue;
+            double maxVis = cs.MaxValue;
+            DateTime fresh = DateTime.UtcNow.AddSeconds(-LiquidityWallStaleSec);
+
+            List<KeyValuePair<double, L2LevelState>> bidSnap, askSnap;
+            lock (_l2Lock)
+            {
+                bidSnap = new List<KeyValuePair<double, L2LevelState>>(_l2Bids);
+                askSnap = new List<KeyValuePair<double, L2LevelState>>(_l2Asks);
+            }
+
+            DrawWallsForSide(bidSnap, _wallBidDx, "BID", true,  fresh, minVis, maxVis, panelRight);
+            DrawWallsForSide(askSnap, _wallAskDx, "ASK", false, fresh, minVis, maxVis, panelRight);
+        }
+
+        private void DrawWallsForSide(
+            List<KeyValuePair<double, L2LevelState>> snap,
+            SharpDX.Direct2D1.Brush brush,
+            string side,
+            bool isBid,
+            DateTime fresh,
+            double minVis,
+            double maxVis,
+            float panelRight)
+        {
+            // Filter eligible walls: meet size threshold, recently updated, in visible range.
+            var walls = new List<KeyValuePair<double, L2LevelState>>();
+            foreach (var kv in snap)
+            {
+                if (kv.Value.MaxSize < LiquidityWallMin) continue;
+                if (kv.Value.LastUpdate < fresh) continue;
+                if (kv.Key < minVis || kv.Key > maxVis) continue;
+                walls.Add(kv);
+            }
+            // Top N by max-size.
+            walls.Sort((a, b) => b.Value.MaxSize.CompareTo(a.Value.MaxSize));
+            int show = Math.Min(walls.Count, LiquidityMaxPerSide);
+
+            for (int i = 0; i < show; i++)
+            {
+                double price = walls[i].Key;
+                var st = walls[i].Value;
+                float y = (float)cs.GetYByValue(price);
+                // Line thickness scales 1.5px → 4px based on size relative to threshold.
+                float thickness = (float)Math.Min(4.0, 1.5 + (st.MaxSize / (double)LiquidityWallMin) * 0.4);
+                RenderTarget.DrawLine(
+                    new Vector2((float)ChartPanel.X, y),
+                    new Vector2(panelRight - 90, y),
+                    brush, thickness);
+
+                string label = string.Format("{0} {1:F2}  {2}{3}",
+                    side, price, st.MaxSize,
+                    st.RefillCount >= 2 ? " ICE×" + st.RefillCount : "");
+                using (var layout = new TextLayout(NinjaTrader.Core.Globals.DirectWriteFactory,
+                                                    label, _labelFont, 180f, 16f))
+                {
+                    RenderTarget.DrawTextLayout(new Vector2(panelRight - 184, y - 8), layout, brush);
+                }
+            }
+        }
+
         #region Properties
 
         [NinjaScriptProperty]
@@ -1429,6 +1635,26 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         [PasswordPropertyText(true)]
         [Display(Name = "massive.com API Key", Order = 22, GroupName = "3. GEX (massive.com)")]
         public string GexApiKey { get; set; }
+
+        [NinjaScriptProperty]
+        [Display(Name = "Show Liquidity Walls (Rithmic L2)", Order = 30, GroupName = "5. Liquidity (L2)")]
+        public bool ShowLiquidityWalls { get; set; }
+
+        [NinjaScriptProperty]
+        [Range(10, 5000)]
+        [Display(Name = "Wall Min Size (contracts)", Order = 31, GroupName = "5. Liquidity (L2)")]
+        public int LiquidityWallMin { get; set; }
+
+        [NinjaScriptProperty]
+        [Range(10, 600)]
+        [Display(Name = "Wall Stale (seconds)", Order = 32, GroupName = "5. Liquidity (L2)",
+                 Description = "Hide a wall if its price level hasn't seen a depth update in this many seconds")]
+        public int LiquidityWallStaleSec { get; set; }
+
+        [NinjaScriptProperty]
+        [Range(1, 10)]
+        [Display(Name = "Max Walls Per Side", Order = 33, GroupName = "5. Liquidity (L2)")]
+        public int LiquidityMaxPerSide { get; set; }
 
         // --- Brush properties (require *Serialize string companions for XML serialization) ---
 
@@ -1497,6 +1723,16 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         public Brush GexNegativeBrush { get; set; }
         [Browsable(false)] public string GexNegativeBrushSerialize { get { return Serialize.BrushToString(GexNegativeBrush); } set { GexNegativeBrush = Serialize.StringToBrush(value); } }
 
+        [XmlIgnore]
+        [Display(Name = "Wall Bid (resting buy)",  Order = 50, GroupName = "4. Colors")]
+        public Brush WallBidBrush { get; set; }
+        [Browsable(false)] public string WallBidBrushSerialize { get { return Serialize.BrushToString(WallBidBrush); } set { WallBidBrush = Serialize.StringToBrush(value); } }
+
+        [XmlIgnore]
+        [Display(Name = "Wall Ask (resting sell)", Order = 51, GroupName = "4. Colors")]
+        public Brush WallAskBrush { get; set; }
+        [Browsable(false)] public string WallAskBrushSerialize { get { return Serialize.BrushToString(WallAskBrush); } set { WallAskBrush = Serialize.StringToBrush(value); } }
+
         #endregion
     }
 }
@@ -1508,18 +1744,18 @@ namespace NinjaTrader.NinjaScript.Indicators
     public partial class Indicator : NinjaTrader.Gui.NinjaScript.IndicatorRenderBase
     {
         private DEEP6.DEEP6Footprint[] cacheDEEP6Footprint;
-        public DEEP6.DEEP6Footprint DEEP6Footprint(double imbalanceRatio, double absorbWickMinPct, double exhaustWickMinPct, bool showFootprintCells, bool showPoc, bool showValueArea, bool showAbsorptionMarkers, bool showExhaustionMarkers, float cellFontSize, int cellColumnWidth, bool showGexLevels, string gexUnderlying, string gexApiKey)
+        public DEEP6.DEEP6Footprint DEEP6Footprint(double imbalanceRatio, double absorbWickMinPct, double exhaustWickMinPct, bool showFootprintCells, bool showPoc, bool showValueArea, bool showAbsorptionMarkers, bool showExhaustionMarkers, float cellFontSize, int cellColumnWidth, bool showGexLevels, string gexUnderlying, string gexApiKey, bool showLiquidityWalls, int liquidityWallMin, int liquidityWallStaleSec, int liquidityMaxPerSide)
         {
-            return DEEP6Footprint(Input, imbalanceRatio, absorbWickMinPct, exhaustWickMinPct, showFootprintCells, showPoc, showValueArea, showAbsorptionMarkers, showExhaustionMarkers, cellFontSize, cellColumnWidth, showGexLevels, gexUnderlying, gexApiKey);
+            return DEEP6Footprint(Input, imbalanceRatio, absorbWickMinPct, exhaustWickMinPct, showFootprintCells, showPoc, showValueArea, showAbsorptionMarkers, showExhaustionMarkers, cellFontSize, cellColumnWidth, showGexLevels, gexUnderlying, gexApiKey, showLiquidityWalls, liquidityWallMin, liquidityWallStaleSec, liquidityMaxPerSide);
         }
 
-        public DEEP6.DEEP6Footprint DEEP6Footprint(ISeries<double> input, double imbalanceRatio, double absorbWickMinPct, double exhaustWickMinPct, bool showFootprintCells, bool showPoc, bool showValueArea, bool showAbsorptionMarkers, bool showExhaustionMarkers, float cellFontSize, int cellColumnWidth, bool showGexLevels, string gexUnderlying, string gexApiKey)
+        public DEEP6.DEEP6Footprint DEEP6Footprint(ISeries<double> input, double imbalanceRatio, double absorbWickMinPct, double exhaustWickMinPct, bool showFootprintCells, bool showPoc, bool showValueArea, bool showAbsorptionMarkers, bool showExhaustionMarkers, float cellFontSize, int cellColumnWidth, bool showGexLevels, string gexUnderlying, string gexApiKey, bool showLiquidityWalls, int liquidityWallMin, int liquidityWallStaleSec, int liquidityMaxPerSide)
         {
             if (cacheDEEP6Footprint != null)
                 for (int idx = 0; idx < cacheDEEP6Footprint.Length; idx++)
-                    if (cacheDEEP6Footprint[idx] != null && cacheDEEP6Footprint[idx].ImbalanceRatio == imbalanceRatio && cacheDEEP6Footprint[idx].AbsorbWickMinPct == absorbWickMinPct && cacheDEEP6Footprint[idx].ExhaustWickMinPct == exhaustWickMinPct && cacheDEEP6Footprint[idx].ShowFootprintCells == showFootprintCells && cacheDEEP6Footprint[idx].ShowPoc == showPoc && cacheDEEP6Footprint[idx].ShowValueArea == showValueArea && cacheDEEP6Footprint[idx].ShowAbsorptionMarkers == showAbsorptionMarkers && cacheDEEP6Footprint[idx].ShowExhaustionMarkers == showExhaustionMarkers && cacheDEEP6Footprint[idx].CellFontSize == cellFontSize && cacheDEEP6Footprint[idx].CellColumnWidth == cellColumnWidth && cacheDEEP6Footprint[idx].ShowGexLevels == showGexLevels && cacheDEEP6Footprint[idx].GexUnderlying == gexUnderlying && cacheDEEP6Footprint[idx].GexApiKey == gexApiKey && cacheDEEP6Footprint[idx].EqualsInput(input))
+                    if (cacheDEEP6Footprint[idx] != null && cacheDEEP6Footprint[idx].ImbalanceRatio == imbalanceRatio && cacheDEEP6Footprint[idx].AbsorbWickMinPct == absorbWickMinPct && cacheDEEP6Footprint[idx].ExhaustWickMinPct == exhaustWickMinPct && cacheDEEP6Footprint[idx].ShowFootprintCells == showFootprintCells && cacheDEEP6Footprint[idx].ShowPoc == showPoc && cacheDEEP6Footprint[idx].ShowValueArea == showValueArea && cacheDEEP6Footprint[idx].ShowAbsorptionMarkers == showAbsorptionMarkers && cacheDEEP6Footprint[idx].ShowExhaustionMarkers == showExhaustionMarkers && cacheDEEP6Footprint[idx].CellFontSize == cellFontSize && cacheDEEP6Footprint[idx].CellColumnWidth == cellColumnWidth && cacheDEEP6Footprint[idx].ShowGexLevels == showGexLevels && cacheDEEP6Footprint[idx].GexUnderlying == gexUnderlying && cacheDEEP6Footprint[idx].GexApiKey == gexApiKey && cacheDEEP6Footprint[idx].ShowLiquidityWalls == showLiquidityWalls && cacheDEEP6Footprint[idx].LiquidityWallMin == liquidityWallMin && cacheDEEP6Footprint[idx].LiquidityWallStaleSec == liquidityWallStaleSec && cacheDEEP6Footprint[idx].LiquidityMaxPerSide == liquidityMaxPerSide && cacheDEEP6Footprint[idx].EqualsInput(input))
                         return cacheDEEP6Footprint[idx];
-            return CacheIndicator<DEEP6.DEEP6Footprint>(new DEEP6.DEEP6Footprint() { ImbalanceRatio = imbalanceRatio, AbsorbWickMinPct = absorbWickMinPct, ExhaustWickMinPct = exhaustWickMinPct, ShowFootprintCells = showFootprintCells, ShowPoc = showPoc, ShowValueArea = showValueArea, ShowAbsorptionMarkers = showAbsorptionMarkers, ShowExhaustionMarkers = showExhaustionMarkers, CellFontSize = cellFontSize, CellColumnWidth = cellColumnWidth, ShowGexLevels = showGexLevels, GexUnderlying = gexUnderlying, GexApiKey = gexApiKey }, input, ref cacheDEEP6Footprint);
+            return CacheIndicator<DEEP6.DEEP6Footprint>(new DEEP6.DEEP6Footprint() { ImbalanceRatio = imbalanceRatio, AbsorbWickMinPct = absorbWickMinPct, ExhaustWickMinPct = exhaustWickMinPct, ShowFootprintCells = showFootprintCells, ShowPoc = showPoc, ShowValueArea = showValueArea, ShowAbsorptionMarkers = showAbsorptionMarkers, ShowExhaustionMarkers = showExhaustionMarkers, CellFontSize = cellFontSize, CellColumnWidth = cellColumnWidth, ShowGexLevels = showGexLevels, GexUnderlying = gexUnderlying, GexApiKey = gexApiKey, ShowLiquidityWalls = showLiquidityWalls, LiquidityWallMin = liquidityWallMin, LiquidityWallStaleSec = liquidityWallStaleSec, LiquidityMaxPerSide = liquidityMaxPerSide }, input, ref cacheDEEP6Footprint);
         }
     }
 }
@@ -1528,14 +1764,14 @@ namespace NinjaTrader.NinjaScript.MarketAnalyzerColumns
 {
     public partial class MarketAnalyzerColumn : MarketAnalyzerColumnBase
     {
-        public Indicators.DEEP6.DEEP6Footprint DEEP6Footprint(double imbalanceRatio, double absorbWickMinPct, double exhaustWickMinPct, bool showFootprintCells, bool showPoc, bool showValueArea, bool showAbsorptionMarkers, bool showExhaustionMarkers, float cellFontSize, int cellColumnWidth, bool showGexLevels, string gexUnderlying, string gexApiKey)
+        public Indicators.DEEP6.DEEP6Footprint DEEP6Footprint(double imbalanceRatio, double absorbWickMinPct, double exhaustWickMinPct, bool showFootprintCells, bool showPoc, bool showValueArea, bool showAbsorptionMarkers, bool showExhaustionMarkers, float cellFontSize, int cellColumnWidth, bool showGexLevels, string gexUnderlying, string gexApiKey, bool showLiquidityWalls, int liquidityWallMin, int liquidityWallStaleSec, int liquidityMaxPerSide)
         {
-            return indicator.DEEP6Footprint(Input, imbalanceRatio, absorbWickMinPct, exhaustWickMinPct, showFootprintCells, showPoc, showValueArea, showAbsorptionMarkers, showExhaustionMarkers, cellFontSize, cellColumnWidth, showGexLevels, gexUnderlying, gexApiKey);
+            return indicator.DEEP6Footprint(Input, imbalanceRatio, absorbWickMinPct, exhaustWickMinPct, showFootprintCells, showPoc, showValueArea, showAbsorptionMarkers, showExhaustionMarkers, cellFontSize, cellColumnWidth, showGexLevels, gexUnderlying, gexApiKey, showLiquidityWalls, liquidityWallMin, liquidityWallStaleSec, liquidityMaxPerSide);
         }
 
-        public Indicators.DEEP6.DEEP6Footprint DEEP6Footprint(ISeries<double> input, double imbalanceRatio, double absorbWickMinPct, double exhaustWickMinPct, bool showFootprintCells, bool showPoc, bool showValueArea, bool showAbsorptionMarkers, bool showExhaustionMarkers, float cellFontSize, int cellColumnWidth, bool showGexLevels, string gexUnderlying, string gexApiKey)
+        public Indicators.DEEP6.DEEP6Footprint DEEP6Footprint(ISeries<double> input, double imbalanceRatio, double absorbWickMinPct, double exhaustWickMinPct, bool showFootprintCells, bool showPoc, bool showValueArea, bool showAbsorptionMarkers, bool showExhaustionMarkers, float cellFontSize, int cellColumnWidth, bool showGexLevels, string gexUnderlying, string gexApiKey, bool showLiquidityWalls, int liquidityWallMin, int liquidityWallStaleSec, int liquidityMaxPerSide)
         {
-            return indicator.DEEP6Footprint(input, imbalanceRatio, absorbWickMinPct, exhaustWickMinPct, showFootprintCells, showPoc, showValueArea, showAbsorptionMarkers, showExhaustionMarkers, cellFontSize, cellColumnWidth, showGexLevels, gexUnderlying, gexApiKey);
+            return indicator.DEEP6Footprint(input, imbalanceRatio, absorbWickMinPct, exhaustWickMinPct, showFootprintCells, showPoc, showValueArea, showAbsorptionMarkers, showExhaustionMarkers, cellFontSize, cellColumnWidth, showGexLevels, gexUnderlying, gexApiKey, showLiquidityWalls, liquidityWallMin, liquidityWallStaleSec, liquidityMaxPerSide);
         }
     }
 }
@@ -1544,14 +1780,14 @@ namespace NinjaTrader.NinjaScript.Strategies
 {
     public partial class Strategy : NinjaTrader.Gui.NinjaScript.StrategyRenderBase
     {
-        public Indicators.DEEP6.DEEP6Footprint DEEP6Footprint(double imbalanceRatio, double absorbWickMinPct, double exhaustWickMinPct, bool showFootprintCells, bool showPoc, bool showValueArea, bool showAbsorptionMarkers, bool showExhaustionMarkers, float cellFontSize, int cellColumnWidth, bool showGexLevels, string gexUnderlying, string gexApiKey)
+        public Indicators.DEEP6.DEEP6Footprint DEEP6Footprint(double imbalanceRatio, double absorbWickMinPct, double exhaustWickMinPct, bool showFootprintCells, bool showPoc, bool showValueArea, bool showAbsorptionMarkers, bool showExhaustionMarkers, float cellFontSize, int cellColumnWidth, bool showGexLevels, string gexUnderlying, string gexApiKey, bool showLiquidityWalls, int liquidityWallMin, int liquidityWallStaleSec, int liquidityMaxPerSide)
         {
-            return indicator.DEEP6Footprint(Input, imbalanceRatio, absorbWickMinPct, exhaustWickMinPct, showFootprintCells, showPoc, showValueArea, showAbsorptionMarkers, showExhaustionMarkers, cellFontSize, cellColumnWidth, showGexLevels, gexUnderlying, gexApiKey);
+            return indicator.DEEP6Footprint(Input, imbalanceRatio, absorbWickMinPct, exhaustWickMinPct, showFootprintCells, showPoc, showValueArea, showAbsorptionMarkers, showExhaustionMarkers, cellFontSize, cellColumnWidth, showGexLevels, gexUnderlying, gexApiKey, showLiquidityWalls, liquidityWallMin, liquidityWallStaleSec, liquidityMaxPerSide);
         }
 
-        public Indicators.DEEP6.DEEP6Footprint DEEP6Footprint(ISeries<double> input, double imbalanceRatio, double absorbWickMinPct, double exhaustWickMinPct, bool showFootprintCells, bool showPoc, bool showValueArea, bool showAbsorptionMarkers, bool showExhaustionMarkers, float cellFontSize, int cellColumnWidth, bool showGexLevels, string gexUnderlying, string gexApiKey)
+        public Indicators.DEEP6.DEEP6Footprint DEEP6Footprint(ISeries<double> input, double imbalanceRatio, double absorbWickMinPct, double exhaustWickMinPct, bool showFootprintCells, bool showPoc, bool showValueArea, bool showAbsorptionMarkers, bool showExhaustionMarkers, float cellFontSize, int cellColumnWidth, bool showGexLevels, string gexUnderlying, string gexApiKey, bool showLiquidityWalls, int liquidityWallMin, int liquidityWallStaleSec, int liquidityMaxPerSide)
         {
-            return indicator.DEEP6Footprint(input, imbalanceRatio, absorbWickMinPct, exhaustWickMinPct, showFootprintCells, showPoc, showValueArea, showAbsorptionMarkers, showExhaustionMarkers, cellFontSize, cellColumnWidth, showGexLevels, gexUnderlying, gexApiKey);
+            return indicator.DEEP6Footprint(input, imbalanceRatio, absorbWickMinPct, exhaustWickMinPct, showFootprintCells, showPoc, showValueArea, showAbsorptionMarkers, showExhaustionMarkers, cellFontSize, cellColumnWidth, showGexLevels, gexUnderlying, gexApiKey, showLiquidityWalls, liquidityWallMin, liquidityWallStaleSec, liquidityMaxPerSide);
         }
     }
 }
