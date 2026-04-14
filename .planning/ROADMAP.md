@@ -216,7 +216,13 @@ Plans:
   6. Portfolio dashboard shows live P&L, daily/weekly/monthly performance, win rate by tier, drawdown chart, and circuit breaker status
   7. No TradingView dependency — entire trading workflow (chart analysis, signal review, execution, replay) happens within the DEEP6 web app
   8. Authentication + multi-device support — operator can monitor from laptop and phone simultaneously
-**Plans**: TBD
+**Plans**: 4 plans (Wave 0: plan-01; Wave 1: plan-02; Wave 2: plan-03; Wave 3: plan-04)
+
+Plans:
+- [ ] 11-01-PLAN.md — Backend extensions: bar_history EventStore table + WSManager + /ws/live multiplexed WebSocket + /api/replay endpoints (APP-03, APP-04 prerequisite)
+- [ ] 11-02-PLAN.md — Next.js 15 + Tailwind + shadcn scaffold; UI-SPEC design tokens; shared TypeScript types mirroring LiveMessage union; Zustand store with ring buffers + dispatcher tests
+- [ ] 11-03-PLAN.md — useWebSocket hook, LW Charts v5.1 footprint custom series + renderer, ZoneOverlay canvas, SignalFeed, TapeScroll, ScoreWidget (28px focal point), HeaderStrip
+- [ ] 11-04-PLAN.md — Replay mode (store + controller + controls), ReturnToLivePill, PnlStatus (APP-06 lite), ErrorBanner, operator smoke-test checkpoint
 **UI hint**: yes
 
 ## Progress
