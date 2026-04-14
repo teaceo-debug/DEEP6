@@ -9,5 +9,18 @@ See phase 12-01 CONTEXT for locked design decisions.
 """
 from deep6.orderflow.vpin import VPINEngine, FlowRegime
 from deep6.orderflow.slingshot import SlingshotDetector, SlingshotResult
+from deep6.orderflow.setup_tracker import (
+    SetupTracker,
+    SetupTransition,
+    ActiveSetup,
+)
 
-__all__ = ["VPINEngine", "FlowRegime", "SlingshotDetector", "SlingshotResult"]
+__all__ = [
+    "VPINEngine",
+    "FlowRegime",
+    "SlingshotDetector",
+    "SlingshotResult",
+    "SetupTracker",
+    "SetupTransition",
+    "ActiveSetup",
+]
