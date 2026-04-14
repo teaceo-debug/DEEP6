@@ -17,6 +17,7 @@ from dataclasses import dataclass, field
 from typing import Optional, TYPE_CHECKING
 
 from deep6.engines.gex import GexEngine, GexSignal
+from deep6.engines.level import Level, LevelKind, LevelState
 from deep6.engines.level_factory import from_narrative
 from deep6.engines.narrative import NarrativeResult
 from deep6.engines.poc import POCEngine, POCSignal
@@ -146,16 +147,77 @@ class E6VPContextEngine:
         levels = self.gex_engine.fetch_and_compute(spot_price)
         self.registry.add_gex_levels(levels)
 
+    # ------------------------------------------------------------------
+    # Plan 15-02 / D-08: cross-session narrative-Level decay
+    # ------------------------------------------------------------------
+
+    #: Score threshold — Levels below are GC'd at session reset (D-08).
+    _SESSION_CARRY_SCORE_THRESHOLD: float = 60.0
+    #: Recency decay factor applied to carried scores (mirrors VPRO-07).
+    _SESSION_CARRY_DECAY: float = 0.70
+    #: Narrative-origin kinds eligible for cross-session carry-over.
+    _NARRATIVE_KINDS: frozenset = frozenset({
+        LevelKind.ABSORB,
+        LevelKind.EXHAUST,
+        LevelKind.MOMENTUM,
+        LevelKind.REJECTION,
+        LevelKind.CONFIRMED_ABSORB,
+        LevelKind.FLIPPED,
+    })
+
+    def _carry_over_strong_levels(self) -> list[Level]:
+        """Return decayed copies of narrative-kind Levels with score ≥ 60 (D-08).
+
+        - Score × 0.70 (recency decay, mirrors VPRO-07 session_decay_weight).
+        - touches halved (floor div) to damp stale touch counts.
+        - state reset to CREATED so the new session treats them as fresh-active.
+        - Only narrative-origin kinds carry (VP-origin LVN/HVN take the VPRO-07
+          prior_bins path; GEX point-kinds are re-fetched on next fetch_gex).
+        - INVALIDATED excluded regardless of score.
+        - Copies are fresh Level instances — no aliasing back into the pre-clear
+          registry (mitigation for threat T-15-02-03's information-disclosure
+          concerns and avoids mutation bleed-through).
+        """
+        import dataclasses
+
+        carry: list[Level] = []
+        for lv in self.registry.get_all_active():
+            if lv.kind not in self._NARRATIVE_KINDS:
+                continue
+            if lv.score < self._SESSION_CARRY_SCORE_THRESHOLD:
+                continue
+            # dataclass replace produces a new instance; uid is preserved from
+            # the source Level (C5 — downstream mutation keys remain valid).
+            decayed = dataclasses.replace(
+                lv,
+                score=lv.score * self._SESSION_CARRY_DECAY,
+                touches=max(0, lv.touches // 2),
+                state=LevelState.CREATED,
+            )
+            carry.append(decayed)
+        return carry
+
     def on_session_start(self, prior_bins: dict | None = None) -> None:
         """Reset for new session. Pass prior_bins for multi-session persistence.
 
         VPRO-07: prior session bins are decay-weighted (session_decay_weight=0.70).
+        D-08 (Plan 15-02): narrative-origin Levels with score ≥ 60 carry over
+        with the same 0.70 recency decay; below-threshold Levels are GC'd by
+        the registry.clear() call below.
         """
+        # Snapshot carry-over list BEFORE clearing the registry so we don't
+        # alias mutable Level objects back into the registry post-clear.
+        carry = self._carry_over_strong_levels()
+
         vp_config = self.session_profile.config
         self.session_profile = SessionProfile(config=vp_config, prior_bins=prior_bins)
         self.registry.clear()
         self.poc_engine.reset()
         self._bar_count = 0
+
+        # Re-add surviving narrative Levels after the clear (D-08).
+        for lvl in carry:
+            self.registry.add_level(lvl)
 
 
 class E7MLQualityEngine:
