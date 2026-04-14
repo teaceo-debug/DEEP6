@@ -47,6 +47,12 @@ class DOMState:
         for i in range(n_ask):
             self.ask_prices[i] = ask_prices[i]
             self.ask_sizes[i]  = ask_sizes[i]
+        for i in range(n_bid, LEVELS):
+            self.bid_prices[i] = 0.0
+            self.bid_sizes[i] = 0.0
+        for i in range(n_ask, LEVELS):
+            self.ask_prices[i] = 0.0
+            self.ask_sizes[i] = 0.0
         self.last_update = ts if ts is not None else time.monotonic()
 
     def snapshot(self) -> tuple:
