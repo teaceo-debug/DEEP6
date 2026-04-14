@@ -39,6 +39,9 @@ export class FootprintRenderer implements ICustomSeriesPaneRenderer {
     target: CanvasRenderingTarget2D,
     priceToCoordinate: PriceToCoordinateConverter,
   ): void {
+    // DPR invariant: all ctx.font sizes and coordinate values are in bitmap pixels.
+    // CSS px values must be multiplied by scope.verticalPixelRatio (vpr) before use.
+    // priceToCoordinate() returns media-space Y → multiply by vpr before drawing.
     const data = this._data;
     const options = this._options;
     if (!data || !options) return;
