@@ -1,0 +1,14 @@
+{
+  "NQ_c_0_mbo_2026-04-08_2026-04-11.dbn.zst": {
+    "symbol": "NQ.c.0",
+    "dataset": "GLBX.MDP3",
+    "schema": "mbo",
+    "start": "2026-04-08",
+    "end": "2026-04-11",
+    "cost_usd": 4.981017521024,
+    "billable_bytes": 2971292688,
+    "disk_bytes": 940819135,
+    "sha256": "bac995b2f0f3635a4d58a3357cbea115f6d67402f73e825b9340078be978f1d6",
+    "downloaded_at_unix": 1776132893
+  }
+}

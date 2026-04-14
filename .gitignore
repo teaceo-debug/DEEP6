@@ -64,3 +64,8 @@ _ReSharper*/
 *.bak
 *.swp
 *~
+
+# Databento downloads (large binary data files)
+data/databento/**/*.dbn
+data/databento/**/*.dbn.zst
+data/recordings/**/*.jsonl.zst
