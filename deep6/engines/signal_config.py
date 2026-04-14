@@ -207,6 +207,15 @@ class ScorerConfig:
     zone_near_bonus: float = 4.0      # within zone_near_ticks of zone edge
     zone_near_ticks: float = 0.50     # NQ tick proximity threshold
 
+    # TIER-1 FIX 1: Midday window block (bars 240-330 = 10:30-13:00 ET)
+    # Forensic: this window accumulated -$1,622 across 25 days.
+    midday_block_start: int = 240
+    midday_block_end: int = 330
+
+    # TIER-1 FIX 2: POC category weight (was hardcoded 3.0; forensic shows
+    # POC combos lose money — reduced to 1.0 and now sweepable).
+    poc_weight: float = 1.0
+
 
 @dataclass(frozen=True)
 class TrapConfig:
