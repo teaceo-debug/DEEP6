@@ -39,9 +39,20 @@ from deep6.backtest.clock import EventClock
 from deep6.backtest.config import BacktestConfig
 from deep6.backtest.mbo_adapter import MBOAdapter
 from deep6.backtest.result_store import DuckDBResultStore
+from deep6.engines.auction import AuctionEngine
 from deep6.engines.counter_spoof import CounterSpoofEngine
+from deep6.engines.delta import DeltaEngine
 from deep6.engines.iceberg import IcebergEngine
+from deep6.engines.narrative import classify_bar, reset_confirmations
+from deep6.engines.exhaustion import reset_cooldowns
+from deep6.engines.poc import POCEngine
+from deep6.engines.signal_config import AbsorptionConfig, ExhaustionConfig
+from deep6.engines.trap import TrapEngine
 from deep6.engines.trespass import TrespassEngine
+from deep6.engines.vol_patterns import VolPatternEngine
+from deep6.engines.volume_profile import SessionProfile
+from deep6.orderflow.vpin import VPINEngine
+from deep6.scoring.scorer import SignalTier, score_bar
 from deep6.state.dom import DOMState
 from deep6.state.footprint import FootprintBar
 
@@ -56,6 +67,56 @@ log = structlog.get_logger(__name__)
 _BIT_E2_TRESPASS = 1 << 12      # co-located with IMB_SINGLE — illustrative
 _BIT_E3_COUNTER_SPOOF = 1 << 37  # TRAP region
 _BIT_E4_ICEBERG = 1 << 38        # TRAP region
+
+
+def _tier_to_name(tier: SignalTier) -> str:
+    """Map SignalTier to the string persisted in backtest_bars.tier.
+
+    Matches scripts/backtest_signals.py convention (tier.name) so downstream
+    tooling sees identical tier labels whether produced via live pipeline or
+    replay.
+    """
+    return tier.name
+
+
+def _flags_to_signal_flags_mask(
+    abs_count: int,
+    exh_count: int,
+    imb_count: int,
+    delta_count: int,
+    auction_count: int,
+    poc_count: int,
+    trap_count: int,
+    volpat_count: int,
+) -> int:
+    """Pack per-category firing counts into the signal_flags bitmask.
+
+    ReplaySession does not know which specific sub-signal fired (narrative
+    collapses to counts), so we set the *group primary* bit per category
+    to mark presence. This is lossier than the live path but sufficient
+    for downstream tools that query ``signal_flags != 0`` or popcount the
+    category presence.
+    """
+    mask = 0
+    if abs_count:
+        mask |= 1 << 0    # ABS_CLASSIC as group marker
+    if exh_count:
+        mask |= 1 << 5    # EXH_EXHAUSTION as group marker
+    if imb_count:
+        mask |= 1 << 12   # IMB_SINGLE as group marker
+    if delta_count:
+        mask |= 1 << 24   # DELT_DIVERGENCE as group marker
+    if auction_count:
+        mask |= 1 << 33   # AUCT_FINISHED as group marker
+    if poc_count:
+        # POC is not its own SignalFlags group today — leave at 0 (handled
+        # in score). Documented here so the gap is intentional, not a bug.
+        pass
+    if trap_count:
+        mask |= 1 << 37   # TRAP_INVERSE_I as group marker
+    if volpat_count:
+        mask |= 1 << 42   # VOLP_SEQUENCING as group marker
+    return mask
 
 
 class ReplaySession(AbstractAsyncContextManager["ReplaySession"]):
@@ -107,6 +168,37 @@ class ReplaySession(AbstractAsyncContextManager["ReplaySession"]):
         self._counter_spoof = CounterSpoofEngine()
         self._iceberg = IcebergEngine()
 
+        # Full-signal pipeline (44 signals) — mirrors scripts/backtest_signals.py::run_backtest.
+        # classify_bar / score_bar operate on FootprintBar + caller-maintained
+        # state. One copy per timeframe so 1m and 5m histories don't cross.
+        self._delta_eng: dict[str, DeltaEngine] = {tf: DeltaEngine() for tf in config.tf_list}
+        self._auction_eng: dict[str, AuctionEngine] = {tf: AuctionEngine() for tf in config.tf_list}
+        self._poc_eng: dict[str, POCEngine] = {tf: POCEngine() for tf in config.tf_list}
+        self._trap_eng: dict[str, TrapEngine] = {tf: TrapEngine() for tf in config.tf_list}
+        self._volpat_eng: dict[str, VolPatternEngine] = {tf: VolPatternEngine() for tf in config.tf_list}
+        self._profile: dict[str, SessionProfile] = {tf: SessionProfile() for tf in config.tf_list}
+        self._vpin_eng: dict[str, VPINEngine] = {tf: VPINEngine() for tf in config.tf_list}
+        self._abs_config = AbsorptionConfig()
+        self._exh_config = ExhaustionConfig()
+
+        # Per-timeframe caller-maintained state (matches run_backtest loop).
+        self._bar_index: dict[str, int] = {tf: 0 for tf in config.tf_list}
+        self._prior_bar: dict[str, FootprintBar | None] = {tf: None for tf in config.tf_list}
+        self._atr_values: dict[str, list[float]] = {tf: [] for tf in config.tf_list}
+        self._vol_ema: dict[str, float] = {tf: 1000.0 for tf in config.tf_list}
+        self._cvd_history: dict[str, list[int]] = {tf: [] for tf in config.tf_list}
+        self._bar_history: dict[str, list[FootprintBar]] = {tf: [] for tf in config.tf_list}
+        self._poc_history: dict[str, list[float]] = {tf: [] for tf in config.tf_list}
+
+        # Trades produced by the simple sim-fill hook. Count exposed as a
+        # property for test assertions.
+        self._trades_written = 0
+
+        # Session-bounded narrative state is global (absorption confirmations).
+        # Reset on init so back-to-back replays never see stale trackers.
+        reset_confirmations()
+        reset_cooldowns()
+
         # Per-timeframe bar accumulators (seconds).
         self._tf_seconds: dict[str, int] = {"1m": 60, "5m": 300}
         self._tf_seconds = {tf: self._tf_seconds[tf] for tf in config.tf_list if tf in self._tf_seconds}
@@ -117,6 +209,7 @@ class ReplaySession(AbstractAsyncContextManager["ReplaySession"]):
         self._bar_close_hook = bar_close_hook
         self._bars_written = 0
         self._dom_signal_fires = 0   # tracked for integration assertions
+        self._scorer_signal_fires = 0  # TIER_A/B/C bars produced by scorer
 
     # ------------------------------------------------------------------
     # Context management
@@ -158,6 +251,14 @@ class ReplaySession(AbstractAsyncContextManager["ReplaySession"]):
     @property
     def dom_signal_fires(self) -> int:
         return self._dom_signal_fires
+
+    @property
+    def scorer_signal_fires(self) -> int:
+        return self._scorer_signal_fires
+
+    @property
+    def trades_written(self) -> int:
+        return self._trades_written
 
     # ------------------------------------------------------------------
     # Callbacks (shape: live-compatible)
@@ -215,7 +316,51 @@ class ReplaySession(AbstractAsyncContextManager["ReplaySession"]):
         bar.finalize(self._prior_cvd[tf])
         self._prior_cvd[tf] = bar.cvd
 
-        signal_flags, tier, direction, score = self._run_dom_engines(bar)
+        # Run DOM-dependent engines against the current DOMState snapshot.
+        dom_flags, dom_direction_int = self._run_dom_engines(bar)
+
+        # Run the full 44-signal pipeline (mirrors run_backtest in
+        # scripts/backtest_signals.py — order is load-bearing).
+        scorer_result, narrative = self._run_full_pipeline(tf, bar)
+
+        # Merge DOM-engine flags with scorer-derived category flags.
+        scorer_flag_mask = _flags_to_signal_flags_mask(
+            abs_count=len(narrative.absorption),
+            exh_count=len(narrative.exhaustion),
+            imb_count=len(narrative.imbalances),
+            delta_count=scorer_result.category_count if "delta" in scorer_result.categories_firing else 0,
+            auction_count=scorer_result.category_count if "auction" in scorer_result.categories_firing else 0,
+            poc_count=scorer_result.category_count if "poc" in scorer_result.categories_firing else 0,
+            trap_count=scorer_result.category_count if "trapped" in scorer_result.categories_firing else 0,
+            volpat_count=0,  # volpat not in scorer category set today
+        )
+        signal_flags = dom_flags | scorer_flag_mask | int(scorer_result.meta_flags)
+
+        # Tier / direction / score come from the scorer when it produced a
+        # tradeable signal; otherwise fall back to the DOM-engine tier label
+        # so tests relying on TIER_3 semantics keep passing when no scorer
+        # signal fires (matches pre-refactor behavior for DOM-only bars).
+        if scorer_result.tier != SignalTier.QUIET and scorer_result.tier != SignalTier.DISQUALIFIED:
+            tier_name = _tier_to_name(scorer_result.tier)
+            direction_int = scorer_result.direction
+            score = scorer_result.total_score
+            self._scorer_signal_fires += 1
+        elif dom_flags != 0:
+            tier_name = "TIER_3"
+            direction_int = dom_direction_int
+            score = 0.0
+        else:
+            tier_name = _tier_to_name(scorer_result.tier)  # QUIET / DISQUALIFIED
+            direction_int = scorer_result.direction
+            score = scorer_result.total_score
+
+        if direction_int > 0:
+            direction_str = "LONG"
+        elif direction_int < 0:
+            direction_str = "SHORT"
+        else:
+            direction_str = "NONE"
+
         bar_ts = datetime.fromtimestamp(ts_now, tz=timezone.utc)
         self._store.record_bar(
             run_id=self.run_id,
@@ -226,11 +371,33 @@ class ReplaySession(AbstractAsyncContextManager["ReplaySession"]):
             ),
             signal_flags=signal_flags,
             score=score,
-            tier=tier,
-            direction=direction,
+            tier=tier_name,
+            direction=direction_str,
             bar_key=self._bars_written,
         )
         self._bars_written += 1
+
+        # Simple sim-fill hook (matches BacktestConfig.fill_model="perfect"):
+        # any TYPE_A/TYPE_B with a direction emits a trade row. TYPE_C is
+        # excluded (alert-only tier per scorer.py docstring). Exit columns
+        # left NULL — exit logic is out of scope for this plan.
+        if (
+            scorer_result.tier in (SignalTier.TYPE_A, SignalTier.TYPE_B)
+            and scorer_result.direction != 0
+        ):
+            self._store.record_trade(
+                run_id=self.run_id,
+                entry_ts=bar_ts,
+                exit_ts=None,
+                side="LONG" if scorer_result.direction > 0 else "SHORT",
+                qty=1,
+                entry_price=bar.close,
+                exit_price=None,
+                pnl=0.0,
+                tier=tier_name,
+                fill_model="perfect",
+            )
+            self._trades_written += 1
 
         if self._bar_close_hook is not None:
             try:
@@ -240,6 +407,16 @@ class ReplaySession(AbstractAsyncContextManager["ReplaySession"]):
             except Exception:
                 log.exception("replay.bar_close_hook_failed", tf=tf)
 
+        # Update caller-maintained pipeline state AFTER processing the bar
+        # (ordering matches run_backtest loop).
+        self._prior_bar[tf] = bar
+        self._cvd_history[tf].append(bar.cvd)
+        self._bar_history[tf].append(bar)
+        if len(self._bar_history[tf]) > 20:
+            self._bar_history[tf] = self._bar_history[tf][-20:]
+        self._poc_history[tf].append(bar.poc_price)
+        self._bar_index[tf] += 1
+
         # Reset bar accumulator.
         self._current_bars[tf] = FootprintBar()
 
@@ -247,19 +424,148 @@ class ReplaySession(AbstractAsyncContextManager["ReplaySession"]):
     # Engine plumbing
     # ------------------------------------------------------------------
 
+    def _run_full_pipeline(self, tf: str, bar: FootprintBar):
+        """Run classify_bar + the per-category engines + score_bar.
+
+        Mirrors scripts/backtest_signals.py::run_backtest loop body. Returns
+        ``(ScorerResult, NarrativeResult)`` — callers merge the scorer flag
+        mask with DOM-engine flags and persist.
+        """
+        i = self._bar_index[tf]
+        prior_bar = self._prior_bar[tf]
+
+        # Rolling ATR from prior bars only (no look-ahead).
+        self._atr_values[tf].append(bar.bar_range)
+        atrs = self._atr_values[tf]
+        if len(atrs) >= 20:
+            atr = sum(atrs[-20:]) / 20.0
+        elif len(atrs) >= 5:
+            atr = sum(atrs) / len(atrs)
+        else:
+            atr = 15.0
+
+        # Vol EMA — same coefficients as run_backtest (α=0.05).
+        if i > 0:
+            self._vol_ema[tf] = self._vol_ema[tf] * 0.95 + bar.total_vol * 0.05
+        vol_ema = self._vol_ema[tf]
+
+        # Volume profile — feed + periodic zone detection + per-bar update.
+        profile = self._profile[tf]
+        profile.add_bar(bar)
+        if i > 0 and i % 10 == 0:
+            try:
+                profile.detect_zones(bar.close)
+            except Exception:
+                log.exception("replay.profile.detect_zones_failed", tf=tf, i=i)
+        try:
+            profile.update_zones(bar, i)
+        except Exception:
+            log.exception("replay.profile.update_zones_failed", tf=tf, i=i)
+
+        # Narrative cascade (absorption / exhaustion / imbalance / momentum / rejection).
+        try:
+            narrative = classify_bar(
+                bar,
+                prior_bar=prior_bar,
+                bar_index=i,
+                atr=atr,
+                vol_ema=vol_ema,
+                abs_config=self._abs_config,
+                exh_config=self._exh_config,
+            )
+        except Exception:
+            log.exception("replay.classify_bar_failed", tf=tf, i=i)
+            from deep6.engines.narrative import NarrativeResult, NarrativeType
+            narrative = NarrativeResult(
+                bar_type=NarrativeType.QUIET, direction=0, label="QUIET",
+                strength=0.0, price=bar.close,
+                absorption=[], exhaustion=[], imbalances=[],
+                all_signals_count=0,
+            )
+
+        # Per-category engines.
+        try:
+            delta_sigs = self._delta_eng[tf].process(bar)
+        except Exception:
+            log.exception("replay.delta_failed", tf=tf, i=i)
+            delta_sigs = []
+        try:
+            auction_sigs = self._auction_eng[tf].process(bar)
+        except Exception:
+            log.exception("replay.auction_failed", tf=tf, i=i)
+            auction_sigs = []
+        try:
+            poc_sigs = self._poc_eng[tf].process(bar)
+        except Exception:
+            log.exception("replay.poc_failed", tf=tf, i=i)
+            poc_sigs = []
+
+        # Trap / VolPat use caller-maintained state.
+        try:
+            self._trap_eng[tf].process(
+                bar, prior_bar=prior_bar, vol_ema=vol_ema,
+                cvd_history=self._cvd_history[tf],
+            )
+        except Exception:
+            log.exception("replay.trap_failed", tf=tf, i=i)
+        try:
+            self._volpat_eng[tf].process(
+                bar, bar_history=list(self._bar_history[tf]),
+                vol_ema=vol_ema, poc_history=self._poc_history[tf],
+            )
+        except Exception:
+            log.exception("replay.volpat_failed", tf=tf, i=i)
+
+        # VPIN — modifier folded into total_score by scorer.
+        try:
+            self._vpin_eng[tf].update_from_bar(bar)
+            vpin_modifier = self._vpin_eng[tf].get_confidence_modifier()
+        except Exception:
+            log.exception("replay.vpin_failed", tf=tf, i=i)
+            vpin_modifier = 1.0
+
+        # Score.
+        try:
+            active_zones = profile.get_active_zones(min_score=20)
+        except Exception:
+            active_zones = []
+        bar_index_in_session = i % 390
+        try:
+            scorer_result = score_bar(
+                narrative=narrative,
+                delta_signals=delta_sigs,
+                auction_signals=auction_sigs,
+                poc_signals=poc_sigs,
+                active_zones=active_zones,
+                bar_close=bar.close,
+                bar_delta=bar.bar_delta,
+                bar_index_in_session=bar_index_in_session,
+                vpin_modifier=vpin_modifier,
+            )
+        except Exception:
+            log.exception("replay.score_bar_failed", tf=tf, i=i)
+            from deep6.scoring.scorer import ScorerResult
+            from deep6.engines.narrative import NarrativeType
+            scorer_result = ScorerResult(
+                total_score=0.0, tier=SignalTier.QUIET, direction=0,
+                engine_agreement=0.0, category_count=0,
+                confluence_mult=1.0, zone_bonus=0.0,
+                narrative=NarrativeType.QUIET, label="QUIET",
+            )
+
+        return scorer_result, narrative
+
     def _run_dom_engines(
         self, bar: FootprintBar
-    ) -> tuple[int, str, str, float]:
+    ) -> tuple[int, int]:
         """Run the three DOM-dependent engines against the current DOMState.
 
-        Returns a (signal_flags, tier, direction, score) tuple suitable for
-        ``DuckDBResultStore.record_bar``. Engine failures degrade to a
-        no-signal row — never kill the replay.
+        Returns ``(signal_flags, direction_int)``. Engine failures degrade to
+        a no-signal tuple — never kill the replay.
         """
         dom: DOMState = self.state.dom
         dom_snapshot = dom.snapshot()
         flags = 0
-        score = 0.0
         direction_int = 0
 
         # E2 Trespass — queue imbalance.
@@ -267,7 +573,6 @@ class ReplaySession(AbstractAsyncContextManager["ReplaySession"]):
             t = self._trespass.process(dom_snapshot)
             if t.direction != 0:
                 flags |= _BIT_E2_TRESPASS
-                score += 50.0 * t.probability
                 direction_int = t.direction
                 self._dom_signal_fires += 1
         except Exception:
@@ -288,7 +593,6 @@ class ReplaySession(AbstractAsyncContextManager["ReplaySession"]):
             post_alerts = self._counter_spoof.get_spoof_alerts()
             if len(post_alerts) > pre_alerts:
                 flags |= _BIT_E3_COUNTER_SPOOF
-                score += 25.0
                 self._dom_signal_fires += 1
         except Exception:
             log.exception("replay.counter_spoof_failed")
@@ -301,16 +605,8 @@ class ReplaySession(AbstractAsyncContextManager["ReplaySession"]):
             )
             if sigs:
                 flags |= _BIT_E4_ICEBERG
-                score += 25.0
                 self._dom_signal_fires += len(sigs)
         except Exception:
             log.exception("replay.iceberg_failed")
 
-        if direction_int > 0:
-            direction = "LONG"
-        elif direction_int < 0:
-            direction = "SHORT"
-        else:
-            direction = "NONE"
-        tier = "NONE" if flags == 0 else "TIER_3"
-        return flags, tier, direction, score
+        return flags, direction_int
