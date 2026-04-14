@@ -141,9 +141,13 @@ export class FootprintRenderer implements ICustomSeriesPaneRenderer {
             if (Number.isFinite(total) && total > maxVol) maxVol = total;
           }
 
-          // Half-width for bars (centerline gutter: 2px each side in bitmap)
-          const gutterBitmap = Math.round(2 * hpr);
-          const halfBarW = halfW - gutterBitmap;  // usable half-width per side
+          // Half-width for bars.
+          // The 1px centerline gap is already implicit in fillRect calls that use
+          // (xC - 1 - bidFillW) for bid and (xC + 1) for ask — no separate gutter
+          // subtraction needed here. Subtracting a fixed 2*hpr gutter collapsed
+          // halfBarW to 0-1 bitmap pixels when barSpacing is small (5-6 bars on
+          // chart), making all volume fills invisible.
+          const halfBarW = halfW;
 
           // Imbalance detection per row — needed for stacked run scan
           interface RowInfo {
