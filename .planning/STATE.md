@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 11-04 Tasks 1+2; Task 3 awaits operator smoke-test gate
-last_updated: "2026-04-14T02:46:48.877Z"
+stopped_at: Completed 11.1-01 (layout and visual polish — 3/3 tasks)
+last_updated: "2026-04-14T05:36:05.000Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 12
@@ -116,6 +116,9 @@ Recent decisions affecting current work:
 - [Phase 11]: Plan 11-03: RingBuffer direction clarified (oldest→newest) and auto-fixed across HeaderStrip/ZoneOverlay/useFootprintData/FootprintChart
 - [Phase 11]: replayStore uses plain Zustand create(); FootprintChart uses manual prevPanned tracking for pan-reset subscription
 - [Phase 11]: useFeedStaleWatcher polls lastTs every 1s in live mode to drive feedStale flag in tradingStore
+- [Phase 11.1]: shrink-0 on ScoreWidget + overflow-hidden on 3-column container prevents flex collapse and child reflow escapes (D-01, D-02)
+- [Phase 11.1]: html { font-size: 13px !important } + inline style={{ fontSize: '13px' }} on HeaderStrip as cascade-proof override of Tailwind v4 preflight (D-03)
+- [Phase 11.1]: FootprintRenderer ctx.font already scales by vpr at all sites; DPR invariant comment added to draw() (D-04)
 
 ### Roadmap Evolution
 
@@ -123,6 +126,7 @@ Recent decisions affecting current work:
 - Phase 13 added: Backtest Engine Core — Clock + MBO Adapter + DuckDB Store (retroactive roadmap entry for orphan scaffolding from 2026-04-14)
 - Phase 14 added: Databento Live Feed (retroactive roadmap entry for orphan context from 2026-04-14)
 - Phase 15 added: LevelBus + Confluence Rules + Trade Decision FSM — unifies VP/narrative/GEX levels into single bus, encodes ~47 research-derived confluence rules, replaces bar-close execution with 7-state trade-decision FSM. Basis: .planning/research/pine/ (12,500 words, 35 papers)
+- Phase 11.1 inserted after Phase 11: Phase 11 layout and visual polish (URGENT) — ScoreWidget sidebar collapse, SignalFeed overlay bleeding into chart, header-strip font-size cascade, footprint cell DPR scaling
 
 ### Pending Todos
 
@@ -136,6 +140,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-14T02:46:48.874Z
-Stopped at: Completed 11-04 Tasks 1+2; Task 3 awaits operator smoke-test gate
+Last session: 2026-04-14T05:36:05.000Z
+Stopped at: Completed 11.1-01 (layout and visual polish — 3/3 tasks)
 Resume file: None
