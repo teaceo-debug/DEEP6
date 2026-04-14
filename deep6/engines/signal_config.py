@@ -190,9 +190,10 @@ class ScorerConfig:
     Per D-11: centralizes scorer thresholds for Phase 7 vectorbt sweeps.
     frozen=True prevents mutation between sweep trials.
     """
-    # Tier thresholds (SCOR-04)
+    # Tier thresholds (SCOR-04) — tuned from 4-week backtest
+    # TYPE_B raised from 65→72 to eliminate marginal losers
     type_a_min: float = 80.0
-    type_b_min: float = 65.0
+    type_b_min: float = 72.0
     type_c_min: float = 50.0
     min_categories: int = 3
 

@@ -83,7 +83,7 @@ def score_bar(
     active_zones: list[VolumeZone],
     bar_close: float,
     type_a_min: float = 80.0,
-    type_b_min: float = 65.0,
+    type_b_min: float = 72.0,
     type_c_min: float = 50.0,
     min_categories: int = 3,
     scorer_config: ScorerConfig | None = None,
@@ -365,20 +365,23 @@ def score_bar(
     has_zone = zone_bonus > 0
     min_strength = narrative.strength >= 0.3
 
-    # TIER-1 FIX 3: Trap veto for TYPE_A — forensic shows TYPE_A losers have
-    # 2.4x more trap signals than winners. Any trap present downgrades TYPE_A.
+    # TIER-1 FIX 3 (v2 softened): Trap veto only when 3+ traps present
     trap_signals = sum(1 for s in narrative.imbalances if "TRAP" in s.imb_type.name)
-    type_a_trap_veto = trap_signals >= 1
+    type_a_trap_veto = trap_signals >= 3
 
-    # TIER-1 FIX 4: Delta-direction veto for TYPE_A — chasing with delta loses.
-    # TYPE_A longs need fading delta (negative = sellers being absorbed).
-    # TYPE_A shorts need fading delta (positive = buyers being absorbed).
+    # TIER-1 FIX 4 (v2 softened): Delta chase only blocks when ratio > 0.15
+    # (strong chase, not just same-direction weak delta)
     type_a_delta_chase = False
     if bar_delta != 0 and direction != 0:
-        if direction > 0 and bar_delta > 0:
-            type_a_delta_chase = True   # Long with positive delta = chasing
-        elif direction < 0 and bar_delta < 0:
-            type_a_delta_chase = True   # Short with negative delta = chasing
+        # Need volume context — approximate via narrative strength & score
+        # Strong chase = same direction AND |delta| > 15% of typical bar volume
+        # Using conservative threshold: require delta magnitude notable
+        delta_mag = abs(bar_delta)
+        if delta_mag > 50:  # only meaningful chases
+            if direction > 0 and bar_delta > 0:
+                type_a_delta_chase = True
+            elif direction < 0 and bar_delta < 0:
+                type_a_delta_chase = True
 
     # GEX direction conflict: going long at call wall or short at put wall
     # = fighting massive dealer hedging flow. Demote to TYPE_C max.

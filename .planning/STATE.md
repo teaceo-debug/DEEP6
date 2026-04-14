@@ -120,6 +120,9 @@ Recent decisions affecting current work:
 ### Roadmap Evolution
 
 - Phase 12 added: Integrate borrowed orderflow patterns: VPIN confidence modifier, Delta Slingshot, Delta At Extreme, setup state machine, per-regime walk-forward tracker
+- Phase 13 added: Backtest Engine Core — Clock + MBO Adapter + DuckDB Store (retroactive roadmap entry for orphan scaffolding from 2026-04-14)
+- Phase 14 added: Databento Live Feed (retroactive roadmap entry for orphan context from 2026-04-14)
+- Phase 15 added: LevelBus + Confluence Rules + Trade Decision FSM — unifies VP/narrative/GEX levels into single bus, encodes ~47 research-derived confluence rules, replaces bar-close execution with 7-state trade-decision FSM. Basis: .planning/research/pine/ (12,500 words, 35 papers)
 
 ### Pending Todos
 

@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from deep6.state.footprint import FootprintBar
 from deep6.engines.narrative import classify_bar, NarrativeType
-from deep6.engines.signal_config import AbsorptionConfig, ExhaustionConfig
+from deep6.engines.signal_config import AbsorptionConfig, ExhaustionConfig, ScorerConfig
 from deep6.engines.delta import DeltaEngine
 from deep6.engines.auction import AuctionEngine
 from deep6.engines.poc import POCEngine

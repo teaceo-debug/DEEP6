@@ -266,3 +266,33 @@ Plans:
 - [x] 12-PLAN-05-walk-forward-tracker.md — Per-category × per-regime outcomes at 5/10/20 horizons, auto-disable/recovery, LightGBM weight feedback via EventStore
 
 **Status:** Phase 12 COMPLETE (2026-04-14) — all 5 plans shipped, 628 tests pass.
+
+### Phase 13: Backtest Engine Core — Clock + MBO Adapter + DuckDB Store
+
+**Goal:** Unify live and backtest code paths by injecting a `Clock` abstraction into `SharedState` and feeding Databento MBO events through the same `on_tick`/`on_dom` callback surfaces the live Rithmic feed uses. Capture per-bar artifacts (OHLC, 44-bit SignalFlags, ScorerResult, DOMSnapshot, simulated fill) into a DuckDB result store for post-run analysis. Integration + plumbing — the existing `deep6/data/databento_feed.py` (trades-only) is deprecated in favor of `deep6/backtest/mbo_adapter.py`.
+**Requirements**: TBD
+**Depends on:** Phase 12
+**Plans:** 1 plan (scaffolded)
+
+Plans:
+- [ ] 13-01-PLAN.md — Clock protocol + WallClock/EventClock, MBOAdapter + FeedAdapter protocol (bmoscon/orderbook backed), DuckDB result_store, ReplaySession orchestrator, clock injection refactor
+
+### Phase 14: Databento Live Feed
+
+**Goal:** Build a live Databento MBO feed adapter that replaces Rithmic market data in the live pipeline — same MBO schema used in backtest, eliminating data drift. Rithmic continues to handle order execution only. New `deep6/data/databento_live.py` feeds the same `DOMState` and `FootprintBar` pipeline; data source selected via `DEEP6_DATA_SOURCE` env var (`"databento"` default | `"rithmic"`).
+**Requirements**: TBD
+**Depends on:** Phase 13
+**Plans:** 0 plans (context gathered)
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 14 to break down)
+
+### Phase 15: LevelBus + Confluence Rules + Trade Decision FSM
+
+**Goal:** Unify tape-derived zones (LVN/HVN/VPOC/VAH/VAL/ABSORB/EXHAUST/MOMENTUM/REJECTION/FLIPPED) and GEX levels (call_wall, put_wall, gamma_flip, zero_gamma, hvl, largest_gamma) into a single `LevelBus` with normalized `Level` dataclass. Persist narrative signals (absorption/exhaustion/momentum/rejection) as lifecycle-tracked zones with VA-proximity boost and confirmation-boost scoring (BOOKMAP Pine methodology). Implement `ConfluenceRules` module encoding ~47 cross-stream rules from research (8 VP/GEX confluence, 12 vendor/academic, 12 microstructure, 15 auction-theory trade plans). Build `TradeDecisionMachine` 7-state FSM (IDLE→WATCHING→ARMED→TRIGGERED→IN_POSITION→MANAGING→EXITING) with 17 entry triggers + stop/target/invalidation/sizing policies replacing the current bar-close-only execution path. Research basis: `.planning/research/pine/*.md` + `.planning/research/pine/deep/*.md` (~12,500 words, 47 rules, 35 papers).
+**Requirements**: TBD
+**Depends on:** Phase 14
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 15 to break down)
