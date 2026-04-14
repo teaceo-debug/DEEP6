@@ -12,6 +12,7 @@ import { useReplayStore } from '@/store/replayStore';
 import type { FootprintBar } from '@/types/deep6';
 import { FootprintSeries, footprintSeriesDefaults, type FootprintBarLW } from '@/lib/lw-charts/FootprintSeries';
 import { ZoneOverlay } from './ZoneOverlay';
+import { VolumeProfile } from './VolumeProfile';
 import { ReturnToLivePill } from '@/components/replay/ReturnToLivePill';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -158,6 +159,7 @@ export function FootprintChart() {
   return (
     <div className="relative flex-1 min-w-0 overflow-hidden bg-bg-base border-r border-border-subtle">
       <div ref={hostRef} className="absolute inset-0" />
+      <VolumeProfile chartRef={chartRef} />
       <ZoneOverlay chartRef={chartRef} />
       <ReturnToLivePill />
     </div>
