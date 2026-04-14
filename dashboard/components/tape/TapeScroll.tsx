@@ -1,14 +1,14 @@
 'use client';
 /**
- * TapeScroll.tsx — per UI-SPEC v2 §4.4 (11.3 upgrade)
+ * TapeScroll.tsx — per UI-SPEC v2 §4.4 (11.3-r8 upgrade)
  *
- * Upgrades from 11.2 baseline:
- * - 20px rows via TapeRow upgrade
- * - Floating "↓ NEW (N)" pill styled as surface-2 / rule-bright / lime count
- * - Empty state with blinking cursor: // no prints yet_
- * - Scroll pill right-aligned, floats above content
+ * Upgrades from 11.3 baseline:
+ * - Stats summary line: "N prints · $X.XM notional · XX% ASK" (visible when >5 prints)
+ * - Hover expand passes runningVolumeAtPrice + directionBias to TapeRow
+ * - Floating "↓ NEW (N)" pill preserved
+ * - Empty state: // no prints yet_ with blinking cursor
  */
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { useTradingStore } from '@/store/tradingStore';
 import { TapeRow } from './TapeRow';
 import type { TapeMarker } from './TapeRow';
@@ -44,6 +44,80 @@ function BlinkingCursor() {
   );
 }
 
+// ── Stats summary ─────────────────────────────────────────────────────────────
+
+interface TapeStats {
+  count: number;
+  notionalM: string;
+  askPct: number;
+}
+
+function computeStats(tape: TapeEntry[]): TapeStats {
+  const count = tape.length;
+  // NQ point value: $20 per point. Approximate notional = price * size * $20
+  let totalNotional = 0;
+  let askCount = 0;
+  for (const e of tape) {
+    totalNotional += e.price * e.size * 20;
+    if (e.side === 'ASK') askCount++;
+  }
+  const notionalM = (totalNotional / 1_000_000).toFixed(1);
+  const askPct = count > 0 ? Math.round((askCount / count) * 100) : 0;
+  return { count, notionalM, askPct };
+}
+
+function TapeStatsSummary({ tape }: { tape: TapeEntry[] }) {
+  const stats = useMemo(() => computeStats(tape), [tape]);
+  if (tape.length <= 5) return null;
+
+  const askPctColor = stats.askPct >= 60
+    ? 'var(--ask)'
+    : stats.askPct <= 40
+      ? 'var(--bid)'
+      : 'var(--text-dim)';
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6,
+        padding: '3px 8px',
+        borderBottom: '1px solid var(--rule)',
+        flexShrink: 0,
+        fontSize: 10,
+        color: 'var(--text-dim)',
+        fontVariantNumeric: 'tabular-nums',
+        letterSpacing: '0.02em',
+      }}
+    >
+      <span>{stats.count} prints</span>
+      <span style={{ color: 'var(--rule-bright)' }}>·</span>
+      <span>${stats.notionalM}M notional</span>
+      <span style={{ color: 'var(--rule-bright)' }}>·</span>
+      <span style={{ color: askPctColor, fontWeight: 600 }}>
+        {stats.askPct}% ASK
+      </span>
+    </div>
+  );
+}
+
+// ── Running volume at price + direction bias ──────────────────────────────────
+
+function buildVolumeMap(tape: TapeEntry[]): Map<number, { total: number; askVol: number }> {
+  const now = Date.now() / 1000;
+  const cutoff = now - 30;
+  const map = new Map<number, { total: number; askVol: number }>();
+  for (const e of tape) {
+    if (e.ts < cutoff) continue;
+    const existing = map.get(e.price) ?? { total: 0, askVol: 0 };
+    existing.total += e.size;
+    if (e.side === 'ASK') existing.askVol += e.size;
+    map.set(e.price, existing);
+  }
+  return map;
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 const SCROLL_THRESHOLD = 8; // px — if scrollTop > this, user has scrolled up
@@ -55,12 +129,15 @@ export function TapeScroll() {
 
   const tape: TapeEntry[] = useTradingStore.getState().tape.toArray();
   // newest first
-  const displayTape = [...tape].reverse();
+  const displayTape = useMemo(() => [...tape].reverse(), [tape]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [userScrolled, setUserScrolled] = useState(false);
   const [newCount, setNewCount] = useState(0);
   const prevLengthRef = useRef(displayTape.length);
+
+  // Precompute per-price volume map for hover detail
+  const volumeMap = useMemo(() => buildVolumeMap(tape), [tape]);
 
   // Track scroll position
   const handleScroll = useCallback(() => {
@@ -131,28 +208,45 @@ export function TapeScroll() {
         borderTop: '1px solid var(--rule)',
         position: 'relative',
         overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
+      {/* Stats summary line — only when > 5 prints */}
+      <TapeStatsSummary tape={displayTape} />
+
       <div
         ref={containerRef}
         onScroll={handleScroll}
         style={{
-          height: '100%',
+          flex: 1,
           overflowY: 'auto',
           overflowX: 'hidden',
         }}
       >
-        {displayTape.map((entry, idx) => (
-          <TapeRow
-            key={`${entry.ts}-${idx}`}
-            entry={entry}
-            marker={toMarker(entry.marker)}
-            isNew={idx === 0 && prevLengthRef.current !== displayTape.length}
-          />
-        ))}
+        {displayTape.map((entry, idx) => {
+          const volData = volumeMap.get(entry.price);
+          const runningVol = volData?.total;
+          const directionBias: 'BUY AGGRESSION' | 'SELL AGGRESSION' | null = volData
+            ? volData.askVol / volData.total >= 0.5
+              ? 'BUY AGGRESSION'
+              : 'SELL AGGRESSION'
+            : null;
+
+          return (
+            <TapeRow
+              key={`${entry.ts}-${idx}`}
+              entry={entry}
+              marker={toMarker(entry.marker)}
+              isNew={idx === 0 && prevLengthRef.current !== displayTape.length}
+              runningVolumeAtPrice={runningVol}
+              directionBias={directionBias}
+            />
+          );
+        })}
       </div>
 
-      {/* Floating "↓ NEW (N)" pill — styled per spec: surface-2 bg, rule-bright border, lime N */}
+      {/* Floating "↓ NEW (N)" pill */}
       {userScrolled && newCount > 0 && (
         <button
           onClick={scrollToTop}
