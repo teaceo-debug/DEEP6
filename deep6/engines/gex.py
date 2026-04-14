@@ -131,6 +131,7 @@ class GexEngine:
         # Check staleness
         if levels.age_seconds() > self.staleness_seconds:
             levels.stale = True
+            return GexSignal(GexRegime.NEUTRAL, 0, 0, 0, 0, False, False, 0, "GEX: stale data")
 
         # QQQ proxy price (approximate)
         qqq_approx = nq_price / self.config.nq_to_qqq_divisor
@@ -245,12 +246,14 @@ class GexEngine:
         # Find gamma flip (where net GEX crosses zero)
         sorted_strikes = sorted(strike_gex.keys())
         gamma_flip = spot  # Default to spot
+        sign_change_found = False
         for i in range(len(sorted_strikes) - 1):
             s1, s2 = sorted_strikes[i], sorted_strikes[i + 1]
             g1, g2 = strike_gex[s1], strike_gex[s2]
             if g1 * g2 < 0:  # Sign change
                 # Linear interpolation
                 gamma_flip = s1 + (s2 - s1) * abs(g1) / (abs(g1) + abs(g2))
+                sign_change_found = True
                 break
 
         # HVL: strike with highest absolute GEX
@@ -261,7 +264,10 @@ class GexEngine:
         net_gex_at_spot = strike_gex.get(closest_strike, 0)
 
         # Regime
-        regime = GexRegime.POSITIVE_DAMPENING if spot > gamma_flip else GexRegime.NEGATIVE_AMPLIFYING
+        if not sign_change_found:
+            regime = GexRegime.NEUTRAL
+        else:
+            regime = GexRegime.POSITIVE_DAMPENING if spot > gamma_flip else GexRegime.NEGATIVE_AMPLIFYING
 
         return GexLevels(
             call_wall=max_call_strike,
