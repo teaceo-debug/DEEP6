@@ -178,8 +178,8 @@ Plans:
 **Plans**: 4 plans (Wave 1: plan-01; Wave 2: plan-02; Wave 3: plan-03, plan-04 parallel)
 
 Plans:
-- [ ] 09-01-PLAN.md — FastAPI app factory + EventStore (aiosqlite signal_events + trade_events)
-- [ ] 09-02-PLAN.md — LightGBM meta-learner + HMM regime detector (3-state Gaussian)
+- [x] 09-01-PLAN.md — FastAPI app factory + EventStore (aiosqlite signal_events + trade_events)
+- [x] 09-02-PLAN.md — LightGBM meta-learner + HMM regime detector (3-state Gaussian)
 - [ ] 09-03-PLAN.md — Optuna sweep endpoint + full weight deploy gate (WFE + OOS count + token)
 - [ ] 09-04-PLAN.md — PerformanceTracker + E7 wiring + test suite
 
@@ -231,3 +231,23 @@ Note: Phase 6 (Kronos + TVMCP) can begin after Phase 1 completes, running in par
 | 9. ML Backend | 0/? | Not started | - |
 | 10. Analytics Dashboard | 0/? | Not started | - |
 | 11. DEEP6 Trading Web App | 0/? | Not started | - |
+
+### Phase 12: Integrate borrowed orderflow patterns: VPIN confidence modifier, Delta Slingshot, Delta At Extreme, setup state machine, per-regime walk-forward tracker
+
+**Goal:** Integrate five vetted orderflow patterns from the kronos-tv-autotrader reference implementation into DEEP6's existing 44-signal engine, LightGBM meta-learner, and HMM regime detector — (1) VPIN as a continuous 0.2x-1.2x confidence modifier on fused LightGBM score, (2) running intrabar max/min delta on FootprintBar that fixes the existing DELT_TAIL (bit 22) to use real extremes, (3) new TRAP_SHOT signal at bit 44 (2/3/4-bar trapped-trader reversal, session-bounded, GEX-wall bypass), (4) dual-timeframe (1m + 5m) setup state machine with soak-bonus + explicit-close transition rule, and (5) per-category × per-regime walk-forward tracker with auto-disable/recovery feeding back into LightGBM fusion.
+**Requirements**: OFP-01, OFP-02, OFP-03, OFP-04, OFP-05, OFP-06, OFP-07, OFP-08
+**Depends on:** Phase 11
+**Success Criteria** (what must be TRUE):
+  1. VPIN engine produces continuous 0.2x-1.2x confidence multiplier using exact aggressor split (no BVC), applied only to FUSED LightGBM score as final stage with clip to [0, 100]
+  2. FootprintBar tracks running max_delta/min_delta/running_delta on every add_trade; DELT_TAIL (bit 22) uses true intrabar extreme (proxy removed); SignalFlags bits 0-43 unchanged
+  3. TRAP_SHOT fires at NEW bit 44 for 2/3/4-bar trapped-trader reversal (z-score > 2.0), with delta_history reset at RTH session boundary, 30-bar warmup, and triggers_state_bypass when within GEX wall proximity
+  4. Dual-TF SetupTracker (1m + 5m simultaneously) with SCANNING → DEVELOPING → TRIGGERED → MANAGING → COOLDOWN; 10-bar soak = 5x weight (linear ramp); MANAGING → COOLDOWN is explicit-close-only (no auto); 30-bar failsafe; every transition persisted to EventStore
+  5. WalkForwardTracker records every signal with per-category (8 groups) × per-regime (HMM state) outcome resolution at 5/10/20 bar horizons, labels EXPIRED for signals within 20 bars of RTH close, auto-disables cells with 200-signal rolling Sharpe < threshold, auto-recovers on 50-signal Sharpe recovery, feeds back into WeightFile.regime_adjustments; persistence via phase 09-01 EventStore only (no JSON sink)
+**Plans**: 5 plans (Wave 1: plan-01, plan-02 parallel; Wave 2: plan-03; Wave 3: plan-04; Wave 4: plan-05)
+
+Plans:
+- [ ] 12-PLAN-01-vpin-confidence-modifier.md — VPINEngine (exact aggressor, 1000-contract × 50 buckets) + scorer final-stage multiplier
+- [ ] 12-PLAN-02-intrabar-delta-and-delt-tail-fix.md — Running max/min delta on FootprintBar + DELT_TAIL (bit 22) rewired to true extreme; no new bit
+- [ ] 12-PLAN-03-trap-shot-slingshot.md — TRAP_SHOT at bit 44 (2/3/4-bar), session reset, 30-bar warmup, GEX-wall bypass signal
+- [ ] 12-PLAN-04-setup-state-machine.md — Dual-TF (1m+5m) 5-state machine with soak bonus, explicit-close rule, EventStore transition log
+- [ ] 12-PLAN-05-walk-forward-tracker.md — Per-category × per-regime outcomes at 5/10/20 horizons, auto-disable/recovery, LightGBM weight feedback via EventStore
