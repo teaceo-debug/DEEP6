@@ -1,20 +1,21 @@
 'use client';
 /**
- * SignalFeedRow.tsx — per UI-SPEC v2 §4.3 (11.3 upgrade)
+ * SignalFeedRow.tsx — per UI-SPEC v2 §4.3 (11.3-r2 upgrade)
  *
- * Upgrades from 11.2 baseline:
- * - 40px default (compressed from 44px)
- * - 96px hover expand (spring stiffness:180 damping:20)
- * - Hover reveals: engine_agreement bar, GEX pill, Kronos capsule, 8-dot category row
- * - TYPE_A arrival: clip-path reveal + lime halo + border pulse + 3x glow + 1200ms flash
- * - Status dot pulses 10s, then steady with faint glow ring
- * - hover bg fades in at 300ms
+ * Upgrades from 11.3 baseline:
+ * - Score mini-bar: 2px progress bar at row bottom, tier-colored, width = total_score/100
+ * - Age format: +0.0s / +45s / +3m / +2h / +1d — right-aligned fixed width
+ * - Narrative: strip leading ticker prefix (e.g. "NQ." / "ES."); text-transform: none
+ * - Hover expand: bar_index, entry-bias hint, full narrative (unwrapped), trading-card feel
+ * - TYPE_A arrival: scan line sweep (left to right 500ms then fade)
+ * - Status dot: 2px halo (40% tier color) when not pulsing; scale 1.0 to 1.25 when pulsing
+ * - Row separator: 1px --rule between rows
  */
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, useReducedMotion, AnimatePresence } from 'motion/react';
 import type { SignalEvent } from '@/types/deep6';
 
-// ── Tier color maps ───────────────────────────────────────────────────────────
+// -- Tier color maps ----------------------------------------------------------
 
 const TIER_COLOR: Record<string, string> = {
   TYPE_A: 'var(--lime)',
@@ -27,7 +28,7 @@ function tierColor(tier: string): string {
   return TIER_COLOR[tier] ?? TIER_COLOR.QUIET;
 }
 
-// ── GEX regime color ──────────────────────────────────────────────────────────
+// -- GEX regime color ---------------------------------------------------------
 
 function gexColor(regime: string): string {
   if (regime === 'POS_GAMMA') return 'var(--ask)';
@@ -35,29 +36,54 @@ function gexColor(regime: string): string {
   return 'var(--text-mute)';
 }
 
-// ── Age formatting ────────────────────────────────────────────────────────────
+// -- Age formatting -----------------------------------------------------------
 
 function formatAge(nowMs: number, signalTsMs: number): string {
   const diffMs = nowMs - signalTsMs;
   if (diffMs < 0) return '+0.0s';
   const diffS = diffMs / 1000;
-  if (diffS < 60) {
-    if (diffS < 10) return `+${diffS.toFixed(1)}s`;
-    return `+${Math.round(diffS)}s`;
-  }
-  return `+${Math.round(diffS / 60)}m`;
+  if (diffS < 10)  return `+${diffS.toFixed(1)}s`;
+  if (diffS < 60)  return `+${Math.round(diffS)}s`;
+  const diffM = diffS / 60;
+  if (diffM < 60)  return `+${Math.round(diffM)}m`;
+  const diffH = diffM / 60;
+  if (diffH < 24)  return `+${Math.round(diffH)}h`;
+  return `+${Math.round(diffH / 24)}d`;
 }
 
-// ── 8 canonical categories ────────────────────────────────────────────────────
+// -- Strip leading ticker prefix (e.g. "NQ. " / "ES. " / "NQ ") --------------
+
+function stripTickerPrefix(text: string): string {
+  return text.replace(/^[A-Z]{1,4}[.\s]+/, '');
+}
+
+// -- Entry-bias hint ----------------------------------------------------------
+
+function entryBiasHint(tier: string, direction: -1 | 0 | 1, score: number): string | null {
+  if (tier === 'QUIET') return null;
+  const pct = Math.round(Math.min(99, Math.max(50, score)));
+  if (direction === 1) {
+    if (tier === 'TYPE_A') return `BULL IDEA ${pct}%`;
+    if (tier === 'TYPE_B') return `BULL WATCH ${pct}%`;
+    return `BULL CAUTION ${pct}%`;
+  }
+  if (direction === -1) {
+    if (tier === 'TYPE_A') return `BEAR IDEA ${pct}%`;
+    if (tier === 'TYPE_B') return `BEAR WATCH ${pct}%`;
+    return `BEAR CAUTION ${pct}%`;
+  }
+  return `NEUTRAL ${pct}%`;
+}
+
+// -- 8 canonical categories ---------------------------------------------------
 
 const ALL_CATEGORIES = ['ABS', 'EXH', 'IMB', 'DELTA', 'AUCT', 'VOL', 'TRAP', 'ML'];
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// -- Component ----------------------------------------------------------------
 
 interface SignalFeedRowProps {
   sig: SignalEvent;
   narrative?: string;
-  /** True for the most-recently-arrived row — drives TYPE_A animation */
   justArrived?: boolean;
 }
 
@@ -69,10 +95,8 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
   const isTypeA = tier === 'TYPE_A';
   const triggerArrival = isTypeA && justArrived === true;
 
-  // Track hover state for expand/collapse
   const [hovered, setHovered] = useState(false);
 
-  // Age string — ticks every second
   const [ageStr, setAgeStr] = useState(() => formatAge(Date.now(), sig.ts * 1000));
   useEffect(() => {
     const id = setInterval(() => {
@@ -81,14 +105,12 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
     return () => clearInterval(id);
   }, [sig.ts]);
 
-  // Status dot pulse: active for 10s after arrival (up from 8s)
   const [dotPulsing, setDotPulsing] = useState(true);
   useEffect(() => {
     const timer = setTimeout(() => setDotPulsing(false), 10_000);
     return () => clearTimeout(timer);
   }, []);
 
-  // Border pulse animation: 3x expand-contract (4px → 8px → 4px) over 600ms
   const [borderPulsing, setBorderPulsing] = useState(triggerArrival);
   useEffect(() => {
     if (triggerArrival) {
@@ -98,7 +120,6 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
     }
   }, [triggerArrival]);
 
-  // Glow halo behind row
   const [haloVisible, setHaloVisible] = useState(triggerArrival);
   useEffect(() => {
     if (triggerArrival) {
@@ -108,26 +129,36 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
     }
   }, [triggerArrival]);
 
-  // Agreement string — UPPERCASE
+  const [scanVisible, setScanVisible] = useState(triggerArrival);
+  useEffect(() => {
+    if (triggerArrival) {
+      setScanVisible(true);
+      const t = setTimeout(() => setScanVisible(false), 900);
+      return () => clearTimeout(t);
+    }
+  }, [triggerArrival]);
+
   const agreementStr = sig.categories_firing?.length
     ? sig.categories_firing.join('+').toUpperCase()
     : '';
 
-  // Firing categories set for 8-dot indicator
   const firingSet = new Set(
     (sig.categories_firing ?? []).map((c) => c.toUpperCase())
   );
 
-  // ── Animation config ──────────────────────────────────────────────────────
+  const rawNarrative = narrative ?? '';
+  const shortNarrative = stripTickerPrefix(rawNarrative);
+  const biasHint = entryBiasHint(tier, sig.direction, sig.total_score);
+  const scoreBarPct = Math.min(100, Math.max(0, sig.total_score));
 
-  // Clip-path reveal (400ms spring)
+  // -- Animation config ------------------------------------------------------
+
   const clipInitial = triggerArrival && !reduced
     ? { clipPath: 'inset(0 100% 0 0)' }
     : { clipPath: 'inset(0 0% 0 0)' };
 
   const clipAnimate = { clipPath: 'inset(0 0% 0 0)' };
 
-  // Combined row animation: clip + bg flash + glow
   const rowAnimate: Record<string, unknown> = { ...clipAnimate };
   const rowTransition: Record<string, unknown> = {
     clipPath: reduced
@@ -138,7 +169,6 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
   if (triggerArrival && !reduced) {
     rowAnimate.backgroundColor = ['rgba(163,255,0,0.25)', 'rgba(163,255,0,0)'];
     rowTransition.backgroundColor = { duration: 1.2, ease: 'easeOut' };
-
     rowAnimate.filter = [
       'drop-shadow(0 0 12px rgba(163,255,0,0.7)) drop-shadow(0 0 4px rgba(163,255,0,0.5))',
       'drop-shadow(0 0 0px rgba(163,255,0,0))',
@@ -146,7 +176,6 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
     rowTransition.filter = { duration: 1.8, ease: 'easeOut' };
   }
 
-  // Border width animation for TYPE_A pulse
   const borderWidthAnimate = borderPulsing && !reduced
     ? { borderLeftWidth: ['4px', '8px', '4px', '8px', '4px', '8px', '4px'] }
     : { borderLeftWidth: '4px' };
@@ -154,19 +183,21 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
     ? { duration: 0.6, ease: 'easeInOut' as const }
     : { duration: 0 };
 
-  // ── Dot pulse size: TYPE_A pulses slightly bigger ─────────────────────────
-  const dotPulseScale = isTypeA ? [1, 1.35, 1] : [1, 1.2, 1];
+  // Scale 1.0 to 1.25 per spec (unified for TYPE_A and others)
+  const dotPulseScale = [1, 1.25, 1];
 
-  // After pulse period: faint glow ring on dot
+  // 2px halo at 40% tier-color opacity when not pulsing
   const dotSteadyStyle = !dotPulsing
-    ? {
-        boxShadow: `0 0 0 2px color-mix(in oklch, ${color} 20%, transparent)`,
-      }
+    ? { boxShadow: `0 0 0 2px color-mix(in oklch, ${color} 40%, transparent)` }
     : {};
+
+  // suppress unused-var warning: isTypeA is used in dotPulseScale context but
+  // we keep it for clarity and future use
+  void isTypeA;
 
   return (
     <div style={{ position: 'relative' }}>
-      {/* Lime halo layer — absolute behind row */}
+      {/* Lime halo layer */}
       <AnimatePresence>
         {haloVisible && !reduced && (
           <motion.div
@@ -178,10 +209,31 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
             style={{
               position: 'absolute',
               inset: 0,
-              background:
-                'radial-gradient(ellipse at 50% 50%, rgba(163,255,0,0.30) 0%, rgba(163,255,0,0) 70%)',
+              background: 'radial-gradient(ellipse at 50% 50%, rgba(163,255,0,0.30) 0%, rgba(163,255,0,0) 70%)',
               pointerEvents: 'none',
               zIndex: 0,
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* TYPE_A scan line sweeps left to right */}
+      <AnimatePresence>
+        {scanVisible && !reduced && (
+          <motion.div
+            key="scanline"
+            initial={{ left: '-2px', opacity: 0.8 }}
+            animate={{ left: '102%', opacity: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5, ease: 'linear' }}
+            style={{
+              position: 'absolute',
+              top: 0,
+              bottom: 0,
+              width: 2,
+              background: 'var(--lime)',
+              pointerEvents: 'none',
+              zIndex: 2,
             }}
           />
         )}
@@ -205,7 +257,10 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
           zIndex: 1,
           borderLeft: `4px solid ${color}`,
           borderBottom: '1px solid var(--rule)',
-          padding: '4px 10px 4px 12px',
+          paddingTop: 4,
+          paddingRight: 10,
+          paddingBottom: 0,
+          paddingLeft: 12,
           cursor: 'default',
           overflow: 'hidden',
           backgroundColor: hovered ? 'var(--surface-1)' : undefined,
@@ -214,9 +269,9 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
-        {/* Height wrapper — animate 40 → 96 on hover */}
+        {/* Height wrapper */}
         <motion.div
-          animate={{ height: hovered ? 96 : 40 }}
+          animate={{ height: hovered ? 106 : 42 }}
           transition={
             reduced
               ? { duration: 0 }
@@ -224,7 +279,7 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
           }
           style={{ overflow: 'hidden' }}
         >
-          {/* ── Top line: dot + badge + narrative + age ── */}
+          {/* Top line: dot + badge + narrative + age */}
           <div
             style={{
               height: 16,
@@ -234,7 +289,6 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
               overflow: 'hidden',
             }}
           >
-            {/* Status dot */}
             <motion.div
               animate={
                 dotPulsing && !reduced
@@ -243,7 +297,7 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
               }
               transition={
                 dotPulsing && !reduced
-                  ? { duration: 1.0, repeat: Infinity, ease: 'easeInOut' }
+                  ? { duration: 1.2, repeat: Infinity, ease: 'easeInOut' }
                   : { duration: 0 }
               }
               style={{
@@ -256,7 +310,6 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
               }}
             />
 
-            {/* Tier badge [TYPE_A] */}
             <span
               style={{
                 color,
@@ -269,7 +322,6 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
               [{tier}]
             </span>
 
-            {/* Narrative */}
             <span
               style={{
                 color: 'var(--text)',
@@ -278,12 +330,12 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
                 fontSize: 12,
+                textTransform: 'none',
               }}
             >
-              {narrative ?? ''}
+              {shortNarrative}
             </span>
 
-            {/* Age */}
             <span
               className="tnum"
               style={{
@@ -291,13 +343,15 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
                 flexShrink: 0,
                 fontSize: 11,
                 fontVariantNumeric: 'tabular-nums',
+                textAlign: 'right',
+                minWidth: 44,
               }}
             >
               {ageStr}
             </span>
           </div>
 
-          {/* ── Bottom line: score + agreement + chevron ── */}
+          {/* Score + agreement line */}
           <div
             style={{
               height: 14,
@@ -334,14 +388,12 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
             >
               {agreementStr}
             </span>
-            <span
-              style={{ color: 'var(--text-mute)', flexShrink: 0, fontSize: 11 }}
-            >
-              →
+            <span style={{ color: 'var(--text-mute)', flexShrink: 0, fontSize: 11 }}>
+              &rarr;
             </span>
           </div>
 
-          {/* ── Hover-expand content (visible at 96px) ── */}
+          {/* Hover trading card */}
           <AnimatePresence>
             {hovered && (
               <motion.div
@@ -351,20 +403,20 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.15 }}
                 style={{
-                  marginTop: 6,
+                  marginTop: 5,
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 4,
+                  gap: 3,
                 }}
               >
-                {/* Engine agreement bar */}
+                {/* Engine agreement bar + bar index */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span
                     style={{
                       color: 'var(--text-dim)',
                       fontSize: 10,
                       letterSpacing: '0.08em',
-                      width: 56,
+                      width: 40,
                       flexShrink: 0,
                     }}
                   >
@@ -373,7 +425,7 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
                   <div
                     style={{
                       flex: 1,
-                      height: 5,
+                      height: 4,
                       background: 'var(--rule-bright)',
                       borderRadius: 2,
                       overflow: 'hidden',
@@ -394,18 +446,28 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
                     style={{
                       color: 'var(--text-dim)',
                       fontSize: 10,
-                      width: 30,
+                      width: 28,
                       textAlign: 'right',
                       fontVariantNumeric: 'tabular-nums',
+                      flexShrink: 0,
                     }}
                   >
                     {Math.round(sig.engine_agreement)}%
                   </span>
+                  <span
+                    style={{
+                      color: 'var(--text-dim)',
+                      fontSize: 10,
+                      flexShrink: 0,
+                      marginLeft: 4,
+                    }}
+                  >
+                    bar #{sig.bar_index_in_session}
+                  </span>
                 </div>
 
-                {/* GEX pill + Kronos capsule row */}
+                {/* GEX + Kronos + entry bias hint */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  {/* GEX pill */}
                   <span
                     style={{
                       fontSize: 10,
@@ -415,33 +477,23 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
                       padding: '0 4px',
                       letterSpacing: '0.06em',
                       flexShrink: 0,
+                      lineHeight: '14px',
                     }}
                   >
                     GEX {sig.gex_regime ?? 'N/A'}
                   </span>
 
-                  {/* Kronos mini-capsule */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 3,
-                      flexShrink: 0,
-                    }}
-                  >
-                    <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>
-                      KRONOS
-                    </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
+                    <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>K</span>
                     <div
                       style={{
-                        width: 8,
-                        height: 8,
+                        width: 7,
+                        height: 7,
                         borderRadius: '50%',
                         background: 'var(--magenta)',
-                        opacity:
-                          sig.kronos_bias != null
-                            ? 0.3 + (Math.abs(sig.kronos_bias) / 100) * 0.7
-                            : 0.3,
+                        opacity: sig.kronos_bias != null
+                          ? 0.3 + (Math.abs(sig.kronos_bias) / 100) * 0.7
+                          : 0.3,
                         flexShrink: 0,
                       }}
                     />
@@ -453,19 +505,49 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
                         fontVariantNumeric: 'tabular-nums',
                       }}
                     >
-                      {sig.kronos_bias != null ? `${Math.round(sig.kronos_bias)}%` : '—'}
+                      {sig.kronos_bias != null ? `${Math.round(sig.kronos_bias)}%` : '\u2014'}
                     </span>
                   </div>
+
+                  {biasHint && (
+                    <span
+                      style={{
+                        fontSize: 10,
+                        color,
+                        fontWeight: 600,
+                        letterSpacing: '0.06em',
+                        marginLeft: 'auto',
+                        flexShrink: 0,
+                        opacity: 0.85,
+                      }}
+                    >
+                      {biasHint}
+                    </span>
+                  )}
                 </div>
 
-                {/* 8-dot category indicator */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                {/* Category dots + full narrative */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4 }}>
                   <span
-                    style={{ fontSize: 10, color: 'var(--text-dim)', letterSpacing: '0.06em' }}
+                    style={{
+                      fontSize: 10,
+                      color: 'var(--text-dim)',
+                      letterSpacing: '0.06em',
+                      flexShrink: 0,
+                    }}
                   >
                     CATS {(sig.category_count ?? 0)}/8
                   </span>
-                  <div style={{ display: 'flex', gap: 3, marginLeft: 2 }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: 3,
+                      marginLeft: 2,
+                      alignItems: 'center',
+                      flexShrink: 0,
+                      paddingTop: 2,
+                    }}
+                  >
                     {ALL_CATEGORIES.map((cat) => {
                       const lit = firingSet.has(cat);
                       return (
@@ -486,11 +568,48 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
                       );
                     })}
                   </div>
+
+                  {rawNarrative.length > 0 && (
+                    <span
+                      style={{
+                        color: 'var(--text-dim)',
+                        fontSize: 10,
+                        marginLeft: 6,
+                        flex: 1,
+                        whiteSpace: 'normal',
+                        lineHeight: 1.35,
+                      }}
+                    >
+                      {rawNarrative}
+                    </span>
+                  )}
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
         </motion.div>
+
+        {/* Score mini-bar: 2px absolute at bottom, full row width */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 2,
+            background: 'var(--rule)',
+          }}
+        >
+          <div
+            style={{
+              height: '100%',
+              width: `${scoreBarPct}%`,
+              background: color,
+              opacity: 0.75,
+              transition: 'width 600ms ease',
+            }}
+          />
+        </div>
       </motion.div>
     </div>
   );

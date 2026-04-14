@@ -1,11 +1,11 @@
 'use client';
 /**
- * SignalFeed.tsx — per UI-SPEC v2 §4.3 (11.3 upgrade)
+ * SignalFeed.tsx — per UI-SPEC v2 §4.3 (11.3-r2 upgrade)
  *
- * Upgrades from 11.2 baseline:
- * - Auto-scroll only when scrollTop < 40px (was naive always-top)
- * - "↑ NEW (N)" pill at top-right when user has scrolled down
- * - Blinking cursor after "tail -f /dev/orderflow" empty state
+ * Upgrades from 11.3 baseline:
+ * - scroll-terminal class applied for 4px custom scrollbar
+ * - "loading more..." line when scrolled up
+ * - Enriched empty state: ascii divider + "awaiting engine output..." line
  * - Passes narrative field from LiveSignalMessage store through to SignalFeedRow
  */
 import { useRef, useEffect, useState, useCallback } from 'react';
@@ -13,7 +13,7 @@ import { useTradingStore } from '@/store/tradingStore';
 import { SignalFeedRow } from './SignalFeedRow';
 import type { SignalEvent } from '@/types/deep6';
 
-// ── Blinking cursor (1Hz, --text-mute) ───────────────────────────────────────
+// -- Blinking cursor (1Hz, --text-mute) --------------------------------------
 
 function BlinkingCursor() {
   const [visible, setVisible] = useState(true);
@@ -35,17 +35,14 @@ function BlinkingCursor() {
   );
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// -- Component ----------------------------------------------------------------
 
-const SCROLL_TOP_THRESHOLD = 40; // px — consider "at top" if scrollTop < this
+const SCROLL_TOP_THRESHOLD = 40;
 
 export function SignalFeed() {
-  // Reactive: re-renders when lastSignalVersion changes (new signal arrives)
   const lastSignalVersion = useTradingStore((s) => s.lastSignalVersion);
-  // Read the actual signal array non-reactively via getState to avoid extra render
   const signals: SignalEvent[] = useTradingStore.getState().signals.toArray();
 
-  // Track which signal is "just arrived" for TYPE_A animation.
   const prevVersionRef = useRef(lastSignalVersion);
   const justArrivedRef = useRef(false);
 
@@ -56,11 +53,8 @@ export function SignalFeed() {
     justArrivedRef.current = false;
   }
 
-  // RingBuffer.toArray() returns oldest→newest; reverse for newest-first display.
-  // Cap at 12 visible rows per UI-SPEC §4.3.
   const displaySignals = [...signals].reverse().slice(0, 12);
 
-  // Scroll tracking
   const containerRef = useRef<HTMLDivElement>(null);
   const [userScrolled, setUserScrolled] = useState(false);
   const [newCount, setNewCount] = useState(0);
@@ -74,7 +68,6 @@ export function SignalFeed() {
     if (atTop) setNewCount(0);
   }, []);
 
-  // Auto-scroll new rows into view only when at top
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -98,7 +91,7 @@ export function SignalFeed() {
     setNewCount(0);
   }, []);
 
-  // ── Empty state ─────────────────────────────────────────────────────────────
+  // -- Empty state ------------------------------------------------------------
 
   if (displaySignals.length === 0) {
     return (
@@ -120,17 +113,41 @@ export function SignalFeed() {
           tail -f /dev/orderflow
           <BlinkingCursor />
         </p>
+        <p
+          style={{
+            color: 'var(--text-mute)',
+            fontSize: 11,
+            opacity: 0.8,
+            margin: '4px 0 0',
+            letterSpacing: '0.04em',
+            userSelect: 'none',
+          }}
+        >
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+          {'\u2550'.repeat(23)}
+        </p>
+        <p
+          style={{
+            color: 'var(--text-mute)',
+            fontSize: 11,
+            fontStyle: 'italic',
+            margin: 0,
+          }}
+        >
+          awaiting engine output...
+        </p>
       </div>
     );
   }
 
-  // ── Signal list ─────────────────────────────────────────────────────────────
+  // -- Signal list ------------------------------------------------------------
 
   return (
     <div className="flex-1" style={{ position: 'relative', overflow: 'hidden' }}>
       <div
         ref={containerRef}
         onScroll={handleScroll}
+        className="scroll-terminal"
         style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden' }}
       >
         {displaySignals.map((sig, idx) => (
@@ -140,9 +157,25 @@ export function SignalFeed() {
             justArrived={idx === 0 && justArrivedRef.current}
           />
         ))}
+
+        {/* "loading more..." hint when user has scrolled up — purely visual */}
+        {userScrolled && (
+          <div
+            style={{
+              padding: '6px 12px',
+              color: 'var(--text-mute)',
+              fontSize: 11,
+              fontStyle: 'italic',
+              textAlign: 'center',
+              userSelect: 'none',
+            }}
+          >
+            loading more...
+          </div>
+        )}
       </div>
 
-      {/* "↑ NEW (N)" pill — shown when user has scrolled down */}
+      {/* Up arrow NEW pill */}
       {userScrolled && newCount > 0 && (
         <button
           onClick={scrollToTop}
@@ -163,7 +196,7 @@ export function SignalFeed() {
             color: 'var(--text-dim)',
           }}
         >
-          <span>↑ NEW</span>
+          <span>&uarr; NEW</span>
           <span style={{ color: 'var(--lime)', fontWeight: 600 }}>
             ({newCount})
           </span>
