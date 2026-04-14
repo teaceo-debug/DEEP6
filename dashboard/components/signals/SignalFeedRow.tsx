@@ -70,14 +70,14 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
       </div>
 
       {/* Row 2: score + engine agreement */}
-      <div className="flex items-center gap-2 text-[12px] text-muted">
-        <span className={`font-mono ${scoreColor}`}>
+      <div className="flex items-center gap-2 text-[12px] text-muted min-w-0">
+        <span className={`font-mono shrink-0 ${scoreColor}`}>
           Score: {Math.round(sig.total_score)}
         </span>
         {agreementStr && (
           <>
-            <span>·</span>
-            <span>{agreementStr}</span>
+            <span className="shrink-0">·</span>
+            <span className="truncate">{agreementStr}</span>
           </>
         )}
       </div>

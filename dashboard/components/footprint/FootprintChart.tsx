@@ -123,7 +123,7 @@ export function FootprintChart() {
   }, []);
 
   return (
-    <div className="relative flex-1 min-w-[600px] bg-bg-base border-r border-border-subtle">
+    <div className="relative flex-1 min-w-0 overflow-hidden bg-bg-base border-r border-border-subtle">
       <div ref={hostRef} className="absolute inset-0" />
       <ZoneOverlay chartRef={chartRef} />
       <ReturnToLivePill />
