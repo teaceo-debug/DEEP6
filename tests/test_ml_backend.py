@@ -595,3 +595,111 @@ class TestE7MLQualityEngine:
             engine = E7MLQualityEngine(weight_loader=loader)
             result = engine.score()
             assert abs(result - 1.05) < 0.001
+
+
+# ---------------------------------------------------------------------------
+# EventStore setup_transitions tests — Phase 12-04 Task 2
+# ---------------------------------------------------------------------------
+
+
+class TestEventStoreSetupTransitions:
+    """Tests for the setup_transitions table added by plan 12-04 task 2.
+
+    Ensures:
+    - new table is created idempotently at initialize()
+    - record_setup_transition inserts and returns an autoincrement id
+    - query_setup_transitions returns rows in the correct time window
+    - existing signal_events / trade_events tables are untouched
+    """
+
+    def setup_method(self):
+        self.store = EventStore(":memory:")
+        asyncio.run(self.store.initialize())
+
+    def test_setup_transitions_table_created(self):
+        """setup_transitions table is created by initialize() and is insertable."""
+        row_id = asyncio.run(
+            self.store.record_setup_transition(
+                timeframe="1m",
+                setup_id="1m-abcdef",
+                from_state="SCANNING",
+                to_state="DEVELOPING",
+                trigger="ALIGNED_TIER_B_OR_C",
+                weight=1.4,
+                bar_index=42,
+                ts=time.time(),
+            )
+        )
+        assert isinstance(row_id, int)
+        assert row_id >= 1
+
+        # Existing tables still work — insert a signal_event and a trade_event.
+        sig = asyncio.run(self.store.insert_signal_event(_make_signal_event()))
+        trd = asyncio.run(self.store.insert_trade_event(_make_trade_event()))
+        assert sig == 1
+        assert trd == 1
+
+    def test_record_and_query_round_trip(self):
+        """Three transitions recorded → query returns all three in ts order."""
+        now = time.time()
+
+        asyncio.run(
+            self.store.record_setup_transition(
+                timeframe="1m",
+                setup_id="1m-1",
+                from_state="SCANNING",
+                to_state="DEVELOPING",
+                trigger="ALIGNED_TIER_B_OR_C",
+                weight=1.4,
+                bar_index=1,
+                ts=now - 2.0,
+            )
+        )
+        asyncio.run(
+            self.store.record_setup_transition(
+                timeframe="1m",
+                setup_id="1m-1",
+                from_state="DEVELOPING",
+                to_state="TRIGGERED",
+                trigger="TIER_CROSS",
+                weight=5.0,
+                bar_index=11,
+                ts=now - 1.0,
+            )
+        )
+        asyncio.run(
+            self.store.record_setup_transition(
+                timeframe="5m",
+                setup_id="5m-7",
+                from_state="SCANNING",
+                to_state="DEVELOPING",
+                trigger="ALIGNED_TIER_B_OR_C",
+                weight=1.4,
+                bar_index=3,
+                ts=now,
+            )
+        )
+
+        # Wide window: returns all 3
+        rows = asyncio.run(
+            self.store.query_setup_transitions(
+                session_start_ts=now - 10.0,
+                session_end_ts=now + 10.0,
+            )
+        )
+        assert len(rows) == 3
+        # Ordered by ts ASC for replay semantics
+        triggers = [r["trigger"] for r in rows]
+        assert triggers == ["ALIGNED_TIER_B_OR_C", "TIER_CROSS", "ALIGNED_TIER_B_OR_C"]
+        timeframes = [r["timeframe"] for r in rows]
+        assert timeframes == ["1m", "1m", "5m"]
+
+        # Narrow window: only rows inside it
+        narrow = asyncio.run(
+            self.store.query_setup_transitions(
+                session_start_ts=now - 1.5,
+                session_end_ts=now - 0.5,
+            )
+        )
+        assert len(narrow) == 1
+        assert narrow[0]["trigger"] == "TIER_CROSS"

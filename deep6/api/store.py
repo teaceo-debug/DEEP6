@@ -57,6 +57,24 @@ CREATE TABLE IF NOT EXISTS trade_events (
 )
 """
 
+# Phase 12-04: setup_transitions — one row per SetupTracker state change.
+# Queryable by time window for post-session forensics; never modified after
+# insert (append-only). Independent of signal_events / trade_events.
+SETUP_TRANSITIONS_SCHEMA = """
+CREATE TABLE IF NOT EXISTS setup_transitions (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    timeframe   TEXT NOT NULL,
+    setup_id    TEXT NOT NULL,
+    from_state  TEXT NOT NULL,
+    to_state    TEXT NOT NULL,
+    trigger     TEXT NOT NULL,
+    weight      REAL NOT NULL,
+    bar_index   INTEGER NOT NULL,
+    ts          REAL NOT NULL,
+    inserted_at REAL NOT NULL
+)
+"""
+
 # Closed trade event types — used by count_oos_trades_per_signal
 _CLOSED_TYPES = ("'STOP_HIT'", "'TARGET_HIT'", "'TIMEOUT_EXIT'", "'MANUAL_EXIT'")
 _CLOSED_IN = f"({', '.join(_CLOSED_TYPES)})"
@@ -89,11 +107,13 @@ class EventStore:
             self._mem_conn = await aiosqlite.connect(self.db_path)
             await self._mem_conn.execute(SIGNAL_EVENTS_SCHEMA)
             await self._mem_conn.execute(TRADE_EVENTS_SCHEMA)
+            await self._mem_conn.execute(SETUP_TRANSITIONS_SCHEMA)
             await self._mem_conn.commit()
         else:
             async with aiosqlite.connect(self.db_path) as db:
                 await db.execute(SIGNAL_EVENTS_SCHEMA)
                 await db.execute(TRADE_EVENTS_SCHEMA)
+                await db.execute(SETUP_TRANSITIONS_SCHEMA)
                 await db.commit()
 
     def _conn(self):
@@ -218,6 +238,78 @@ class EventStore:
         async with self._conn() as db:
             db.row_factory = aiosqlite.Row
             async with db.execute(sql, params) as cursor:
+                rows = await cursor.fetchall()
+                return [dict(row) for row in rows]
+
+    # ------------------------------------------------------------------
+    # Phase 12-04: setup_transitions persistence
+    # ------------------------------------------------------------------
+
+    async def record_setup_transition(
+        self,
+        timeframe: str,
+        setup_id: str,
+        from_state: str,
+        to_state: str,
+        trigger: str,
+        weight: float,
+        bar_index: int,
+        ts: float | None = None,
+    ) -> int:
+        """Append a setup state-machine transition row.
+
+        One row per SetupTracker transition (see deep6.orderflow.setup_tracker).
+        Called from SharedState.on_bar_close (via SetupTracker.update) and
+        from SharedState.close_trade (via SetupTracker.close_trade).
+
+        Returns the autoincrement id. Non-blocking aiosqlite — safe inside
+        the bar-close coroutine for single transition per bar per timeframe
+        (at most ~2 writes per bar close, well within event-loop budget).
+        """
+        now = time.time()
+        ts_val = ts if ts is not None else now
+        async with self._conn() as db:
+            cursor = await db.execute(
+                """
+                INSERT INTO setup_transitions
+                    (timeframe, setup_id, from_state, to_state,
+                     trigger, weight, bar_index, ts, inserted_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    timeframe,
+                    setup_id,
+                    from_state,
+                    to_state,
+                    trigger,
+                    float(weight),
+                    int(bar_index),
+                    float(ts_val),
+                    now,
+                ),
+            )
+            await db.commit()
+            return cursor.lastrowid  # type: ignore[return-value]
+
+    async def query_setup_transitions(
+        self,
+        session_start_ts: float,
+        session_end_ts: float,
+    ) -> list[dict]:
+        """Fetch setup transitions whose ts falls within [start, end].
+
+        Ordered by ts ASC for replay semantics (a session's transitions
+        walk forward in time). Used for post-session forensics and the
+        phase 12-05 walk-forward tracker.
+        """
+        sql = (
+            "SELECT * FROM setup_transitions "
+            "WHERE ts BETWEEN ? AND ? "
+            "ORDER BY ts ASC, id ASC"
+        )
+        async with self._conn() as db:
+            db.row_factory = aiosqlite.Row
+            async with db.execute(sql, (session_start_ts, session_end_ts)) as cursor:
                 rows = await cursor.fetchall()
                 return [dict(row) for row in rows]
 
