@@ -46,17 +46,34 @@ export function useWebSocket(url: string): { reconnectNow: () => void } {
       wsRef.current = ws;
 
       ws.onopen = () => {
-        console.debug('[useWebSocket] onopen at', Date.now());
-        openedAtRef.current = Date.now();
+        const nowMs = Date.now();
+        console.debug('[useWebSocket] onopen at', nowMs);
+        openedAtRef.current = nowMs;
         reconnectAttempt.current = 0;
         reconnectingRef.current = false;
-        useTradingStore.getState().setStatus({
+
+        const store = useTradingStore.getState();
+
+        // Check if this is a long-disconnect recovery (>30s)
+        const disconnectedAt = store.status.disconnectedAt;
+        const wasLongDisconnect =
+          disconnectedAt !== null && nowMs - disconnectedAt > 30_000;
+
+        store.clearConnectionError();
+        store.pushConnectionHistory({ ts: nowMs, state: 'connected' });
+        store.setDisconnectedAt(null);
+
+        if (wasLongDisconnect) {
+          store.setReconnectSuccessToast(true);
+        }
+
+        store.setStatus({
           type: 'status',
           connected: true,
-          pnl: useTradingStore.getState().status.pnl,
-          circuit_breaker_active: useTradingStore.getState().status.circuitBreakerActive,
+          pnl: store.status.pnl,
+          circuit_breaker_active: store.status.circuitBreakerActive,
           feed_stale: false,
-          ts: Date.now() / 1000,
+          ts: nowMs / 1000,
         });
       };
 
@@ -71,34 +88,79 @@ export function useWebSocket(url: string): { reconnectNow: () => void } {
       };
 
       ws.onerror = () => {
-        // handled by onclose
+        // onerror always fires before onclose when the connection cannot be established.
+        // We use it to flag a "connection refused" scenario (WS never opened).
+        // The actual error message is set in onclose once we know the close code.
+        if (openedAtRef.current === 0) {
+          // Never opened — likely ECONNREFUSED or CORS pre-flight failure
+          useTradingStore.getState().setConnectionError(
+            'BACKEND OFFLINE \u2014 start uvicorn on :8000',
+            null,
+          );
+        }
       };
 
       ws.onclose = (ev?: CloseEvent) => {
+        const nowMs = Date.now();
+        const code = ev?.code ?? null;
+        const reason = ev?.reason ?? '';
         console.debug(
           '[useWebSocket] onclose at',
-          Date.now(),
+          nowMs,
           'code=',
-          ev?.code,
+          code,
           'reason=',
-          ev?.reason,
+          reason,
           'wasClean=',
           ev?.wasClean,
         );
-        useTradingStore.getState().setStatus({
+
+        const store = useTradingStore.getState();
+
+        // Derive human-readable error based on WS close code
+        if (!closedIntentionallyRef.current) {
+          let errorMsg: string;
+          if (openedAtRef.current === 0) {
+            // Connection never opened — onerror already set msg, but also handle here
+            errorMsg = 'BACKEND OFFLINE \u2014 start uvicorn on :8000';
+          } else if (code === 1006) {
+            errorMsg = 'CONNECTION DROPPED \u2014 CHECK BACKEND LOG';
+          } else if (code === 1011) {
+            errorMsg = reason
+              ? `BACKEND ERROR \u2014 ${reason}`
+              : 'BACKEND ERROR \u2014 SERVER RETURNED 1011';
+          } else if (code === 1000) {
+            errorMsg = 'CONNECTION CLOSED NORMALLY';
+          } else {
+            errorMsg = reason
+              ? `DISCONNECTED \u2014 ${reason}`
+              : 'LINK DOWN \u2014 RECONNECTING\u2026';
+          }
+          store.setConnectionError(errorMsg, code);
+        }
+
+        store.pushConnectionHistory({
+          ts: nowMs,
+          state: 'disconnected',
+          code: code ?? undefined,
+          reason: reason || undefined,
+        });
+        store.setDisconnectedAt(nowMs);
+
+        store.setStatus({
           type: 'status',
           connected: false,
-          pnl: useTradingStore.getState().status.pnl,
-          circuit_breaker_active: useTradingStore.getState().status.circuitBreakerActive,
+          pnl: store.status.pnl,
+          circuit_breaker_active: store.status.circuitBreakerActive,
           feed_stale: false,
-          ts: Date.now() / 1000,
+          ts: nowMs / 1000,
         });
         if (closedIntentionallyRef.current) return;
 
         // Rapid-disconnect detection: if the connection died within RAPID_FAIL_MS of opening,
         // increment the rapid-fail counter. After RAPID_FAIL_THRESHOLD consecutive rapid fails,
         // override the next backoff delay to avoid flooding the backend.
-        const aliveMs = openedAtRef.current > 0 ? Date.now() - openedAtRef.current : Infinity;
+        const aliveMs = openedAtRef.current > 0 ? nowMs - openedAtRef.current : Infinity;
         if (aliveMs < RAPID_FAIL_MS) {
           rapidFailCountRef.current += 1;
           console.debug(
@@ -107,6 +169,12 @@ export function useWebSocket(url: string): { reconnectNow: () => void } {
             '/', RAPID_FAIL_THRESHOLD,
             'alive=', aliveMs, 'ms',
           );
+          if (rapidFailCountRef.current >= RAPID_FAIL_THRESHOLD) {
+            useTradingStore.getState().setConnectionError(
+              'SERVER REJECTING CONNECTIONS \u2014 BACKEND MAY BE CRASHING',
+              code,
+            );
+          }
         } else {
           // Healthy connection duration — reset rapid-fail counter
           rapidFailCountRef.current = 0;

@@ -39,6 +39,15 @@ export interface StatusSlice {
   lastSignalTier: string;
   uptimeSeconds: number;
   activeClients: number;
+  // Phase 11.3-r9 rich error state
+  lastError: string | null;
+  errorCount: number;
+  errorCode: number | null;
+  // Connection history: last 5 state changes with timestamps (for ErrorBanner expand)
+  connectionHistory: Array<{ ts: number; state: 'connected' | 'disconnected'; code?: number; reason?: string }>;
+  // Flag: show reconnect success toast (set true → auto-cleared after 3s by banner)
+  reconnectSuccessToast: boolean;
+  disconnectedAt: number | null;
 }
 
 export interface TradingState {
@@ -57,6 +66,11 @@ export interface TradingState {
   setScore: (s: LiveScoreMessage) => void;
   setStatus: (s: LiveStatusMessage) => void;
   dispatch: (msg: LiveMessage) => void;
+  setConnectionError: (error: string, code: number | null) => void;
+  clearConnectionError: () => void;
+  pushConnectionHistory: (entry: { ts: number; state: 'connected' | 'disconnected'; code?: number; reason?: string }) => void;
+  setReconnectSuccessToast: (val: boolean) => void;
+  setDisconnectedAt: (ts: number | null) => void;
 }
 
 const INIT_SCORE: ScoreSlice = {
@@ -82,6 +96,13 @@ const INIT_STATUS: StatusSlice = {
   lastSignalTier: '',
   uptimeSeconds: 0,
   activeClients: 0,
+  // Phase 11.3-r9 rich error state
+  lastError: null,
+  errorCount: 0,
+  errorCode: null,
+  connectionHistory: [],
+  reconnectSuccessToast: false,
+  disconnectedAt: null,
 };
 
 export const useTradingStore = create<TradingState>()(
@@ -125,8 +146,10 @@ export const useTradingStore = create<TradingState>()(
       }),
 
     setStatus: (m) =>
-      set({
+      set((s) => ({
         status: {
+          // Preserve Phase 11.3-r9 error/history fields — setStatus only updates wire fields
+          ...s.status,
           connected: m.connected,
           pnl: m.pnl,
           circuitBreakerActive: m.circuit_breaker_active,
@@ -140,7 +163,34 @@ export const useTradingStore = create<TradingState>()(
           uptimeSeconds: m.uptime_seconds ?? 0,
           activeClients: m.active_clients ?? 0,
         },
+      })),
+
+    setConnectionError: (error, code) =>
+      set((s) => ({
+        status: {
+          ...s.status,
+          lastError: error,
+          errorCode: code,
+          errorCount: s.status.errorCount + 1,
+        },
+      })),
+
+    clearConnectionError: () =>
+      set((s) => ({
+        status: { ...s.status, lastError: null, errorCode: null },
+      })),
+
+    pushConnectionHistory: (entry) =>
+      set((s) => {
+        const hist = [...s.status.connectionHistory, entry].slice(-5);
+        return { status: { ...s.status, connectionHistory: hist } };
       }),
+
+    setReconnectSuccessToast: (val) =>
+      set((s) => ({ status: { ...s.status, reconnectSuccessToast: val } })),
+
+    setDisconnectedAt: (ts) =>
+      set((s) => ({ status: { ...s.status, disconnectedAt: ts } })),
 
     dispatch: (msg) => {
       // Guard: msg must be a non-null object with a string type field.
@@ -254,6 +304,12 @@ export const selectSignalsFired = (s: TradingState) => s.status.signalsFired;
 export const selectLastSignalTier = (s: TradingState) => s.status.lastSignalTier;
 export const selectUptimeSeconds = (s: TradingState) => s.status.uptimeSeconds;
 export const selectActiveClients = (s: TradingState) => s.status.activeClients;
+export const selectLastError = (s: TradingState) => s.status.lastError;
+export const selectErrorCount = (s: TradingState) => s.status.errorCount;
+export const selectErrorCode = (s: TradingState) => s.status.errorCode;
+export const selectConnectionHistory = (s: TradingState) => s.status.connectionHistory;
+export const selectReconnectSuccessToast = (s: TradingState) => s.status.reconnectSuccessToast;
+export const selectDisconnectedAt = (s: TradingState) => s.status.disconnectedAt;
 
 // ── Score selectors ─────────────────────────────────────────────────────────
 export const selectTotalScore = (s: TradingState) => s.score.totalScore;

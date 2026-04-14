@@ -107,6 +107,8 @@ function resetStore() {
       feedStale: false, lastTs: 0, sessionStartTs: 0,
       barsReceived: 0, signalsFired: 0, lastSignalTier: '',
       uptimeSeconds: 0, activeClients: 0,
+      lastError: null, errorCount: 0, errorCode: null,
+      connectionHistory: [], reconnectSuccessToast: false, disconnectedAt: null,
     },
     lastBarVersion: 0,
     lastSignalVersion: 0,
@@ -188,6 +190,8 @@ describe('HeaderStrip', () => {
         connected: false, feedStale: false, pnl: 0, circuitBreakerActive: false,
         lastTs: 0, sessionStartTs: 0, barsReceived: 0, signalsFired: 0,
         lastSignalTier: '', uptimeSeconds: 0, activeClients: 0,
+        lastError: null, errorCount: 0, errorCode: null,
+        connectionHistory: [], reconnectSuccessToast: false, disconnectedAt: null,
       },
     });
     const { HeaderStrip } = await HSModule();
@@ -203,6 +207,8 @@ describe('HeaderStrip', () => {
         connected: true, feedStale: false, pnl: 0, circuitBreakerActive: false,
         lastTs: Date.now() / 1000, sessionStartTs: 0, barsReceived: 0, signalsFired: 0,
         lastSignalTier: '', uptimeSeconds: 0, activeClients: 0,
+        lastError: null, errorCount: 0, errorCode: null,
+        connectionHistory: [], reconnectSuccessToast: false, disconnectedAt: null,
       },
     });
     const { HeaderStrip } = await HSModule();
@@ -220,6 +226,8 @@ describe('HeaderStrip', () => {
         connected: false, feedStale: true, pnl: 0, circuitBreakerActive: false,
         lastTs: 0, sessionStartTs: 0, barsReceived: 0, signalsFired: 0,
         lastSignalTier: '', uptimeSeconds: 0, activeClients: 0,
+        lastError: null, errorCount: 0, errorCode: null,
+        connectionHistory: [], reconnectSuccessToast: false, disconnectedAt: null,
       },
     });
     const { HeaderStrip } = await HSModule();

@@ -10,15 +10,22 @@ class MockWS {
   readyState = 0;
   onopen: (() => void) | null = null;
   onmessage: ((e: { data: string }) => void) | null = null;
-  onclose: (() => void) | null = null;
+  onclose: ((e?: { code?: number; reason?: string; wasClean?: boolean }) => void) | null = null;
   onerror: ((e: Event) => void) | null = null;
   constructor(url: string) {
     this.url = url;
     MockWS.instances.push(this);
   }
-  close() {
+  close(code?: number, reason?: string) {
     this.readyState = 3;
-    this.onclose?.();
+    this.onclose?.({ code: code ?? 1000, reason: reason ?? '', wasClean: code === 1000 });
+  }
+  fireClose(code: number, reason = '') {
+    this.readyState = 3;
+    this.onclose?.({ code, reason, wasClean: false });
+  }
+  fireError() {
+    this.onerror?.(new Event('error'));
   }
   fireOpen() {
     this.readyState = 1;
@@ -47,6 +54,13 @@ const INIT_STATUS = {
   lastSignalTier: '',
   uptimeSeconds: 0,
   activeClients: 0,
+  // Phase 11.3-r9 rich error state
+  lastError: null,
+  errorCount: 0,
+  errorCode: null,
+  connectionHistory: [],
+  reconnectSuccessToast: false,
+  disconnectedAt: null,
 };
 
 describe('useWebSocket', () => {
@@ -190,6 +204,123 @@ describe('useWebSocket', () => {
 
     // Store remains stable after malformed message
     expect(useTradingStore.getState().status.connected).toBe(true);
+
+    unmount();
+  });
+
+  it('Test 6: close code 1006 sets lastError with CONNECTION DROPPED message', () => {
+    const { unmount } = renderHook(() => useWebSocket('ws://test/ws/live'));
+    const ws = MockWS.instances[0];
+
+    ws.fireOpen();
+    expect(useTradingStore.getState().status.connected).toBe(true);
+
+    ws.fireClose(1006);
+
+    const status = useTradingStore.getState().status;
+    expect(status.connected).toBe(false);
+    expect(status.errorCode).toBe(1006);
+    expect(status.lastError).toContain('CONNECTION DROPPED');
+    expect(status.errorCount).toBeGreaterThan(0);
+
+    unmount();
+  });
+
+  it('Test 7: close code 1011 sets lastError with BACKEND ERROR and includes reason', () => {
+    const { unmount } = renderHook(() => useWebSocket('ws://test/ws/live'));
+    const ws = MockWS.instances[0];
+
+    ws.fireOpen();
+    ws.fireClose(1011, 'internal server error');
+
+    const status = useTradingStore.getState().status;
+    expect(status.errorCode).toBe(1011);
+    expect(status.lastError).toContain('BACKEND ERROR');
+    expect(status.lastError).toContain('internal server error');
+
+    unmount();
+  });
+
+  it('Test 8: onerror before open sets BACKEND OFFLINE error', () => {
+    const { unmount } = renderHook(() => useWebSocket('ws://test/ws/live'));
+    const ws = MockWS.instances[0];
+
+    // Never fire open — simulate connection refused
+    ws.fireError();
+
+    const status = useTradingStore.getState().status;
+    expect(status.lastError).toContain('BACKEND OFFLINE');
+
+    unmount();
+  });
+
+  it('Test 9: rapid fail (3+ within 100ms) sets SERVER REJECTING error', () => {
+    const { unmount } = renderHook(() => useWebSocket('ws://test/ws/live'));
+
+    // Three rapid disconnects (never opened → aliveMs = Infinity? No — openedAtRef stays 0)
+    // We need to simulate: open immediately then close within 100ms for each
+    // Use fake timers already set up; advance 0ms between open+close
+    for (let i = 0; i < 3; i++) {
+      const ws = MockWS.instances[MockWS.instances.length - 1];
+      ws.fireOpen();
+      // Close immediately (0ms elapsed — aliveMs < RAPID_FAIL_MS=100)
+      ws.fireClose(1006);
+      // Advance past backoff to get next ws
+      vi.advanceTimersByTime(6000);
+    }
+
+    const status = useTradingStore.getState().status;
+    expect(status.lastError).toContain('SERVER REJECTING');
+
+    unmount();
+  });
+
+  it('Test 10: reconnectNow() triggers a new WebSocket connection', () => {
+    const { result, unmount } = renderHook(() => useWebSocket('ws://test/ws/live'));
+    const ws = MockWS.instances[0];
+
+    ws.fireOpen();
+    ws.fireClose(1006);
+
+    // At this point a reconnect timer is pending; call reconnectNow() to force immediate reconnect
+    const before = MockWS.instances.length;
+    result.current.reconnectNow();
+
+    expect(MockWS.instances.length).toBe(before + 1);
+
+    unmount();
+  });
+
+  it('Test 11: long-disconnect recovery (>30s) sets reconnectSuccessToast', () => {
+    const { unmount } = renderHook(() => useWebSocket('ws://test/ws/live'));
+    const ws = MockWS.instances[0];
+
+    ws.fireOpen();
+    ws.fireClose(1006);
+
+    // Simulate 31 seconds passing
+    vi.advanceTimersByTime(31_000);
+
+    // New ws should be created; fire open on it
+    const ws2 = MockWS.instances[MockWS.instances.length - 1];
+    ws2.fireOpen();
+
+    expect(useTradingStore.getState().status.reconnectSuccessToast).toBe(true);
+
+    unmount();
+  });
+
+  it('Test 12: connection history is populated on open and close', () => {
+    const { unmount } = renderHook(() => useWebSocket('ws://test/ws/live'));
+    const ws = MockWS.instances[0];
+
+    ws.fireOpen();
+    ws.fireClose(1006);
+
+    const history = useTradingStore.getState().status.connectionHistory;
+    expect(history.length).toBeGreaterThanOrEqual(2);
+    expect(history.some((e) => e.state === 'connected')).toBe(true);
+    expect(history.some((e) => e.state === 'disconnected')).toBe(true);
 
     unmount();
   });

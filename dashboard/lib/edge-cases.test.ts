@@ -75,6 +75,8 @@ const INIT_STATUS = {
   connected: false, pnl: 0, circuitBreakerActive: false, feedStale: false,
   lastTs: 0, sessionStartTs: 0, barsReceived: 0, signalsFired: 0,
   lastSignalTier: '', uptimeSeconds: 0, activeClients: 0,
+  lastError: null, errorCount: 0, errorCode: null,
+  connectionHistory: [], reconnectSuccessToast: false, disconnectedAt: null,
 };
 
 beforeEach(() => {

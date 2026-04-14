@@ -87,6 +87,12 @@ const INIT_STATUS = {
   lastSignalTier: '',
   uptimeSeconds: 0,
   activeClients: 0,
+  lastError: null,
+  errorCount: 0,
+  errorCode: null,
+  connectionHistory: [],
+  reconnectSuccessToast: false,
+  disconnectedAt: null,
 };
 
 beforeEach(() => {
