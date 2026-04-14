@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 11.1-01 (layout and visual polish — 3/3 tasks)
-last_updated: "2026-04-14T05:36:05.000Z"
+stopped_at: Completed 15-01; 15-02 unblocked (narrative zone persistence)
+last_updated: "2026-04-14T05:50:18.313Z"
 last_activity: 2026-04-14
 progress:
-  total_phases: 12
-  completed_phases: 9
-  total_plans: 45
-  completed_plans: 41
-  percent: 91
+  total_phases: 16
+  completed_phases: 11
+  total_plans: 52
+  completed_plans: 44
+  percent: 85
 ---
 
 # Project State
@@ -72,6 +72,7 @@ Progress: [░░░░░░░░░░] 2%
 | Phase 11 P03 | 45m | 3 tasks | 23 files |
 | Phase 11 P03 | 40 | 3 tasks | 23 files |
 | Phase 11 P04 | 251 | 2 tasks | 13 files |
+| Phase 15 P01 | 45 | 3 tasks | 8 files |
 
 ## Quick Tasks Completed
 
@@ -119,6 +120,9 @@ Recent decisions affecting current work:
 - [Phase 11.1]: shrink-0 on ScoreWidget + overflow-hidden on 3-column container prevents flex collapse and child reflow escapes (D-01, D-02)
 - [Phase 11.1]: html { font-size: 13px !important } + inline style={{ fontSize: '13px' }} on HeaderStrip as cascade-proof override of Tailwind v4 preflight (D-03)
 - [Phase 11.1]: FootprintRenderer ctx.font already scales by vpr at all sites; DPR invariant comment added to draw() (D-04)
+- [Phase 15]: Phase 15-01: Unified Level primitive (uid: int stable mutation key via uuid4) with 17 LevelKind variants
+- [Phase 15]: Phase 15-01: LevelBus = in-place rename of ZoneRegistry (D-09); ZoneRegistry alias preserved; get_all_active() now returns list[Level]
+- [Phase 15]: Phase 15-01: RULES.md canonical table has 38 CR-IDs (47 source rules deduped with lineage audit)
 
 ### Roadmap Evolution
 
@@ -140,6 +144,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-14T05:36:05.000Z
-Stopped at: Completed 11.1-01 (layout and visual polish — 3/3 tasks)
+Last session: 2026-04-14T05:50:18.309Z
+Stopped at: Completed 15-01; 15-02 unblocked (narrative zone persistence)
 Resume file: None
