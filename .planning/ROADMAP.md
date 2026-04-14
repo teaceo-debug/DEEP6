@@ -259,8 +259,10 @@ Note: Phase 6 (Kronos + TVMCP) can begin after Phase 1 completes, running in par
 **Plans**: 5 plans (Wave 1: plan-01, plan-02 parallel; Wave 2: plan-03; Wave 3: plan-04; Wave 4: plan-05)
 
 Plans:
-- [ ] 12-PLAN-01-vpin-confidence-modifier.md — VPINEngine (exact aggressor, 1000-contract × 50 buckets) + scorer final-stage multiplier
-- [ ] 12-PLAN-02-intrabar-delta-and-delt-tail-fix.md — Running max/min delta on FootprintBar + DELT_TAIL (bit 22) rewired to true extreme; no new bit
-- [ ] 12-PLAN-03-trap-shot-slingshot.md — TRAP_SHOT at bit 44 (2/3/4-bar), session reset, 30-bar warmup, GEX-wall bypass signal
-- [ ] 12-PLAN-04-setup-state-machine.md — Dual-TF (1m+5m) 5-state machine with soak bonus, explicit-close rule, EventStore transition log
-- [ ] 12-PLAN-05-walk-forward-tracker.md — Per-category × per-regime outcomes at 5/10/20 horizons, auto-disable/recovery, LightGBM weight feedback via EventStore
+- [x] 12-PLAN-01-vpin-confidence-modifier.md — VPINEngine (exact aggressor, 1000-contract × 50 buckets) + scorer final-stage multiplier
+- [x] 12-PLAN-02-intrabar-delta-and-delt-tail-fix.md — Running max/min delta on FootprintBar + DELT_TAIL (bit 22) rewired to true extreme; no new bit
+- [x] 12-PLAN-03-trap-shot-slingshot.md — TRAP_SHOT at bit 44 (2/3/4-bar), session reset, 30-bar warmup, GEX-wall bypass signal
+- [x] 12-PLAN-04-setup-state-machine.md — Dual-TF (1m+5m) 5-state machine with soak bonus, explicit-close rule, EventStore transition log
+- [x] 12-PLAN-05-walk-forward-tracker.md — Per-category × per-regime outcomes at 5/10/20 horizons, auto-disable/recovery, LightGBM weight feedback via EventStore
+
+**Status:** Phase 12 COMPLETE (2026-04-14) — all 5 plans shipped, 628 tests pass.
