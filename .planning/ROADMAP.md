@@ -255,6 +255,20 @@ Note: Phase 6 (Kronos + TVMCP) can begin after Phase 1 completes, running in par
 Plans:
 - [ ] 11.1-01-PLAN.md — Layout shell fix (D-01, D-02), header strip typography (D-03), FootprintRenderer DPR audit (D-04), build gate (D-05)
 
+### Phase 11.2: UI redesign — Terminal Noir visual rebuild (INSERTED)
+
+**Goal:** Replace the v1 visual layer with a distinctive, dense, Bloomberg-meets-cyberpunk design — JetBrains Mono only, pure-black canvas, signature Confluence Pulse hero, six-color saturated neon palette, atmospheric texture. Functional wiring (WebSocket, Zustand, replay, backend) untouched.
+**Requirements**: APP-01, APP-03, APP-04, APP-06 (lite), APP-08
+**Depends on:** Phase 11.1
+**Design contract:** `.planning/phases/11.2-ui-redesign/UI-SPEC-v2.md` (supersedes 11-UI-SPEC.md for this phase)
+**Plans:** 4 plans (Wave 1: plan-01; Wave 2: plan-02; Wave 3: plan-03; Wave 4: plan-04)
+
+Plans:
+- [ ] 11.2-01-PLAN.md — Foundation: globals.css tokens, atmosphere layers (Scanlines/Grain/CRTSweep), JetBrains Mono only, asymmetric layout shell, HeaderStrip rewrite
+- [ ] 11.2-02-PLAN.md — Confluence Pulse hero (320×320 SVG, 44-arc engine ring + 8-sector category ring + digit-roll core + TYPE_A flash), KronosBar, ZoneList
+- [ ] 11.2-03-PLAN.md — FootprintRenderer rewrite (volume bars + bloom on imbalance + stacked-run line + POC glow + signal markers), ZoneOverlay recolor
+- [ ] 11.2-04-PLAN.md — SignalFeedRow + TapeScroll rewrite, ReplayControls/SessionSelector/ReturnToLivePill restyle, ErrorBanner copy, operator visual acceptance checkpoint
+
 ### Phase 12: Integrate borrowed orderflow patterns: VPIN confidence modifier, Delta Slingshot, Delta At Extreme, setup state machine, per-regime walk-forward tracker
 
 **Goal:** Integrate five vetted orderflow patterns from the kronos-tv-autotrader reference implementation into DEEP6's existing 44-signal engine, LightGBM meta-learner, and HMM regime detector — (1) VPIN as a continuous 0.2x-1.2x confidence modifier on fused LightGBM score, (2) running intrabar max/min delta on FootprintBar that fixes the existing DELT_TAIL (bit 22) to use real extremes, (3) new TRAP_SHOT signal at bit 44 (2/3/4-bar trapped-trader reversal, session-bounded, GEX-wall bypass), (4) dual-timeframe (1m + 5m) setup state machine with soak-bonus + explicit-close transition rule, and (5) per-category × per-regime walk-forward tracker with auto-disable/recovery feeding back into LightGBM fusion.
