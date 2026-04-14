@@ -31,13 +31,22 @@ Requires NinjaTrader 8.1.x, a Rithmic-connected feed with L2 depth enabled, and 
 ninjatrader/
 ├── README.md                      (you are here)
 ├── Custom/                        mirrors %USERPROFILE%\Documents\NinjaTrader 8\bin\Custom\
-│   └── Indicators/DEEP6/
-│       └── DEEP6Footprint.cs      Single-file build — indicator + all AddOn types + GEX client
+│   ├── Indicators/DEEP6/
+│   │   └── DEEP6Footprint.cs      Read-only chart indicator — single-file build
+│   └── Strategies/DEEP6/
+│       └── DEEP6Strategy.cs       Auto-trader — Tier 3 confluence → ATM bracket entries
 └── docs/
     ├── SETUP.md                   Install, import, first-run checklist
     ├── SIGNALS.md                 Signal reference — visuals, thresholds, Python ↔ C# audit
-    └── ARCHITECTURE.md            Data flow, threading model, rendering pipeline
+    ├── ARCHITECTURE.md            Data flow, threading model, rendering pipeline
+    └── ATM-STRATEGIES.md          Recommended NT8 ATM templates for absorption / exhaustion / confluence
 ```
+
+**Strategy safety:** `DEEP6Strategy` defaults to **DRY-RUN** (no orders). Live trading
+requires explicit `EnableLiveTrading=true` AND `ApprovedAccountName` match. Hard caps
+on contracts/trade, trades/session, daily loss. Read `docs/ATM-STRATEGIES.md` and set
+up the 4 ATM templates before flipping the switch. The strategy duplicates the
+Python DEEP6 execution path — pick one or the other for any given Rithmic account.
 
 The single file contains three logical sections, organized by namespace:
 - `NinjaTrader.NinjaScript.AddOns.DEEP6` — Cell, FootprintBar, AbsorptionDetector + config + signal, ExhaustionDetector + config + signal, MassiveGexClient + GexProfile + GexLevel
