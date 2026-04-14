@@ -125,8 +125,8 @@
 - [ ] **GEX-01**: GEX data ingested from FlashAlpha API (or Massive.com if better evaluated)
 - [ ] **GEX-02**: Call wall, put wall, gamma flip level, and HVL available as price levels
 - [ ] **GEX-03**: GEX regime classified — positive gamma (mean-reverting) vs negative gamma (amplifying)
-- [ ] **GEX-04**: GEX regime modifies signal weighting — below gamma flip prefers trend signals, above prefers fade signals
-- [ ] **GEX-05**: GEX-signal confluence scored — absorption at call/put wall receives conviction bonus
+- [x] **GEX-04**: GEX regime modifies signal weighting — below gamma flip prefers trend signals, above prefers fade signals
+- [x] **GEX-05**: GEX-signal confluence scored — absorption at call/put wall receives conviction bonus
 - [ ] **GEX-06**: GEX data staleness handled — stale flag when data age > threshold, weight decays
 
 ### Engines (ENG)
@@ -163,7 +163,7 @@
 ### Zone Registry (ZONE)
 
 - [x] **ZONE-01**: Centralized ZoneRegistry manages all zone types (absorption, exhaustion, LVN, HVN, GEX levels)
-- [ ] **ZONE-02**: Zone-signal interaction scored — absorption at LVN + GEX confluence = highest conviction
+- [x] **ZONE-02**: Zone-signal interaction scored — absorption at LVN + GEX confluence = highest conviction
 - [x] **ZONE-03**: Zone merge logic — overlapping same-direction zones consolidate with combined score
 - [ ] **ZONE-04**: Zone visual representation in dashboard — strong/medium/weak with distinct styling
 - [ ] **ZONE-05**: Peak bucket cluster — zones narrowed to volume concentration peak
@@ -358,11 +358,11 @@ Updated during roadmap creation (2026-04-11).
 | GEX-01 | Phase 5 | Pending |
 | GEX-02 | Phase 5 | Pending |
 | GEX-03 | Phase 5 | Pending |
-| GEX-04 | Phase 5 | Pending |
-| GEX-05 | Phase 5 | Pending |
+| GEX-04 | Phase 5 | Complete |
+| GEX-05 | Phase 5 | Complete |
 | GEX-06 | Phase 5 | Pending |
 | ZONE-01 | Phase 5 | Complete |
-| ZONE-02 | Phase 5 | Pending |
+| ZONE-02 | Phase 5 | Complete |
 | ZONE-03 | Phase 5 | Complete |
 | ZONE-04 | Phase 5 | Pending |
 | ZONE-05 | Phase 5 | Pending |

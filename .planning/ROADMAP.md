@@ -316,7 +316,7 @@ Plans:
 **Goal:** Unify tape-derived zones (LVN/HVN/VPOC/VAH/VAL/ABSORB/EXHAUST/MOMENTUM/REJECTION/FLIPPED) and GEX levels (call_wall, put_wall, gamma_flip, zero_gamma, hvl, largest_gamma) into a single `LevelBus` with normalized `Level` dataclass. Persist narrative signals (absorption/exhaustion/momentum/rejection) as lifecycle-tracked zones with VA-proximity boost and confirmation-boost scoring (BOOKMAP Pine methodology). Implement `ConfluenceRules` module encoding ~47 cross-stream rules from research (8 VP/GEX confluence, 12 vendor/academic, 12 microstructure, 15 auction-theory trade plans). Build `TradeDecisionMachine` 7-state FSM (IDLE→WATCHING→ARMED→TRIGGERED→IN_POSITION→MANAGING→EXITING) with 17 entry triggers + stop/target/invalidation/sizing policies replacing the current bar-close-only execution path. Research basis: `.planning/research/pine/*.md` + `.planning/research/pine/deep/*.md` (~12,500 words, 47 rules, 35 papers).
 **Requirements**: TBD
 **Depends on:** Phase 14
-**Plans:** 2/5 plans executed
+**Plans:** 3/5 plans executed
 
 Plans:
 - [ ] TBD (run /gsd-plan-phase 15 to break down)
