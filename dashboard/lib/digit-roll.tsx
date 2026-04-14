@@ -42,27 +42,45 @@ import {
 // ---------------------------------------------------------------------------
 
 /**
+ * Sanitize a number for display: clamp NaN/Infinity to a safe finite value (0).
+ * Returns the sanitized number and a flag indicating if the value was invalid.
+ *
+ * @internal
+ */
+export function sanitizeNumber(v: number): { safe: number; invalid: boolean } {
+  if (!Number.isFinite(v)) return { safe: 0, invalid: true };
+  return { safe: v, invalid: false };
+}
+
+/**
  * Returns a MotionValue<string> that spring-animates from the previous value
  * to `target`. The string is formatted to `precision` decimal places.
+ * If `target` is NaN or Infinity, the MotionValue holds `"—"` and does not animate.
  *
  * @param target     The numeric value to animate toward.
  * @param precision  Decimal places in the output string (default 0).
  */
 export function useDigitRoll(target: number, precision = 0): MotionValue<string> {
-  const mv = useMotionValue(target);
+  const { safe, invalid } = sanitizeNumber(target);
+  const mv = useMotionValue(safe);
   const reduced = prefersReducedMotion();
 
   // displayText is a derived MotionValue so it stays reactive with no React state
   const displayText = useTransform(mv, (v) => v.toFixed(precision));
 
   useEffect(() => {
-    if (reduced) {
-      mv.set(target);
+    if (invalid) {
+      // Hold current position — do not animate toward NaN/Infinity
       return;
     }
-    const ctrl = animate(mv, target, harmonizedDigitRollTransition);
+    if (reduced) {
+      mv.set(safe);
+      return;
+    }
+    const ctrl = animate(mv, safe, harmonizedDigitRollTransition);
     return () => ctrl.stop();
-  }, [target, mv, reduced]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [safe, invalid, mv, reduced]);
 
   return displayText;
 }
@@ -100,10 +118,34 @@ export function DigitRoll({
   className,
   style,
 }: DigitRollProps) {
+  const { invalid } = sanitizeNumber(value);
   const displayText = useDigitRoll(value, precision);
+  const [snap, setSnap] = useState<string>(() => displayText.get());
+
+  useEffect(() => {
+    setSnap(displayText.get());
+    const unsub = displayText.on('change', (v) => setSnap(v));
+    return unsub;
+  }, [displayText]);
+
+  // Show placeholder for non-finite numbers
+  if (invalid) {
+    return (
+      <span
+        className={className}
+        style={{
+          fontVariantNumeric: 'tabular-nums',
+          display: 'inline-block',
+          ...style,
+        }}
+      >
+        {prefix}{'—'}{suffix}
+      </span>
+    );
+  }
 
   return (
-    <motion.span
+    <span
       className={className}
       style={{
         fontVariantNumeric: 'tabular-nums',
@@ -112,10 +154,9 @@ export function DigitRoll({
       }}
     >
       {prefix}
-      {/* motion supports MotionValue<string> as children at runtime; cast for TS */}
-      {displayText as unknown as string}
+      {snap}
       {suffix}
-    </motion.span>
+    </span>
   );
 }
 

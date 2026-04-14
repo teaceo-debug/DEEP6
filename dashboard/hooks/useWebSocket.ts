@@ -4,7 +4,12 @@ import { useTradingStore } from '@/store/tradingStore';
 import type { LiveMessage } from '@/types/deep6';
 
 // First retry is intentionally fast (300ms); subsequent retries follow exponential backoff.
+// After RAPID_FAIL_THRESHOLD rapid disconnects (closed within RAPID_FAIL_MS of opening),
+// the sequence switches to a more aggressive backoff starting at RAPID_FAIL_DELAY_MS.
 const BACKOFF_SEQUENCE = [300, 1000, 2000, 4000, 8000, 16000, 30000] as const;
+const RAPID_FAIL_MS = 100;           // connection alive < 100ms → counts as rapid fail
+const RAPID_FAIL_THRESHOLD = 3;      // after 3 rapid fails, use aggressive backoff
+const RAPID_FAIL_DELAY_MS = 5000;    // first retry delay after rapid-fail detection
 
 export function useWebSocket(url: string): { reconnectNow: () => void } {
   const reconnectAttempt = useRef(0);
@@ -12,6 +17,9 @@ export function useWebSocket(url: string): { reconnectNow: () => void } {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closedIntentionallyRef = useRef(false);
   const reconnectingRef = useRef(false);
+  // Rapid-disconnect detection: track consecutive opens that closed within RAPID_FAIL_MS
+  const rapidFailCountRef = useRef(0);
+  const openedAtRef = useRef<number>(0);
 
   // reconnectNow is a stable reference exposed to callers for forced reconnection.
   const reconnectNowRef = useRef<() => void>(() => undefined);
@@ -39,6 +47,7 @@ export function useWebSocket(url: string): { reconnectNow: () => void } {
 
       ws.onopen = () => {
         console.debug('[useWebSocket] onopen at', Date.now());
+        openedAtRef.current = Date.now();
         reconnectAttempt.current = 0;
         reconnectingRef.current = false;
         useTradingStore.getState().setStatus({
@@ -85,6 +94,25 @@ export function useWebSocket(url: string): { reconnectNow: () => void } {
           ts: Date.now() / 1000,
         });
         if (closedIntentionallyRef.current) return;
+
+        // Rapid-disconnect detection: if the connection died within RAPID_FAIL_MS of opening,
+        // increment the rapid-fail counter. After RAPID_FAIL_THRESHOLD consecutive rapid fails,
+        // override the next backoff delay to avoid flooding the backend.
+        const aliveMs = openedAtRef.current > 0 ? Date.now() - openedAtRef.current : Infinity;
+        if (aliveMs < RAPID_FAIL_MS) {
+          rapidFailCountRef.current += 1;
+          console.debug(
+            '[useWebSocket] rapid disconnect detected',
+            rapidFailCountRef.current,
+            '/', RAPID_FAIL_THRESHOLD,
+            'alive=', aliveMs, 'ms',
+          );
+        } else {
+          // Healthy connection duration — reset rapid-fail counter
+          rapidFailCountRef.current = 0;
+        }
+        openedAtRef.current = 0;
+
         scheduleReconnect();
       };
     };
@@ -95,8 +123,15 @@ export function useWebSocket(url: string): { reconnectNow: () => void } {
         return;
       }
       reconnectingRef.current = true;
-      const delay =
-        BACKOFF_SEQUENCE[Math.min(reconnectAttempt.current, BACKOFF_SEQUENCE.length - 1)];
+      // If we have seen too many rapid failures, override the backoff to RAPID_FAIL_DELAY_MS
+      // regardless of where we are in the normal backoff sequence.
+      let delay: number;
+      if (rapidFailCountRef.current >= RAPID_FAIL_THRESHOLD) {
+        delay = RAPID_FAIL_DELAY_MS;
+        console.debug('[useWebSocket] rapid-fail backoff applied, delay=', delay, 'ms');
+      } else {
+        delay = BACKOFF_SEQUENCE[Math.min(reconnectAttempt.current, BACKOFF_SEQUENCE.length - 1)];
+      }
       reconnectAttempt.current += 1;
       timerRef.current = setTimeout(connect, delay);
     };

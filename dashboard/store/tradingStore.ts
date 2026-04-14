@@ -143,28 +143,66 @@ export const useTradingStore = create<TradingState>()(
       }),
 
     dispatch: (msg) => {
+      // Guard: msg must be a non-null object with a string type field.
+      if (!msg || typeof (msg as { type?: unknown }).type !== 'string') return;
       const g = get();
       switch (msg.type) {
-        case 'bar':
-          g.pushBar(msg.bar);
+        case 'bar': {
+          // Drop silently if bar payload is missing or malformed
+          const bar = msg?.bar;
+          if (!bar || typeof bar !== 'object') break;
+          g.pushBar(bar);
           break;
-        case 'signal':
-          g.pushSignal(msg.event);
+        }
+        case 'signal': {
+          const event = msg?.event;
+          if (!event || typeof event !== 'object') break;
+          // Ensure categories_firing is always an array (never undefined/null)
+          if (!Array.isArray(event.categories_firing)) {
+            event.categories_firing = [];
+          }
+          g.pushSignal(event);
           break;
-        case 'score':
+        }
+        case 'score': {
+          // Guard all required score fields
+          if (
+            typeof msg.total_score !== 'number' ||
+            typeof msg.tier !== 'string'
+          ) break;
+          // Ensure categories_firing is always an array
+          if (!Array.isArray(msg.categories_firing)) {
+            (msg as LiveScoreMessage).categories_firing = [];
+          }
+          if (!msg.category_scores || typeof msg.category_scores !== 'object') {
+            (msg as LiveScoreMessage).category_scores = {};
+          }
           g.setScore(msg);
           break;
-        case 'status':
+        }
+        case 'status': {
+          // Guard required status fields
+          if (typeof msg.connected !== 'boolean') break;
           g.setStatus(msg);
           break;
+        }
         case 'tape': {
           const m = msg as LiveTapeMessage;
+          const ev = m?.event;
+          if (!ev || typeof ev !== 'object') break;
+          // Guard individual tape fields
+          if (
+            typeof ev.ts !== 'number' ||
+            typeof ev.price !== 'number' ||
+            typeof ev.size !== 'number' ||
+            typeof ev.side !== 'string'
+          ) break;
           g.pushTape({
-            ts:     m.event.ts,
-            price:  m.event.price,
-            size:   m.event.size,
-            side:   m.event.side,
-            marker: m.event.marker,
+            ts:     ev.ts,
+            price:  ev.price,
+            size:   ev.size,
+            side:   ev.side,
+            marker: ev.marker ?? '',
           });
           break;
         }
@@ -188,3 +226,46 @@ export const useTradingStore = create<TradingState>()(
 export function dispatchLiveMessage(msg: LiveMessage): void {
   useTradingStore.getState().dispatch(msg);
 }
+
+// ---------------------------------------------------------------------------
+// Scoped selector functions — import these instead of writing inline arrows.
+//
+// Why: Zustand re-renders a component when the selected value changes by
+// reference equality. Inline arrow selectors like `s => s.status` cause a
+// re-render on every status object replacement even when the observed fields
+// haven't changed. Stable selector references exported here let components
+// subscribe to exactly the fields they need.
+//
+// Usage:
+//   import { selectPnl, selectConnected } from '@/store/tradingStore';
+//   const pnl = useTradingStore(selectPnl);
+//   const connected = useTradingStore(selectConnected);
+// ---------------------------------------------------------------------------
+
+// ── Status selectors ────────────────────────────────────────────────────────
+export const selectPnl = (s: TradingState) => s.status.pnl;
+export const selectCircuitBreakerActive = (s: TradingState) => s.status.circuitBreakerActive;
+export const selectConnected = (s: TradingState) => s.status.connected;
+export const selectFeedStale = (s: TradingState) => s.status.feedStale;
+export const selectLastTs = (s: TradingState) => s.status.lastTs;
+export const selectSessionStartTs = (s: TradingState) => s.status.sessionStartTs;
+export const selectBarsReceived = (s: TradingState) => s.status.barsReceived;
+export const selectSignalsFired = (s: TradingState) => s.status.signalsFired;
+export const selectLastSignalTier = (s: TradingState) => s.status.lastSignalTier;
+export const selectUptimeSeconds = (s: TradingState) => s.status.uptimeSeconds;
+export const selectActiveClients = (s: TradingState) => s.status.activeClients;
+
+// ── Score selectors ─────────────────────────────────────────────────────────
+export const selectTotalScore = (s: TradingState) => s.score.totalScore;
+export const selectTier = (s: TradingState) => s.score.tier;
+export const selectDirection = (s: TradingState) => s.score.direction;
+export const selectCategoriesFiring = (s: TradingState) => s.score.categoriesFiring;
+export const selectCategoryScores = (s: TradingState) => s.score.categoryScores;
+export const selectKronosBias = (s: TradingState) => s.score.kronosBias;
+export const selectKronosDirection = (s: TradingState) => s.score.kronosDirection;
+export const selectGexRegime = (s: TradingState) => s.score.gexRegime;
+
+// ── Version selectors ───────────────────────────────────────────────────────
+export const selectLastBarVersion = (s: TradingState) => s.lastBarVersion;
+export const selectLastSignalVersion = (s: TradingState) => s.lastSignalVersion;
+export const selectLastTapeVersion = (s: TradingState) => s.lastTapeVersion;

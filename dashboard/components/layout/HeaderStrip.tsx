@@ -367,6 +367,9 @@ export function HeaderStrip() {
     if (!latestBar) return;
 
     const newPrice = latestBar.close;
+    // Guard: ignore NaN/Infinity prices — keep last known good price
+    if (!Number.isFinite(newPrice)) return;
+
     const prev = priceRef.current;
 
     // Only flash if price actually changed (guards against remount)
@@ -381,9 +384,9 @@ export function HeaderStrip() {
     priceRef.current = newPrice;
     setPrice(newPrice);
 
-    // Extract last 30 close prices
+    // Extract last 30 close prices — filter out non-finite values for sparkline
     const allBars = state.bars.toArray();
-    const last30 = allBars.slice(-30).map((b) => b.close);
+    const last30 = allBars.slice(-30).map((b) => b.close).filter(Number.isFinite);
     setSparkPrices(last30);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastBarVersion]);
@@ -425,7 +428,8 @@ export function HeaderStrip() {
 
       const allSignals = state.signals.toArray();
       for (const sig of allSignals) {
-        const ageMin = (nowSec - sig.ts) / 60;
+        // Clamp future timestamps (clock skew) to 0 age before binning
+        const ageMin = Math.max(0, nowSec - sig.ts) / 60;
         const binIdx = Math.floor(ageMin); // 0 = current minute, 9 = 9 min ago
         if (binIdx >= 0 && binIdx < 10) {
           bins[9 - binIdx].total++;
@@ -488,10 +492,10 @@ export function HeaderStrip() {
     dotGlow = 'none';
   }
 
-  // Last tick age for tooltip
+  // Last tick age for tooltip — clamp to 0 so future timestamps (clock skew) never show negative
   const lastTickAgo =
     status.lastTs > 0
-      ? (Date.now() / 1000 - status.lastTs).toFixed(1) + 's ago'
+      ? Math.max(0, Date.now() / 1000 - status.lastTs).toFixed(1) + 's ago'
       : 'n/a';
 
   // Session age
