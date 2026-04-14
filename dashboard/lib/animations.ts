@@ -284,6 +284,77 @@ export const signalRowArrivalTransition = {
   filter: { duration: 1.2, ease: 'easeOut' as const },
 } as const;
 
+// ---------------------------------------------------------------------------
+// Score threshold cross flash — visible color flicker when crossing 50 or 80
+// 79→80: flash amber → lime over 200ms (upgrade)
+// 80→79: flash lime → amber over 300ms (slower decline)
+// ---------------------------------------------------------------------------
+
+export const scoreThresholdUpKeyframes: { color: string[]; scale: number[] } = {
+  color: ['#ffd60a', '#ffd60a', '#a3ff00'],
+  scale: [1, 1.06, 1],
+};
+
+export const scoreThresholdUpTransition = {
+  duration: 0.2,
+  ease: 'easeOut' as const,
+  times: [0, 0.15, 1],
+};
+
+export const scoreThresholdDownKeyframes: { color: string[]; scale: number[] } = {
+  color: ['#a3ff00', '#a3ff00', '#ffd60a'],
+  scale: [1, 1.02, 1],
+};
+
+export const scoreThresholdDownTransition = {
+  duration: 0.3,
+  ease: 'easeOut' as const,
+  times: [0, 0.1, 1],
+};
+
+// ---------------------------------------------------------------------------
+// Connection spoke pulse — TYPE_A radial spokes breathe 2s repeat
+// ---------------------------------------------------------------------------
+
+export const spokeBreathKeyframes: { opacity: number[]; strokeWidth: number[] } = {
+  opacity: [0.6, 1.0, 0.6],
+  strokeWidth: [1.5, 2.0, 1.5],
+};
+
+export const spokeBreathTransition = {
+  duration: 2,
+  ease: 'easeInOut' as const,
+  repeat: Infinity,
+};
+
+// ---------------------------------------------------------------------------
+// Direction glyph halo — 2px glow that dissipates 400ms after direction change
+// ---------------------------------------------------------------------------
+
+export const directionHaloKeyframes: { opacity: number[]; scale: number[] } = {
+  opacity: [0, 0.8, 0],
+  scale: [0.8, 1.2, 1.4],
+};
+
+export const directionHaloTransition = {
+  duration: 0.4,
+  ease: 'easeOut' as const,
+};
+
+// ---------------------------------------------------------------------------
+// Direction cross-flash — brief white cross when crossing zero (LONG↔SHORT)
+// ---------------------------------------------------------------------------
+
+export const directionCrossKeyframes: { opacity: number[]; scale: number[] } = {
+  opacity: [0, 1, 0],
+  scale: [0.6, 1, 1.5],
+};
+
+export const directionCrossTransition = {
+  duration: 0.25,
+  ease: 'easeOut' as const,
+};
+
 // Verify at module load (development guard)
 if (process.env.NODE_ENV !== 'production') {
   if (SIGNAL_BIT_CATEGORIES.length !== 44) {
