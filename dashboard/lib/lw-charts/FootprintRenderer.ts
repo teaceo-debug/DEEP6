@@ -13,88 +13,94 @@ import type { FootprintSeriesOptions } from './FootprintSeries';
 const C_BID       = '#ff2e63';   // --bid  (sellers; bearish delta)
 const C_ASK       = '#00ff88';   // --ask  (buyers; bullish delta)
 const C_LIME      = '#a3ff00';   // --lime (stacked imbalance run)
-const C_AMBER     = '#ffd60a';   // --amber (POC line)
+const C_AMBER     = '#ffd60a';   // --amber (POC row)
 const C_CYAN      = '#00d9ff';   // --cyan  (TYPE_C marker)
-const C_RULE      = '#1f1f1f';   // --rule  (separator lines, grid)
-const C_TEXT      = '#f5f5f5';   // --text  (labels)
-const C_TEXT_MUTE = '#4a4a4a';   // --text-mute (empty state)
+const C_RULE      = '#1f1f1f';   // --rule  (separator lines)
+const C_TEXT_DIM  = '#8a8a8a';   // --text-dim (neutral row text)
+const C_TEXT_MUTE = '#4a4a4a';   // --text-mute (empty state, dim chrome)
 const C_VOID      = '#000000';   // --void  (background)
-const C_WHITE     = '#ffffff';   // pure white (imbalance outline, vol numbers)
-const C_GREY      = '#666666';   // CVD flat indicator
+const C_TEXT      = '#f5f5f5';   // --text  (imbalance row text, primary)
 
 // Imbalance threshold ratio (3× side dominance)
 const IMBALANCE_THRESHOLD = 3.0;
 
-// Minimum consecutive rows for a stacked run SOLID line (≥4); 3-row runs get dashed
-const STACKED_RUN_SOLID_MIN = 4;
-// Still detect runs starting at 3
+// Minimum consecutive rows for stacked imbalance marker
 const STACKED_RUN_MIN = 3;
 
-// Row height in CSS pixels (UI-SPEC §3: 16px density target)
-const ROW_HEIGHT_CSS = 16;
+// Row height in CSS pixels (spec: 18px — readability wins over density)
+const ROW_HEIGHT_CSS = 18;
 
-// Font for volume numbers and empty state
+// Font for volume numbers and chrome
 const FONT_FAMILY = '"JetBrains Mono", monospace';
-const FONT_SIZE_CSS = 10;   // text-xs (was 11 — slightly tighter for density)
 
-// Min bar fill width (CSS px) to render volume number inside the bar
-const MIN_INSIDE_W_CSS = 40;
+// text-xs (11px CSS) for cell text; scaled by vpr for Retina
+const FONT_SIZE_CSS = 11;
 
-// Min row height (CSS px) to render any volume number at all
-const MIN_ROW_H_CSS = 14;
+// Min cell height (CSS px) to render text; below this → color-only mode
+const MIN_ROW_H_FOR_TEXT_CSS = 14;
 
-// POC line height (bitmap px) — taller than 1px for presence
-const POC_LINE_H = 1.5;
+// Min column width (CSS px) to render full "bid × ask" label
+// Below this → show only the larger side (abbreviated)
+const MIN_COL_W_FOR_FULL_LABEL_CSS = 60;
 
-// Wing max reach: 47% of halfBarW at full volume (Bookmap-style proportional wings)
-// 0.47 → combined wings reach 94% of full column width at max volume
-const WING_MAX_RATIO = 0.47;
+// Min column width to render timestamp header
+const HEADER_MIN_COL_W_CSS = 60;
 
-// Signal marker dimensions (CSS px)
-const MARKER_ABOVE_CSS = 8;
-const MARKER_SQ_CSS    = 5;   // 5×5 (was 6×6)
+// POC dot marker: 4×4px amber square on left edge of column
+const POC_DOT_SIZE_CSS = 4;
 
-// Delta footer height below each bar (CSS px)
-const DELTA_FOOTER_H_CSS  = 6;
-const DELTA_FOOTER_GAP_CSS = 2;   // gap between last row and footer bar
-const DELTA_TEXT_SIZE_CSS  = 10;
+// Stacked imbalance line width (CSS px)
+const STACKED_LINE_W_CSS = 3;
 
-// CVD dot radius (CSS px)
-const CVD_DOT_R_CSS = 1.5;
-
-// Bar header: timestamp + volume bar constants
-const HEADER_FONT_SIZE_CSS   = 9;    // tiny HH:MM label (px)
-const HEADER_VOL_BAR_H_CSS   = 3;    // height of bid/ask split bar (px)
-const HEADER_MIN_SPACING_CSS = 80;   // min barSpacing (CSS px) to show header
+// Delta footer constants
+const DELTA_FONT_SIZE_CSS  = 11;
+const DELTA_BAR_H_CSS      = 3;
+const DELTA_GAP_CSS        = 6;    // gap between last row and delta label
+const DELTA_LEFT_PAD_CSS   = 4;    // left margin within column
 
 // DoS guards
 const MAX_DISPLAY_VOL = 99999;
 const MAX_BARS_CAP    = 500;
 
-// Empty state
-const EMPTY_TEXT           = 'AWAITING NQ FOOTPRINT';
-const EMPTY_SUB_TEXT       = 'waiting for websocket stream\u2026';   // …
-const EMPTY_LETTER_SPACING = 0.16;  // em
+// Empty state text
+const EMPTY_TEXT     = 'NO FOOTPRINT DATA';
+const EMPTY_SUB_TEXT = 'waiting for stream\u2026';
 
-// Unicode minus for negative delta display (U+2212)
+// Unicode multiply sign for "bid × ask" display
+const UNICODE_TIMES = '\u00d7';
+// Unicode minus for negative delta
 const UNICODE_MINUS = '\u2212';
+
+// ── Text width cache ──────────────────────────────────────────────────────────
+// Pre-cache measured widths for numbers 0-999 to avoid repeated measureText
+// calls in the hot path. Key is `${fontSize}:${n}` → width in bitmap pixels.
+const _textWidthCache = new Map<string, number>();
+
+function _cachedTextWidth(
+  ctx:      CanvasRenderingContext2D,
+  n:        number,
+  font:     string,
+  fontSize: number,
+): number {
+  const key = `${fontSize}:${n}`;
+  let w = _textWidthCache.get(key);
+  if (w !== undefined) return w;
+  // Measure — font must already be set on ctx
+  ctx.font = font;
+  w = ctx.measureText(String(Math.min(n, MAX_DISPLAY_VOL))).width;
+  if (_textWidthCache.size < 4000) _textWidthCache.set(key, w);   // bounded cache
+  return w;
+}
 
 // ── Row analysis ──────────────────────────────────────────────────────────────
 
 interface RowInfo {
-  price:           number;
-  yBitmap:         number;
-  bidVol:          number;
-  askVol:          number;
-  isImbalanceBid:  boolean;   // bid/ask ≥ 3× and bid dominates
-  isImbalanceAsk:  boolean;   // ask/bid ≥ 3× and ask dominates
-}
-
-// CVD dot info collected per bar for trend line pass
-interface CvdDotInfo {
-  x:     number;
-  y:     number;
-  color: string;
+  price:          number;
+  yBitmap:        number;
+  bidVol:         number;
+  askVol:         number;
+  isImbalanceBid: boolean;   // bid/ask ≥ 3× and bid dominates
+  isImbalanceAsk: boolean;   // ask/bid ≥ 3× and ask dominates
 }
 
 // ── Renderer ──────────────────────────────────────────────────────────────────
@@ -120,9 +126,9 @@ export class FootprintRenderer implements ICustomSeriesPaneRenderer {
     if (!data || !options) return;
 
     target.useBitmapCoordinateSpace((scope) => {
-      const ctx  = scope.context;
-      const hpr  = scope.horizontalPixelRatio;
-      const vpr  = scope.verticalPixelRatio;
+      const ctx     = scope.context;
+      const hpr     = scope.horizontalPixelRatio;
+      const vpr     = scope.verticalPixelRatio;
       const canvasW = scope.bitmapSize.width;
       const canvasH = scope.bitmapSize.height;
 
@@ -138,46 +144,41 @@ export class FootprintRenderer implements ICustomSeriesPaneRenderer {
         return;
       }
 
-      // Derived dimensions (bitmap pixels)
+      // Derived dimensions in bitmap pixels
       const rowH    = Math.max(1, Math.round(ROW_HEIGHT_CSS * vpr));
       const fontSize = Math.max(6, Math.round(FONT_SIZE_CSS * vpr));
+      const font     = `400 ${fontSize}px ${FONT_FAMILY}`;
 
-      // ─ barSpacing from LW Charts (media pixels) → bitmap pixels ─────────
-      // data.barSpacing is in media pixels; each column's full bitmap width.
+      // Column width in bitmap pixels (barSpacing is in media/CSS pixels)
       const colW = Math.round(data.barSpacing * hpr);
 
-      // Column inner width: full column minus 2px gap each side → clean separator
-      // halfBarW = usable half-width in bitmap pixels, clamped to [2, ∞)
-      const GAP_EACH_SIDE = Math.round(2 * hpr);   // 2px CSS gap → bitmap
-      const halfBarW = Math.max(2, Math.floor((colW - GAP_EACH_SIDE * 2) / 2));
+      // Inner column bounds — 1px gap each side for the column separator
+      const GAP_BITMAP = Math.max(1, Math.round(1 * hpr));
+      const innerW     = Math.max(2, colW - GAP_BITMAP * 2);
 
       const to = Math.min(range.to, data.bars.length - 1, MAX_BARS_CAP - 1);
 
-      // ── Compute max |bar_delta| across visible range for footer scaling ──
-      let maxAbsDelta = 1;
+      // ── Compute cross-bar maxima for scaling ──────────────────────────────
+      // max_abs_delta: for delta bar scaling
+      // max_total_vol: for neutral cell alpha scaling
+      let maxAbsDelta  = 1;
+      let maxTotalVol  = 1;
+
       for (let i = range.from; i <= to; i++) {
         const bar = data.bars[i];
         if (!bar?.originalData) continue;
         const absDelta = Math.abs(bar.originalData.bar_delta ?? 0);
         if (absDelta > maxAbsDelta) maxAbsDelta = absDelta;
-      }
 
-      // ── Compute max total_vol across visible bars for header volume bar ──
-      let maxTotalVolBar = 1;
-      for (let ii = range.from; ii <= to; ii++) {
-        const bbar = data.bars[ii];
-        if (!bbar?.originalData?.levels) continue;
-        let ttVol = 0;
-        for (const kk of Object.keys(bbar.originalData.levels)) {
-          const llv = bbar.originalData.levels[kk];
-          if (!llv) continue;
-          ttVol += clampVol(llv.bid_vol) + clampVol(llv.ask_vol);
+        if (bar.originalData.levels) {
+          for (const key of Object.keys(bar.originalData.levels)) {
+            const lv = bar.originalData.levels[key];
+            if (!lv) continue;
+            const tv = clampVol(lv.bid_vol) + clampVol(lv.ask_vol);
+            if (tv > maxTotalVol) maxTotalVol = tv;
+          }
         }
-        if (ttVol > maxTotalVolBar) maxTotalVolBar = ttVol;
       }
-
-      // ── Collect CVD dot positions for trend line rendering ────────────────
-      const cvdDots: CvdDotInfo[] = [];
 
       // ── Per-bar render ────────────────────────────────────────────────────
       for (let i = range.from; i <= to; i++) {
@@ -189,43 +190,44 @@ export class FootprintRenderer implements ICustomSeriesPaneRenderer {
         // Bar center in bitmap pixels
         const xC = Math.round(bar.x * hpr);
 
-        // Precise column bounds (exclusive of gap)
-        const colLeft  = xC - halfBarW;
-        const colRight = xC + halfBarW;
+        // Column left edge
+        const colLeft  = xC - Math.floor(innerW / 2);
+        const colRight = colLeft + innerW;
 
-        // ── 1. Column separator (--rule, 1px at boundary before this bar) ──
+        // ── 1. Column separator (1px --rule line at left edge of column) ──
         ctx.fillStyle = C_RULE;
-        ctx.fillRect(colLeft - GAP_EACH_SIDE, 0, 1, canvasH);
+        ctx.fillRect(colLeft - GAP_BITMAP, 0, Math.max(1, GAP_BITMAP), canvasH);
 
         const levelKeys = Object.keys(d.levels);
         if (levelKeys.length === 0) continue;
 
-        // ── 2. Compute per-bar max volume (cluster-local, not global) ──────
-        // Scale to THIS bar's max so no overflow into neighbors.
-        let maxVol = 1;
-        // Also track which price has the highest total volume (POC detection)
-        let pocTick    = -1;
-        let pocVolMax  = 0;
+        // ── 2. Find POC price + per-bar max total volume ──────────────────
+        let pocPrice:   number | null = null;
+        let pocVolMax   = 0;
+
+        if (d.poc_price && Number.isFinite(d.poc_price)) {
+          pocPrice = d.poc_price;
+        }
+
+        let barMaxTotalVol = 1;
         for (const key of levelKeys) {
           const lv = d.levels[key];
           if (!lv) continue;
-          const b = clampVol(lv.bid_vol);
-          const a = clampVol(lv.ask_vol);
-          const t = b + a;
-          if (Number.isFinite(t) && t > maxVol) maxVol = t;
-          if (t > pocVolMax) {
-            pocVolMax = t;
-            pocTick   = Number(key);
+          const tv = clampVol(lv.bid_vol) + clampVol(lv.ask_vol);
+          if (tv > barMaxTotalVol) barMaxTotalVol = tv;
+          if (pocPrice === null && tv > pocVolMax) {
+            pocVolMax = tv;
+            pocPrice  = Number(key) * 0.25;
           }
         }
 
-        // ── 3. Build sorted row array ─────────────────────────────────────
+        // ── 3. Build sorted row array (high price → low price = top → bottom) ──
         const rows: RowInfo[] = [];
         for (const tickKey of levelKeys) {
           const tick = Number(tickKey);
           if (!Number.isFinite(tick)) continue;
-          const price   = tick * 0.25;     // NQ tick size = 0.25 pts
-          const yMedia  = priceToCoordinate(price);
+          const price  = tick * 0.25;     // NQ tick size = 0.25 pts
+          const yMedia = priceToCoordinate(price);
           if (yMedia === null) continue;
           const yBitmap = Math.round(yMedia * vpr);
 
@@ -234,149 +236,93 @@ export class FootprintRenderer implements ICustomSeriesPaneRenderer {
 
           const bidVol = clampVol(lv.bid_vol);
           const askVol = clampVol(lv.ask_vol);
-
-          // Imbalance: dominant side ≥ 3× the other
-          const maxSide = Math.max(bidVol, askVol);
-          const minSide = Math.max(1, Math.min(bidVol, askVol));
-          const ratio   = maxSide / minSide;
+          const imbRatio = askVol / Math.max(bidVol, 1);
 
           rows.push({
             price,
             yBitmap,
             bidVol,
             askVol,
-            isImbalanceBid: options.showImbalance && bidVol > askVol && ratio >= IMBALANCE_THRESHOLD,
-            isImbalanceAsk: options.showImbalance && askVol > bidVol && ratio >= IMBALANCE_THRESHOLD,
+            isImbalanceBid: options.showImbalance && imbRatio <= (1 / IMBALANCE_THRESHOLD),
+            isImbalanceAsk: options.showImbalance && imbRatio >= IMBALANCE_THRESHOLD,
           });
         }
 
-        // Sort price descending (higher price = lower yBitmap = closer to top)
+        // Sort price descending (higher price → top of chart → lower yBitmap)
         rows.sort((a, b) => b.price - a.price);
 
-        // ── 4. Background grid rows (major every 10, minor every 5 ticks) ──
-        _drawBackgroundGrid(ctx, rows, rowH, colLeft, colRight, canvasH, vpr);
-
-        // ── 4b. Subtle column presence fill for all rows in this bar ────────
-        _drawColumnPresence(ctx, rows, rowH, colLeft, halfBarW);
-
-        // ── 5. POC row special treatment (pre-compute for _drawRow) ────────
-        // The POC is the tick with highest total volume — matches d.poc_price
-        // when available, falls back to our local pocTick computation.
-        let pocPrice: number | null = null;
-        if (d.poc_price && Number.isFinite(d.poc_price)) {
-          pocPrice = d.poc_price;
-        } else if (pocTick >= 0) {
-          pocPrice = pocTick * 0.25;
-        }
-
-        // ── 6. Per-row volume bars (with clip enforcing column containment) ─
+        // ── 4. Clip to this column — prevents overflow into neighbors ────────
         ctx.save();
-
-        // Clip to this column's usable area — prevents any draw (including
-        // bloom glow) from escaping into adjacent columns.
         ctx.beginPath();
-        ctx.rect(colLeft, 0, halfBarW * 2, canvasH);
+        ctx.rect(colLeft, 0, innerW, canvasH);
         ctx.clip();
 
-        // top-3 volume threshold for heavy-zone tint (heavy = not POC but in top 3 by total vol)
-        const rowVolumes: number[] = rows.map(r => r.bidVol + r.askVol);
-        const sortedVols = rowVolumes.slice().sort((a, b) => b - a);
-        const top3Threshold = sortedVols.length >= 3 ? sortedVols[2] : (sortedVols[0] ?? 0);
-
-        // bar total bid/ask for header volume bar
-        let barTotalBidVol = 0;
-        let barTotalAskVol = 0;
-        for (const key of levelKeys) {
-          const lv = d.levels[key];
-          if (!lv) continue;
-          barTotalBidVol += clampVol(lv.bid_vol);
-          barTotalAskVol += clampVol(lv.ask_vol);
-        }
+        // ── 5. Draw all cell backgrounds + text ────────────────────────────
+        const colWCss = innerW / hpr;
 
         for (const row of rows) {
           const isPoc = pocPrice !== null && Math.abs(row.price - pocPrice) < 0.01;
-          const rowTotal = row.bidVol + row.askVol;
-          const isHeavyVol = !isPoc && top3Threshold > 0 && rowTotal >= top3Threshold;
-          _drawRow(ctx, row, xC, halfBarW, maxVol, rowH, fontSize, hpr, vpr, isPoc, isHeavyVol);
+          _drawNumberCell(
+            ctx, row, colLeft, innerW, rowH, fontSize, font,
+            hpr, vpr, isPoc, barMaxTotalVol, colWCss,
+          );
         }
 
         ctx.restore();   // clip ends
 
-        // ── 7. Stacked imbalance run lines (drawn AFTER clip restore so the
-        //       2px line sits exactly on the column edge, not clipped) ──────
+        // ── 6. Stacked imbalance run lines (drawn outside clip so they sit
+        //       exactly on the column edge without being clipped away) ──────
         if (options.showImbalance && rows.length >= STACKED_RUN_MIN) {
-          _drawStackedRunLines(ctx, rows, rowH, xC, halfBarW, hpr, vpr);
+          _drawStackedRunLines(ctx, rows, rowH, colLeft, colRight, hpr, vpr);
         }
 
-        // ── 8. POC amber line — dialed down bloom ────────────────────────
+        // ── 7. POC dot marker — 4×4 amber square on left edge at POC row ──
         if (pocPrice !== null) {
           const yPocMedia = priceToCoordinate(pocPrice);
           if (yPocMedia !== null) {
-            const yPoc  = Math.round(yPocMedia * vpr);
-            const lineH = Math.max(1, Math.round(POC_LINE_H * vpr));
-
-            ctx.save();
-            // Dialed-down bloom: 5/2 (was 12/4), dimmer amber color
-            ctx.shadowColor = C_AMBER;
-            ctx.shadowBlur  = Math.round(5 * vpr);
-            ctx.fillStyle   = 'rgba(255, 214, 10, 0.85)';   // slightly dimmer
-            ctx.globalAlpha = 1;
-            ctx.fillRect(colLeft, yPoc - Math.floor(lineH / 2), halfBarW * 2, lineH);
-            ctx.shadowBlur  = Math.round(2 * vpr);
-            ctx.fillRect(colLeft, yPoc - Math.floor(lineH / 2), halfBarW * 2, lineH);
-            ctx.restore();
+            const yPoc   = Math.round(yPocMedia * vpr);
+            const dotSzB = Math.max(2, Math.round(POC_DOT_SIZE_CSS * hpr));
+            const dotH   = Math.max(2, Math.round(POC_DOT_SIZE_CSS * vpr));
+            ctx.fillStyle = C_AMBER;
+            ctx.fillRect(
+              colLeft - dotSzB,
+              yPoc - Math.floor(dotH / 2),
+              dotSzB,
+              dotH,
+            );
           }
         }
 
-        // ── 9. Delta footer below each bar ────────────────────────────────
+        // ── 8. Delta footer ───────────────────────────────────────────────
         if (options.showDelta) {
-          // Find the bottom-most row y position
+          // Find the bottom-most row Y
           let bottomY = 0;
           for (const row of rows) {
             const rowBottom = row.yBitmap + Math.ceil(rowH / 2);
             if (rowBottom > bottomY) bottomY = rowBottom;
           }
           if (bottomY === 0) {
-            // Fallback: use canvas bottom area
-            bottomY = canvasH - Math.round((DELTA_FOOTER_H_CSS + DELTA_TEXT_SIZE_CSS + 4) * vpr);
+            bottomY = canvasH - Math.round((DELTA_GAP_CSS + DELTA_FONT_SIZE_CSS + 8) * vpr);
           }
 
-          _drawDeltaFooter(ctx, d.bar_delta ?? 0, maxAbsDelta, xC, halfBarW, bottomY, hpr, vpr);
+          _drawDeltaFooter(
+            ctx, d.bar_delta ?? 0, maxAbsDelta,
+            colLeft, innerW, bottomY, hpr, vpr,
+          );
         }
 
-        // ── 10. CVD dot — repositioned above delta footer ─────────────────
-        {
-          const prevBar = i > range.from ? data.bars[i - 1] : null;
-          const prevCvd = prevBar?.originalData?.cvd ?? null;
-          const thisCvd = d.cvd ?? null;
-
-          if (thisCvd !== null) {
-            const cvdColor = prevCvd === null
-              ? C_GREY
-              : thisCvd > prevCvd
-                ? C_ASK
-                : thisCvd < prevCvd
-                  ? C_BID
-                  : C_GREY;
-
-            // Position CVD dot just above the delta footer area
-            // Find bottomY of the bar rows
-            let bottomY = 0;
-            for (const row of rows) {
-              const rowBottom = row.yBitmap + Math.ceil(rowH / 2);
-              if (rowBottom > bottomY) bottomY = rowBottom;
-            }
-            if (bottomY === 0) bottomY = canvasH - Math.round(20 * vpr);
-
-            // Place dot between last row and delta footer
-            const dotY = bottomY + Math.round(DELTA_FOOTER_GAP_CSS * vpr / 2);
-
-            _drawCvdDot(ctx, xC, dotY, cvdColor, hpr, vpr);
-            cvdDots.push({ x: xC, y: dotY, color: cvdColor });
+        // ── 9. Bar timestamp header ───────────────────────────────────────
+        // Only when column is wide enough
+        if (colWCss > HEADER_MIN_COL_W_CSS) {
+          let topRowY = canvasH;
+          for (const row of rows) {
+            const rowTop = row.yBitmap - Math.floor(rowH / 2);
+            if (rowTop < topRowY) topRowY = rowTop;
           }
+          _drawTimestamp(ctx, xC, topRowY, d.time, hpr, vpr);
         }
 
-        // ── 11. Signal marker ─────────────────────────────────────────────
+        // ── 10. Signal marker ─────────────────────────────────────────────
         const sigType = (d as FootprintBarLW & { __signalType?: string }).__signalType;
         if (sigType && sigType !== 'QUIET') {
           const markerColor =
@@ -391,340 +337,127 @@ export class FootprintRenderer implements ICustomSeriesPaneRenderer {
             }
           }
         }
-
-        // ── BAR HEADER: tiny timestamp + bid/ask volume bar ─────────────────
-        // Only rendered when barSpacing > HEADER_MIN_SPACING_CSS (avoid overlap at narrow zoom)
-        if (data.barSpacing > HEADER_MIN_SPACING_CSS) {
-          // Find topmost row y
-          let topRowY = canvasH;
-          for (const row of rows) {
-            const rowTop = row.yBitmap - Math.floor(rowH / 2);
-            if (rowTop < topRowY) topRowY = rowTop;
-          }
-          // Skip first bar if column would overlap left edge
-          const isFirstBar = (i === range.from);
-          const wouldClipLeft = colLeft < Math.round(30 * hpr);
-          if (!(isFirstBar && wouldClipLeft)) {
-            const barTotalVol = barTotalBidVol + barTotalAskVol;
-            _drawBarHeader(
-              ctx, xC, halfBarW, topRowY,
-              barTotalBidVol, barTotalAskVol, barTotalVol, maxTotalVolBar,
-              d.time, hpr, vpr,
-            );
-          }
-        }
-      }
-
-      // ── 12. CVD trend line — connecting consecutive CVD dots ─────────────
-      if (cvdDots.length >= 2) {
-        _drawCvdTrendLine(ctx, cvdDots, vpr);
-      }
-
-      // ── 13. Delta footer baseline ribbon (delta=0 horizontal line) ───────
-      if (options.showDelta) {
-        _drawDeltaBaseline(ctx, data, range, to, hpr, vpr, priceToCoordinate, rowH);
       }
     });
   }
 }
 
-// ── Column presence fill ──────────────────────────────────────────────────────
-// For all rows in a bar's column (even 0-vol rows), add a 2% opacity fill of
-// --text-mute to give the column a subtle "presence" so empty rows don't float.
+// ── Numbers Bar cell ──────────────────────────────────────────────────────────
+// The core of the Numbers Bar style: full-width cell with colored background
+// and centered "bid × ask" text (or abbreviated form when narrow).
 
-function _drawColumnPresence(
-  ctx:      CanvasRenderingContext2D,
-  rows:     RowInfo[],
-  rowH:     number,
-  colLeft:  number,
-  halfBarW: number,
-): void {
-  if (rows.length === 0) return;
-
-  ctx.fillStyle   = C_TEXT_MUTE;
-  ctx.globalAlpha = 0.02;
-
-  for (const row of rows) {
-    const cellTop = row.yBitmap - Math.floor(rowH / 2);
-    const cellH   = rowH - 1;
-    ctx.fillRect(colLeft, cellTop, halfBarW * 2, cellH);
-  }
-
-  ctx.globalAlpha = 1;
-}
-
-// ── Per-row draw helper ───────────────────────────────────────────────────────
-// v5: gradient-taper wings + row dividers + heavy-volume amber tint
-
-function _drawRow(
-  ctx:        CanvasRenderingContext2D,
-  row:        RowInfo,
-  xC:         number,
-  halfBarW:   number,
-  maxVol:     number,
-  rowH:       number,
-  fontSize:   number,
-  hpr:        number,
-  vpr:        number,
-  isPoc:      boolean,
-  isHeavyVol: boolean,
+function _drawNumberCell(
+  ctx:           CanvasRenderingContext2D,
+  row:           RowInfo,
+  colLeft:       number,
+  innerW:        number,
+  rowH:          number,
+  fontSize:      number,
+  font:          string,
+  hpr:           number,
+  vpr:           number,
+  isPoc:         boolean,
+  barMaxTotalVol: number,
+  colWCss:       number,
 ): void {
   const { yBitmap, bidVol, askVol, isImbalanceBid, isImbalanceAsk } = row;
 
-  // Cell bounds
   const cellTop = yBitmap - Math.floor(rowH / 2);
-  const cellH   = rowH - 1;   // 1px inter-row gap
+  const cellH   = Math.max(1, rowH - 1);   // 1px inter-row gap
 
-  // Volume ratios [0, 1]
-  const bidRatio = maxVol > 0 && Number.isFinite(bidVol / maxVol) ? bidVol / maxVol : 0;
-  const askRatio = maxVol > 0 && Number.isFinite(askVol / maxVol) ? askVol / maxVol : 0;
+  // ── Background color ──────────────────────────────────────────────────────
+  let bgColor: string;
+  let textColor: string;
 
-  // ── Wing widths ──────────────────────────────────────────────────────────
-  const maxWingPx = Math.max(1, Math.floor(halfBarW * WING_MAX_RATIO));
+  const imbRatio = askVol / Math.max(bidVol, 1);
 
-  const bidWingW = isPoc || isImbalanceBid
-    ? maxWingPx
-    : bidVol > 0
-      ? Math.max(1, Math.round(maxWingPx * bidRatio))
-      : 0;
-
-  const askWingW = isPoc || isImbalanceAsk
-    ? maxWingPx
-    : askVol > 0
-      ? Math.max(1, Math.round(maxWingPx * askRatio))
-      : 0;
-
-  // ── Opacity: dual-dimension encoding ─────────────────────────────────────
-  const bidAlpha = (isPoc || isImbalanceBid)
-    ? 1.0
-    : bidVol > 0
-      ? Math.min(1.0, 0.5 + bidRatio * 0.5)
-      : 0;
-
-  const askAlpha = (isPoc || isImbalanceAsk)
-    ? 1.0
-    : askVol > 0
-      ? Math.min(1.0, 0.5 + askRatio * 0.5)
-      : 0;
-
-  // ── POC: amber glow overlay behind the row ────────────────────────────────
   if (isPoc) {
-    ctx.save();
-    ctx.shadowColor = C_AMBER;
-    ctx.shadowBlur  = Math.round(8 * vpr);   // dialed down from 12
-    ctx.fillStyle   = C_AMBER;
-    ctx.globalAlpha = 0.08;
-    ctx.fillRect(xC - halfBarW, cellTop, halfBarW * 2, cellH);
-    ctx.restore();
+    // POC override — amber background, black text, max priority
+    bgColor   = 'rgba(255, 214, 10, 0.35)';
+    textColor = '#000000';
+  } else if (isImbalanceAsk || imbRatio >= IMBALANCE_THRESHOLD) {
+    // BUY imbalance — ask dominates
+    bgColor   = 'rgba(0, 255, 136, 0.22)';
+    textColor = C_TEXT;
+  } else if (isImbalanceBid || imbRatio <= (1 / IMBALANCE_THRESHOLD)) {
+    // SELL imbalance — bid dominates
+    bgColor   = 'rgba(255, 46, 99, 0.22)';
+    textColor = C_TEXT;
+  } else {
+    // Neutral — slight alpha scaled by volume activity
+    const totalVol   = bidVol + askVol;
+    const totalRatio = barMaxTotalVol > 0 ? totalVol / barMaxTotalVol : 0;
+    const alpha      = 0.02 + totalRatio * 0.06;
+    bgColor   = `rgba(255, 255, 255, ${alpha.toFixed(3)})`;
+    textColor = C_TEXT_DIM;
   }
 
-  // ── Heavy-volume amber tint (top 3 rows, not POC) ─────────────────────────
-  // 8% amber background tint to create visible "heavy zones" per bar without clutter
-  if (isHeavyVol && !isPoc) {
-    ctx.save();
-    ctx.fillStyle   = C_AMBER;
-    ctx.globalAlpha = 0.08;
-    ctx.fillRect(xC - halfBarW, cellTop, halfBarW * 2, cellH);
-    ctx.restore();
-  }
+  // Fill cell background
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(colLeft, cellTop, innerW, cellH);
 
-  // ── Row divider line (1px --rule at 40% opacity between rows) ────────────
-  {
-    ctx.save();
-    ctx.fillStyle   = C_RULE;
-    ctx.globalAlpha = 0.40;
-    ctx.fillRect(xC - halfBarW, cellTop + cellH, halfBarW * 2, Math.max(1, Math.round(vpr)));
-    ctx.restore();
-  }
+  // ── Text rendering ────────────────────────────────────────────────────────
+  const rowHCss = rowH / vpr;
+  if (rowHCss < MIN_ROW_H_FOR_TEXT_CSS) return;   // color-only mode
 
-  // ── Bid wing (left of centerline, extending left) ─────────────────────────
-  if (bidWingW > 0 && bidAlpha > 0) {
-    // Tiny-dot rendering for very low volume (ratio < 0.05)
-    if (bidRatio < 0.05 && !isPoc && !isImbalanceBid) {
-      // 2×2 dot at center of the bid side
-      const dotX = xC - Math.round(maxWingPx / 2) - 1;
-      const dotY = yBitmap - 1;
-      ctx.fillStyle   = C_BID;
-      ctx.globalAlpha = 0.4;
-      ctx.fillRect(dotX, dotY, 2, 2);
-      ctx.globalAlpha = 1;
-    } else {
-      // Gradient taper: full saturation at centerline, 30% at outer edge ("bleeding tape")
-      const bidGrad = ctx.createLinearGradient(xC, cellTop, xC - bidWingW, cellTop);
-      bidGrad.addColorStop(0, `rgba(255, 46, 99, ${bidAlpha})`);       // full C_BID
-      bidGrad.addColorStop(1, `rgba(255, 46, 99, ${bidAlpha * 0.30})`); // 30% fade
-      ctx.fillStyle   = bidGrad;
-      ctx.globalAlpha = 1;
-      ctx.fillRect(xC - bidWingW, cellTop, bidWingW, cellH);
-
-      // High-vol inner edge highlight (ratio > 0.8): 1px lighter line on inner edge
-      if (bidRatio > 0.8 && !isImbalanceBid) {
-        ctx.save();
-        ctx.strokeStyle = 'rgba(255, 100, 120, 0.5)';   // lighter bid shade
-        ctx.lineWidth   = Math.max(1, Math.round(hpr));
-        ctx.globalAlpha = 0.5;
-        ctx.beginPath();
-        ctx.moveTo(xC - bidWingW + Math.floor(ctx.lineWidth / 2), cellTop);
-        ctx.lineTo(xC - bidWingW + Math.floor(ctx.lineWidth / 2), cellTop + cellH);
-        ctx.stroke();
-        ctx.restore();
-      }
-
-      // Imbalance: crisp white outline
-      if (isImbalanceBid) {
-        ctx.save();
-        ctx.shadowColor = C_WHITE;
-        ctx.shadowBlur  = 0;
-        ctx.strokeStyle = C_WHITE;
-        ctx.lineWidth   = Math.max(1, Math.round(hpr));
-        ctx.globalAlpha = 0.9;
-        ctx.strokeRect(xC - bidWingW + 0.5, cellTop + 0.5, bidWingW - 1, cellH - 1);
-        ctx.restore();
-      }
-    }
-  }
-
-  // ── Ask wing (right of centerline, extending right) ───────────────────────
-  if (askWingW > 0 && askAlpha > 0) {
-    // Tiny-dot rendering for very low volume (ratio < 0.05)
-    if (askRatio < 0.05 && !isPoc && !isImbalanceAsk) {
-      const dotX = xC + Math.round(maxWingPx / 2) - 1;
-      const dotY = yBitmap - 1;
-      ctx.fillStyle   = C_ASK;
-      ctx.globalAlpha = 0.4;
-      ctx.fillRect(dotX, dotY, 2, 2);
-      ctx.globalAlpha = 1;
-    } else {
-      // Gradient taper: full saturation at centerline, 30% at outer edge
-      const askGrad = ctx.createLinearGradient(xC, cellTop, xC + askWingW, cellTop);
-      askGrad.addColorStop(0, `rgba(0, 255, 136, ${askAlpha})`);       // full C_ASK
-      askGrad.addColorStop(1, `rgba(0, 255, 136, ${askAlpha * 0.30})`); // 30% fade
-      ctx.fillStyle   = askGrad;
-      ctx.globalAlpha = 1;
-      ctx.fillRect(xC, cellTop, askWingW, cellH);
-
-      // High-vol inner edge highlight (ratio > 0.8): 1px lighter line on inner edge
-      if (askRatio > 0.8 && !isImbalanceAsk) {
-        ctx.save();
-        ctx.strokeStyle = 'rgba(100, 255, 160, 0.5)';   // lighter ask shade
-        ctx.lineWidth   = Math.max(1, Math.round(hpr));
-        ctx.globalAlpha = 0.5;
-        ctx.beginPath();
-        ctx.moveTo(xC + askWingW - Math.floor(ctx.lineWidth / 2), cellTop);
-        ctx.lineTo(xC + askWingW - Math.floor(ctx.lineWidth / 2), cellTop + cellH);
-        ctx.stroke();
-        ctx.restore();
-      }
-
-      // Imbalance outline
-      if (isImbalanceAsk) {
-        ctx.save();
-        ctx.strokeStyle = C_WHITE;
-        ctx.lineWidth   = Math.max(1, Math.round(hpr));
-        ctx.globalAlpha = 0.9;
-        ctx.strokeRect(xC + 0.5, cellTop + 0.5, askWingW - 1, cellH - 1);
-        ctx.restore();
-      }
-    }
-  }
-
-  // ── Volume numbers ────────────────────────────────────────────────────────
-  const bidWingWCss = bidWingW / hpr;
-  const rowHCss     = rowH / vpr;
-  if (rowHCss < MIN_ROW_H_CSS) return;
-
-  ctx.font         = `400 ${fontSize}px ${FONT_FAMILY}`;
+  ctx.save();
+  ctx.font         = font;
   ctx.textBaseline = 'middle';
+  ctx.fillStyle    = textColor;
 
-  const textY = yBitmap;
-  const PAD   = Math.round(2 * hpr);
+  const textY  = yBitmap;
+  const centerX = colLeft + Math.floor(innerW / 2);
 
-  if (bidVol > 0) {
-    const label = String(Math.min(MAX_DISPLAY_VOL, bidVol));
-    if (bidWingWCss >= MIN_INSIDE_W_CSS) {
-      ctx.fillStyle  = 'rgba(255,255,255,0.75)';
-      ctx.textAlign  = 'right';
-      ctx.fillText(label, xC - PAD, textY);
-    }
+  const bidLabel = String(Math.min(MAX_DISPLAY_VOL, bidVol));
+  const askLabel = String(Math.min(MAX_DISPLAY_VOL, askVol));
+
+  if (colWCss < MIN_COL_W_FOR_FULL_LABEL_CSS) {
+    // Abbreviated: show only the dominant side with arrow prefix
+    const showAsk = askVol >= bidVol;
+    const abbrev  = showAsk ? `\u2191${askLabel}` : `\u2193${bidLabel}`;
+    ctx.textAlign = 'center';
+    ctx.fillText(abbrev, centerX, textY);
+  } else {
+    // Full "bid × ask" label centered in cell
+    const label = `${bidLabel} ${UNICODE_TIMES} ${askLabel}`;
+    ctx.textAlign = 'center';
+    ctx.fillText(label, centerX, textY);
+
+    // Measure for the cache side-effect only (warms cache for common values)
+    _cachedTextWidth(ctx, bidVol, font, fontSize);
+    _cachedTextWidth(ctx, askVol, font, fontSize);
   }
 
-  if (askVol > 0) {
-    const label = String(Math.min(MAX_DISPLAY_VOL, askVol));
-    const askWingWCss = askWingW / hpr;
-    if (askWingWCss >= MIN_INSIDE_W_CSS) {
-      ctx.fillStyle  = 'rgba(255,255,255,0.75)';
-      ctx.textAlign  = 'left';
-      ctx.fillText(label, xC + PAD, textY);
-    }
-  }
-}
-
-// ── Background grid rows ──────────────────────────────────────────────────────
-// Major every 10 ticks: --rule at 60% alpha, 1px
-// Minor every 5 ticks (not 10): rgba rule-bright-dimmed at 15% opacity
-
-function _drawBackgroundGrid(
-  ctx:      CanvasRenderingContext2D,
-  rows:     RowInfo[],
-  rowH:     number,
-  _colLeft: number,
-  _colRight: number,
-  canvasH:  number,
-  _vpr:     number,
-): void {
-  for (const row of rows) {
-    const tickIndex = Math.round(row.price / 0.25);
-    const isMajor   = tickIndex % 40 === 0;   // 10 ticks × 0.25 = 2.5pts → mod 40
-    const isMinor   = tickIndex % 20 === 0;   // 5 ticks × 0.25 = 1.25pts → mod 20
-
-    if (!isMajor && !isMinor) continue;
-
-    const lineY = row.yBitmap - Math.floor(rowH / 2);
-
-    if (isMajor) {
-      // Major: #1f1f1f at 60% opacity, 1px
-      ctx.fillStyle   = C_RULE;
-      ctx.globalAlpha = 0.6;
-    } else {
-      // Minor: semi-transparent rule at 15% opacity
-      ctx.fillStyle   = 'rgba(80, 80, 80, 0.15)';
-      ctx.globalAlpha = 1;
-    }
-
-    ctx.fillRect(0, lineY, canvasH > 0 ? 99999 : 1, 1);
-  }
-
-  ctx.globalAlpha = 1;
+  ctx.restore();
 }
 
 // ── Stacked imbalance run lines ───────────────────────────────────────────────
-// ≥4 consecutive rows → solid 2px --lime line
-// 3-row runs → dashed 2px --lime line
+// When 3+ consecutive rows imbalanced in the same direction:
+// draw a 3px crisp vertical lime line on the imbalance-side edge.
+// Left edge for SELL (bid) imbalance, right edge for BUY (ask) imbalance.
 
 function _drawStackedRunLines(
   ctx:      CanvasRenderingContext2D,
   rows:     RowInfo[],
   rowH:     number,
-  xC:       number,
-  halfBarW: number,
+  colLeft:  number,
+  colRight: number,
   hpr:      number,
-  vpr:      number,
+  _vpr:     number,
 ): void {
-  const lineW = Math.max(2, Math.round(2 * hpr));
-
-  _scanAndDrawRun(ctx, rows, rowH, xC, halfBarW, lineW, 'bid', vpr);
-  _scanAndDrawRun(ctx, rows, rowH, xC, halfBarW, lineW, 'ask', vpr);
+  const lineW = Math.max(2, Math.round(STACKED_LINE_W_CSS * hpr));
+  _scanAndDrawRun(ctx, rows, rowH, colLeft, colRight, lineW, 'bid');
+  _scanAndDrawRun(ctx, rows, rowH, colLeft, colRight, lineW, 'ask');
 }
 
 function _scanAndDrawRun(
   ctx:      CanvasRenderingContext2D,
   rows:     RowInfo[],
   rowH:     number,
-  xC:       number,
-  halfBarW: number,
+  colLeft:  number,
+  colRight: number,
   lineW:    number,
   side:     'bid' | 'ask',
-  vpr:      number,
 ): void {
   let runStart = -1;
   let runLen   = 0;
@@ -733,74 +466,15 @@ function _scanAndDrawRun(
     if (runLen < STACKED_RUN_MIN) return;
     const startRow = rows[runStart];
     const endRow   = rows[endIdx - 1];
-    const topY  = Math.min(startRow.yBitmap, endRow.yBitmap) - Math.floor(rowH / 2);
-    const botY  = Math.max(startRow.yBitmap, endRow.yBitmap) + Math.ceil(rowH / 2);
-    const runH  = botY - topY;
-    const isSolid = runLen >= STACKED_RUN_SOLID_MIN;
+    const topY     = Math.min(startRow.yBitmap, endRow.yBitmap) - Math.floor(rowH / 2);
+    const botY     = Math.max(startRow.yBitmap, endRow.yBitmap) + Math.ceil(rowH / 2);
+    const runH     = botY - topY;
 
+    // Crisp line — no shadow/blur
     ctx.save();
-    ctx.fillStyle   = C_LIME;
-    ctx.globalAlpha = 1;
-    ctx.shadowColor = C_LIME;
-    ctx.shadowBlur  = Math.round(8 * vpr);
-
-    const lineX = side === 'bid' ? xC - halfBarW : xC + halfBarW - lineW;
-
-    if (isSolid) {
-      // Solid run line
-      ctx.fillRect(lineX, topY, lineW, runH);
-    } else {
-      // Dashed run line for 3-row runs
-      ctx.shadowBlur = Math.round(4 * vpr);   // softer glow for dashed
-      const dashLen  = Math.max(3, Math.round(4 * vpr));
-      const gapLen   = Math.max(2, Math.round(3 * vpr));
-      let y = topY;
-      while (y < botY) {
-        const segH = Math.min(dashLen, botY - y);
-        ctx.fillRect(lineX, y, lineW, segH);
-        y += dashLen + gapLen;
-      }
-    }
-    ctx.restore();
-
-    // Triangle markers at each imbalanced row edge
-    // Filled 3x4px triangles pointing in the imbalance direction.
-    // Consecutive same-direction triangles form a visible "arrow column".
-    ctx.save();
-    ctx.fillStyle   = C_LIME;
-    ctx.globalAlpha = 0.9;
-    ctx.shadowColor = C_LIME;
-    ctx.shadowBlur  = Math.round(4 * vpr);
-
-    const triW = Math.max(3, Math.round(3 * (vpr > 1 ? vpr : 1)));   // 3px wide
-    const triH = Math.max(4, Math.round(4 * (vpr > 1 ? vpr : 1)));   // 4px tall
-
-    for (let ri = runStart; ri < endIdx; ri++) {
-      const r = rows[ri];
-      const triCY = r.yBitmap;
-
-      if (side === 'bid') {
-        // Triangle pointing LEFT (bid imbalance) — tip at left edge, base on right
-        const tipX  = xC - halfBarW - Math.round(lineW * 1.5);
-        const baseX = tipX + triW;
-        ctx.beginPath();
-        ctx.moveTo(tipX, triCY);
-        ctx.lineTo(baseX, triCY - Math.floor(triH / 2));
-        ctx.lineTo(baseX, triCY + Math.ceil(triH / 2));
-        ctx.closePath();
-        ctx.fill();
-      } else {
-        // Triangle pointing RIGHT (ask imbalance) — tip at right edge, base on left
-        const tipX  = xC + halfBarW + Math.round(lineW * 1.5);
-        const baseX = tipX - triW;
-        ctx.beginPath();
-        ctx.moveTo(tipX, triCY);
-        ctx.lineTo(baseX, triCY - Math.floor(triH / 2));
-        ctx.lineTo(baseX, triCY + Math.ceil(triH / 2));
-        ctx.closePath();
-        ctx.fill();
-      }
-    }
+    ctx.fillStyle = C_LIME;
+    const lineX   = side === 'bid' ? colLeft : colRight - lineW;
+    ctx.fillRect(lineX, topY, lineW, runH);
     ctx.restore();
   };
 
@@ -819,173 +493,70 @@ function _scanAndDrawRun(
 }
 
 // ── Delta footer ──────────────────────────────────────────────────────────────
-// Below the last price row: proportional colored bar + delta value.
-// Uses Unicode minus (U+2212) for negative values.
+// Below the last row: "Δ +250" label (mono, colored by sign) +
+// a tiny horizontal bar showing |delta| / max_abs_delta.
 
 function _drawDeltaFooter(
-  ctx:          CanvasRenderingContext2D,
-  barDelta:     number,
-  maxAbsDelta:  number,
-  xC:           number,
-  halfBarW:     number,
-  bottomRowY:   number,
-  hpr:          number,
-  vpr:          number,
+  ctx:         CanvasRenderingContext2D,
+  barDelta:    number,
+  maxAbsDelta: number,
+  colLeft:     number,
+  innerW:      number,
+  bottomRowY:  number,
+  hpr:         number,
+  vpr:         number,
 ): void {
   if (!Number.isFinite(barDelta) || maxAbsDelta <= 0) return;
 
-  const footerH   = Math.max(2, Math.round(DELTA_FOOTER_H_CSS * vpr));
-  const gapH      = Math.round(DELTA_FOOTER_GAP_CSS * vpr);
-  const textSzPx  = Math.max(6, Math.round(DELTA_TEXT_SIZE_CSS * vpr));
+  const gapH      = Math.round(DELTA_GAP_CSS * vpr);
+  const fontSzPx  = Math.max(6, Math.round(DELTA_FONT_SIZE_CSS * vpr));
+  const barH      = Math.max(2, Math.round(DELTA_BAR_H_CSS * vpr));
+  const leftPadB  = Math.round(DELTA_LEFT_PAD_CSS * hpr);
 
-  const barY      = bottomRowY + gapH;
-  const textY     = barY + footerH + Math.round(2 * vpr);
+  const color = barDelta > 0 ? C_ASK : barDelta < 0 ? C_BID : C_TEXT_MUTE;
 
-  const ratio     = Math.min(1, Math.abs(barDelta) / maxAbsDelta);
-  const barW      = Math.max(2, Math.round(halfBarW * 2 * ratio));
-  const barX      = xC - Math.floor(barW / 2);
-
-  const color     = barDelta > 0 ? C_ASK : barDelta < 0 ? C_BID : C_GREY;
-
-  // ── Vertical connector line from delta bar up into the bar column ─────────
-  // Anchored at right edge for positive delta, left edge for negative.
-  // 30% opacity, 1px wide — visually tethers footer to column.
-  if (barDelta !== 0) {
-    const connX = barDelta > 0
-      ? xC + Math.floor(barW / 2)   // right anchor for positive
-      : xC - Math.floor(barW / 2);  // left anchor for negative
-    const connTopY = bottomRowY - gapH;  // reaches up into bar column
-    const connBotY = barY + footerH;
-
-    ctx.save();
-    ctx.strokeStyle = color;
-    ctx.lineWidth   = Math.max(1, Math.round(hpr));
-    ctx.globalAlpha = 0.30;
-    ctx.beginPath();
-    ctx.moveTo(connX, connTopY);
-    ctx.lineTo(connX, connBotY);
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  // Colored width bar
-  ctx.fillStyle   = color;
-  ctx.globalAlpha = 0.85;
-  ctx.fillRect(barX, barY, barW, footerH);
-  ctx.globalAlpha = 1;
-
-  // Delta value text — Unicode minus for negative, + prefix for positive
+  // Delta label: "Δ +250" or "Δ −250"
   const absVal = Math.abs(barDelta);
-  const label = barDelta > 0
-    ? `+${absVal}`
-    : barDelta < 0
-      ? `${UNICODE_MINUS}${absVal}`
-      : '0';
+  const sign   = barDelta > 0 ? '+' : barDelta < 0 ? UNICODE_MINUS : '';
+  const label  = `\u0394 ${sign}${absVal}`;
 
-  ctx.font         = `400 ${textSzPx}px ${FONT_FAMILY}`;
+  const labelY = bottomRowY + gapH;
+
+  ctx.save();
+  ctx.font         = `400 ${fontSzPx}px ${FONT_FAMILY}`;
   ctx.fillStyle    = color;
-  ctx.textAlign    = 'center';
+  ctx.textAlign    = 'left';
   ctx.textBaseline = 'top';
-  ctx.globalAlpha  = 0.9;
-  ctx.fillText(label, xC, textY);
-  ctx.globalAlpha  = 1;
+  ctx.globalAlpha  = 0.85;
+  ctx.fillText(label, colLeft + leftPadB, labelY);
+
+  // Mini horizontal bar below label
+  const ratio  = Math.min(1, Math.abs(barDelta) / maxAbsDelta);
+  const barW   = Math.max(2, Math.round(innerW * ratio));
+  const miniY  = labelY + fontSzPx + Math.round(2 * vpr);
+
+  ctx.fillStyle   = color;
+  ctx.globalAlpha = 0.70;
+  ctx.fillRect(colLeft + leftPadB, miniY, barW - leftPadB, barH);
+  ctx.restore();
 
   void hpr;
 }
 
-// ── Delta baseline ribbon ─────────────────────────────────────────────────────
-// 1px horizontal line at the delta=0 position connecting all delta footer bars.
-// Drawn as a single pass after all bars are rendered.
+// ── Bar timestamp header ──────────────────────────────────────────────────────
+// "HH:MM" in 10px mono --text-mute at top-center of each column.
 
-function _drawDeltaBaseline(
-  ctx:               CanvasRenderingContext2D,
-  data:              PaneRendererCustomData<Time, FootprintBarLW>,
-  range:             { from: number; to: number },
-  to:                number,
-  hpr:               number,
-  vpr:               number,
-  priceToCoordinate: PriceToCoordinateConverter,
-  rowH:              number,
+function _drawTimestamp(
+  ctx:      CanvasRenderingContext2D,
+  xC:       number,
+  topRowY:  number,
+  barTime:  Time,
+  _hpr:     number,
+  vpr:      number,
 ): void {
-  // Find the common bottomY across all visible bars by scanning prices
-  // We use the lowest price level across visible bars to find a consistent baseline Y
-  let lowestPrice: number | null = null;
+  const fontSzPx = Math.max(5, Math.round(10 * vpr));
+  const gapY     = Math.round(3 * vpr);
 
-  for (let i = range.from; i <= to; i++) {
-    const bar = data.bars[i];
-    if (!bar?.originalData?.levels) continue;
-    for (const key of Object.keys(bar.originalData.levels)) {
-      const price = Number(key) * 0.25;
-      if (lowestPrice === null || price < lowestPrice) lowestPrice = price;
-    }
-  }
-
-  if (lowestPrice === null) return;
-
-  const yMedia = priceToCoordinate(lowestPrice);
-  if (yMedia === null) return;
-
-  // Baseline sits just below the lowest row + gap
-  const baselineY = Math.round(yMedia * vpr)
-    + Math.ceil(rowH / 2)
-    + Math.round(DELTA_FOOTER_GAP_CSS * vpr)
-    + Math.max(2, Math.round(DELTA_FOOTER_H_CSS * vpr));
-
-  // Draw full-width 1px line across the canvas at this Y
-  ctx.save();
-  ctx.fillStyle   = C_RULE;
-  ctx.globalAlpha = 0.5;
-  ctx.fillRect(0, baselineY, 99999, Math.max(1, Math.round(hpr)));
-  ctx.restore();
-}
-
-// ── Bar header — tiny timestamp + bid/ask volume bar ─────────────────────────
-// Rendered above each bar when barSpacing > HEADER_MIN_SPACING_CSS.
-// - HH:MM label in JetBrains Mono 9px, --text-mute at 70% opacity
-// - 3px horizontal bar: bid/ask split gradient, width proportional to total vol vs max
-
-function _drawBarHeader(
-  ctx:         CanvasRenderingContext2D,
-  xC:          number,
-  halfBarW:    number,
-  topRowY:     number,
-  bidVol:      number,
-  askVol:      number,
-  totalVol:    number,
-  maxTotalVol: number,
-  barTime:     Time,
-  hpr:         number,
-  vpr:         number,
-): void {
-  const volBarH  = Math.max(2, Math.round(HEADER_VOL_BAR_H_CSS * vpr));
-  const fontSzPx = Math.max(5, Math.round(HEADER_FONT_SIZE_CSS * vpr));
-  const labelGap = Math.round(2 * vpr);
-
-  // Volume bar: proportional width to this bar's total vs max across visible bars
-  const volRatio = maxTotalVol > 0 ? Math.min(1, totalVol / maxTotalVol) : 0;
-  const volBarW  = Math.max(2, Math.round(halfBarW * 2 * volRatio));
-  const volBarX  = xC - Math.floor(volBarW / 2);
-  const volBarY  = topRowY - volBarH - Math.round(1 * vpr);
-
-  // Bid/ask split gradient: left=bid color, right=ask color
-  if (volBarW > 0 && (bidVol > 0 || askVol > 0)) {
-    const totalForSplit = bidVol + askVol;
-    const bidFrac = totalForSplit > 0 ? bidVol / totalForSplit : 0.5;
-
-    ctx.save();
-    const volGrad = ctx.createLinearGradient(volBarX, volBarY, volBarX + volBarW, volBarY);
-    volGrad.addColorStop(0,       'rgba(255, 46,  99,  0.85)');  // C_BID
-    volGrad.addColorStop(bidFrac, 'rgba(255, 46,  99,  0.85)');  // split
-    volGrad.addColorStop(bidFrac, 'rgba(0,   255, 136, 0.85)');  // ask start
-    volGrad.addColorStop(1,       'rgba(0,   255, 136, 0.85)');  // C_ASK
-    ctx.fillStyle   = volGrad;
-    ctx.globalAlpha = 1;
-    ctx.fillRect(volBarX, volBarY, volBarW, volBarH);
-    ctx.restore();
-  }
-
-  // Timestamp label: "HH:MM"
-  const labelY = volBarY - labelGap - fontSzPx;
   let timeStr = '';
   if (typeof barTime === 'number') {
     const dt = new Date(barTime * 1000);
@@ -993,79 +564,26 @@ function _drawBarHeader(
     const mm = String(dt.getUTCMinutes()).padStart(2, '0');
     timeStr = `${hh}:${mm}`;
   } else if (typeof barTime === 'string') {
-    // ISO string — extract HH:MM
-    timeStr = (barTime as string).length >= 16 ? (barTime as string).slice(11, 16) : (barTime as string);
+    timeStr = (barTime as string).length >= 16
+      ? (barTime as string).slice(11, 16)
+      : (barTime as string);
   }
 
-  if (timeStr) {
-    ctx.save();
-    ctx.font         = `400 ${fontSzPx}px ${FONT_FAMILY}`;
-    ctx.fillStyle    = C_TEXT_MUTE;
-    ctx.textAlign    = 'center';
-    ctx.textBaseline = 'top';
-    ctx.globalAlpha  = 0.7;
-    ctx.fillText(timeStr, xC, labelY);
-    ctx.restore();
-  }
-
-  void hpr;
-}
-
-// ── CVD dot ───────────────────────────────────────────────────────────────────
-// Tiny dot repositioned above the delta footer (within bar column).
-
-function _drawCvdDot(
-  ctx:   CanvasRenderingContext2D,
-  x:     number,
-  y:     number,
-  color: string,
-  _hpr:  number,
-  vpr:   number,
-): void {
-  const r = Math.max(1.5, CVD_DOT_R_CSS * vpr);
+  if (!timeStr) return;
 
   ctx.save();
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.fillStyle   = color;
-  ctx.globalAlpha = 0.8;
-  ctx.fill();
-  ctx.restore();
-
-  void _hpr;
-}
-
-// ── CVD trend line ────────────────────────────────────────────────────────────
-// Thin 1px line connecting consecutive CVD dots across bars.
-// Color: mix of the two endpoint dot colors.
-
-function _drawCvdTrendLine(
-  ctx:     CanvasRenderingContext2D,
-  dots:    CvdDotInfo[],
-  vpr:     number,
-): void {
-  ctx.save();
-  ctx.lineWidth   = Math.max(1, Math.round(vpr));
-  ctx.globalAlpha = 0.35;
-
-  for (let i = 1; i < dots.length; i++) {
-    const prev = dots[i - 1];
-    const curr = dots[i];
-
-    // Simple color: use the current dot's color as the segment color
-    ctx.strokeStyle = curr.color;
-
-    ctx.beginPath();
-    ctx.moveTo(prev.x, prev.y);
-    ctx.lineTo(curr.x, curr.y);
-    ctx.stroke();
-  }
-
+  ctx.font         = `400 ${fontSzPx}px ${FONT_FAMILY}`;
+  ctx.fillStyle    = C_TEXT_MUTE;
+  ctx.textAlign    = 'center';
+  ctx.textBaseline = 'bottom';
+  ctx.globalAlpha  = 0.7;
+  ctx.fillText(timeStr, xC, topRowY - gapY);
   ctx.restore();
 }
 
 // ── Signal marker ─────────────────────────────────────────────────────────────
-// 1.5px vertical line above bar + 5×5 square + 4px circle halo behind square.
+// 2px vertical tier-color line above bar + 6×6 square + halo circle.
+// Preserved from prior renderer (valuable visual anchor).
 
 function _drawSignalMarker(
   ctx:         CanvasRenderingContext2D,
@@ -1075,45 +593,40 @@ function _drawSignalMarker(
   hpr:         number,
   vpr:         number,
 ): void {
-  const aboveOffset = Math.round(MARKER_ABOVE_CSS * vpr);
-  const squareSize  = Math.round(MARKER_SQ_CSS * hpr);   // 5×5
-  const lineW       = Math.max(1, Math.round(1.5 * hpr)); // 1.5px (was 2px)
+  const aboveOffset = Math.round(8 * vpr);
+  const squareSize  = Math.round(6 * hpr);
+  const lineW       = Math.max(2, Math.round(2 * hpr));
 
-  // Square sits above the gap
-  const squareTopY  = yHighBitmap - aboveOffset - squareSize;
-  const lineTopY    = squareTopY + squareSize;
-  const lineH       = yHighBitmap - lineTopY;
+  const squareTopY = yHighBitmap - aboveOffset - squareSize;
+  const lineTopY   = squareTopY + squareSize;
+  const lineH      = yHighBitmap - lineTopY;
 
   ctx.save();
 
-  // ── Halo circle behind square (4px larger than square, 30% opacity) ──────
+  // Halo circle behind square
   const haloR = Math.round((squareSize / 2) + 2 * hpr);
-  const haloX = xC;
-  const haloY = squareTopY + Math.floor(squareSize / 2);
-
   ctx.beginPath();
-  ctx.arc(haloX, haloY, haloR, 0, Math.PI * 2);
+  ctx.arc(xC, squareTopY + Math.floor(squareSize / 2), haloR, 0, Math.PI * 2);
   ctx.fillStyle   = color;
   ctx.globalAlpha = 0.3;
   ctx.fill();
 
-  ctx.fillStyle   = color;
   ctx.globalAlpha = 1;
+  ctx.fillStyle   = color;
 
-  // Vertical line from bar top to square bottom
+  // Vertical line
   if (lineH > 0) {
     ctx.fillRect(xC - Math.floor(lineW / 2), lineTopY, lineW, lineH);
   }
 
-  // 5×5 filled square
+  // 6×6 filled square
   ctx.fillRect(xC - Math.floor(squareSize / 2), squareTopY, squareSize, squareSize);
 
   ctx.restore();
 }
 
 // ── Empty state ───────────────────────────────────────────────────────────────
-// Primary: "AWAITING NQ FOOTPRINT" in --text-mute
-// Secondary: "waiting for websocket stream…" in --text-mute italic text-xs below
+// "NO FOOTPRINT DATA" + italic subtitle in --text-mute.
 
 function _drawEmptyState(
   ctx:     CanvasRenderingContext2D,
@@ -1121,8 +634,9 @@ function _drawEmptyState(
   canvasH: number,
   vpr:     number,
 ): void {
-  const fontSizeBitmap    = Math.round(13 * vpr);   // text-sm
-  const subFontSizeBitmap = Math.round(10 * vpr);   // text-xs
+  const fontSzPx    = Math.round(13 * vpr);
+  const subFontSzPx = Math.round(11 * vpr);
+  const lsBitmap    = 13 * 0.1 * vpr;   // 0.1em letter-spacing
 
   const centerX = canvasW / 2;
   const centerY = canvasH / 2;
@@ -1132,29 +646,25 @@ function _drawEmptyState(
   ctx.textAlign    = 'center';
   ctx.textBaseline = 'middle';
 
-  // Primary line
-  ctx.font = `500 ${fontSizeBitmap}px ${FONT_FAMILY}`;
-
-  const lsBitmap = 13 * EMPTY_LETTER_SPACING * vpr;
+  // Primary line: letter-spaced
+  ctx.font = `500 ${fontSzPx}px ${FONT_FAMILY}`;
   if ('letterSpacing' in ctx) {
     (ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing
       = `${lsBitmap}px`;
   }
-
   ctx.fillText(EMPTY_TEXT, centerX, centerY);
 
-  // Secondary line — italic, smaller, --text-mute
-  ctx.font = `italic 400 ${subFontSizeBitmap}px ${FONT_FAMILY}`;
+  // Secondary line: italic, smaller
+  ctx.font = `italic 400 ${subFontSzPx}px ${FONT_FAMILY}`;
   if ('letterSpacing' in ctx) {
     (ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = '0px';
   }
   ctx.globalAlpha = 0.6;
-  ctx.fillText(EMPTY_SUB_TEXT, centerX, centerY + fontSizeBitmap + Math.round(4 * vpr));
+  ctx.fillText(EMPTY_SUB_TEXT, centerX, centerY + fontSzPx + Math.round(4 * vpr));
 
   ctx.restore();
 
-  // Suppress unused-variable lint on C_TEXT and C_CYAN
-  void C_TEXT;
+  // Suppress unused-variable lint
   void C_CYAN;
 }
 
