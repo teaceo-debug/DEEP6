@@ -63,6 +63,10 @@
   --font-mono: var(--font-mono);
 }
 
+html {
+  font-size: 13px !important;
+}
+
 html, body {
   background: var(--bg-base);
   color: var(--foreground);

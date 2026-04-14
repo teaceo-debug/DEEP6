@@ -30,7 +30,7 @@ export function HeaderStrip() {
       : 'text-muted';
 
   return (
-    <header className="h-10 bg-bg-surface border-b border-border-subtle flex items-center px-4 gap-3 text-[13px] shrink-0">
+    <header className="h-10 bg-bg-surface border-b border-border-subtle flex items-center px-4 gap-3 text-[13px] shrink-0" style={{ fontSize: '13px' }}>
       <span className="font-semibold text-fg-strong">DEEP6</span>
       <span className="font-semibold text-fg">NQ</span>
       <span className="font-mono font-semibold text-fg-strong">
