@@ -35,12 +35,19 @@ def make_bar(
     close: float = 21000.0,
     cvd: float = 0.0,
     levels: dict | None = None,
+    max_delta: int | None = None,
+    min_delta: int | None = None,
 ) -> FootprintBar:
     """Build a FootprintBar with specified delta and volume.
 
     For most delta tests, we only care about bar_delta, total_vol, open, close, and cvd.
     When levels is provided (dict of {price: (bid_vol, ask_vol)}), levels are built explicitly.
     Otherwise, a minimal two-level bar is synthesized to match the requested delta/vol.
+
+    Plan 12-02: intrabar extremes (max_delta / min_delta) default to the closing-at-extreme
+    case (max_delta=delta if delta>0 else 0; min_delta=delta if delta<0 else 0). Callers
+    that want the peaked-and-faded variant pass max_delta / min_delta explicitly.
+    running_delta is set equal to bar_delta (post-finalize invariant).
     """
     bar = FootprintBar()
     bar.open = open_px
@@ -48,6 +55,9 @@ def make_bar(
     bar.bar_delta = delta
     bar.total_vol = total_vol
     bar.cvd = cvd
+    bar.running_delta = delta
+    bar.max_delta = max_delta if max_delta is not None else max(delta, 0)
+    bar.min_delta = min_delta if min_delta is not None else min(delta, 0)
 
     if levels is not None:
         prices = sorted(levels.keys())
@@ -134,34 +144,86 @@ def test_zero_delta_no_rise_drop():
 # DELT-02: Tail
 # ---------------------------------------------------------------------------
 
-def test_tail_signal():
-    """DELT-02: |delta|/total_vol >= 0.95 fires TAIL signal."""
+def test_tail_signal_closing_at_extreme():
+    """DELT-02 (Plan 12-02 fix): bar_delta == max_delta → ratio 1.0 >= 0.95 → TAIL fires.
+
+    Previous impl used |delta|/total_vol (bar-geometry proxy). Now uses the TRUE
+    intrabar extreme: ratio = bar_delta / max_delta (positive) or bar_delta / min_delta (negative).
+    """
     engine = DeltaEngine()
-    # delta=96, total_vol=100 -> ratio=0.96 >= 0.95
-    bar = make_bar(delta=96, total_vol=100)
+    bar = make_bar(delta=96, total_vol=100, max_delta=96)
     signals = engine.process(bar)
     tails = [s for s in signals if s.delta_type == DeltaType.TAIL]
     assert len(tails) >= 1
     assert tails[0].direction == +1
 
 
-def test_tail_not_fired_below_threshold():
-    """DELT-02: |delta|/total_vol = 0.94 should NOT fire TAIL (default threshold=0.95)."""
+def test_tail_not_fired_when_peaked_and_faded():
+    """DELT-02 (Plan 12-02 fix): bar_delta = 0.5 * max_delta → ratio 0.5 < 0.95 → no TAIL.
+
+    Intrabar peaked at +100 then faded to +50 at close — NOT closing-at-extreme.
+    Old proxy (|delta|/total_vol = 0.5) also would not fire, but for the wrong reason.
+    """
     engine = DeltaEngine()
-    bar = make_bar(delta=94, total_vol=100)
+    bar = make_bar(delta=50, total_vol=200, max_delta=100)
     signals = engine.process(bar)
     tails = [s for s in signals if s.delta_type == DeltaType.TAIL]
     assert len(tails) == 0
 
 
-def test_negative_tail_signal():
-    """DELT-02: Negative extreme delta also fires TAIL."""
+def test_negative_tail_signal_closing_at_min():
+    """DELT-02 (Plan 12-02 fix): bar_delta == min_delta → TAIL direction=-1."""
     engine = DeltaEngine()
-    bar = make_bar(delta=-96, total_vol=100)
+    bar = make_bar(delta=-96, total_vol=100, min_delta=-96)
     signals = engine.process(bar)
     tails = [s for s in signals if s.delta_type == DeltaType.TAIL]
     assert len(tails) >= 1
     assert tails[0].direction == -1
+
+
+def test_tail_ratio_trivial_fallback_when_max_delta_zero():
+    """FOOTGUN 3 guard: if max_delta==0 and bar_delta>0, treat max_delta=bar_delta.
+
+    Prevents division-by-zero and gives conservative closing-at-trivial-extreme.
+    make_bar() defaults max_delta=delta for delta>0, so this explicitly zeroes it.
+    """
+    engine = DeltaEngine()
+    bar = make_bar(delta=50, total_vol=100, max_delta=0)
+    signals = engine.process(bar)
+    tails = [s for s in signals if s.delta_type == DeltaType.TAIL]
+    # bar_delta == effective max_delta → ratio 1.0 → TAIL fires
+    assert len(tails) >= 1
+
+
+# --- Plan 12-02: delta_quality on DeltaResult/DeltaSignal emission ---
+
+def test_delta_quality_closing_at_extreme():
+    """DeltaResult carries delta_quality=1.15 when bar closes at max_delta (strong conviction)."""
+    engine = DeltaEngine()
+    bar = make_bar(delta=80, total_vol=100, max_delta=80)
+    result = engine.process_with_quality(bar)
+    assert result.delta_quality == pytest.approx(1.15)
+
+
+def test_delta_quality_peaked_and_faded():
+    """DeltaResult carries delta_quality=0.7 when bar peaked and faded."""
+    engine = DeltaEngine()
+    # max_delta=100, bar_delta=20 → ratio 0.2 < 0.35 → 0.7
+    bar = make_bar(delta=20, total_vol=200, max_delta=100)
+    result = engine.process_with_quality(bar)
+    assert result.delta_quality == pytest.approx(0.7)
+
+
+def test_delta_family_bits_whitelist_contains_only_delta_bits():
+    """DELTA_FAMILY_BITS is the whitelist of bits that may consume delta_quality.
+
+    Must cover bits 21-32 (DELT-01..DELT-11 + CVD velocity). Must NOT include
+    absorption (0-3), exhaustion (4-11), or any other bit — scalar is orthogonal.
+    """
+    from deep6.engines.delta import DELTA_FAMILY_BITS
+    # All 12 delta-family bits present (bit 22 = DELT_TAIL).
+    expected = {21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32}
+    assert DELTA_FAMILY_BITS == expected
 
 
 # ---------------------------------------------------------------------------
@@ -530,10 +592,14 @@ def test_engine_reset():
 # ---------------------------------------------------------------------------
 
 def test_config_tail_threshold_override():
-    """DeltaConfig(tail_threshold=0.99) suppresses 0.96 tails (default fires at 0.95)."""
+    """DeltaConfig(tail_threshold=0.99) suppresses 0.96 tails (default fires at 0.95).
+
+    Plan 12-02: ratio is now bar_delta / max_delta (true intrabar extreme).
+    bar_delta=96, max_delta=100 → ratio 0.96 fires at default 0.95 but not at 0.99.
+    """
     # Default: 0.96 >= 0.95 -> TAIL fires
     engine_default = DeltaEngine()
-    bar = make_bar(delta=96, total_vol=100)
+    bar = make_bar(delta=96, total_vol=100, max_delta=100)
     sigs_default = engine_default.process(bar)
     tails_default = [s for s in sigs_default if s.delta_type == DeltaType.TAIL]
     assert len(tails_default) >= 1
