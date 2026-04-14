@@ -78,9 +78,10 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
         // ---- Risk + lifecycle state ----
         private DateTime _sessionDate = DateTime.MinValue;
         private int _tradesThisSession;
-        private double _sessionStartBalance;
+        private double _sessionStartBalance = double.NaN;   // NaN until first valid Account read; gates loss-cap fail-closed
         private bool _killSwitch;     // set when daily loss cap hit; resets next session
         private int _lastEntryBar = -1;
+        private string _activeAtmGuid;   // tracks live ATM bracket so we can AtmStrategyClose() instead of racing ExitLong/Short
 
         // News blackout windows (NY time) — hard-coded major releases; user can extend
         private static readonly (int hour, int min, int durationMin)[] NewsBlackouts = new[]
@@ -237,17 +238,30 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                 _sessionDate = barDate;
                 _tradesThisSession = 0;
                 _killSwitch = false;
-                _sessionStartBalance = Account != null ? GetAccountValue() : 0;
+                _sessionStartBalance = double.NaN;   // re-capture below once Account/balance are valid
                 _exhDetector.ResetCooldowns();
-                Print(string.Format("[DEEP6 Strategy] New session {0}. Reset trade counter, kill switch off, balance ${1:F2}.",
-                    _sessionDate.ToString("yyyy-MM-dd"), _sessionStartBalance));
+                Print(string.Format("[DEEP6 Strategy] New session {0}. Counters reset. Will capture session start balance on first non-null Account.",
+                    _sessionDate.ToString("yyyy-MM-dd")));
             }
+            // Lazy capture: keep trying until we get a real account balance, then freeze it for the session.
+            if (double.IsNaN(_sessionStartBalance) && Account != null)
+            {
+                double bal = GetAccountValue();
+                if (bal > 0)
+                {
+                    _sessionStartBalance = bal;
+                    Print(string.Format("[DEEP6 Strategy] Session start balance captured: ${0:F2}.", bal));
+                }
+            }
+            // Capture the bar-before-prev BEFORE we overwrite _priorFinalized — otherwise
+            // the exhaustion detector receives null for the prior bar and BID_ASK_FADE never fires.
+            var priorBeforePrev = _priorFinalized;
             _priorFinalized = prev;
 
             // Run detectors
             var va  = FootprintBar.ComputeValueArea(prev, TickSize);
             var abs = AbsorptionDetector.Detect(prev, _atr, _volEma, _absCfg, va.vah, va.val, TickSize);
-            var exh = _exhDetector.Detect(prev, _priorFinalized == prev ? null : _priorFinalized, prevIdx, _atr, _exhCfg);
+            var exh = _exhDetector.Detect(prev, priorBeforePrev, prevIdx, _atr, _exhCfg);
 
             // Cleanup history
             int cutoff = CurrentBar - 500;
@@ -343,7 +357,8 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
             {
                 foreach (var kv in dict)
                 {
-                    if (kv.Value.MaxSize < LiquidityWallMin) continue;
+                    // Use CurrentSize (live), not MaxSize (historical max — would phantom-fire on pulled walls)
+                    if (kv.Value.CurrentSize < LiquidityWallMin) continue;
                     if (kv.Value.LastUpdate < fresh) continue;
                     double dist = Math.Abs(kv.Key - signalPrice);
                     bool onCorrectSide = signalDir > 0 ? kv.Key <= signalPrice : kv.Key >= signalPrice;
@@ -404,7 +419,12 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                 return false;
             }
 
-            // 6. Daily loss cap
+            // 6. Daily loss cap — fail-closed if we never captured a valid session-start balance
+            if (double.IsNaN(_sessionStartBalance) || _sessionStartBalance <= 0)
+            {
+                Print("[DEEP6 Strategy] BLOCKED — session start balance not yet captured. Loss cap cannot be enforced; refusing entries.");
+                return false;
+            }
             double currentBal = GetAccountValue();
             double sessionPnl = currentBal - _sessionStartBalance;
             if (sessionPnl <= -DailyLossCapDollars)
@@ -427,7 +447,7 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
 
             if (!EnableLiveTrading)
             {
-                Print(string.Format("[DEEP6 Strategy] DRY-RUN entry: {0} {1} qty={2} ATM='{3}' @ signal price {4:F2} (label {5})",
+                Print(string.Format("[DEEP6 Strategy] DRY-RUN entry: {0} qty={1} ATM='{2}' @ signal price {3:F2} (label {4})",
                     side, MaxContractsPerTrade, atmTemplate, signalPrice, label));
                 _lastEntryBar = CurrentBar;
                 _tradesThisSession++;
@@ -437,28 +457,31 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
             try
             {
                 var atmGuid = Guid.NewGuid().ToString();
-                if (direction > 0)
-                {
-                    AtmStrategyCreate(OrderAction.Buy, OrderType.Market, 0, 0, TimeInForce.Day,
-                        Guid.NewGuid().ToString(), atmTemplate, atmGuid,
-                        (atmCallbackErrorCode, atmCallbackId) =>
+                var orderId = Guid.NewGuid().ToString();
+                OrderAction action = direction > 0 ? OrderAction.Buy : OrderAction.SellShort;
+
+                // Use the explicit-quantity overload so the strategy's MaxContractsPerTrade wins
+                // over whatever quantity the ATM template was saved with.
+                AtmStrategyCreate(action, OrderType.Market, MaxContractsPerTrade, 0, 0, TimeInForce.Day,
+                    orderId, atmTemplate, atmGuid,
+                    (atmCallbackErrorCode, atmCallbackId) =>
+                    {
+                        if (atmCallbackErrorCode == ErrorCode.NoError)
                         {
-                            Print(string.Format("[DEEP6 Strategy] ATM callback: {0} (id={1})", atmCallbackErrorCode, atmCallbackId));
-                        });
-                }
-                else
-                {
-                    AtmStrategyCreate(OrderAction.SellShort, OrderType.Market, 0, 0, TimeInForce.Day,
-                        Guid.NewGuid().ToString(), atmTemplate, atmGuid,
-                        (atmCallbackErrorCode, atmCallbackId) =>
+                            _activeAtmGuid = atmGuid;
+                            _lastEntryBar = CurrentBar;
+                            _tradesThisSession++;
+                            Print(string.Format("[DEEP6 Strategy] LIVE entry CONFIRMED: {0} qty={1} ATM='{2}' trigger={3} @ {4:F2} atmGuid={5}",
+                                side, MaxContractsPerTrade, atmTemplate, trigger, signalPrice, atmGuid));
+                        }
+                        else
                         {
-                            Print(string.Format("[DEEP6 Strategy] ATM callback: {0} (id={1})", atmCallbackErrorCode, atmCallbackId));
-                        });
-                }
-                Print(string.Format("[DEEP6 Strategy] LIVE entry submitted: {0} qty={1} ATM='{2}' trigger={3} @ {4:F2}",
+                            Print(string.Format("[DEEP6 Strategy] LIVE entry REJECTED: ATM='{0}' code={1} (id={2}). Counter NOT incremented.",
+                                atmTemplate, atmCallbackErrorCode, atmCallbackId));
+                        }
+                    });
+                Print(string.Format("[DEEP6 Strategy] LIVE entry submitted: {0} qty={1} ATM='{2}' trigger={3} @ {4:F2} (awaiting callback)",
                     side, MaxContractsPerTrade, atmTemplate, trigger, signalPrice));
-                _lastEntryBar = CurrentBar;
-                _tradesThisSession++;
             }
             catch (Exception ex)
             {
@@ -489,8 +512,20 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
             {
                 try
                 {
-                    if (Position.MarketPosition == MarketPosition.Long) ExitLong("DEEP6_OppExit");
-                    else ExitShort("DEEP6_OppExit");
+                    // AtmStrategyClose tears down the entire bracket cleanly (cancels stop+target,
+                    // submits a market exit). ExitLong/Short would race the bracket's own protective
+                    // orders and can leave orphaned stops or double-exit.
+                    if (!string.IsNullOrEmpty(_activeAtmGuid))
+                    {
+                        AtmStrategyClose(_activeAtmGuid);
+                        _activeAtmGuid = null;
+                    }
+                    else
+                    {
+                        // Fallback if we never captured a guid (legacy / external entry)
+                        if (Position.MarketPosition == MarketPosition.Long) ExitLong("DEEP6_OppExit");
+                        else ExitShort("DEEP6_OppExit");
+                    }
                 }
                 catch (Exception ex) { Print("[DEEP6 Strategy] Exit exception: " + ex.Message); }
             }
@@ -518,8 +553,12 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
         protected override void OnExecutionUpdate(Execution execution, string executionId, double price, int quantity,
             MarketPosition marketPosition, string orderId, DateTime time)
         {
+            string orderName = (execution != null && execution.Order != null) ? execution.Order.Name : "?";
             Print(string.Format("[DEEP6 Strategy] Execution: {0} {1} @ {2:F2} qty {3} (orderId={4})",
-                marketPosition, execution.Order.Name, price, quantity, orderId));
+                marketPosition, orderName, price, quantity, orderId));
+            // When the bracket fully exits the position, drop our active-bracket handle.
+            if (marketPosition == MarketPosition.Flat && Position.Quantity == 0)
+                _activeAtmGuid = null;
         }
 
         #region Properties
@@ -625,27 +664,6 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
     }
 }
 
-#region NinjaScript generated code. Neither change nor remove.
-
-namespace NinjaTrader.NinjaScript.Strategies
-{
-    public partial class Strategy : NinjaTrader.Gui.NinjaScript.StrategyRenderBase
-    {
-        private DEEP6.DEEP6Strategy[] cacheDEEP6Strategy;
-        public DEEP6.DEEP6Strategy DEEP6Strategy(bool enableLiveTrading, string approvedAccountName, int maxContractsPerTrade, int maxTradesPerSession, double dailyLossCapDollars, int rthStartHour, int rthStartMinute, int rthEndHour, int rthEndMinute, int minBarsBetweenEntries, bool respectNewsBlackouts, double absorbWickMinPct, double exhaustWickMinPct, double confluenceVaExtremeStrength, int confluenceWallProximityTicks, int liquidityWallMin, string atmTemplateAbsorption, string atmTemplateExhaustion, string atmTemplateConfluence, string atmTemplateDefault)
-        {
-            return DEEP6Strategy(Input, enableLiveTrading, approvedAccountName, maxContractsPerTrade, maxTradesPerSession, dailyLossCapDollars, rthStartHour, rthStartMinute, rthEndHour, rthEndMinute, minBarsBetweenEntries, respectNewsBlackouts, absorbWickMinPct, exhaustWickMinPct, confluenceVaExtremeStrength, confluenceWallProximityTicks, liquidityWallMin, atmTemplateAbsorption, atmTemplateExhaustion, atmTemplateConfluence, atmTemplateDefault);
-        }
-
-        public DEEP6.DEEP6Strategy DEEP6Strategy(ISeries<double> input, bool enableLiveTrading, string approvedAccountName, int maxContractsPerTrade, int maxTradesPerSession, double dailyLossCapDollars, int rthStartHour, int rthStartMinute, int rthEndHour, int rthEndMinute, int minBarsBetweenEntries, bool respectNewsBlackouts, double absorbWickMinPct, double exhaustWickMinPct, double confluenceVaExtremeStrength, int confluenceWallProximityTicks, int liquidityWallMin, string atmTemplateAbsorption, string atmTemplateExhaustion, string atmTemplateConfluence, string atmTemplateDefault)
-        {
-            if (cacheDEEP6Strategy != null)
-                for (int idx = 0; idx < cacheDEEP6Strategy.Length; idx++)
-                    if (cacheDEEP6Strategy[idx] != null && cacheDEEP6Strategy[idx].EnableLiveTrading == enableLiveTrading && cacheDEEP6Strategy[idx].ApprovedAccountName == approvedAccountName && cacheDEEP6Strategy[idx].MaxContractsPerTrade == maxContractsPerTrade && cacheDEEP6Strategy[idx].MaxTradesPerSession == maxTradesPerSession && cacheDEEP6Strategy[idx].DailyLossCapDollars == dailyLossCapDollars && cacheDEEP6Strategy[idx].RthStartHour == rthStartHour && cacheDEEP6Strategy[idx].RthStartMinute == rthStartMinute && cacheDEEP6Strategy[idx].RthEndHour == rthEndHour && cacheDEEP6Strategy[idx].RthEndMinute == rthEndMinute && cacheDEEP6Strategy[idx].MinBarsBetweenEntries == minBarsBetweenEntries && cacheDEEP6Strategy[idx].RespectNewsBlackouts == respectNewsBlackouts && cacheDEEP6Strategy[idx].AbsorbWickMinPct == absorbWickMinPct && cacheDEEP6Strategy[idx].ExhaustWickMinPct == exhaustWickMinPct && cacheDEEP6Strategy[idx].ConfluenceVaExtremeStrength == confluenceVaExtremeStrength && cacheDEEP6Strategy[idx].ConfluenceWallProximityTicks == confluenceWallProximityTicks && cacheDEEP6Strategy[idx].LiquidityWallMin == liquidityWallMin && cacheDEEP6Strategy[idx].AtmTemplateAbsorption == atmTemplateAbsorption && cacheDEEP6Strategy[idx].AtmTemplateExhaustion == atmTemplateExhaustion && cacheDEEP6Strategy[idx].AtmTemplateConfluence == atmTemplateConfluence && cacheDEEP6Strategy[idx].AtmTemplateDefault == atmTemplateDefault && cacheDEEP6Strategy[idx].EqualsInput(input))
-                        return cacheDEEP6Strategy[idx];
-            return CacheIndicator<DEEP6.DEEP6Strategy>(new DEEP6.DEEP6Strategy() { EnableLiveTrading = enableLiveTrading, ApprovedAccountName = approvedAccountName, MaxContractsPerTrade = maxContractsPerTrade, MaxTradesPerSession = maxTradesPerSession, DailyLossCapDollars = dailyLossCapDollars, RthStartHour = rthStartHour, RthStartMinute = rthStartMinute, RthEndHour = rthEndHour, RthEndMinute = rthEndMinute, MinBarsBetweenEntries = minBarsBetweenEntries, RespectNewsBlackouts = respectNewsBlackouts, AbsorbWickMinPct = absorbWickMinPct, ExhaustWickMinPct = exhaustWickMinPct, ConfluenceVaExtremeStrength = confluenceVaExtremeStrength, ConfluenceWallProximityTicks = confluenceWallProximityTicks, LiquidityWallMin = liquidityWallMin, AtmTemplateAbsorption = atmTemplateAbsorption, AtmTemplateExhaustion = atmTemplateExhaustion, AtmTemplateConfluence = atmTemplateConfluence, AtmTemplateDefault = atmTemplateDefault }, input, ref cacheDEEP6Strategy);
-        }
-    }
-}
-
-#endregion
+// Note: NinjaTrader Strategies do NOT use a generated factory region (unlike Indicators).
+// CacheIndicator<T> requires T : Indicator, which would fail constraint check on Strategy subclass.
+// NT8 instantiates strategies directly via reflection on State.SetDefaults.
