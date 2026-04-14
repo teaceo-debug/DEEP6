@@ -221,14 +221,14 @@
 
 ### Trading Web App (APP)
 
-- [ ] **APP-01**: Custom footprint chart via Lightweight Charts v5.1 custom series — bid/ask volume per price level with zone overlays (LVN, HVN, GEX, absorption)
+- [x] **APP-01**: Custom footprint chart via Lightweight Charts v5.1 custom series — bid/ask volume per price level with zone overlays (LVN, HVN, GEX, absorption)
 - [ ] **APP-02**: One-click trade execution panel — TYPE_A/B signals displayed with full context (categories, GEX regime, zones, Kronos bias), confirm or auto-execute
 - [x] **APP-03**: Real-time WebSocket from FastAPI — signal events, bar updates, position state, P&L pushed within 200ms of bar close
 - [x] **APP-04**: Session replay — reconstruct any historical session bar-by-bar with all signals, zones, orders visible, step forward/back
 - [ ] **APP-05**: Mobile push notifications via service worker — TYPE_A alerts to phone within 5 seconds
 - [ ] **APP-06**: Portfolio dashboard — live P&L, daily/weekly/monthly performance, win rate by tier, drawdown, circuit breaker status
 - [ ] **APP-07**: Authentication + multi-device — operator monitors from laptop and phone simultaneously
-- [ ] **APP-08**: Zero TradingView dependency — complete trading workflow (chart, signals, execution, replay) within DEEP6 web app
+- [x] **APP-08**: Zero TradingView dependency — complete trading workflow (chart, signals, execution, replay) within DEEP6 web app
 
 ## v2 Requirements
 
@@ -418,14 +418,14 @@ Updated during roadmap creation (2026-04-11).
 | DASH-06 | Phase 10 | Pending |
 | DASH-07 | Phase 10 | Pending |
 
-| APP-01 | Phase 11 | Pending |
+| APP-01 | Phase 11 | Complete |
 | APP-02 | Phase 11 | Pending |
 | APP-03 | Phase 11 | Complete |
 | APP-04 | Phase 11 | Complete |
 | APP-05 | Phase 11 | Pending |
 | APP-06 | Phase 11 | Pending |
 | APP-07 | Phase 11 | Pending |
-| APP-08 | Phase 11 | Pending |
+| APP-08 | Phase 11 | Complete |
 
 **Coverage:**
 - v1 requirements: 159 total (22 categories)
