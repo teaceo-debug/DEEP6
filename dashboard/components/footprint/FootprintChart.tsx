@@ -3,6 +3,9 @@ import { useEffect, useRef } from 'react';
 import {
   createChart,
   ColorType,
+  CrosshairMode,
+  LineStyle,
+  PriceScaleMode,
   type IChartApi,
   type ISeriesApi,
   type UTCTimestamp,
@@ -74,22 +77,56 @@ export function FootprintChart() {
     const chart = createChart(hostRef.current, {
       layout: {
         background: { type: ColorType.Solid, color: '#000000' }, // --void (UI-SPEC v2 §0)
-        textColor: '#8a8a8a', // --text-dim
+        textColor: '#8a8a8a',        // --text-dim
+        fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
+        attributionLogo: false,      // remove TradingView watermark (LW Charts v5)
       },
+      // Grid lines compete with number-bar cell backgrounds — remove entirely.
       grid: {
-        horzLines: { color: '#1f1f1f' }, // --rule
-        vertLines: { color: '#1f1f1f' }, // --rule
+        horzLines: { visible: false },
+        vertLines: { visible: false },
       },
-      crosshair: { mode: 1 /* Magnet */ },
-      rightPriceScale: { borderColor: '#1f1f1f' }, // --rule
+      // Crosshair: magnet mode, subtle dashed line at 30% opacity.
+      crosshair: {
+        mode: CrosshairMode.Magnet,
+        vertLine: {
+          color: 'rgba(138, 138, 138, 0.3)', // --text-dim @ 30%
+          width: 1,
+          style: LineStyle.Dashed,
+          labelBackgroundColor: '#1a1a1a',   // --surface-2
+        },
+        horzLine: {
+          color: 'rgba(138, 138, 138, 0.3)',
+          width: 1,
+          style: LineStyle.Dashed,
+          labelBackgroundColor: '#1a1a1a',
+        },
+      },
+      // Right price scale: JetBrains Mono labels, no left scale.
+      rightPriceScale: {
+        borderColor: '#1f1f1f',      // --rule
+        mode: PriceScaleMode.Normal,
+        autoScale: true,
+        // 8% top padding, 12% bottom — leaves room for delta footer row.
+        scaleMargins: { top: 0.08, bottom: 0.12 },
+        visible: true,
+      },
+      leftPriceScale: {
+        visible: false,
+      },
+      // Time axis: matching mono font + subtle border, no weekend gaps.
       timeScale: {
-        borderColor: '#1f1f1f', // --rule
+        borderColor: '#1f1f1f',      // --rule
         timeVisible: true,
         secondsVisible: false,
-        barSpacing: 80, // initial value; recalculated dynamically below
-        rightOffset: 2, // minimal pad at right edge
+        barSpacing: 80,              // initial value; recalculated dynamically below
+        rightOffset: 2,              // minimal pad at right edge
+        shiftVisibleRangeOnNewBar: true,
       },
       autoSize: true,
+      // attributionLogo: false (set in layout above) removes the TV watermark in LW Charts v5.
+      handleScroll: true,
+      handleScale: true,
     });
 
     chartRef.current = chart;
@@ -162,7 +199,12 @@ export function FootprintChart() {
       },
     );
 
+    // Focus handling: clicking the chart container routes keyboard events here.
+    const handleClick = () => hostRef.current?.focus();
+    hostRef.current.addEventListener('click', handleClick);
+
     return () => {
+      hostRef.current?.removeEventListener('click', handleClick);
       unsub();
       unsubPan();
       chart.remove();
@@ -173,7 +215,8 @@ export function FootprintChart() {
 
   return (
     <div className="relative flex-1 min-w-0 overflow-hidden bg-bg-base border-r border-border-subtle">
-      <div ref={hostRef} className="absolute inset-0" />
+      {/* tabIndex makes the div focusable so keyboard shortcuts work after click */}
+      <div ref={hostRef} className="absolute inset-0" tabIndex={-1} style={{ outline: 'none' }} />
       <ChartModeSelector />
       <VolumeProfile chartRef={chartRef} />
       <ZoneOverlay chartRef={chartRef} />
