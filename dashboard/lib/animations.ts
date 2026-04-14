@@ -1,7 +1,7 @@
 /**
  * dashboard/lib/animations.ts
  * Shared Motion variants and helpers for DEEP6 Terminal Noir (UI-SPEC v2 §5).
- * All motion respects prefers-reduced-motion — use reducedMotion() wrapper.
+ * All motion respects prefers-reduced-motion — use prefersReducedMotion() wrapper.
  */
 
 // ---------------------------------------------------------------------------
@@ -19,12 +19,14 @@ export type CategoryKey =
   | 'ml';
 
 // ---------------------------------------------------------------------------
-// Digit-roll transition (UI-SPEC §5 — 600ms ease-out)
+// Digit-roll transition — spring physics for satisfying settle (UI-SPEC §5)
 // ---------------------------------------------------------------------------
 
 export const digitRollTransition = {
-  duration: 0.6,
-  ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
+  type: 'spring' as const,
+  stiffness: 120,
+  damping: 18,
+  mass: 1,
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -45,7 +47,9 @@ export function arcStagger(i: number): number {
 
 // ---------------------------------------------------------------------------
 // TYPE_A flash keyframes (UI-SPEC §4.1 / §5)
-// Total: 200ms white-hot flash + 1200ms decay = 1400ms
+// Phase 1 (0-120ms):   all arcs → #ffffff, core intensifies 3x
+// Phase 2 (120-400ms): arcs settle to category color + slight scale
+// Phase 3 (400-1500ms): aftershock radial expansion, secondary glow decay
 // ---------------------------------------------------------------------------
 
 /** Motion `animate` prop for the inner core <g> element. */
@@ -53,29 +57,30 @@ export const typeAFlashKeyframes: {
   scale: number[];
   filter: string[];
 } = {
-  scale: [1, 1.08, 1],
+  scale: [1, 1.04, 1.0, 1],
   filter: [
-    // Normal state
+    // Normal lime glow
     'drop-shadow(0 0 4px color-mix(in oklch, #a3ff00 80%, transparent)) drop-shadow(0 0 12px color-mix(in oklch, #a3ff00 40%, transparent))',
-    // White-hot intensified (200ms mark)
-    'drop-shadow(0 0 8px rgba(255,255,255,0.9)) drop-shadow(0 0 32px rgba(255,255,255,0.6)) drop-shadow(0 0 64px rgba(163,255,0,0.8))',
-    // Settled lime glow (1400ms mark)
+    // White-hot intensified (120ms mark) — 3× glow
+    'drop-shadow(0 0 12px rgba(255,255,255,0.95)) drop-shadow(0 0 40px rgba(255,255,255,0.7)) drop-shadow(0 0 80px rgba(163,255,0,0.9))',
+    // Bright lime settle (400ms mark)
+    'drop-shadow(0 0 8px rgba(163,255,0,0.9)) drop-shadow(0 0 24px rgba(163,255,0,0.5)) drop-shadow(0 0 48px rgba(163,255,0,0.3))',
+    // Final settled lime glow (1500ms mark)
     'drop-shadow(0 0 4px color-mix(in oklch, #a3ff00 80%, transparent)) drop-shadow(0 0 12px color-mix(in oklch, #a3ff00 40%, transparent))',
   ],
 };
 
 export const typeAFlashTransition = {
-  duration: 1.4,
+  duration: 1.5,
   ease: 'easeOut' as const,
-  times: [0, 0.143, 1], // 0ms / 200ms / 1400ms mapped to [0, 1]
+  times: [0, 0.08, 0.267, 1], // 0ms / 120ms / 400ms / 1500ms
 };
 
 // ---------------------------------------------------------------------------
-// Radial bloom keyframes (UI-SPEC §4.1 TYPE_A flash step 3)
+// Radial bloom keyframes (UI-SPEC §4.1 TYPE_A flash — primary bloom)
 // Expands from r=90 to r=200, opacity 0.3 → 0, over 1200ms
 // ---------------------------------------------------------------------------
 
-/** Motion `animate` prop for the bloom <circle>. */
 export const radialBloomKeyframes: {
   r: number[];
   opacity: number[];
@@ -87,6 +92,107 @@ export const radialBloomKeyframes: {
 export const radialBloomTransition = {
   duration: 1.2,
   ease: 'easeOut' as const,
+};
+
+// ---------------------------------------------------------------------------
+// Aftershock bloom (phase 3 of TYPE_A) — 400ms delay, 1100ms duration
+// Slower, wider, dimmer — a secondary echo after the main flash settles
+// ---------------------------------------------------------------------------
+
+export const aftershockBloomKeyframes: {
+  r: number[];
+  opacity: number[];
+} = {
+  r: [100, 300],
+  opacity: [0.3, 0],
+};
+
+export const aftershockBloomTransition = {
+  duration: 1.1,
+  ease: 'easeOut' as const,
+  delay: 0.4,
+};
+
+// ---------------------------------------------------------------------------
+// Background flash keyframes (the lime ambient glow behind the pulse)
+// ---------------------------------------------------------------------------
+
+export const backgroundFlashKeyframes: {
+  opacity: number[];
+  scale: number[];
+} = {
+  opacity: [0, 0.22, 0],
+  scale: [0.6, 1, 1.4],
+};
+
+export const backgroundFlashTransition = {
+  duration: 1.4,
+  ease: 'easeOut' as const,
+  times: [0, 0.1, 1],
+};
+
+// ---------------------------------------------------------------------------
+// Arc flash — white hot 120ms, then transition for arcs during TYPE_A
+// ---------------------------------------------------------------------------
+
+export const arcFlashTransition = {
+  duration: 0.12,
+  ease: [0.4, 0, 0.2, 1] as [number, number, number, number],
+};
+
+export const arcSettleTransition = {
+  duration: 0.3,
+  ease: [0.4, 0, 0.2, 1] as [number, number, number, number],
+  delay: 0.12,
+};
+
+// ---------------------------------------------------------------------------
+// Direction glyph flip transition — 200ms with spring for tactile feel
+// ---------------------------------------------------------------------------
+
+export const directionFlipTransition = {
+  type: 'spring' as const,
+  stiffness: 300,
+  damping: 25,
+  mass: 0.8,
+};
+
+// ---------------------------------------------------------------------------
+// Threshold cross ("level up") — scale 1→1.04→1, 250ms ease-out-back
+// ---------------------------------------------------------------------------
+
+export const levelUpKeyframes = {
+  scale: [1, 1.04, 1],
+};
+
+export const levelUpTransition = {
+  duration: 0.25,
+  ease: [0.34, 1.56, 0.64, 1] as [number, number, number, number], // ease-out-back
+};
+
+// ---------------------------------------------------------------------------
+// Scanning arc (loading/zero state) — single arc rotating around ring
+// 1 revolution per 4 seconds
+// ---------------------------------------------------------------------------
+
+export const scanTransition = {
+  repeat: Infinity,
+  duration: 4,
+  ease: 'linear' as const,
+};
+
+// ---------------------------------------------------------------------------
+// Tier badge pulse border — only for TYPE_A active
+// ---------------------------------------------------------------------------
+
+export const tierBadgePulseKeyframes = {
+  opacity: [1, 0.4, 1],
+};
+
+export const tierBadgePulseTransition = {
+  duration: 1.8,
+  ease: 'easeInOut' as const,
+  repeat: Infinity,
 };
 
 // ---------------------------------------------------------------------------
@@ -201,6 +307,18 @@ export const CATEGORY_COLORS: Readonly<Record<CategoryKey, string>> = Object.fre
   volume:      'var(--amber)',
   trap:        'var(--bid)',
   ml:          'var(--magenta)',
+});
+
+// Hex values for use in SVG gradients/filters (CSS vars don't resolve in SVG defs)
+export const CATEGORY_COLORS_HEX: Readonly<Record<CategoryKey, string>> = Object.freeze({
+  absorption: '#a3ff00',
+  exhaustion:  '#a3ff00',
+  imbalance:   '#00d9ff',
+  delta:       '#ffd60a',
+  auction:     '#00d9ff',
+  volume:      '#ffd60a',
+  trap:        '#ff2e63',
+  ml:          '#ff00aa',
 });
 
 // ---------------------------------------------------------------------------
