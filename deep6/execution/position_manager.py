@@ -201,6 +201,7 @@ class PositionManager:
                 not pos.is_breakeven
                 and pos.bars_held >= 3
                 and "absorption" in result.categories_firing
+                and result.direction == pos.direction
             ):
                 old_stop = pos.stop_price
                 pos.stop_price = pos.entry_price
