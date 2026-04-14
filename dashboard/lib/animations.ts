@@ -392,6 +392,30 @@ export const directionCrossTransition = {
   ease: 'easeOut' as const,
 };
 
+// ---------------------------------------------------------------------------
+// Harmonized digit-roll transition (UI-SPEC §5 — shared across all consumers)
+// ConfluencePulse score, KronosBar confidence %, KronosBar σ, HeaderStrip price.
+// ---------------------------------------------------------------------------
+
+export const harmonizedDigitRollTransition = {
+  type: 'spring' as const,
+  stiffness: SPRING.soft.stiffness, // 120
+  damping: 18,
+  mass: 1,
+} as const;
+
+/** Visibility window (ms) for ▲/▼ delta arrow after a value change. */
+export const DELTA_VISIBLE_MS = 800;
+
+/** Duration (ms) of the background flash-hint fade-out. */
+export const FLASH_DURATION_MS = 300;
+
+/** Absolute-point change required to trigger a background flash on confidence %. */
+export const FLASH_THRESHOLD_CONFIDENCE = 20;
+
+/** Absolute-point change required to trigger a background flash on confluence score. */
+export const FLASH_THRESHOLD_SCORE = 15;
+
 // Verify at module load (development guard)
 if (process.env.NODE_ENV !== 'production') {
   if (SIGNAL_BIT_CATEGORIES.length !== 44) {
@@ -443,16 +467,3 @@ export const CATEGORY_ARC_COUNTS: Readonly<Record<CategoryKey, number>> = Object
   ml:         0, // ML (E10) is not a bit-signal; handled via Kronos separately
 });
 
-// ---------------------------------------------------------------------------
-// Harmonized digit-roll transition alias — canonical name for digit-roll.tsx
-// Alias of digitRollTransition to maintain a single source of truth.
-// ---------------------------------------------------------------------------
-
-/** @alias digitRollTransition — use this name in digit-roll.tsx consumers */
-export const harmonizedDigitRollTransition = digitRollTransition;
-
-// Delta indicator — 800ms visibility window for ▲/▼ arrows
-export const DELTA_VISIBLE_MS = 800;
-
-// Flash hint — 300ms fade-out for background colour change
-export const FLASH_DURATION_MS = 300;

@@ -19,12 +19,11 @@
  *   - Trend arrow: ↗/↘/→ comparing current bias to 20-tick-ago bias
  *   - prefers-reduced-motion: all spring/animate transitions disabled
  *
- * Unchanged animations:
- *   - Direction text: slide-up / fade on change
- *   - Confidence number: digit-roll via useMotionValue + animate
- *   - Bar fill width: spring (stiffness 200, damping 25)
- *   - "Signal received" ping: 1px magenta underline sweeps left-to-right on update
- *   - Pulsing indicator dot: 2s opacity loop 0.5→1.0
+ * v3 enhancements (digit-roll harmonization):
+ *   - Confidence number: shared DigitRoll (harmonizedDigitRollTransition, 500ms SPRING.soft)
+ *   - σ value: shared DigitRoll
+ *   - Both display brief ▲▼ DeltaIndicator for 800ms after change
+ *   - Confidence flashes background on Δ > FLASH_THRESHOLD_CONFIDENCE (20 pts)
  *
  * Color semantics:
  *   Direction: --ask (LONG), --bid (SHORT), --text-mute (NEUTRAL)
@@ -40,7 +39,13 @@ import {
   AnimatePresence,
 } from 'motion/react';
 import { useTradingStore } from '@/store/tradingStore';
-import { prefersReducedMotion, DURATION, EASING, SPRING } from '@/lib/animations';
+import { prefersReducedMotion, DURATION, EASING, SPRING, FLASH_THRESHOLD_CONFIDENCE } from '@/lib/animations';
+import {
+  DigitRoll,
+  DeltaIndicator,
+  useDeltaIndicator,
+  useFlashHint,
+} from '@/lib/digit-roll';
 
 // ---------------------------------------------------------------------------
 // HoverTip — lightweight tooltip wrapper
@@ -116,79 +121,89 @@ function stdDev(values: number[]): number {
 }
 
 // ---------------------------------------------------------------------------
-// Animated confidence number (digit-roll)
+// ConfidenceDisplay — shared DigitRoll + DeltaIndicator + flash hint
 // ---------------------------------------------------------------------------
 
-interface AnimatedNumberProps {
+interface ConfidenceDisplayProps {
   value: number;
   color: string;
 }
 
-function AnimatedNumber({ value, color }: AnimatedNumberProps) {
-  const motionVal = useMotionValue(value);
-  const reduced   = prefersReducedMotion();
+function ConfidenceDisplay({ value, color }: ConfidenceDisplayProps) {
+  const delta = useDeltaIndicator(value, 0);
+  const flash = useFlashHint(value, FLASH_THRESHOLD_CONFIDENCE);
 
-  useEffect(() => {
-    if (reduced) {
-      motionVal.set(value);
-      return;
-    }
-    const controls = animate(motionVal, value, {
-      duration: DURATION.slow / 1000 * 1.2, // 600ms digit roll — EASING.spring
-      ease: EASING.spring as [number, number, number, number],
-    });
-    return () => controls.stop();
-  }, [value, motionVal, reduced]);
-
-  const display = useTransform(motionVal, (v) => `${Math.round(v)}%`);
+  const flashBg = flash.flashing
+    ? flash.direction === 'up'
+      ? 'rgba(0,200,80,0.15)'
+      : 'rgba(255,46,99,0.15)'
+    : 'transparent';
 
   return (
-    <motion.span
-      className="text-md tnum"
-      style={{ color, letterSpacing: 0 }}
+    <span
+      style={{
+        position: 'relative',
+        display: 'inline-flex',
+        alignItems: 'center',
+        paddingRight: delta.visible ? '36px' : undefined,
+        borderRadius: 3,
+        background: flashBg,
+        transition: `background ${flash.flashing ? '0ms' : '300ms'} ease-out`,
+      }}
     >
-      {display}
-    </motion.span>
+      <DigitRoll
+        value={value}
+        precision={0}
+        suffix="%"
+        className="text-md tnum"
+        style={{ color, letterSpacing: 0 }}
+      />
+      <AnimatePresence>
+        {delta.visible && (
+          <DeltaIndicator key="conf-delta" delta={delta} precision={0} fontSize={10} />
+        )}
+      </AnimatePresence>
+    </span>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Animated sigma value (digit-roll)
+// SigmaDisplay — shared DigitRoll + DeltaIndicator
 // ---------------------------------------------------------------------------
 
-interface AnimatedSigmaProps {
+interface SigmaDisplayProps {
   value: number;
 }
 
-function AnimatedSigma({ value }: AnimatedSigmaProps) {
-  const motionVal = useMotionValue(value);
-  const reduced   = prefersReducedMotion();
-
-  useEffect(() => {
-    if (reduced) {
-      motionVal.set(value);
-      return;
-    }
-    const controls = animate(motionVal, value, {
-      duration: DURATION.slow / 1000 * 1.2, // 600ms sigma roll — EASING.spring
-      ease: EASING.spring as [number, number, number, number],
-    });
-    return () => controls.stop();
-  }, [value, motionVal, reduced]);
-
-  const display = useTransform(motionVal, (v) => `σ ${Math.round(v)}`);
+function SigmaDisplay({ value }: SigmaDisplayProps) {
+  const delta = useDeltaIndicator(value, 0);
 
   return (
-    <motion.span
+    <span
       style={{
-        fontFamily: 'var(--font-mono, "JetBrains Mono", monospace)',
-        fontSize: '10px',
-        color: 'var(--text-dim)',
-        letterSpacing: '0.02em',
+        position: 'relative',
+        display: 'inline-flex',
+        alignItems: 'center',
+        paddingRight: delta.visible ? '28px' : undefined,
       }}
     >
-      {display}
-    </motion.span>
+      <DigitRoll
+        value={value}
+        precision={0}
+        prefix="σ "
+        style={{
+          fontFamily: 'var(--font-mono, "JetBrains Mono", monospace)',
+          fontSize: '10px',
+          color: 'var(--text-dim)',
+          letterSpacing: '0.02em',
+        }}
+      />
+      <AnimatePresence>
+        {delta.visible && (
+          <DeltaIndicator key="sigma-delta" delta={delta} precision={0} fontSize={9} />
+        )}
+      </AnimatePresence>
+    </span>
   );
 }
 
@@ -212,8 +227,8 @@ function PingSweep({ pingKey }: PingSweepProps) {
         animate={{ scaleX: 1, opacity: [1, 1, 0] }}
         exit={{}}
         transition={{
-          scaleX: { duration: DURATION.normal / 1000, ease: 'easeOut' },       // 250ms ping sweep
-          opacity: { duration: DURATION.slow / 1000, ease: 'easeOut', times: [0, 0.6, 1] }, // 500ms fade
+          scaleX: { duration: DURATION.normal / 1000, ease: 'easeOut' },
+          opacity: { duration: DURATION.slow / 1000, ease: 'easeOut', times: [0, 0.6, 1] },
         }}
         style={{
           position: 'absolute',
@@ -605,7 +620,7 @@ export function KronosBar() {
           {/* σ stability indicator */}
           {history.length >= 2 && (
             <HoverTip text="Standard deviation of last 20 bias values. Low σ = stable.">
-              <AnimatedSigma value={sigma} />
+              <SigmaDisplay value={sigma} />
             </HoverTip>
           )}
 
@@ -622,7 +637,7 @@ export function KronosBar() {
             </span>
           ) : (
             <HoverTip text="Kronos bias magnitude (0–100).">
-              <AnimatedNumber value={confidence} color="var(--magenta)" />
+              <ConfidenceDisplay value={confidence} color="var(--magenta)" />
             </HoverTip>
           )}
 
