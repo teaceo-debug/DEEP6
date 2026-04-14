@@ -1,16 +1,15 @@
 /**
- * ErrorBanner.tsx — Top-of-page error surface.
+ * ErrorBanner.tsx — per UI-SPEC v2 §8
  *
- * Surfaces three states using exact strings from UI-SPEC §Copywriting Contract:
- *   1. Replay error (session not found): "Session not found. Select a date from history."
- *   2. WebSocket disconnected: "Connection lost. Reconnecting..."
- *   3. Feed stalled: "Feed stalled — no updates in 10s. Check backend."
+ * Copy (exact):
+ *   disconnected → "LINK DOWN. RETRYING…"           --bid color
+ *   stale        → "STALE — last tick {N}s ago"      --amber color
+ *   replay_404   → "SESSION NOT FOUND. SELECT FROM HISTORY."  --amber color
  *
- * Priority: replay errors > connection lost > feed stalled.
- * Returns null when no error condition is active.
+ * Container: bg --surface-1, border-bottom 1px in reason-color at 40% opacity,
+ * padding 6px 16px, text-sm, .label-tracked
  *
- * Feed staleness is evaluated reactively: if status.lastTs is older than 10s
- * and we're in live mode, the feedStale flag in tradingStore drives the message.
+ * Trigger logic (store fields) unchanged — only copy + visual updated.
  */
 'use client';
 import { useTradingStore } from '@/store/tradingStore';
@@ -21,14 +20,23 @@ export function ErrorBanner() {
   const replayError = useReplayStore((s) => s.error);
   const replayMode = useReplayStore((s) => s.mode);
 
+  // Determine message + accent color
   let msg: string | null = null;
+  let accentColor = 'var(--bid)';
 
   if (replayError) {
-    msg = replayError;
+    // Session-not-found is the primary replay error surfaced by useReplayController
+    msg = 'SESSION NOT FOUND. SELECT FROM HISTORY.';
+    accentColor = 'var(--amber)';
   } else if (replayMode === 'live' && !status.connected) {
-    msg = 'Connection lost. Reconnecting...';
+    msg = 'LINK DOWN. RETRYING\u2026';
+    accentColor = 'var(--bid)';
   } else if (status.feedStale) {
-    msg = 'Feed stalled — no updates in 10s. Check backend.';
+    const staleSecs = status.lastTs > 0
+      ? Math.round((Date.now() / 1000) - status.lastTs)
+      : 0;
+    msg = `STALE \u2014 last tick ${staleSecs}s ago`;
+    accentColor = 'var(--amber)';
   }
 
   if (!msg) return null;
@@ -36,11 +44,12 @@ export function ErrorBanner() {
   return (
     <div
       role="alert"
-      className="text-[13px] px-4 py-2"
+      className="text-sm label-tracked"
       style={{
-        background: 'rgba(239, 68, 68, 0.15)',
-        color: 'var(--destructive)',
-        borderBottom: '1px solid rgba(239, 68, 68, 0.40)',
+        background: 'var(--surface-1)',
+        borderBottom: `1px solid color-mix(in srgb, ${accentColor} 40%, transparent)`,
+        padding: '6px 16px',
+        color: accentColor,
       }}
     >
       {msg}

@@ -1,13 +1,9 @@
 /**
- * SessionSelector.tsx — Session date picker for replay mode.
+ * SessionSelector.tsx — Dark-variant shadcn Select per UI-SPEC v2 §4.8
  *
- * On mount, calls fetchSessions() to populate a shadcn Select dropdown.
- * When a session is selected, activates replay mode via replayStore.setMode.
- * Renders in both live and replay modes so the operator can switch sessions
- * without manually editing the URL.
- *
- * Per D-13 (11-CONTEXT.md): sessions come from Phase 9 EventStore via FastAPI.
- * Returns null when no sessions are available (backend not ready / no history).
+ * Trigger: --surface-2 bg, --rule-bright border, text-sm --text, 36px height
+ * Content: --surface-1 bg, --rule-bright border, items dim/text on hover, active --lime
+ * Data source + onChange contract unchanged from Phase 11.
  */
 'use client';
 import { useEffect, useState } from 'react';
@@ -40,12 +36,34 @@ export function SessionSelector() {
       value={sessionId ?? ''}
       onValueChange={(v) => useReplayStore.getState().setMode('replay', v)}
     >
-      <SelectTrigger className="w-[140px] h-11 font-mono text-[12px]">
+      <SelectTrigger
+        className="text-sm tnum"
+        style={{
+          height: 36,
+          minWidth: 140,
+          background: 'var(--surface-2)',
+          border: '1px solid var(--rule-bright)',
+          color: 'var(--text)',
+          padding: '0 12px',
+          borderRadius: 4,
+        }}
+      >
         <SelectValue placeholder="Select session" />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent
+        style={{
+          background: 'var(--surface-1)',
+          border: '1px solid var(--rule-bright)',
+          borderRadius: 4,
+        }}
+      >
         {sessions.map((s) => (
-          <SelectItem key={s.session_id} value={s.session_id}>
+          <SelectItem
+            key={s.session_id}
+            value={s.session_id}
+            className="text-sm"
+            style={{ color: 'var(--text-dim)' }}
+          >
             {s.session_id}
           </SelectItem>
         ))}
