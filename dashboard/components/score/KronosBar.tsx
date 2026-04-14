@@ -3,29 +3,35 @@
 /**
  * KronosBar.tsx — Kronos E10 horizontal capsule (UI-SPEC v2 §4.5).
  *
- * Layout:
- *   Title row:  "KRONOS E10" label + pulsing magenta dot
- *   Main row:   direction text (LONG/SHORT/─) | confidence % | (right-aligned)
- *   Bar row:    8px gradient bar — magenta→direction-color, remainder --rule
- *   Bias row:   2px thin fill = |bias|/100 in magenta
+ * Layout (top → bottom, ~140px total):
+ *   [header row]          "KRONOS E10" label + pulsing dot
+ *   [sparkline row 14px]  rolling 20-point bias sparkline (SVG) — or "BUILDING HISTORY..."
+ *   [main row]            direction text | confidence % | trend arrow
+ *   [gradient bar 8px]    magenta→direction-color spring-animated
+ *   [direction strip 4px] 20-slot color history (LONG=green, SHORT=red, NEUTRAL=grey)
+ *   [bias sub-bar 2px]    |bias|/100 magenta thin fill
  *
- * Animations (motion/react):
+ * Additions vs prior revision:
+ *   - Local history state: last 20 {ts, bias, direction} entries (component-only)
+ *   - Sparkline: 80×14px SVG, magenta line + 10% fill area, dot at current point
+ *   - Direction history strip: 80×4px, each slot colored by direction
+ *   - σ stability indicator: std-dev of last 20 bias values (JetBrains Mono text-xs)
+ *   - Trend arrow: ↗/↘/→ comparing current bias to 20-tick-ago bias
+ *   - prefers-reduced-motion: all spring/animate transitions disabled
+ *
+ * Unchanged animations:
  *   - Direction text: slide-up / fade on change
  *   - Confidence number: digit-roll via useMotionValue + animate
  *   - Bar fill width: spring (stiffness 200, damping 25)
  *   - "Signal received" ping: 1px magenta underline sweeps left-to-right on update
  *   - Pulsing indicator dot: 2s opacity loop 0.5→1.0
  *
- * Edge cases:
- *   - NEUTRAL direction: rendered as ─
- *   - No Kronos data (bias=0): entire bar fades to 30% opacity, shows "AWAITING"
- *
  * Color semantics:
  *   Direction: --ask (LONG), --bid (SHORT), --text-mute (NEUTRAL)
- *   Confidence + bias: --magenta
+ *   Confidence + bias + sparkline: --magenta
  */
 
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useMemo } from 'react';
 import {
   animate,
   useMotionValue,
@@ -35,6 +41,18 @@ import {
 } from 'motion/react';
 import { useTradingStore } from '@/store/tradingStore';
 import { prefersReducedMotion } from '@/lib/animations';
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+interface HistoryEntry {
+  ts: number;
+  bias: number;
+  direction: string;
+}
+
+const MAX_HISTORY = 20;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -51,6 +69,13 @@ function directionColor(dir: string): string {
 function directionLabel(dir: string): string {
   if (dir === 'NEUTRAL' || !dir) return '─';
   return dir;
+}
+
+function stdDev(values: number[]): number {
+  if (values.length < 2) return 0;
+  const mean = values.reduce((a, b) => a + b, 0) / values.length;
+  const variance = values.reduce((acc, v) => acc + (v - mean) ** 2, 0) / values.length;
+  return Math.sqrt(variance);
 }
 
 // ---------------------------------------------------------------------------
@@ -78,7 +103,6 @@ function AnimatedNumber({ value, color }: AnimatedNumberProps) {
     return () => controls.stop();
   }, [value, motionVal, reduced]);
 
-  // Round for display
   const display = useTransform(motionVal, (v) => `${Math.round(v)}%`);
 
   return (
@@ -92,11 +116,51 @@ function AnimatedNumber({ value, color }: AnimatedNumberProps) {
 }
 
 // ---------------------------------------------------------------------------
+// Animated sigma value (digit-roll)
+// ---------------------------------------------------------------------------
+
+interface AnimatedSigmaProps {
+  value: number;
+}
+
+function AnimatedSigma({ value }: AnimatedSigmaProps) {
+  const motionVal = useMotionValue(value);
+  const reduced   = prefersReducedMotion();
+
+  useEffect(() => {
+    if (reduced) {
+      motionVal.set(value);
+      return;
+    }
+    const controls = animate(motionVal, value, {
+      duration: 0.6,
+      ease: [0.16, 1, 0.3, 1],
+    });
+    return () => controls.stop();
+  }, [value, motionVal, reduced]);
+
+  const display = useTransform(motionVal, (v) => `σ ${Math.round(v)}`);
+
+  return (
+    <motion.span
+      style={{
+        fontFamily: 'var(--font-mono, "JetBrains Mono", monospace)',
+        fontSize: '10px',
+        color: 'var(--text-dim)',
+        letterSpacing: '0.02em',
+      }}
+    >
+      {display}
+    </motion.span>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Ping sweep — thin 1px magenta line sweeps left-to-right on Kronos update
 // ---------------------------------------------------------------------------
 
 interface PingSweepProps {
-  pingKey: number; // increment to trigger a new sweep
+  pingKey: number;
 }
 
 function PingSweep({ pingKey }: PingSweepProps) {
@@ -210,6 +274,159 @@ function DirectionText({ direction, color }: DirectionTextProps) {
 }
 
 // ---------------------------------------------------------------------------
+// Sparkline — 80×14px SVG line + area chart of last 20 bias values
+// ---------------------------------------------------------------------------
+
+interface SparklineProps {
+  history: HistoryEntry[];
+}
+
+function Sparkline({ history }: SparklineProps) {
+  const W = 80;
+  const H = 14;
+
+  const biasValues = history.map((h) => h.bias);
+  const minV = Math.min(...biasValues);
+  const maxV = Math.max(...biasValues);
+  const range = maxV - minV || 1; // avoid division by zero when all same
+
+  const points = biasValues.map((v, i) => {
+    const x = (i / (biasValues.length - 1)) * W;
+    const y = H - ((v - minV) / range) * H;
+    return { x, y };
+  });
+
+  const linePath = points
+    .map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`)
+    .join(' ');
+
+  // Area path: line path + close down to baseline
+  const areaPath =
+    linePath +
+    ` L${points[points.length - 1].x.toFixed(1)},${H} L0,${H} Z`;
+
+  const last = points[points.length - 1];
+
+  return (
+    <svg
+      width={W}
+      height={H}
+      viewBox={`0 0 ${W} ${H}`}
+      style={{ display: 'block', overflow: 'visible' }}
+    >
+      {/* Area fill */}
+      <path
+        d={areaPath}
+        fill="rgba(255,0,170,0.10)"
+        stroke="none"
+      />
+      {/* Line */}
+      <path
+        d={linePath}
+        fill="none"
+        stroke="var(--magenta)"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+      {/* Current point dot */}
+      {last && (
+        <circle
+          cx={last.x.toFixed(1)}
+          cy={last.y.toFixed(1)}
+          r="3"
+          fill="var(--magenta)"
+        />
+      )}
+    </svg>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Direction history strip — 80×4px row of 20 colored slots
+// ---------------------------------------------------------------------------
+
+interface DirectionStripProps {
+  history: HistoryEntry[];
+}
+
+function DirectionStrip({ history }: DirectionStripProps) {
+  const W = 80;
+  const H = 4;
+  const slotW = W / MAX_HISTORY;
+
+  // Pad with empty slots on the left when history is short
+  const padded: (HistoryEntry | null)[] = [
+    ...Array(MAX_HISTORY - history.length).fill(null),
+    ...history,
+  ];
+
+  return (
+    <svg
+      width={W}
+      height={H}
+      viewBox={`0 0 ${W} ${H}`}
+      style={{ display: 'block' }}
+    >
+      {padded.map((entry, i) => {
+        let fill = 'var(--text-mute)';
+        if (entry) {
+          if (entry.direction === 'LONG')  fill = 'var(--ask)';
+          else if (entry.direction === 'SHORT') fill = 'var(--bid)';
+        } else {
+          fill = 'var(--surface-2)';
+        }
+        return (
+          <rect
+            key={i}
+            x={(i * slotW).toFixed(1)}
+            y="0"
+            width={(slotW - 0.5).toFixed(1)}
+            height={H}
+            fill={fill}
+            rx="0.5"
+          />
+        );
+      })}
+    </svg>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Trend arrow — compare current bias to oldest in history window
+// ---------------------------------------------------------------------------
+
+interface TrendArrowProps {
+  current: number;
+  oldest: number | null;
+}
+
+function TrendArrow({ current, oldest }: TrendArrowProps) {
+  if (oldest === null) return null;
+
+  const diff = current - oldest;
+  let arrow: string;
+  let color: string;
+
+  if (diff > 2) {
+    arrow = '↗';
+    color = 'var(--ask)';
+  } else if (diff < -2) {
+    arrow = '↘';
+    color = 'var(--bid)';
+  } else {
+    arrow = '→';
+    color = 'var(--text-mute)';
+  }
+
+  return (
+    <span style={{ color, fontSize: '11px', lineHeight: 1 }}>
+      {arrow}
+    </span>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
 
@@ -232,16 +449,42 @@ export function KronosBar() {
   const prevBiasRef = useRef(kronosBias);
   const [pingKey, setPingKey] = useState(0);
 
+  // ---------------------------------------------------------------------------
+  // Local history (component-level only, not persisted to store)
+  // ---------------------------------------------------------------------------
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+
   useEffect(() => {
+    // Only push when bias or direction actually changes (skip initial zero/NEUTRAL)
     if (kronosBias !== prevBiasRef.current) {
       prevBiasRef.current = kronosBias;
       pingKeyRef.current += 1;
       setPingKey(pingKeyRef.current);
+
+      setHistory((prev) => {
+        const next = [
+          ...prev,
+          { ts: Date.now(), bias: kronosBias ?? 0, direction },
+        ];
+        return next.length > MAX_HISTORY ? next.slice(next.length - MAX_HISTORY) : next;
+      });
     }
-  }, [kronosBias]);
+  }, [kronosBias, direction]);
+
+  // ---------------------------------------------------------------------------
+  // Derived stats
+  // ---------------------------------------------------------------------------
+  const sigma = useMemo(() => {
+    if (history.length < 2) return 0;
+    return stdDev(history.map((h) => h.bias));
+  }, [history]);
+
+  const oldestBias = history.length === MAX_HISTORY ? history[0].bias : null;
 
   // Bias warning — bias > confidence (same value here, but structure left for wiring)
   const biasExceedsConfidence = biasAbs > confidence;
+
+  const hasEnoughHistory = history.length >= 3;
 
   return (
     <div
@@ -257,6 +500,7 @@ export function KronosBar() {
         transition: 'opacity 400ms ease',
         position: 'relative',
         overflow: 'hidden',
+        minHeight: '140px',
       }}
     >
       {/* Ping sweep — "signal received" cosmetic */}
@@ -293,7 +537,21 @@ export function KronosBar() {
         />
       </div>
 
-      {/* Main row: direction | confidence */}
+      {/* Sparkline row — 80×14px or "BUILDING HISTORY..." placeholder */}
+      <div style={{ height: '14px', display: 'flex', alignItems: 'center' }}>
+        {hasEnoughHistory ? (
+          <Sparkline history={history} />
+        ) : (
+          <span
+            className="text-xs label-tracked"
+            style={{ color: 'var(--text-mute)', fontSize: '9px', letterSpacing: '0.06em' }}
+          >
+            BUILDING HISTORY...
+          </span>
+        )}
+      </div>
+
+      {/* Main row: direction | confidence + σ | trend arrow */}
       <div
         style={{
           display: 'flex',
@@ -303,10 +561,16 @@ export function KronosBar() {
       >
         <DirectionText direction={direction} color={dirColor} />
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          {/* σ stability indicator */}
+          {history.length >= 2 && (
+            <AnimatedSigma value={sigma} />
+          )}
+
           {biasExceedsConfidence && !noData && (
             <span style={{ color: 'var(--amber)', fontSize: '11px' }}>⚠</span>
           )}
+
           {noData ? (
             <span
               className="text-xs label-tracked"
@@ -317,6 +581,9 @@ export function KronosBar() {
           ) : (
             <AnimatedNumber value={confidence} color="var(--magenta)" />
           )}
+
+          {/* Trend arrow */}
+          <TrendArrow current={kronosBias ?? 0} oldest={oldestBias} />
         </div>
       </div>
 
@@ -331,6 +598,11 @@ export function KronosBar() {
         }}
       >
         <AnimatedBarFill pct={confidence} dirColor={dirColor} />
+      </div>
+
+      {/* Direction history strip (4px, 20 slots) */}
+      <div style={{ height: '4px' }}>
+        <DirectionStrip history={history} />
       </div>
 
       {/* Bias sub-bar (2px, magenta) */}
