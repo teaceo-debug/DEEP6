@@ -10,6 +10,9 @@ import { ReplayControls } from '@/components/replay/ReplayControls';
 import { ErrorBanner } from '@/components/common/ErrorBanner';
 import { useTradingStore } from '@/store/tradingStore';
 import { useReplayStore } from '@/store/replayStore';
+import { ConfluencePulse } from '@/components/score/ConfluencePulse';
+import { KronosBar } from '@/components/score/KronosBar';
+import { ZoneList } from '@/components/zones/ZoneList';
 
 // Feed-stale threshold per UI-SPEC §Copywriting "no updates in 10s".
 const FEED_STALE_SECONDS = 10;
@@ -96,30 +99,41 @@ export default function Home() {
             flexDirection: 'column',
           }}
         >
-          {/* Confluence Pulse slot — filled by Plan 11.2-02 */}
+          {/* Confluence Pulse — 360px tall, centered */}
           <div
-            data-slot="confluence-pulse"
             style={{
               height: '360px',
               borderBottom: '1px solid var(--rule)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
             }}
-          />
-          {/* Kronos E10 bar slot — filled by Plan 11.2-02 */}
+          >
+            <ConfluencePulse />
+          </div>
+
+          {/* Kronos E10 bar */}
           <div
-            data-slot="kronos-bar"
             style={{
               height: '88px',
               borderBottom: '1px solid var(--rule)',
+              flexShrink: 0,
             }}
-          />
-          {/* Zone list slot — filled by Plan 11.2-02 */}
+          >
+            <KronosBar />
+          </div>
+
+          {/* Zone list — fills remaining space */}
           <div
-            data-slot="zone-list"
             style={{
               flex: 1,
               minHeight: 0,
+              overflow: 'hidden',
             }}
-          />
+          >
+            <ZoneList />
+          </div>
         </aside>
 
         {/* Right column — 300px fixed (Signal Feed + T&S Tape) */}
