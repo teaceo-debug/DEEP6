@@ -34,14 +34,20 @@ export class RingBuffer<T> {
   /**
    * Returns items in insertion order (oldest first, newest last).
    * Allocates — call sparingly; prefer forEachNewest for Canvas draw loops.
+   * Single-pass O(n) — avoids two intermediate arrays in the full-buffer case.
    */
   toArray(): T[] {
     if (this._size === 0) return [];
+    const out = new Array<T>(this._size);
     if (this._size < this.capacity) {
-      return this.buf.slice(0, this._size) as T[];
+      for (let i = 0; i < this._size; i++) out[i] = this.buf[i] as T;
+      return out;
     }
-    // Buffer is full: head points to oldest
-    return [...this.buf.slice(this.head), ...this.buf.slice(0, this.head)] as T[];
+    // Buffer is full: head points to oldest slot
+    for (let i = 0; i < this._size; i++) {
+      out[i] = this.buf[(this.head + i) % this.capacity] as T;
+    }
+    return out;
   }
 
   /**

@@ -1,5 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { useTradingStore, BAR_CAPACITY, SIGNAL_CAPACITY, TAPE_CAPACITY } from './tradingStore';
+import {
+  useTradingStore,
+  BAR_CAPACITY,
+  SIGNAL_CAPACITY,
+  TAPE_CAPACITY,
+  selectPnl,
+  selectConnected,
+  selectCircuitBreakerActive,
+  selectTotalScore,
+  selectTier,
+  selectKronosBias,
+  selectLastBarVersion,
+  selectLastSignalVersion,
+  selectLastTapeVersion,
+} from './tradingStore';
 import { RingBuffer } from './ringBuffer';
 import type {
   FootprintBar,
@@ -176,5 +190,144 @@ describe('TradingStore dispatcher', () => {
     const arr = state.bars.toArray();
     expect(arr[0].bar_index).toBe(1); // oldest retained
     expect(arr[arr.length - 1].bar_index).toBe(500); // newest
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Scoped selector tests (perf-r5)
+// ---------------------------------------------------------------------------
+
+describe('Scoped selectors', () => {
+  it('selectPnl returns status.pnl', () => {
+    const msg: LiveStatusMessage = {
+      type: 'status',
+      connected: true,
+      pnl: 99.5,
+      circuit_breaker_active: false,
+      feed_stale: false,
+      ts: 1000,
+    };
+    useTradingStore.getState().dispatch(msg);
+    expect(selectPnl(useTradingStore.getState())).toBe(99.5);
+  });
+
+  it('selectConnected returns status.connected', () => {
+    const msg: LiveStatusMessage = {
+      type: 'status',
+      connected: true,
+      pnl: 0,
+      circuit_breaker_active: false,
+      feed_stale: false,
+      ts: 1000,
+    };
+    useTradingStore.getState().dispatch(msg);
+    expect(selectConnected(useTradingStore.getState())).toBe(true);
+  });
+
+  it('selectCircuitBreakerActive returns status.circuitBreakerActive', () => {
+    const msg: LiveStatusMessage = {
+      type: 'status',
+      connected: true,
+      pnl: 0,
+      circuit_breaker_active: true,
+      feed_stale: false,
+      ts: 1000,
+    };
+    useTradingStore.getState().dispatch(msg);
+    expect(selectCircuitBreakerActive(useTradingStore.getState())).toBe(true);
+  });
+
+  it('selectTotalScore + selectTier return correct score slice fields', () => {
+    const msg: LiveScoreMessage = {
+      type: 'score',
+      total_score: 87,
+      tier: 'TYPE_A',
+      direction: 1,
+      categories_firing: ['absorption'],
+      category_scores: { absorption: 30 },
+      kronos_bias: 65,
+      kronos_direction: 'LONG',
+      gex_regime: 'POSITIVE',
+    };
+    useTradingStore.getState().dispatch(msg);
+    expect(selectTotalScore(useTradingStore.getState())).toBe(87);
+    expect(selectTier(useTradingStore.getState())).toBe('TYPE_A');
+  });
+
+  it('selectKronosBias returns score.kronosBias', () => {
+    const msg: LiveScoreMessage = {
+      type: 'score',
+      total_score: 60,
+      tier: 'TYPE_B',
+      direction: -1,
+      categories_firing: [],
+      category_scores: {},
+      kronos_bias: 72,
+      kronos_direction: 'SHORT',
+      gex_regime: 'NEUTRAL',
+    };
+    useTradingStore.getState().dispatch(msg);
+    expect(selectKronosBias(useTradingStore.getState())).toBe(72);
+  });
+
+  it('selectLastBarVersion increments on pushBar', () => {
+    expect(selectLastBarVersion(useTradingStore.getState())).toBe(0);
+    useTradingStore.getState().pushBar(makeBar(0));
+    expect(selectLastBarVersion(useTradingStore.getState())).toBe(1);
+  });
+
+  it('selectLastSignalVersion increments on pushSignal', () => {
+    expect(selectLastSignalVersion(useTradingStore.getState())).toBe(0);
+    useTradingStore.getState().pushSignal(makeSignal());
+    expect(selectLastSignalVersion(useTradingStore.getState())).toBe(1);
+  });
+
+  it('selectLastTapeVersion increments on pushTape', () => {
+    expect(selectLastTapeVersion(useTradingStore.getState())).toBe(0);
+    useTradingStore.getState().pushTape({ ts: 1, price: 21000, size: 10, side: 'ASK', marker: '' });
+    expect(selectLastTapeVersion(useTradingStore.getState())).toBe(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// RingBuffer.toArray() single-pass optimization (perf-r5)
+// ---------------------------------------------------------------------------
+
+describe('RingBuffer.toArray() optimized single-pass', () => {
+  it('empty buffer returns []', () => {
+    const rb = new RingBuffer<number>(4);
+    expect(rb.toArray()).toEqual([]);
+  });
+
+  it('partial fill returns items in insertion order', () => {
+    const rb = new RingBuffer<number>(4);
+    rb.push(10);
+    rb.push(20);
+    rb.push(30);
+    expect(rb.toArray()).toEqual([10, 20, 30]);
+  });
+
+  it('exact capacity fill returns all items in insertion order', () => {
+    const rb = new RingBuffer<number>(4);
+    rb.push(1); rb.push(2); rb.push(3); rb.push(4);
+    expect(rb.toArray()).toEqual([1, 2, 3, 4]);
+  });
+
+  it('overflow (capacity+1) wraps correctly — oldest evicted', () => {
+    const rb = new RingBuffer<number>(4);
+    rb.push(1); rb.push(2); rb.push(3); rb.push(4); rb.push(5);
+    expect(rb.toArray()).toEqual([2, 3, 4, 5]);
+  });
+
+  it('overflow (2x capacity) wraps correctly — retains newest N', () => {
+    const rb = new RingBuffer<number>(4);
+    for (let i = 1; i <= 8; i++) rb.push(i);
+    expect(rb.toArray()).toEqual([5, 6, 7, 8]);
+  });
+
+  it('toArray result length equals size', () => {
+    const rb = new RingBuffer<number>(4);
+    rb.push(1); rb.push(2); rb.push(3);
+    expect(rb.toArray().length).toBe(rb.size);
   });
 });

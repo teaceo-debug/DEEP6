@@ -86,6 +86,7 @@ Progress: [░░░░░░░░░░] 2%
 | ID | Date | Description | Files |
 |----|------|-------------|-------|
 | 260413-s1d | 2026-04-14 | Fix databento_feed.py attribute bugs (total_vol, tick_size kwarg, open_time/close_time, CVD chain) | deep6/data/databento_feed.py |
+| 260414-gzv | 2026-04-13 | perf(r5): rAF audit + Zustand scoped selectors + ringBuffer toArray single-pass + animations.ts perf notes | store/ringBuffer.ts, store/tradingStore.ts, lib/animations.ts, store/tradingStore.test.ts |
 
 ## Accumulated Context
 

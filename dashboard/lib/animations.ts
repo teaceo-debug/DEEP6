@@ -240,6 +240,13 @@ export const tierBadgePulseTransition = {
 /**
  * Returns true if the user has requested reduced motion.
  * Safe to call in browser only (returns false on server / during SSR).
+ *
+ * PERF NOTE: Do NOT call this function directly inside a React render body —
+ * it calls window.matchMedia() on every invocation, which forces a style
+ * recalculation. In components use the `useReducedMotion()` hook from
+ * 'motion/react' instead, which subscribes to the media query once and
+ * caches the result. This function is suitable for one-shot checks outside
+ * the render cycle (e.g. in useEffect or event handlers).
  */
 export function prefersReducedMotion(): boolean {
   if (typeof window === 'undefined') return false;
@@ -249,6 +256,10 @@ export function prefersReducedMotion(): boolean {
 /**
  * reducedMotion — wraps a variant object, overriding `transition.duration`
  * to 0 and removing filter/scale animations when reduced motion is active.
+ *
+ * PERF NOTE: Same caveat as prefersReducedMotion() above — avoid calling
+ * inside a render function. Prefer `useReducedMotion()` from 'motion/react'
+ * in component code.
  */
 export function reducedMotion<T extends object>(variant: T): T {
   if (!prefersReducedMotion()) return variant;
