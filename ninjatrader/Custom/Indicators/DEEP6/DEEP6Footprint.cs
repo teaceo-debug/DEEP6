@@ -976,6 +976,7 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         private List<TraderButton> _ctButtons;
         private bool _ctMouseWired;
         private SharpDX.Direct2D1.Brush _ctOnDx, _ctOffDx, _ctBorderDx;
+        private TextFormat _ctBtnFont;
 
         // GEX
         private MassiveGexClient _gexClient;
@@ -1094,11 +1095,9 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             {
                 if (_gexCts != null) { try { _gexCts.Cancel(); } catch { } }
                 if (_gexClient != null) { _gexClient.Dispose(); _gexClient = null; }
-                if (_ctMouseWired && ChartControl != null)
-                {
-                    try { ChartControl.MouseDown -= OnChartTraderMouseDown; } catch { }
-                    _ctMouseWired = false;
-                }
+                // Always attempt detach — null-conditional makes it safe even when ChartControl is gone.
+                try { if (ChartControl != null) ChartControl.MouseDown -= OnChartTraderMouseDown; } catch { }
+                _ctMouseWired = false;
                 DisposeDx();
             }
         }
@@ -1364,6 +1363,13 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                 TextAlignment = TextAlignment.Trailing,
                 ParagraphAlignment = ParagraphAlignment.Center,
             };
+            // Chart Trader button font — cached so RenderChartTrader doesn't allocate
+            // 7 unmanaged TextFormat objects per frame at 60fps (~420 allocs/sec).
+            _ctBtnFont = new TextFormat(NinjaTrader.Core.Globals.DirectWriteFactory, "Segoe UI", 10f)
+            {
+                TextAlignment = TextAlignment.Center,
+                ParagraphAlignment = ParagraphAlignment.Center,
+            };
         }
 
         private void DisposeDx()
@@ -1378,6 +1384,7 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             DisposeBrush(ref _ctOnDx); DisposeBrush(ref _ctOffDx); DisposeBrush(ref _ctBorderDx);
             if (_cellFont != null) { _cellFont.Dispose(); _cellFont = null; }
             if (_labelFont != null) { _labelFont.Dispose(); _labelFont = null; }
+            if (_ctBtnFont != null) { _ctBtnFont.Dispose(); _ctBtnFont = null; }
         }
 
         private static void DisposeBrush(ref SharpDX.Direct2D1.Brush b) { if (b != null) { b.Dispose(); b = null; } }
@@ -1572,11 +1579,13 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                 var fill = on ? _ctOnDx : _ctOffDx;
                 RenderTarget.FillRectangle(btn.Rect, fill);
                 RenderTarget.DrawRectangle(btn.Rect, _ctBorderDx, 1f);
-                using (var fmt = new TextFormat(NinjaTrader.Core.Globals.DirectWriteFactory, "Segoe UI", 10f)
-                                    { TextAlignment = TextAlignment.Center, ParagraphAlignment = ParagraphAlignment.Center })
-                using (var layout = new TextLayout(NinjaTrader.Core.Globals.DirectWriteFactory, btn.Label, fmt, btnW, btnH))
+                if (_ctBtnFont != null)
                 {
-                    RenderTarget.DrawTextLayout(new Vector2(x, y), layout, _textDx);
+                    using (var layout = new TextLayout(NinjaTrader.Core.Globals.DirectWriteFactory,
+                                                        btn.Label, _ctBtnFont, btnW, btnH))
+                    {
+                        RenderTarget.DrawTextLayout(new Vector2(x, y), layout, _textDx);
+                    }
                 }
                 x += btnW + gap;
             }
@@ -1601,7 +1610,9 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                     try { cur = btn.Get(); } catch { }
                     btn.Set(!cur);
                     e.Handled = true;
-                    try { ChartControl.InvalidateVisual(); } catch { }
+                    // ForceRefresh() drives the SharpDX OnRender pipeline; InvalidateVisual()
+                    // only triggers the WPF layer and won't repaint our SharpDX overlay.
+                    try { ForceRefresh(); } catch { }
                     return;
                 }
             }
@@ -1617,11 +1628,21 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             double maxVis = cs.MaxValue;
             DateTime fresh = DateTime.UtcNow.AddSeconds(-LiquidityWallStaleSec);
 
+            // Deep-clone inside the lock — L2LevelState is a reference type with mutable long/DateTime
+            // fields the data thread continues to write. Without cloning, render reads would race.
             List<KeyValuePair<double, L2LevelState>> bidSnap, askSnap;
             lock (_l2Lock)
             {
-                bidSnap = new List<KeyValuePair<double, L2LevelState>>(_l2Bids);
-                askSnap = new List<KeyValuePair<double, L2LevelState>>(_l2Asks);
+                bidSnap = new List<KeyValuePair<double, L2LevelState>>(_l2Bids.Count);
+                foreach (var kv in _l2Bids)
+                    bidSnap.Add(new KeyValuePair<double, L2LevelState>(kv.Key, new L2LevelState {
+                        CurrentSize = kv.Value.CurrentSize, MaxSize = kv.Value.MaxSize,
+                        LastUpdate = kv.Value.LastUpdate,   RefillCount = kv.Value.RefillCount }));
+                askSnap = new List<KeyValuePair<double, L2LevelState>>(_l2Asks.Count);
+                foreach (var kv in _l2Asks)
+                    askSnap.Add(new KeyValuePair<double, L2LevelState>(kv.Key, new L2LevelState {
+                        CurrentSize = kv.Value.CurrentSize, MaxSize = kv.Value.MaxSize,
+                        LastUpdate = kv.Value.LastUpdate,   RefillCount = kv.Value.RefillCount }));
             }
 
             DrawWallsForSide(bidSnap, _wallBidDx, "BID", true,  fresh, minVis, maxVis, panelRight);
