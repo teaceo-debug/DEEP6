@@ -232,3 +232,179 @@ class TestTapeBroadcast:
         with TestClient(app) as client:
             resp = client.post("/api/live/test-broadcast", json=bad_payload)
             assert resp.status_code == 422
+
+
+# ---------------------------------------------------------------------------
+# Phase 11.3-r3: LiveStatusMessage extended fields + session/status endpoint
+# ---------------------------------------------------------------------------
+
+class TestLiveStatusMessageExtendedFields:
+    """LiveStatusMessage new observability fields — Pydantic validation."""
+
+    def test_status_message_defaults_are_safe(self):
+        """New fields all have safe zero-value defaults — old senders keep working."""
+        from deep6.api.schemas import LiveStatusMessage
+        import time
+
+        msg = LiveStatusMessage(connected=True, ts=time.time())
+        assert msg.session_start_ts == 0.0
+        assert msg.bars_received == 0
+        assert msg.signals_fired == 0
+        assert msg.last_signal_tier == ""
+        assert msg.uptime_seconds == 0
+        assert msg.active_clients == 0
+
+    def test_status_message_accepts_full_payload(self):
+        """Full extended payload round-trips through LiveStatusMessage correctly."""
+        from deep6.api.schemas import LiveStatusMessage
+
+        now = 1_700_000_000.0
+        msg = LiveStatusMessage(
+            connected=True,
+            pnl=1234.56,
+            circuit_breaker_active=False,
+            feed_stale=False,
+            ts=now,
+            session_start_ts=now - 3600.0,
+            bars_received=42,
+            signals_fired=7,
+            last_signal_tier="TYPE_B",
+            uptime_seconds=3600,
+            active_clients=3,
+        )
+        d = msg.model_dump()
+        assert d["bars_received"] == 42
+        assert d["signals_fired"] == 7
+        assert d["last_signal_tier"] == "TYPE_B"
+        assert d["uptime_seconds"] == 3600
+        assert d["active_clients"] == 3
+        assert d["session_start_ts"] == now - 3600.0
+
+    def test_status_message_backward_compat_missing_new_fields(self):
+        """A dict without new fields still validates correctly (backward compat)."""
+        from deep6.api.schemas import LiveStatusMessage
+        import time
+
+        # Simulate a legacy sender that only sends the original 5 fields
+        legacy_dict = {
+            "type": "status",
+            "connected": True,
+            "pnl": 500.0,
+            "circuit_breaker_active": False,
+            "feed_stale": False,
+            "ts": time.time(),
+        }
+        msg = LiveStatusMessage(**legacy_dict)
+        assert msg.bars_received == 0
+        assert msg.signals_fired == 0
+        assert msg.last_signal_tier == ""
+
+
+class TestSessionStatusEndpoint:
+    """GET /api/session/status HTTP endpoint tests."""
+
+    def _get_app(self):
+        from deep6.api.app import app
+        return app
+
+    def test_session_status_returns_200_with_correct_shape(self):
+        """GET /api/session/status → 200 with all LiveStatusMessage fields."""
+        app = self._get_app()
+
+        with TestClient(app) as client:
+            resp = client.get("/api/session/status")
+            assert resp.status_code == 200, resp.text
+            data = resp.json()
+
+            # Original fields present
+            assert data["type"] == "status"
+            assert "connected" in data
+            assert "pnl" in data
+            assert "circuit_breaker_active" in data
+            assert "feed_stale" in data
+            assert "ts" in data
+
+            # New observability fields present
+            assert "session_start_ts" in data
+            assert "bars_received" in data
+            assert "signals_fired" in data
+            assert "last_signal_tier" in data
+            assert "uptime_seconds" in data
+            assert "active_clients" in data
+
+    def test_session_status_numeric_types(self):
+        """GET /api/session/status — numeric fields have correct types."""
+        app = self._get_app()
+
+        with TestClient(app) as client:
+            resp = client.get("/api/session/status")
+            data = resp.json()
+
+            assert isinstance(data["bars_received"], int)
+            assert isinstance(data["signals_fired"], int)
+            assert isinstance(data["uptime_seconds"], int)
+            assert isinstance(data["active_clients"], int)
+            assert isinstance(data["session_start_ts"], float)
+            assert isinstance(data["last_signal_tier"], str)
+
+    def test_session_status_active_clients_zero_when_no_ws(self):
+        """active_clients is 0 when no WS connections are open."""
+        app = self._get_app()
+
+        with TestClient(app) as client:
+            resp = client.get("/api/session/status")
+            data = resp.json()
+            assert data["active_clients"] == 0
+
+
+class TestWSManagerBroadcastStatus:
+    """WSManager.broadcast_status() unit tests."""
+
+    def test_broadcast_status_sends_status_type_message(self):
+        """broadcast_status() fans out a message with type='status' to all clients."""
+        import json
+
+        from deep6.api.app import app
+
+        with TestClient(app) as client:
+            with client.websocket_connect("/ws/live") as ws:
+                # Drain initial status from _send_initial_status task
+                _initial = ws.receive_text()
+
+                # Trigger broadcast_status via the manager directly
+                manager = app.state.ws_manager
+                asyncio.run(manager.broadcast_status(connected=True, pnl=99.9))
+
+                raw = ws.receive_text()
+                msg = json.loads(raw)
+                assert msg["type"] == "status"
+                assert msg["pnl"] == 99.9
+                assert "bars_received" in msg
+                assert "signals_fired" in msg
+                assert "active_clients" in msg
+
+    def test_ws_manager_tracks_last_sent_ts(self):
+        """WSManager._last_sent is populated after a broadcast."""
+        from deep6.api.app import app
+
+        with TestClient(app) as client:
+            with client.websocket_connect("/ws/live") as ws:
+                _initial = ws.receive_text()
+                manager = app.state.ws_manager
+                # At least one entry must exist in _last_sent after a send
+                assert len(manager._last_sent) >= 1
+
+    def test_ws_manager_observability_counters_update(self):
+        """Setting bars_received / signals_fired on WSManager is reflected in status_snapshot."""
+        from deep6.api.ws_manager import WSManager
+
+        mgr = WSManager()
+        mgr.bars_received = 55
+        mgr.signals_fired = 12
+        mgr.last_signal_tier = "TYPE_A"
+
+        snap = mgr.status_snapshot()
+        assert snap["bars_received"] == 55
+        assert snap["signals_fired"] == 12
+        assert snap["last_signal_tier"] == "TYPE_A"
+        assert snap["type"] == "status"

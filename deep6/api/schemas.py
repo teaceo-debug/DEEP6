@@ -148,13 +148,28 @@ class LiveStatusMessage(BaseModel):
 
     Sent immediately on WS connect and whenever connection state changes.
     Per D-05: minimal status widget — live P&L total + circuit breaker state.
+
+    Extended fields (all optional with safe defaults for backward-compat):
+    - session_start_ts: epoch when the current trading session started
+    - bars_received:    authoritative backend bar count
+    - signals_fired:    authoritative backend signal count
+    - last_signal_tier: most recent signal tier ("TYPE_A" | "TYPE_B" | "TYPE_C" | "")
+    - uptime_seconds:   backend process uptime in seconds
+    - active_clients:   number of WebSocket clients currently connected
     """
     type: Literal["status"] = "status"
     connected: bool
     pnl: float = 0.0
     circuit_breaker_active: bool = False
-    feed_stale: bool = False   # True when no update in > 10 s
+    feed_stale: bool = False        # True when no update in > 10 s
     ts: float
+    # --- observability fields (Phase 11.3-r3) ---
+    session_start_ts: float = 0.0   # epoch when session started
+    bars_received: int = 0          # backend bar count
+    signals_fired: int = 0          # backend signal count
+    last_signal_tier: str = ""      # "" | "TYPE_A" | "TYPE_B" | "TYPE_C"
+    uptime_seconds: int = 0         # backend process uptime
+    active_clients: int = 0         # connected WS clients
 
 
 class TapeEventIn(BaseModel):

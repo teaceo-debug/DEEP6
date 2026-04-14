@@ -95,6 +95,13 @@ export interface LiveStatusMessage {
   circuit_breaker_active: boolean;
   feed_stale: boolean;
   ts: number;
+  // Phase 11.3-r3 observability fields (all optional — safe defaults on the wire)
+  session_start_ts?: number;   // epoch when session started; frontend computes elapsed
+  bars_received?: number;      // authoritative backend bar count
+  signals_fired?: number;      // authoritative backend signal count
+  last_signal_tier?: string;   // '' | 'TYPE_A' | 'TYPE_B' | 'TYPE_C'
+  uptime_seconds?: number;     // backend process uptime in seconds
+  active_clients?: number;     // WS clients currently connected
 }
 
 export interface LiveTapeMessage {

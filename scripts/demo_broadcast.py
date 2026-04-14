@@ -164,6 +164,7 @@ class ScoreModel:
         self._kronos_dir  = "NEUTRAL"
         self._kronos_next_update = 0.0
         self._gex_regime = "NEUTRAL"
+        self.last_signal_tier: str = ""  # updated whenever a signal fires
 
     def apply_type_a_spike(self) -> None:
         """Triggered when a TYPE_A signal fires — boosts score to 85-95."""
@@ -438,6 +439,9 @@ def main() -> None:
     scheduler    = SignalScheduler()
     stats        = Stats()
 
+    # Session start — set once, included in every status message
+    session_start_ts = time.time()
+
     # Bar state
     bar_index    = 0
     bar_open     = NQ_START
@@ -490,16 +494,25 @@ def main() -> None:
 
             # ---------------------------------------------------------------
             # 1. STATUS message — every tick (keeps connected indicator green)
+            #    Now includes full observability fields so the dashboard can
+            #    display session elapsed time, bar/signal counters, and uptime.
             # ---------------------------------------------------------------
             pnl += random.gauss(0, 1.5)          # P&L drifts realistically
             pnl  = round(pnl, 2)
             ok = post(args.url, {
-                "type": "status",
-                "connected": True,
-                "pnl": pnl,
-                "circuit_breaker_active": False,
-                "feed_stale": False,
-                "ts": tick_start,
+                "type":                    "status",
+                "connected":               True,
+                "pnl":                     pnl,
+                "circuit_breaker_active":  False,
+                "feed_stale":              False,
+                "ts":                      tick_start,
+                # --- observability fields (Phase 11.3-r3) ---
+                "session_start_ts":        session_start_ts,
+                "bars_received":           stats.bars,
+                "signals_fired":           stats.signals,
+                "last_signal_tier":        score_model.last_signal_tier,
+                "uptime_seconds":          int(tick_start - session_start_ts),
+                "active_clients":          0,  # demo doesn't know client count
             })
             if ok:
                 stats.status += 1
@@ -631,6 +644,7 @@ def main() -> None:
                 })
                 if ok:
                     stats.signals += 1
+                    score_model.last_signal_tier = tier  # track for status messages
                     if tier == "TYPE_A":
                         score_model.apply_type_a_spike()
                 else:
@@ -645,7 +659,8 @@ def main() -> None:
                    f"price {price:>10.2f} {price_dir}  "
                    f"score {score_model.score:>5.1f}  "
                    f"bars={stats.bars:<4d} "
-                   f"sigs={stats.signals}")
+                   f"sigs={stats.signals:<4d} "
+                   f"uptime={int(tick_start - session_start_ts)}s")
             print(msg, end="  ", flush=True)
 
             if stats.ticks % 30 == 0:

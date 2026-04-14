@@ -67,6 +67,12 @@ const INIT_STATUS = {
   circuitBreakerActive: false,
   feedStale: false,
   lastTs: 0,
+  sessionStartTs: 0,
+  barsReceived: 0,
+  signalsFired: 0,
+  lastSignalTier: '',
+  uptimeSeconds: 0,
+  activeClients: 0,
 };
 
 beforeEach(() => {

@@ -32,6 +32,13 @@ export interface StatusSlice {
   circuitBreakerActive: boolean;
   feedStale: boolean;
   lastTs: number;
+  // Phase 11.3-r3 observability fields
+  sessionStartTs: number;
+  barsReceived: number;
+  signalsFired: number;
+  lastSignalTier: string;
+  uptimeSeconds: number;
+  activeClients: number;
 }
 
 export interface TradingState {
@@ -69,6 +76,12 @@ const INIT_STATUS: StatusSlice = {
   circuitBreakerActive: false,
   feedStale: false,
   lastTs: 0,
+  sessionStartTs: 0,
+  barsReceived: 0,
+  signalsFired: 0,
+  lastSignalTier: '',
+  uptimeSeconds: 0,
+  activeClients: 0,
 };
 
 export const useTradingStore = create<TradingState>()(
@@ -119,6 +132,13 @@ export const useTradingStore = create<TradingState>()(
           circuitBreakerActive: m.circuit_breaker_active,
           feedStale: m.feed_stale,
           lastTs: m.ts,
+          // Phase 11.3-r3 observability fields (wire sends 0/'' defaults)
+          sessionStartTs: m.session_start_ts ?? 0,
+          barsReceived: m.bars_received ?? 0,
+          signalsFired: m.signals_fired ?? 0,
+          lastSignalTier: m.last_signal_tier ?? '',
+          uptimeSeconds: m.uptime_seconds ?? 0,
+          activeClients: m.active_clients ?? 0,
         },
       }),
 
