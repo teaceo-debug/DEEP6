@@ -27,8 +27,23 @@ class BacktestConfig(BaseModel):
     tf_list: list[str] = Field(default_factory=lambda: ["1m", "5m"])
     duckdb_path: str = "backtest_results.duckdb"
     git_sha: str = ""
-    fill_model: Literal["perfect"] = "perfect"
+    fill_model: Literal["perfect", "bracket"] = "perfect"
     tick_size: float = 0.25
+
+    # ------------------------------------------------------------------
+    # Bracket-exit simulation (Phase 13-03).
+    #
+    # These fields parameterize BracketExitTracker. Defaults target NQ
+    # retail: 4pt stop, 6pt target (1.5R), $0.35/side commissions, 1-tick
+    # slippage on stop (market) fills only. max_hold_bars forces exits if
+    # neither bracket hits — prevents open trades at file end.
+    # ------------------------------------------------------------------
+    stop_ticks: int = 16
+    target_ticks: int = 24
+    commission_per_side: float = 0.35
+    tick_value: float = 5.0
+    slippage_ticks: int = 1
+    max_hold_bars: int = 20
 
     @classmethod
     def from_yaml(cls, path: str | Path) -> "BacktestConfig":
