@@ -44,10 +44,19 @@ class ExecutionConfig:
     pause_minutes: float = 30.0
 
     # D-12: Position size
-    max_position_contracts: int = 1     # Paper default; live = configurable
+    max_position_contracts: int = 3     # Paper default; live = configurable
 
     # D-13: Max trades per day
     max_trades_per_day: int = 10
+
+    # Heat management: max aggregate open-risk (USD) across all open positions
+    max_open_risk_usd: float = 100.0
+
+    # Risk-per-trade R unit (USD) used for daily_R_ratio and graduated DD response
+    risk_per_trade_R: float = 100.0
+
+    # Minimum minutes between a closed loss and a new entry in the same direction
+    loss_cooldown_minutes: float = 10.0
 
     # D-18/D-19/D-20: Paper trading gate
     paper_trading_days: int = 30
