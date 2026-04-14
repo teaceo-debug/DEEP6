@@ -27,21 +27,25 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from deep6.api.store import EventStore
+from deep6.api.ws_manager import WSManager
 from deep6.api.routes import events as events_router
 from deep6.api.routes import weights as weights_router
 from deep6.api.routes import metrics as metrics_router
 from deep6.api.routes import sweep as sweep_router
 from deep6.api.routes import ws as ws_router_module
 from deep6.api.routes import backtest as backtest_router_module
+from deep6.api.routes import live as live_router
+from deep6.api.routes import replay as replay_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    """Initialize EventStore on startup; nothing to teardown."""
+    """Initialize EventStore and WSManager on startup; nothing to teardown."""
     db_path = os.environ.get("DB_PATH", "./deep6_ml.db")
     store = EventStore(db_path)
     await store.initialize()
     app.state.event_store = store
+    app.state.ws_manager = WSManager()
     yield
     # aiosqlite opens/closes per operation — no explicit teardown required
 
@@ -77,6 +81,8 @@ def create_app() -> FastAPI:
     application.include_router(sweep_router.router)
     application.include_router(ws_router_module.router)
     application.include_router(backtest_router_module.router)
+    application.include_router(live_router.router)
+    application.include_router(replay_router.router)
 
     @application.get("/health", tags=["health"])
     async def health() -> dict:
