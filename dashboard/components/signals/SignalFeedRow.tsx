@@ -86,9 +86,11 @@ interface SignalFeedRowProps {
   sig: SignalEvent;
   narrative?: string;
   justArrived?: boolean;
+  isSelected?: boolean;
+  onClick?: () => void;
 }
 
-export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProps) {
+export function SignalFeedRow({ sig, narrative, justArrived, isSelected, onClick }: SignalFeedRowProps) {
   const reduced = useReducedMotion();
 
   const tier = sig.tier ?? 'QUIET';
@@ -256,19 +258,27 @@ export function SignalFeedRow({ sig, narrative, justArrived }: SignalFeedRowProp
         style={{
           position: 'relative',
           zIndex: 1,
-          borderLeft: `4px solid ${color}`,
+          borderLeft: isSelected ? `6px solid ${color}` : `4px solid ${color}`,
           borderBottom: '1px solid var(--rule)',
           paddingTop: 4,
           paddingRight: 10,
           paddingBottom: 0,
-          paddingLeft: 12,
-          cursor: 'default',
+          paddingLeft: isSelected ? 10 : 12,
+          cursor: 'pointer',
           overflow: 'hidden',
-          backgroundColor: hovered ? 'var(--surface-1)' : undefined,
-          transition: `background-color ${DURATION.normal}ms ease`, // 250ms hover bg
+          backgroundColor: isSelected
+            ? 'var(--surface-1)'
+            : hovered
+            ? 'var(--surface-1)'
+            : undefined,
+          boxShadow: isSelected
+            ? `inset 0 0 12px color-mix(in oklch, ${color} 10%, transparent), -2px 0 8px color-mix(in oklch, ${color} 25%, transparent)`
+            : undefined,
+          transition: `background-color ${DURATION.normal}ms ease, border-left-width ${DURATION.fast}ms ease, box-shadow ${DURATION.normal}ms ease`,
         }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
+        onClick={onClick}
       >
         {/* Height wrapper */}
         <motion.div

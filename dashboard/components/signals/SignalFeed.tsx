@@ -7,10 +7,16 @@
  * - "loading more..." line when scrolled up
  * - Enriched empty state: ascii divider + "awaiting engine output..." line
  * - Passes narrative field from LiveSignalMessage store through to SignalFeedRow
+ *
+ * 11.3-r4 upgrade:
+ * - selectedSignalKey state for context drawer
+ * - Click handler on rows (toggle select / deselect)
+ * - SignalContext drawer rendered over feed
  */
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { useTradingStore } from '@/store/tradingStore';
 import { SignalFeedRow } from './SignalFeedRow';
+import { SignalContext } from './SignalContext';
 import type { SignalEvent } from '@/types/deep6';
 
 // -- Blinking cursor (1Hz, --text-mute) --------------------------------------
@@ -39,6 +45,10 @@ function BlinkingCursor() {
 
 const SCROLL_TOP_THRESHOLD = 40;
 
+function makeRowKey(sig: SignalEvent): string {
+  return `${sig.ts}-${sig.bar_index_in_session}`;
+}
+
 export function SignalFeed() {
   const lastSignalVersion = useTradingStore((s) => s.lastSignalVersion);
   const signals: SignalEvent[] = useTradingStore.getState().signals.toArray();
@@ -59,6 +69,27 @@ export function SignalFeed() {
   const [userScrolled, setUserScrolled] = useState(false);
   const [newCount, setNewCount] = useState(0);
   const prevLengthRef = useRef(displaySignals.length);
+
+  // -- Selected signal state for context drawer -------------------------------
+  const [selectedSignalKey, setSelectedSignalKey] = useState<string | null>(null);
+
+  const handleRowClick = useCallback((sig: SignalEvent) => {
+    const key = makeRowKey(sig);
+    setSelectedSignalKey((prev) => (prev === key ? null : key));
+  }, []);
+
+  const handleContextClose = useCallback(() => {
+    setSelectedSignalKey(null);
+  }, []);
+
+  const selectedSig = selectedSignalKey
+    ? displaySignals.find((s) => makeRowKey(s) === selectedSignalKey) ?? null
+    : null;
+
+  // Full signal list for related-signals lookup (not just the 12-row display slice)
+  const allSignals: SignalEvent[] = useTradingStore.getState().signals.toArray();
+
+  // ---------------------------------------------------------------------------
 
   const handleScroll = useCallback(() => {
     const el = containerRef.current;
@@ -144,19 +175,32 @@ export function SignalFeed() {
 
   return (
     <div className="flex-1" style={{ position: 'relative', overflow: 'hidden' }}>
+      {/* Signal context drawer — absolute right side, 400px wide, full height */}
+      <SignalContext
+        signal={selectedSig}
+        allSignals={allSignals}
+        onClose={handleContextClose}
+      />
+
       <div
         ref={containerRef}
         onScroll={handleScroll}
         className="scroll-terminal"
         style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden' }}
       >
-        {displaySignals.map((sig, idx) => (
-          <SignalFeedRow
-            key={`${sig.ts}-${sig.bar_index_in_session}-${idx}`}
-            sig={sig}
-            justArrived={idx === 0 && justArrivedRef.current}
-          />
-        ))}
+        {displaySignals.map((sig, idx) => {
+          const key = `${sig.ts}-${sig.bar_index_in_session}-${idx}`;
+          const rowKey = makeRowKey(sig);
+          return (
+            <SignalFeedRow
+              key={key}
+              sig={sig}
+              justArrived={idx === 0 && justArrivedRef.current}
+              isSelected={selectedSignalKey === rowKey}
+              onClick={() => handleRowClick(sig)}
+            />
+          );
+        })}
 
         {/* "loading more..." hint when user has scrolled up — purely visual */}
         {userScrolled && (
