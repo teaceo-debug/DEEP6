@@ -176,12 +176,15 @@ After dedup (D-15), expect ~35-40 canonical CR-IDs. Plan-01 produces `RULES.md` 
 - `deep6/execution/engine.py` (thin delegate to TradeDecisionMachine)
 - `deep6/signals/flags.py` (3 new meta-flag bits, non-reordering)
 
-### Wave structure (proposed — planner confirms)
+### Wave structure (revised post-plan-checker: strictly sequential — no parallelism)
 
-- **Wave 1 (parallel)**: Plan-01 (deduplicated RULES.md) + Plan-02 (LevelBus refactor + LevelFactory)
-- **Wave 2**: Plan-03 (ConfluenceRules module + scorer integration, depends on Plan-01 RULES.md + Plan-02 LevelBus)
-- **Wave 3**: Plan-04 (TradeDecisionMachine FSM + execution integration, depends on Plan-03 annotations)
-- **Wave 4**: Plan-05 (comprehensive test suite — fixtures, golden files, FSM reachability)
+- **Wave 1**: Plan-01 (Level dataclass + LevelKind/LevelState + LevelBus refactor + LevelFactory + deduplicated RULES.md + GEX extensions) — foundation
+- **Wave 2**: Plan-02 (narrative-Level persistence + cross-session decay, depends on Plan-01 Level/LevelFactory/LevelBus)
+- **Wave 3**: Plan-03 (ConfluenceRules module + scorer integration, depends on Plan-01 Level + Plan-02 LevelBus population)
+- **Wave 4**: Plan-04 (TradeDecisionMachine FSM + execution integration, depends on Plan-03 ConfluenceAnnotations)
+- **Wave 5**: Plan-05 (comprehensive test suite — fixtures, golden files, FSM reachability)
+
+Previous draft grouped 15-01 + 15-02 into Wave 1 as parallel; plan-checker flagged C1 — 15-02 imports LevelFactory + LevelBus concretely from 15-01, so parallel execution is impossible. All five plans run sequentially.
 
 5 plans. Research calibration sweep deferred to Phase 7 extension (not a plan here).
 </specifics>
