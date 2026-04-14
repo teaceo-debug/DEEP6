@@ -83,7 +83,7 @@ function ColSep() {
 }
 
 export default function Home() {
-  useWebSocket(
+  const { reconnectNow } = useWebSocket(
     process.env.NEXT_PUBLIC_WS_URL ?? 'ws://localhost:8000/ws/live',
   );
   useReplayController();
@@ -106,7 +106,7 @@ export default function Home() {
       <HeaderStrip />
 
       {/* Error banner — absolute overlay at top:44px, does NOT push content */}
-      <ErrorBanner />
+      <ErrorBanner reconnectNow={reconnectNow} />
 
       {/* Main 3-column asymmetric region — flex-1 | 360px hero | 320px right */}
       <main
