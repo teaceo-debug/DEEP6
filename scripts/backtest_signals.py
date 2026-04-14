@@ -22,6 +22,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from deep6.state.footprint import FootprintBar
 from deep6.engines.narrative import classify_bar, NarrativeType
 from deep6.engines.signal_config import AbsorptionConfig, ExhaustionConfig, ScorerConfig
+from deep6.backtest.triple_barrier import compute_triple_barrier, ExitReason
+import numpy as np
 from deep6.engines.delta import DeltaEngine
 from deep6.engines.auction import AuctionEngine
 from deep6.engines.poc import POCEngine
@@ -129,6 +131,11 @@ def run_backtest(bars: list[FootprintBar]) -> list[dict]:
     HMM_REFIT_EVERY = 120
     current_regime_label = "ABSORPTION_FRIENDLY"
 
+    # Pre-compute OHLC arrays for triple barrier computation
+    highs_arr = np.array([b.high for b in bars])
+    lows_arr = np.array([b.low for b in bars])
+    closes_arr = np.array([b.close for b in bars])
+
     for i, bar in enumerate(bars):
         if i > 0:
             vol_ema = vol_ema * 0.95 + bar.total_vol * 0.05
@@ -213,6 +220,29 @@ def run_backtest(bars: list[FootprintBar]) -> list[dict]:
         is_trade = result.tier != SignalTier.QUIET
         cost = COST_PER_TRADE if is_trade else 0.0
 
+        # Triple barrier P&L (replaces fixed N-bar P&L for tradeable signals)
+        tb_pnl = 0.0
+        tb_r = 0.0
+        tb_bars = 0
+        tb_reason = ""
+        tb_mfe = 0.0  # max favorable excursion (R)
+        tb_mae = 0.0  # max adverse excursion (R)
+        if result.tier != SignalTier.QUIET and result.direction != 0 and i + 1 < len(bars):
+            try:
+                trade = compute_triple_barrier(
+                    highs=highs_arr, lows=lows_arr, closes=closes_arr,
+                    entry_bar=i, direction=result.direction, atr=atr,
+                    stop_atr_mult=0.8, target_atr_mult=1.5, max_hold_bars=15,
+                )
+                tb_pnl = trade.pnl_points
+                tb_r = trade.r_multiple
+                tb_bars = trade.bars_held
+                tb_reason = trade.exit_reason.value
+                tb_mfe = trade.max_favorable
+                tb_mae = trade.max_adverse
+            except Exception:
+                pass
+
         # HMM regime — fit on accumulated rows, then predict
         if hmm is not None:
             if i >= HMM_WARMUP_BARS and (
@@ -273,6 +303,12 @@ def run_backtest(bars: list[FootprintBar]) -> list[dict]:
             "pnl_1bar": round(raw_pnl_1 - cost, 2),
             "pnl_3bar": round(raw_pnl_3 - cost, 2),
             "pnl_5bar": round(raw_pnl_5 - cost, 2),
+            "pnl_tb": round(tb_pnl - cost if tb_bars > 0 else 0, 2),
+            "r_multiple": round(tb_r, 3),
+            "tb_bars": tb_bars,
+            "tb_reason": tb_reason,
+            "tb_mfe": round(tb_mfe, 3),
+            "tb_mae": round(tb_mae, 3),
         })
 
         # Update caller-maintained state AFTER processing the bar
@@ -383,6 +419,26 @@ def main():
             win_pct = d["wins_3"] / n * 100 if n > 0 else 0
             print(f"{tier_name:<10} {n:>6} {pct:>5.1f}% {d['pnl_1']:>+10.2f} "
                   f"{d['pnl_3']:>+10.2f} {d['pnl_5']:>+10.2f} {win_pct:>9.1f}%")
+
+    # Triple barrier summary
+    tb_trades = [r for r in results if r["tb_bars"] > 0 and r["tier"] != "QUIET"]
+    if tb_trades:
+        print(f"\n=== TRIPLE BARRIER RESULTS ===")
+        for tier_name in ["TYPE_A", "TYPE_B", "TYPE_C"]:
+            tier_trades = [r for r in tb_trades if r["tier"] == tier_name]
+            if not tier_trades:
+                continue
+            n = len(tier_trades)
+            total_pnl = sum(r["pnl_tb"] for r in tier_trades)
+            wins = sum(1 for r in tier_trades if r["pnl_tb"] > 0)
+            avg_r = sum(r["r_multiple"] for r in tier_trades) / n
+            avg_bars = sum(r["tb_bars"] for r in tier_trades) / n
+            # Exit reason breakdown
+            reasons = {}
+            for r in tier_trades:
+                reasons[r["tb_reason"]] = reasons.get(r["tb_reason"], 0) + 1
+            print(f"{tier_name}: n={n} win%={wins/n*100:.0f}% total_pnl={total_pnl:+.1f} avg_r={avg_r:+.2f} avg_bars={avg_bars:.1f}")
+            print(f"  exits: {reasons}")
 
     # Top signals by P&L
     scored = [r for r in results if r["tier"] != "QUIET"]
