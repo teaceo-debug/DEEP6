@@ -24,6 +24,7 @@ from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from deep6.api.store import EventStore
 from deep6.api.routes import events as events_router
@@ -59,6 +60,14 @@ def create_app() -> FastAPI:
         description="Signal event ingestion, ML weight management, and regime detection API",
         version="0.1.0",
         lifespan=lifespan,
+    )
+
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=["http://localhost:3000", "http://localhost:3001"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
 
     # Mount routers
