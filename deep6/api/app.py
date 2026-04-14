@@ -31,6 +31,7 @@ from deep6.api.routes import weights as weights_router
 from deep6.api.routes import metrics as metrics_router
 from deep6.api.routes import sweep as sweep_router
 from deep6.api.routes import ws as ws_router_module
+from deep6.api.routes import backtest as backtest_router_module
 
 
 @asynccontextmanager
@@ -66,6 +67,7 @@ def create_app() -> FastAPI:
     application.include_router(metrics_router.router)
     application.include_router(sweep_router.router)
     application.include_router(ws_router_module.router)
+    application.include_router(backtest_router_module.router)
 
     @application.get("/health", tags=["health"])
     async def health() -> dict:
