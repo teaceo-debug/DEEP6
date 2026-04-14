@@ -180,8 +180,8 @@ Plans:
 Plans:
 - [x] 09-01-PLAN.md — FastAPI app factory + EventStore (aiosqlite signal_events + trade_events)
 - [x] 09-02-PLAN.md — LightGBM meta-learner + HMM regime detector (3-state Gaussian)
-- [ ] 09-03-PLAN.md — Optuna sweep endpoint + full weight deploy gate (WFE + OOS count + token)
-- [ ] 09-04-PLAN.md — PerformanceTracker + E7 wiring + test suite
+- [x] 09-03-PLAN.md — Optuna sweep endpoint + full weight deploy gate (WFE + OOS count + token)
+- [x] 09-04-PLAN.md — PerformanceTracker + E7 wiring + test suite
 
 ### Phase 10: Analytics Dashboard
 **Goal**: Next.js 15 dashboard provides real-time signal monitoring, signal performance analytics, regime visualization, ML parameter evolution, zone analysis, footprint chart rendering, and full session replay — all backed by WebSocket from FastAPI.
