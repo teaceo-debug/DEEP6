@@ -1,34 +1,20 @@
+'use client';
+import { useWebSocket } from '@/hooks/useWebSocket';
+import { HeaderStrip } from '@/components/layout/HeaderStrip';
+
 export default function Home() {
+  useWebSocket(
+    process.env.NEXT_PUBLIC_WS_URL ?? 'ws://localhost:8000/ws/live',
+  );
+
   return (
     <main className="h-screen w-screen flex flex-col" style={{ background: 'var(--bg-base)' }}>
-      {/* Header strip — 40px */}
-      <header
-        className="flex items-center px-4 gap-4 text-[13px] shrink-0"
-        style={{
-          height: '40px',
-          background: 'var(--bg-surface)',
-          borderBottom: '1px solid var(--border-subtle)',
-        }}
-      >
-        <span className="font-semibold" style={{ color: 'var(--foreground-strong)', fontFamily: 'var(--font-sans)' }}>DEEP6</span>
-        <span className="font-semibold" style={{ color: 'var(--foreground)' }}>NQ</span>
-        <span className="font-semibold" style={{ fontFamily: 'var(--font-mono)', color: 'var(--foreground-strong)' }}>—</span>
-        <span style={{ color: 'var(--muted)' }}>|</span>
-        <span style={{ color: 'var(--muted)' }}>E10</span>
-        <span className="font-semibold" style={{ color: 'var(--foreground)' }}>—</span>
-        <span style={{ color: 'var(--muted)' }}>|</span>
-        <span style={{ color: 'var(--muted)' }}>GEX</span>
-        <span className="font-semibold" style={{ color: 'var(--foreground)' }}>—</span>
-        <span
-          className="ml-auto rounded-full"
-          style={{ width: '8px', height: '8px', background: 'var(--muted)' }}
-          aria-label="connection status"
-        />
-      </header>
+      {/* Header strip — 40px — driven by store */}
+      <HeaderStrip />
 
       {/* Main 3-column region */}
       <div className="flex-1 flex min-h-0">
-        {/* Footprint chart — flex 1 */}
+        {/* Footprint chart — flex 1 (Task 2 replaces this) */}
         <section
           className="flex-1 flex items-center justify-center text-[13px]"
           style={{
@@ -37,11 +23,12 @@ export default function Home() {
             borderRight: '1px solid var(--border-subtle)',
             color: 'var(--muted)',
           }}
+          id="footprint-placeholder"
         >
           Footprint (Wave 2)
         </section>
 
-        {/* Signal feed + T&S — 320px */}
+        {/* Signal feed + T&S — 320px (Task 3 replaces this) */}
         <section
           className="flex flex-col shrink-0"
           style={{
@@ -65,7 +52,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Score widget — 240px */}
+        {/* Score widget — 240px (Task 3 replaces this) */}
         <section
           className="shrink-0 p-4 text-[13px]"
           style={{
@@ -78,7 +65,7 @@ export default function Home() {
         </section>
       </div>
 
-      {/* Replay controls strip — 48px */}
+      {/* Replay controls strip — 48px (Wave 3 replaces this) */}
       <footer
         className="flex items-center px-4 gap-2 text-[13px] shrink-0"
         style={{
