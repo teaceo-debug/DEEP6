@@ -75,6 +75,29 @@ CREATE TABLE IF NOT EXISTS setup_transitions (
 )
 """
 
+# Phase 12-05: walk_forward_outcomes — one row per resolved (or EXPIRED) signal
+# outcome. Sliced by (category, regime, direction) at entry; labeled CORRECT /
+# INCORRECT / NEUTRAL / EXPIRED at bar_index + horizon (5/10/20). EXPIRED rows
+# are excluded from rolling-Sharpe statistics (signals fired within the last
+# `horizon` bars of the RTH session — see 12-CONTEXT.md FOOTGUN 1).
+WALK_FORWARD_OUTCOMES_SCHEMA = """
+CREATE TABLE IF NOT EXISTS walk_forward_outcomes (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    signal_event_id INTEGER,
+    category        TEXT NOT NULL,
+    regime          TEXT NOT NULL,
+    direction       TEXT NOT NULL,
+    entry_price     REAL NOT NULL,
+    entry_bar_index INTEGER NOT NULL,
+    session_id      TEXT NOT NULL,
+    horizon         INTEGER NOT NULL,
+    outcome_label   TEXT NOT NULL,
+    pnl_ticks       REAL NOT NULL,
+    resolved_at_ts  REAL NOT NULL,
+    inserted_at     REAL NOT NULL
+)
+"""
+
 # Closed trade event types — used by count_oos_trades_per_signal
 _CLOSED_TYPES = ("'STOP_HIT'", "'TARGET_HIT'", "'TIMEOUT_EXIT'", "'MANUAL_EXIT'")
 _CLOSED_IN = f"({', '.join(_CLOSED_TYPES)})"
@@ -108,12 +131,14 @@ class EventStore:
             await self._mem_conn.execute(SIGNAL_EVENTS_SCHEMA)
             await self._mem_conn.execute(TRADE_EVENTS_SCHEMA)
             await self._mem_conn.execute(SETUP_TRANSITIONS_SCHEMA)
+            await self._mem_conn.execute(WALK_FORWARD_OUTCOMES_SCHEMA)
             await self._mem_conn.commit()
         else:
             async with aiosqlite.connect(self.db_path) as db:
                 await db.execute(SIGNAL_EVENTS_SCHEMA)
                 await db.execute(TRADE_EVENTS_SCHEMA)
                 await db.execute(SETUP_TRANSITIONS_SCHEMA)
+                await db.execute(WALK_FORWARD_OUTCOMES_SCHEMA)
                 await db.commit()
 
     def _conn(self):
@@ -310,6 +335,92 @@ class EventStore:
         async with self._conn() as db:
             db.row_factory = aiosqlite.Row
             async with db.execute(sql, (session_start_ts, session_end_ts)) as cursor:
+                rows = await cursor.fetchall()
+                return [dict(row) for row in rows]
+
+    # ------------------------------------------------------------------
+    # Phase 12-05: walk_forward_outcomes persistence
+    # ------------------------------------------------------------------
+
+    async def record_walk_forward_outcome(
+        self,
+        category: str,
+        regime: str,
+        direction: str,
+        entry_price: float,
+        entry_bar_index: int,
+        session_id: str,
+        horizon: int,
+        outcome_label: str,
+        pnl_ticks: float,
+        resolved_at_ts: float | None = None,
+        signal_event_id: int | None = None,
+    ) -> int:
+        """Append a resolved walk-forward outcome row.
+
+        One row per (signal, horizon) resolution. ``outcome_label`` is one of
+        CORRECT / INCORRECT / NEUTRAL / EXPIRED. EXPIRED rows are kept on disk
+        for forensics but are excluded from rolling-Sharpe computations by the
+        WalkForwardTracker (see phase 12-05 FOOTGUN 1).
+        """
+        now = time.time()
+        ts_val = resolved_at_ts if resolved_at_ts is not None else now
+        async with self._conn() as db:
+            cursor = await db.execute(
+                """
+                INSERT INTO walk_forward_outcomes
+                    (signal_event_id, category, regime, direction,
+                     entry_price, entry_bar_index, session_id, horizon,
+                     outcome_label, pnl_ticks, resolved_at_ts, inserted_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    signal_event_id,
+                    category,
+                    regime,
+                    direction,
+                    float(entry_price),
+                    int(entry_bar_index),
+                    session_id,
+                    int(horizon),
+                    outcome_label,
+                    float(pnl_ticks),
+                    float(ts_val),
+                    now,
+                ),
+            )
+            await db.commit()
+            return cursor.lastrowid  # type: ignore[return-value]
+
+    async def query_walk_forward_outcomes(
+        self,
+        category: str | None = None,
+        regime: str | None = None,
+        limit: int = 500,
+    ) -> list[dict]:
+        """Fetch walk-forward outcomes, newest first.
+
+        Optional filters by category and/or regime. Used by WalkForwardTracker
+        for cold-start Sharpe recomputation after process restart and by the
+        phase-11 analytics dashboard for per-cell performance views.
+        """
+        clauses: list[str] = []
+        params: list = []
+        if category is not None:
+            clauses.append("category = ?")
+            params.append(category)
+        if regime is not None:
+            clauses.append("regime = ?")
+            params.append(regime)
+        where = f" WHERE {' AND '.join(clauses)}" if clauses else ""
+        sql = (
+            f"SELECT * FROM walk_forward_outcomes{where} "
+            f"ORDER BY resolved_at_ts DESC, id DESC LIMIT ?"
+        )
+        params.append(limit)
+        async with self._conn() as db:
+            db.row_factory = aiosqlite.Row
+            async with db.execute(sql, tuple(params)) as cursor:
                 rows = await cursor.fetchall()
                 return [dict(row) for row in rows]
 
