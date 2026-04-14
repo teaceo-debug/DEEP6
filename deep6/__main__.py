@@ -189,8 +189,9 @@ async def main(config: Config) -> None:
     try:
         # Wait either for all long-running tasks to exit or for the shutdown
         # event to be set by a signal handler.
-        gather_task = asyncio.create_task(
-            asyncio.gather(*tasks, return_exceptions=True), name="main_gather"
+        # asyncio.gather returns a _GatheringFuture, not a coroutine — use ensure_future.
+        gather_task = asyncio.ensure_future(
+            asyncio.gather(*tasks, return_exceptions=True)
         )
         shutdown_wait = asyncio.create_task(_shutdown_event.wait(), name="shutdown_wait")
         done, _pending = await asyncio.wait(
