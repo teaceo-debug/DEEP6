@@ -21,6 +21,7 @@ from deep6.state.persistence import SessionPersistence
 from deep6.signals.atr import ATRTracker
 from deep6.orderflow.vpin import VPINEngine
 from deep6.orderflow.slingshot import SlingshotDetector, SlingshotResult
+from deep6.orderflow.setup_tracker import SetupTracker, SetupTransition
 from deep6.signals.flags import SignalFlags
 
 
@@ -84,6 +85,23 @@ class SharedState:
     # GEX engine is wired. Signature: () -> float | None. None when GEX
     # context is unavailable, which degrades slingshot to no-bypass firing.
     gex_distance_provider: Callable | None = field(default=None, repr=False)
+
+    # Phase 12-04: setup state machines — one per timeframe, independent.
+    # Consume ScorerResult + SlingshotResult via feed_scorer_result() and
+    # are the sole path by which setup transitions are emitted into the
+    # EventStore (below). close_trade() routes by setup_id prefix.
+    setup_tracker_1m: SetupTracker = field(
+        default_factory=lambda: SetupTracker(timeframe="1m")
+    )
+    setup_tracker_5m: SetupTracker = field(
+        default_factory=lambda: SetupTracker(timeframe="5m")
+    )
+
+    # Optional EventStore handle — when set (e.g. in the FastAPI lifespan),
+    # setup transitions are persisted via record_setup_transition. None is
+    # fine for tests and offline harnesses: transitions still fire through
+    # the trackers, they just aren't written to disk.
+    event_store: object | None = field(default=None, repr=False)
 
     # Optional on_bar_close override (set by signal pipeline in Phase 2+)
     _on_bar_close_fn: Callable | None = field(default=None, repr=False)
@@ -170,6 +188,98 @@ class SharedState:
             self.last_slingshot_5m = result
 
         return int(SignalFlags.TRAP_SHOT) if result.fired else 0
+
+    async def feed_scorer_result(
+        self,
+        label: str,
+        scorer_result,
+        slingshot_result,
+        current_bar_index: int,
+    ) -> SetupTransition | None:
+        """Drive the setup state machine for a given timeframe.
+
+        Called by downstream scoring code after it has produced a ScorerResult
+        and the bar-close path has populated ``last_slingshot_*``. If the
+        tracker emits a transition, it is persisted to the EventStore when
+        one is attached.
+
+        Phase 12-04 wiring. Keeping this as its own entry point (rather than
+        inlining into on_bar_close) preserves the ability to run the state
+        machine from offline replay harnesses, backtests, and unit tests
+        without needing the full bar-close dispatch.
+        """
+        tracker = self._tracker_for(label)
+        if tracker is None:
+            return None
+
+        transition = tracker.update(
+            scorer_result, slingshot_result, current_bar_index
+        )
+        if transition is not None and self.event_store is not None:
+            await self._persist_transition(transition)
+        return transition
+
+    def close_trade(
+        self, setup_id: str, outcome: str = "CLOSED"
+    ) -> SetupTransition | None:
+        """Route a close-trade event to the correct tracker by setup_id prefix.
+
+        Called from the execution layer (PaperTrader / RithmicExecutor) on
+        trade close. ``setup_id`` is guaranteed to be prefixed ``1m-`` or
+        ``5m-`` because SetupTracker._new_setup_id builds it that way; any
+        other prefix is a routing bug and returns None (defensive no-op).
+        """
+        if setup_id.startswith("1m-"):
+            tracker = self.setup_tracker_1m
+        elif setup_id.startswith("5m-"):
+            tracker = self.setup_tracker_5m
+        else:
+            return None
+
+        transition = tracker.close_trade(setup_id, outcome)
+        if transition is not None and self.event_store is not None:
+            # Schedule the persistence without awaiting — close_trade is a
+            # synchronous call site (execution layer). If the caller has an
+            # event loop running, the task completes opportunistically.
+            try:
+                loop = asyncio.get_running_loop()
+                loop.create_task(self._persist_transition(transition))
+            except RuntimeError:
+                # No running loop — callers outside an event loop can still
+                # close trades; the transition just isn't persisted. This
+                # matches behaviour in unit-test harnesses.
+                pass
+        return transition
+
+    def _tracker_for(self, label: str) -> SetupTracker | None:
+        if label == "1m":
+            return self.setup_tracker_1m
+        if label == "5m":
+            return self.setup_tracker_5m
+        return None
+
+    async def _persist_transition(self, tr: SetupTransition) -> None:
+        """Write a SetupTransition to the EventStore. Must never raise into
+        the bar-close path — failures are logged and swallowed."""
+        import structlog
+        log = structlog.get_logger()
+        try:
+            await self.event_store.record_setup_transition(  # type: ignore[union-attr]
+                timeframe=tr.timeframe,
+                setup_id=tr.setup_id,
+                from_state=tr.from_state,
+                to_state=tr.to_state,
+                trigger=tr.trigger,
+                weight=tr.weight,
+                bar_index=tr.bar_index,
+                ts=tr.ts,
+            )
+        except Exception:
+            log.exception(
+                "setup_transition.persist_failed",
+                timeframe=tr.timeframe,
+                setup_id=tr.setup_id,
+            )
 
     def on_session_reset(self) -> None:
         """Hook invoked at RTH session open (9:30 ET) by SessionManager.
