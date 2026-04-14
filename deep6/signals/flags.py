@@ -107,3 +107,15 @@ class SignalFlags(IntFlag):
     # -----------------------------------------------------------------------
     VOLP_SEQUENCING = 1 << 42  # VOLP-01: institutional accumulation/distribution pattern
     VOLP_BUBBLE     = 1 << 43  # VOLP-02: isolated high-volume price level (volume bubble)
+
+    # -----------------------------------------------------------------------
+    # Phase 12 additions (bits 44+) — borrowed orderflow patterns
+    # -----------------------------------------------------------------------
+    # TRAP_SHOT: multi-bar trapped-trader reversal — 2/3/4-bar variants with
+    # z-score > 2.0 over a session-bounded delta history window. DIFFERENT
+    # pattern from DELT_SLINGSHOT (bit 28, intra-bar compressed→explosive);
+    # the two coexist. When firing within GEX-wall proximity, the detector
+    # emits triggers_state_bypass=True so the setup state machine (phase
+    # 12-04) can jump SCANNING→TRIGGERED directly. See
+    # .planning/phases/12-*/12-CONTEXT.md for locked decisions.
+    TRAP_SHOT       = 1 << 44  # OFP-02: multi-bar trapped-trader reversal (new phase 12-03)
