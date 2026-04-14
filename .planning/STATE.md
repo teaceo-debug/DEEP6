@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 11.2-02-PLAN.md
-last_updated: "2026-04-14T12:23:58.993Z"
+stopped_at: Completed 11.2-03-PLAN.md
+last_updated: "2026-04-14T12:28:17Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 17
@@ -76,6 +76,7 @@ Progress: [░░░░░░░░░░] 2%
 | Phase 15 P02 | 15 | 2 tasks | 3 files |
 | Phase 11.2 P01 | 3 | 3 tasks | 9 files |
 | Phase 11.2 P02 | 4 | 2 tasks | 7 files |
+| Phase 11.2 P03 | 8 | 2 tasks | 3 files |
 
 ## Quick Tasks Completed
 
@@ -135,6 +136,9 @@ Recent decisions affecting current work:
 - [Phase 11.2]: foreignObject for SVG inner core text — enables CSS classes (.text-display, .tnum, .glow-lime) inside SVG without SVG text attribute workarounds
 - [Phase 11.2]: typeAFlashKeyframes uses explicit type annotations not as-const — Motion TargetAndTransition requires mutable arrays, not readonly tuples
 - [Phase 11.2]: arc firing derived from categoriesFiring[] string array — store does not expose raw signalFlags bitmask; all arcs in a category ignite together
+- [Phase 11.2]: 11.2-03: volume normalization uses max(bid+ask) across all rows in bar for proportional visual weight per level
+- [Phase 11.2]: 11.2-03: imbalance bloom via two-draw (glow layer + crisp bar) rather than canvas filter — broader browser compat, no filter state leak
+- [Phase 11.2]: 11.2-03: ZoneOverlay.tsx unchanged — all color logic lives in zoneDrawer.ts; EXHAUSTION+VAH/VAL added to ZONE_STYLES for forward-compat
 
 ### Roadmap Evolution
 
@@ -156,6 +160,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-14T12:23:51.325Z
-Stopped at: Completed 11.2-02-PLAN.md
+Last session: 2026-04-14T12:28:17Z
+Stopped at: Completed 11.2-03-PLAN.md
 Resume file: None
