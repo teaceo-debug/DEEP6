@@ -55,7 +55,7 @@ export default function DashboardPage() {
   const regime = useLiveStore((s) => s.regime)
   const dailyPnl = useLiveStore((s) => s.dailyPnl)
 
-  // Keyboard shortcuts: L → live, B → backtest
+  // Keyboard shortcuts: L → live, B → backtest, R → run backtest (handled by BacktestConfig via isActive)
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       // Skip if focus is in an input/textarea
@@ -63,6 +63,7 @@ export default function DashboardPage() {
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return
       if (e.key === "l" || e.key === "L") setTab("live")
       if (e.key === "b" || e.key === "B") setTab("backtest")
+      // R is handled inside BacktestConfig when isActive=true
     }
     document.addEventListener("keydown", handler)
     return () => document.removeEventListener("keydown", handler)
@@ -126,7 +127,7 @@ export default function DashboardPage() {
             <LiveTab />
           </TabsContent>
           <TabsContent value="backtest" className="flex-1 mt-0">
-            <BacktestTab />
+            <BacktestTab isActive={tab === "backtest"} />
           </TabsContent>
         </Tabs>
       </main>
