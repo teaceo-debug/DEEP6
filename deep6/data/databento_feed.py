@@ -56,9 +56,9 @@ class DatabentoFeed:
             end=end,
         )
 
-        current_bar = FootprintBar(tick_size=tick_size)
+        current_bar = FootprintBar()
         current_boundary = None
-        bar_count = 0
+        prior_cvd = 0
 
         for record in data:
             price = record.price / 1e9
@@ -67,34 +67,25 @@ class DatabentoFeed:
             ts_ns = record.ts_event
             ts = datetime.fromtimestamp(ts_ns / 1e9, tz=timezone.utc)
 
-            # Determine bar boundary
             bar_epoch = int(ts.timestamp()) // bar_seconds * bar_seconds
             if current_boundary is None:
                 current_boundary = bar_epoch
-                current_bar.open_time = datetime.fromtimestamp(bar_epoch, tz=timezone.utc)
+                current_bar.timestamp = float(bar_epoch)
 
-            # Bar closed — finalize and yield
             if bar_epoch > current_boundary:
-                current_bar.close_time = datetime.fromtimestamp(current_boundary + bar_seconds, tz=timezone.utc)
-                current_bar.finalize()
-                bar_count += 1
+                current_bar.finalize(prior_cvd=prior_cvd)
+                prior_cvd = current_bar.cvd
                 yield current_bar
 
-                # Start new bar
-                current_bar = FootprintBar(tick_size=tick_size)
-                current_bar.open_time = datetime.fromtimestamp(bar_epoch, tz=timezone.utc)
+                current_bar = FootprintBar()
+                current_bar.timestamp = float(bar_epoch)
                 current_boundary = bar_epoch
 
-            # Accumulate trade into footprint
             # Databento: A=ask aggressor (buyer), B=bid aggressor (seller)
             # FootprintBar: 1=BUY (ask aggressor), 2=SELL (bid aggressor)
             aggressor = 1 if side == "A" else 2
             current_bar.add_trade(price, size, aggressor)
 
-        # Yield final partial bar if it has data
-        if current_bar.total_volume > 0:
-            current_bar.close_time = datetime.fromtimestamp(
-                (current_boundary or 0) + bar_seconds, tz=timezone.utc
-            )
-            current_bar.finalize()
+        if current_bar.total_vol > 0:
+            current_bar.finalize(prior_cvd=prior_cvd)
             yield current_bar

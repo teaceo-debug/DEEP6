@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 2 context gathered
-last_updated: "2026-04-13T22:59:31.624Z"
-last_activity: 2026-04-13
+stopped_at: Phase 11 UI-SPEC approved
+last_updated: "2026-04-13T23:58:16.183Z"
+last_activity: 2026-04-13 -- Phase 09 execution started
 progress:
-  total_phases: 11
+  total_phases: 12
   completed_phases: 5
-  total_plans: 27
-  completed_plans: 23
-  percent: 85
+  total_plans: 31
+  completed_plans: 26
+  percent: 84
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-13)
 
 **Core value:** Detect absorption and exhaustion with the highest accuracy of any footprint system ever built, and auto-execute trades via direct Rithmic orders — all in Python, running on macOS.
-**Current focus:** Phase 08 — auto-execution-risk-layer
+**Current focus:** Phase 09 — ml-backend
 
 ## Current Position
 
-Phase: 9
-Plan: Not started
-Status: Executing Phase 08
-Last activity: 2026-04-13
+Phase: 09 (ml-backend) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 09
+Last activity: 2026-04-13 -- Phase 09 execution started
 
 Progress: [░░░░░░░░░░] 2%
 
@@ -61,6 +61,12 @@ Progress: [░░░░░░░░░░] 2%
 | Phase 01-data-pipeline-architecture-foundation P02 | 229 | 2 tasks | 4 files |
 | Phase 01 P03 | 25 | 2 tasks | 4 files |
 
+## Quick Tasks Completed
+
+| ID | Date | Description | Files |
+|----|------|-------------|-------|
+| 260413-s1d | 2026-04-14 | Fix databento_feed.py attribute bugs (total_vol, tick_size kwarg, open_time/close_time, CVD chain) | deep6/data/databento_feed.py |
+
 ## Accumulated Context
 
 ### Decisions
@@ -82,6 +88,10 @@ Recent decisions affecting current work:
 - [Phase 01]: FreezeGuard._state is private string; is_frozen returns True for both FROZEN and RECONNECTING states — no partial bar processing during any part of reconnect cycle
 - [Phase 01]: SharedState.build() is the single assembly entry point; persistence.initialize() called separately in async context before first use
 
+### Roadmap Evolution
+
+- Phase 12 added: Integrate borrowed orderflow patterns: VPIN confidence modifier, Delta Slingshot, Delta At Extreme, setup state machine, per-regime walk-forward tracker
+
 ### Pending Todos
 
 None yet.
@@ -94,6 +104,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-13T16:45:51.947Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-absorption-exhaustion-core/02-CONTEXT.md
+Last session: 2026-04-13T23:58:16.180Z
+Stopped at: Phase 11 UI-SPEC approved
+Resume file: .planning/phases/11-deep6-trading-web-app/11-UI-SPEC.md
