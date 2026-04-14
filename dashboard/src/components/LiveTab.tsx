@@ -7,36 +7,42 @@
  *
  * ┌─────────────────────────────────────────────────────────┐
  * │ CHART AREA (flex-1, ~70%)    │ RIGHT PANEL (w-80, 320px) │
- * │ id="footprint-chart-mount"   │ <RegimePanel />           │
- * │ Plan 04 mounts LW Charts here│ <SignalFeed />            │
+ * │ <FootprintChart />           │ <RegimePanel />           │
+ * │ LW Charts v5.1 custom series │ <SignalFeed />            │
  * ├─────────────────────────────────────────────────────────┤
  * │ BOTTOM PANEL — <PositionPanel />                        │
  * └─────────────────────────────────────────────────────────┘
  *
- * Chart mount div: exact id="footprint-chart-mount" required by Plan 04.
+ * FootprintChart uses dynamic import with ssr: false — LW Charts requires
+ * browser APIs (ResizeObserver, canvas) unavailable during SSR.
  */
 
+import dynamic from "next/dynamic"
 import RegimePanel from "@/components/RegimePanel"
 import SignalFeed from "@/components/SignalFeed"
 import PositionPanel from "@/components/PositionPanel"
+
+// ssr: false required — LW Charts uses ResizeObserver and canvas (browser-only)
+const FootprintChart = dynamic(() => import("./FootprintChart"), {
+  ssr: false,
+  loading: () => (
+    <div className="absolute inset-0 flex items-center justify-center">
+      <div className="text-center text-zinc-700">
+        <div className="text-xs tracking-widest mb-1">FOOTPRINT CHART</div>
+        <div className="text-[10px]">Loading Lightweight Charts...</div>
+      </div>
+    </div>
+  ),
+})
 
 export default function LiveTab() {
   return (
     <div className="flex flex-col h-full p-3 gap-3">
       {/* Main row: chart + right panel */}
       <div className="flex flex-1 gap-3 min-h-0">
-        {/* Chart area — Plan 04 mounts Lightweight Charts here */}
-        <div
-          id="footprint-chart-mount"
-          className="flex-1 bg-zinc-900 rounded-lg min-h-[500px] relative border border-zinc-800"
-        >
-          {/* Placeholder text — Plan 04 will replace with LW Charts canvas */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center text-zinc-700">
-              <div className="text-xs tracking-widest mb-1">FOOTPRINT CHART</div>
-              <div className="text-[10px]">Plan 04 — Lightweight Charts mount point</div>
-            </div>
-          </div>
+        {/* Chart area — FootprintChart mounts LW Charts canvas here */}
+        <div className="flex-1 bg-zinc-900 rounded-lg min-h-[500px] relative border border-zinc-800">
+          <FootprintChart />
         </div>
 
         {/* Right panel: RegimePanel + SignalFeed */}
