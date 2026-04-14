@@ -72,7 +72,12 @@ class SharedState:
     # Fed inside on_bar_close BEFORE the scorer runs; modifier is read by
     # downstream scorer invocations as a final-stage multiplier on the fused
     # total_score.
-    vpin: VPINEngine = field(default_factory=VPINEngine)
+    # bucket_volume/warmup_buckets tuned from real-MBO burn-in (12-BURNIN-REAL.md):
+    # at bucket_volume=1000 the percentile saturated on real NQ volumes (2-6k/bar),
+    # pinning the modifier below the 1.20 uplift. 2000 restores full 0.2-1.2 range.
+    vpin: VPINEngine = field(
+        default_factory=lambda: VPINEngine(bucket_volume=2000, warmup_buckets=20)
+    )
 
     # Slingshot detectors (phase 12-03, TRAP_SHOT @ bit 44) — independent
     # 1m and 5m instances. Each maintains its own delta_history; both reset
