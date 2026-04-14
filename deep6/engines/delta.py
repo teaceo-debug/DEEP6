@@ -54,6 +54,25 @@ class DeltaSignal:
     detail: str
 
 
+@dataclass
+class DeltaResult:
+    """Bundled engine output: the emitted signals plus the bar-quality scalar.
+
+    delta_quality is orthogonal to VPIN — applies to delta-family signals ONLY
+    (bits 21-32). Consumers MUST check DELTA_FAMILY_BITS before multiplying.
+    Added in Plan 12-02 alongside the DELT_TAIL intrabar-extreme fix.
+    """
+    signals: list["DeltaSignal"]
+    delta_quality: float = 1.0
+
+
+# Whitelist of SignalFlags bit positions that may consume delta_quality.
+# Covers DELT-01..DELT-11 (bits 21-31) + CVD VELOCITY (bit 32 reserved in plan).
+# DO NOT extend to absorption/exhaustion/imbalance — those have their own quality
+# domain. Stacking delta_quality across unrelated signals is a P0 bug.
+DELTA_FAMILY_BITS: frozenset[int] = frozenset({21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32})
+
+
 class DeltaEngine:
     """Stateful delta engine tracking CVD, session extremes, and history."""
 
@@ -73,6 +92,18 @@ class DeltaEngine:
         self.session_cvd_min = 0.0
         self.session_cvd_max = 0.0
         self.bar_count = 0
+
+    def process_with_quality(self, bar: FootprintBar) -> DeltaResult:
+        """Process bar and return DeltaResult with delta_quality scalar.
+
+        Plan 12-02: non-breaking alternative to process() for consumers that need
+        the intrabar delta-quality scalar (1.15 closing-at-extreme / 0.7 faded / linear).
+        The scalar applies ONLY to delta-family bits (see DELTA_FAMILY_BITS).
+
+        Existing process() callers are unchanged — they receive just the signal list.
+        """
+        signals = self.process(bar)
+        return DeltaResult(signals=signals, delta_quality=bar.delta_quality_scalar())
 
     def process(self, bar: FootprintBar) -> list[DeltaSignal]:
         signals: list[DeltaSignal] = []
@@ -106,15 +137,31 @@ class DeltaEngine:
                 f"DELTA DROP: {delta:+d} ({abs(delta)/bar.total_vol*100:.0f}% of vol)",
             ))
 
-        # --- 2. TAIL (DELT-02) ---
-        # Delta at tail_threshold+ of its extreme within bar
-        if bar.total_vol > 0:
-            delta_ratio = abs(delta) / bar.total_vol
-            if delta_ratio >= cfg.tail_threshold:
-                direction = +1 if delta > 0 else -1
+        # --- 2. TAIL (DELT-02) — Plan 12-02: TRUE intrabar extreme (no more bar-geometry proxy) ---
+        # Fires iff bar closes within tail_threshold (default 0.95) of its intrabar max_delta
+        # (positive) or min_delta (negative). Consumes FootprintBar.max_delta / min_delta
+        # which are now updated live by add_trade() (Plan 12-02 Task 1).
+        #
+        # FOOTGUN 3 guard: if the matching extreme is 0 (e.g., uninstrumented legacy bar or
+        # trivial case where first-ever trade sets the extreme), treat it as equal to
+        # bar_delta — conservative closing-at-trivial-extreme ratio of 1.0.
+        if delta > 0:
+            extreme = bar.max_delta if bar.max_delta > 0 else delta
+            tail_ratio = delta / extreme if extreme > 0 else 0.0
+            if tail_ratio >= cfg.tail_threshold:
                 signals.append(DeltaSignal(
-                    DeltaType.TAIL, direction, delta_ratio, delta,
-                    f"DELTA TAIL: {delta_ratio*100:.0f}% at extreme — strong conviction",
+                    DeltaType.TAIL, +1, tail_ratio, delta,
+                    f"DELTA TAIL: closed at {tail_ratio*100:.0f}% of intrabar max "
+                    f"({delta:+d}/{extreme:+d}) — strong conviction",
+                ))
+        elif delta < 0:
+            extreme = bar.min_delta if bar.min_delta < 0 else delta
+            tail_ratio = delta / extreme if extreme < 0 else 0.0
+            if tail_ratio >= cfg.tail_threshold:
+                signals.append(DeltaSignal(
+                    DeltaType.TAIL, -1, tail_ratio, delta,
+                    f"DELTA TAIL: closed at {tail_ratio*100:.0f}% of intrabar min "
+                    f"({delta:+d}/{extreme:+d}) — strong conviction",
                 ))
 
         # --- 3. REVERSAL (DELT-03) — bar-level approximation ---
