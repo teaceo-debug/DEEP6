@@ -67,6 +67,15 @@ class FootprintBar:
     poc_price: float = 0.0   # price with highest total volume
     bar_range: float = 0.0   # high - low in points
 
+    # Intrabar delta tracking (Plan 12-02) — updated live on every add_trade().
+    # running_delta: live sum of signed trade sizes (BUY=+size, SELL=-size).
+    # max_delta / min_delta: highest/lowest running_delta seen during the bar.
+    # These feed the DELT_TAIL (bit 22) detector with the TRUE intrabar extreme,
+    # replacing the prior bar-geometry proxy. NO new signal bit — bits 0-43 stable.
+    running_delta: int = 0
+    max_delta: int = 0
+    min_delta: int = 0
+
     def add_trade(self, price: float, size: int, aggressor: int) -> None:
         """Accumulate one trade tick into the current bar.
 
@@ -80,8 +89,15 @@ class FootprintBar:
         level = self.levels[tick]
         if aggressor == 1:    # BUY — trade hit the ask
             level.ask_vol += size
+            self.running_delta += size
         elif aggressor == 2:  # SELL — trade hit the bid
             level.bid_vol += size
+            self.running_delta -= size
+        # Intrabar extremes — clamp after each trade (Plan 12-02).
+        if self.running_delta > self.max_delta:
+            self.max_delta = self.running_delta
+        if self.running_delta < self.min_delta:
+            self.min_delta = self.running_delta
         # Update OHLC
         if self.open == 0.0:
             self.open = price
@@ -114,6 +130,35 @@ class FootprintBar:
         self.bar_range = self.high - self.low if self.high > 0.0 else 0.0
         self.cvd = prior_cvd + self.bar_delta
         return self
+
+    def delta_quality_scalar(self) -> float:
+        """Bar-quality scalar for delta-family signals (Plan 12-02).
+
+        Measures how close the final running_delta ended up to its intrabar extreme.
+        Closing-at-extreme (strong conviction) → 1.15×.
+        Peaked-early-and-faded (dissipation)   → 0.7×.
+        Linear interpolation between the ratio thresholds 0.35 and 0.95.
+
+        Ratio definition: |final_delta| / max(|max_delta|, |min_delta|, 1).
+
+        Orthogonal to VPIN. Consumed by delta-family signals ONLY (bits 21-32);
+        applying it to non-delta signals (absorption, exhaustion, imbalance...) is a bug.
+
+        Edge case (FOOTGUN 3): both max_delta and min_delta are 0 (empty bar or
+        trivial case) → ratio is taken as 1.0 (neutral, returns 1.0 scalar).
+        """
+        final = self.running_delta
+        extreme = max(abs(self.max_delta), abs(self.min_delta), 1)
+        # Empty / untracked bar → neutral scalar
+        if final == 0 and extreme <= 1:
+            return 1.0
+        ratio = abs(final) / extreme
+        if ratio >= 0.95:
+            return 1.15
+        if ratio <= 0.35:
+            return 0.7
+        # Linear interpolation: ratio in (0.35, 0.95) → scalar in (0.7, 1.15)
+        return 0.7 + (ratio - 0.35) * (1.15 - 0.7) / (0.95 - 0.35)
 
 
 # BarHistory: ring buffer of closed FootprintBar objects.
