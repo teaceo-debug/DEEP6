@@ -17,12 +17,11 @@ All thresholds and algorithms match the DEEP6 Python engine; see `docs/SIGNALS.m
 
 ## Installation
 
-See `docs/SETUP.md` for the full walkthrough. Short version:
+See `docs/SETUP.md` for the full walkthrough. Short version — the `Custom/` folder in this repo **mirrors NT8's layout exactly**, so you can merge it in place:
 
-1. Copy `src/DEEP6Footprint.cs` into `%USERPROFILE%\Documents\NinjaTrader 8\bin\Custom\Indicators\DEEP6\`
-2. Copy `src/FootprintBar.cs`, `src/AbsorptionDetector.cs`, `src/ExhaustionDetector.cs`, `src/MassiveGexClient.cs` into `%USERPROFILE%\Documents\NinjaTrader 8\bin\Custom\AddOns\DEEP6\`
-3. In NT8: right-click the Indicators panel → Reload NinjaScript (or press F5 in the NinjaScript editor)
-4. Add `DEEP6 Footprint` to a chart via Indicators → DEEP6 → DEEP6 Footprint
+1. Copy the contents of `ninjatrader/Custom/` into `%USERPROFILE%\Documents\NinjaTrader 8\bin\Custom\` (merge, don't replace). This drops `Indicators\DEEP6\DEEP6Footprint.cs` and `AddOns\DEEP6\*.cs` into the right subfolders.
+2. In NT8: right-click the Indicators panel → Reload NinjaScript (or press F5 in the NinjaScript editor).
+3. Add `DEEP6 Footprint` to a chart via Indicators → DEEP6 → DEEP6 Footprint.
 
 Requires NinjaTrader 8.1.x, a Rithmic-connected feed with L2 depth enabled, and (for GEX) a massive.com API key.
 
@@ -31,12 +30,14 @@ Requires NinjaTrader 8.1.x, a Rithmic-connected feed with L2 depth enabled, and 
 ```
 ninjatrader/
 ├── README.md                      (you are here)
-├── src/
-│   ├── DEEP6Footprint.cs          Main indicator — lifecycle, L2 intake, OnRender, GEX overlay
-│   ├── FootprintBar.cs            Cell / FootprintBar / POC / VAH-VAL computation
-│   ├── AbsorptionDetector.cs      4-variant absorption port
-│   ├── ExhaustionDetector.cs      6-variant exhaustion port + cooldown state
-│   └── MassiveGexClient.cs        massive.com /v3/snapshot/options client, GEX aggregation
+├── Custom/                        mirrors %USERPROFILE%\Documents\NinjaTrader 8\bin\Custom\
+│   ├── Indicators/DEEP6/
+│   │   └── DEEP6Footprint.cs      Main indicator — lifecycle, L2 intake, OnRender, GEX overlay
+│   └── AddOns/DEEP6/
+│       ├── FootprintBar.cs        Cell / FootprintBar / POC / VAH-VAL computation
+│       ├── AbsorptionDetector.cs  4-variant absorption port
+│       ├── ExhaustionDetector.cs  6-variant exhaustion port + cooldown state
+│       └── MassiveGexClient.cs    massive.com /v3/snapshot/options client, GEX aggregation
 └── docs/
     ├── SETUP.md                   Install, import, first-run checklist
     ├── SIGNALS.md                 Signal reference — visuals, thresholds, Python ↔ C# audit

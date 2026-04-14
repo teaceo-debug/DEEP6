@@ -28,15 +28,15 @@ Layout after install:
 
 ### Step-by-step
 
+The `ninjatrader/Custom/` directory in this repo mirrors NT8's layout 1:1, so you can merge it in place.
+
 1. Close NinjaTrader if it's running.
-2. Open File Explorer and navigate to `%USERPROFILE%\Documents\NinjaTrader 8\bin\Custom\`.
-3. Create two subfolders: `Indicators\DEEP6\` and `AddOns\DEEP6\`.
-4. Copy `DEEP6Footprint.cs` (from this repo's `ninjatrader/src/`) into `Indicators\DEEP6\`.
-5. Copy the other four `.cs` files into `AddOns\DEEP6\`.
-6. Start NinjaTrader.
-7. Open the **NinjaScript Editor** (New → NinjaScript Editor). Press **F5** to compile.
+2. Open File Explorer, go to the repo's `ninjatrader/Custom/` folder.
+3. Select both `Indicators` and `AddOns` subfolders and copy them into `%USERPROFILE%\Documents\NinjaTrader 8\bin\Custom\`. Choose **Merge** when Windows asks about the existing `Indicators` / `AddOns` folders — do NOT replace. The DEEP6 subfolders land alongside any existing content.
+4. Start NinjaTrader.
+5. Open the **NinjaScript Editor** (New → NinjaScript Editor). Press **F5** to compile.
    - Any compile error appears in the Errors tab at the bottom. The build produces `NinjaTrader.Custom.dll` at `%USERPROFILE%\Documents\NinjaTrader 8\bin\Custom\NinjaTrader.Custom.dll`.
-8. Once compile succeeds: open any chart, right-click → **Indicators…**, expand **DEEP6** in the tree, double-click **DEEP6 Footprint**, click **OK**.
+6. Once compile succeeds: open any chart, right-click → **Indicators…**, expand **DEEP6** in the tree, double-click **DEEP6 Footprint**, click **OK**.
 
 ## First-run configuration
 
