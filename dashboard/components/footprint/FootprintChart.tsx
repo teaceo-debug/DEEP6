@@ -8,9 +8,11 @@ import {
   type UTCTimestamp,
 } from 'lightweight-charts';
 import { useTradingStore } from '@/store/tradingStore';
+import { useReplayStore } from '@/store/replayStore';
 import type { FootprintBar } from '@/types/deep6';
 import { FootprintSeries, footprintSeriesDefaults, type FootprintBarLW } from '@/lib/lw-charts/FootprintSeries';
 import { ZoneOverlay } from './ZoneOverlay';
+import { ReturnToLivePill } from '@/components/replay/ReturnToLivePill';
 
 // ── Helper ────────────────────────────────────────────────────────────────────
 
@@ -68,19 +70,52 @@ export function FootprintChart() {
       chart.timeScale().scrollToRealTime();
     }
 
+    // Pan detection: when the visible time range changes and the right edge no
+    // longer reaches the newest bar, mark userHasPanned = true so the
+    // ReturnToLivePill appears. Wave 2 called scrollToRealTime() unconditionally;
+    // this guard respects the user's manual scroll position.
+    chart.timeScale().subscribeVisibleTimeRangeChange(() => {
+      const range = chart.timeScale().getVisibleRange();
+      if (!range) return;
+      const bars = useTradingStore.getState().bars.toArray();
+      if (bars.length === 0) return;
+      const newestTs = bars[bars.length - 1].ts;
+      // If the visible right edge is more than 2 bars behind the newest bar,
+      // the user has manually panned away.
+      const rightEdge = range.to as number;
+      if (rightEdge < newestTs - 2) {
+        useReplayStore.getState().setPanned(true);
+      }
+    });
+
+    // Subscribe to ReturnToLivePill reset: when userHasPanned flips to false,
+    // scroll back to real-time.
+    let prevPanned = useReplayStore.getState().userHasPanned;
+    const unsubPan = useReplayStore.subscribe((s) => {
+      const panned = s.userHasPanned;
+      if (prevPanned && !panned) {
+        chart.timeScale().scrollToRealTime();
+      }
+      prevPanned = panned;
+    });
+
     // Subscribe to lastBarVersion WITHOUT triggering React re-renders.
-    // On each new bar, update the series data and scroll to latest.
+    // On each new bar, update the series data and scroll to latest ONLY when
+    // the user has not manually panned away.
     const unsub = useTradingStore.subscribe(
       (s) => s.lastBarVersion,
       () => {
         const arr = useTradingStore.getState().bars.toArray();
         series.setData(toLWData(arr));
-        chart.timeScale().scrollToRealTime();
+        if (!useReplayStore.getState().userHasPanned) {
+          chart.timeScale().scrollToRealTime();
+        }
       },
     );
 
     return () => {
       unsub();
+      unsubPan();
       chart.remove();
       chartRef.current = null;
       seriesRef.current = null;
@@ -91,6 +126,7 @@ export function FootprintChart() {
     <div className="relative flex-1 min-w-[600px] bg-bg-base border-r border-border-subtle">
       <div ref={hostRef} className="absolute inset-0" />
       <ZoneOverlay chartRef={chartRef} />
+      <ReturnToLivePill />
     </div>
   );
 }

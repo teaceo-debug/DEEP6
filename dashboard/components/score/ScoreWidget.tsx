@@ -1,6 +1,7 @@
 'use client';
 import { useTradingStore } from '@/store/tradingStore';
 import { KronosBiasBar } from './KronosBiasBar';
+import { PnlStatus } from '@/components/status/PnlStatus';
 
 // ── Category config ───────────────────────────────────────────────────────────
 // Per UI-SPEC §Score Widget §Category bars: 8 categories, each 5 cells (20% per cell).
@@ -126,6 +127,9 @@ export function ScoreWidget() {
           {gexRegime || 'NEUTRAL'}
         </span>
       </div>
+
+      {/* P&L + circuit breaker — APP-06 lite (D-05) */}
+      <PnlStatus />
     </div>
   );
 }
