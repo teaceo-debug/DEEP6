@@ -32,6 +32,8 @@ class PositionEventType(str, Enum):
     TIMEOUT_EXIT = "TIMEOUT_EXIT"
     MANUAL_EXIT = "MANUAL_EXIT"
     BREAKEVEN_MOVE = "BREAKEVEN_MOVE"
+    PARTIAL_EXIT = "PARTIAL_EXIT"
+    TRAIL_MOVE = "TRAIL_MOVE"
 
 
 @dataclass
@@ -50,6 +52,16 @@ class Position:
     is_breakeven: bool = False
     unrealized_pnl: float = 0.0
 
+    # Scale-out / trailing state
+    initial_contracts: int = 0          # Set by PositionManager.open_position
+    remaining_contracts: int = 0        # Decremented on each partial exit
+    partial_exits: list[dict] = field(default_factory=list)  # [{bar, contracts, price, reason}]
+    r_distance: float = 0.0             # |entry - initial_stop| in price points
+    breakeven_moved_at: int | None = None  # bar index when BE move occurred
+    trail_stop: float | None = None     # Active trailing stop price (final 1/3)
+    recent_highs: list[float] = field(default_factory=list)  # last 5 bar highs (for SHORT trail)
+    recent_lows: list[float] = field(default_factory=list)   # last 5 bar lows (for LONG trail)
+
     @property
     def direction(self) -> int:
         return +1 if self.side == OrderSide.LONG else -1
@@ -58,11 +70,12 @@ class Position:
         """Update unrealized P&L based on current price.
         NQ = $50 per point per contract.
         """
+        contracts = self.remaining_contracts or self.contracts
         self.unrealized_pnl = (
             (current_price - self.entry_price)
             * self.direction
             * NQ_DOLLARS_PER_POINT
-            * self.contracts
+            * contracts
         )
 
 
@@ -150,6 +163,9 @@ class PositionManager:
             contracts=contracts,
             signal_score=decision.signal_score,
             signal_tier=decision.signal_tier,
+            initial_contracts=contracts,
+            remaining_contracts=contracts,
+            r_distance=abs(decision.entry_price - decision.stop_price),
         )
         self._positions[pos.id] = pos
 
@@ -183,6 +199,7 @@ class PositionManager:
         bar_high: float,
         bar_low: float,
         result: ScorerResult,
+        atr: float = 10.0,
     ) -> list[PositionEvent]:
         """Evaluate all open positions against current bar.
 
@@ -195,6 +212,146 @@ class PositionManager:
         for pos in list(self._positions.values()):
             pos.bars_held += 1
             pos.update_pnl(bar_close)
+
+            # Maintain last-5 bar swing highs/lows for trailing
+            pos.recent_highs.append(bar_high)
+            pos.recent_lows.append(bar_low)
+            if len(pos.recent_highs) > 5:
+                pos.recent_highs.pop(0)
+            if len(pos.recent_lows) > 5:
+                pos.recent_lows.pop(0)
+
+            # --- Scale-out partials + trail (new) ---
+            if pos.r_distance > 0.0:
+                favorable = (bar_close - pos.entry_price) * pos.direction
+                r_mult = favorable / pos.r_distance
+
+                # Partial 1: +1R -> take 1/3 off, move stop to BE - 1 tick
+                if r_mult >= 1.0 and pos.breakeven_moved_at is None:
+                    partial_qty = max(1, pos.initial_contracts // 3)
+                    partial_qty = min(partial_qty, pos.remaining_contracts)
+                    if partial_qty > 0 and pos.remaining_contracts > partial_qty:
+                        exit_price = bar_close
+                        partial_pnl = (
+                            (exit_price - pos.entry_price)
+                            * pos.direction
+                            * NQ_DOLLARS_PER_POINT
+                            * partial_qty
+                        )
+                        pos.remaining_contracts -= partial_qty
+                        pos.partial_exits.append({
+                            "bar": pos.bars_held,
+                            "contracts": partial_qty,
+                            "price": exit_price,
+                            "reason": "+1R partial",
+                        })
+                        # BE - 1 tick (NQ tick = 0.25)
+                        tick = 0.25
+                        new_stop = pos.entry_price - (tick * pos.direction)
+                        pos.stop_price = new_stop
+                        pos.is_breakeven = True
+                        pos.breakeven_moved_at = pos.bars_held
+                        ev_p = PositionEvent(
+                            event_type=PositionEventType.PARTIAL_EXIT,
+                            position_id=pos.id,
+                            side=pos.side,
+                            entry_price=pos.entry_price,
+                            exit_price=exit_price,
+                            pnl=partial_pnl,
+                            bars_held=pos.bars_held,
+                            ts=time.time(),
+                            signal_tier=pos.signal_tier,
+                            signal_score=pos.signal_score,
+                            reason=f"+1R partial: {partial_qty}c, stop->BE-1t",
+                        )
+                        self._on_event(ev_p)
+                        events.append(ev_p)
+
+                # Partial 2: +1.5R -> another 1/3 off
+                elif r_mult >= 1.5 and len(pos.partial_exits) < 2 and pos.remaining_contracts > 1:
+                    partial_qty = max(1, pos.initial_contracts // 3)
+                    partial_qty = min(partial_qty, pos.remaining_contracts - 1)
+                    if partial_qty > 0:
+                        exit_price = bar_close
+                        partial_pnl = (
+                            (exit_price - pos.entry_price)
+                            * pos.direction
+                            * NQ_DOLLARS_PER_POINT
+                            * partial_qty
+                        )
+                        pos.remaining_contracts -= partial_qty
+                        pos.partial_exits.append({
+                            "bar": pos.bars_held,
+                            "contracts": partial_qty,
+                            "price": exit_price,
+                            "reason": "+1.5R partial",
+                        })
+                        ev_p = PositionEvent(
+                            event_type=PositionEventType.PARTIAL_EXIT,
+                            position_id=pos.id,
+                            side=pos.side,
+                            entry_price=pos.entry_price,
+                            exit_price=exit_price,
+                            pnl=partial_pnl,
+                            bars_held=pos.bars_held,
+                            ts=time.time(),
+                            signal_tier=pos.signal_tier,
+                            signal_score=pos.signal_score,
+                            reason=f"+1.5R partial: {partial_qty}c",
+                        )
+                        self._on_event(ev_p)
+                        events.append(ev_p)
+
+                # Trailing: after 2 partials, trail the last 1/3 by max(ATR*0.75, 5-bar swing)
+                if len(pos.partial_exits) >= 2 and pos.remaining_contracts > 0:
+                    atr_trail = atr * 0.75
+                    if pos.side == OrderSide.LONG:
+                        swing = min(pos.recent_lows) if pos.recent_lows else bar_low
+                        # Trail = max(close - atr*.75, swing_low_5bar)  -> higher is tighter
+                        candidate = max(bar_close - atr_trail, swing)
+                        if pos.trail_stop is None or candidate > pos.trail_stop:
+                            old = pos.trail_stop
+                            pos.trail_stop = candidate
+                            if candidate > pos.stop_price:
+                                pos.stop_price = candidate
+                                ev_t = PositionEvent(
+                                    event_type=PositionEventType.TRAIL_MOVE,
+                                    position_id=pos.id,
+                                    side=pos.side,
+                                    entry_price=pos.entry_price,
+                                    exit_price=0.0,
+                                    pnl=pos.unrealized_pnl,
+                                    bars_held=pos.bars_held,
+                                    ts=time.time(),
+                                    signal_tier=pos.signal_tier,
+                                    signal_score=pos.signal_score,
+                                    reason=f"Trail: {old} -> {candidate:.2f}",
+                                )
+                                self._on_event(ev_t)
+                                events.append(ev_t)
+                    else:  # SHORT
+                        swing = max(pos.recent_highs) if pos.recent_highs else bar_high
+                        candidate = min(bar_close + atr_trail, swing)
+                        if pos.trail_stop is None or candidate < pos.trail_stop:
+                            old = pos.trail_stop
+                            pos.trail_stop = candidate
+                            if candidate < pos.stop_price:
+                                pos.stop_price = candidate
+                                ev_t = PositionEvent(
+                                    event_type=PositionEventType.TRAIL_MOVE,
+                                    position_id=pos.id,
+                                    side=pos.side,
+                                    entry_price=pos.entry_price,
+                                    exit_price=0.0,
+                                    pnl=pos.unrealized_pnl,
+                                    bars_held=pos.bars_held,
+                                    ts=time.time(),
+                                    signal_tier=pos.signal_tier,
+                                    signal_score=pos.signal_score,
+                                    reason=f"Trail: {old} -> {candidate:.2f}",
+                                )
+                                self._on_event(ev_t)
+                                events.append(ev_t)
 
             # D-06: Move stop to breakeven after 3 bars of absorption confirmation
             if (
@@ -277,12 +434,21 @@ class PositionManager:
             log.warning("position.close_not_found", id=position_id)
             return None
 
+        closing_contracts = pos.remaining_contracts or pos.contracts
         realized_pnl = (
             (exit_price - pos.entry_price)
             * pos.direction
             * NQ_DOLLARS_PER_POINT
-            * pos.contracts
+            * closing_contracts
         )
+        # Add any previously-realized partial exit PnL
+        for pe in pos.partial_exits:
+            realized_pnl += (
+                (pe["price"] - pos.entry_price)
+                * pos.direction
+                * NQ_DOLLARS_PER_POINT
+                * pe["contracts"]
+            )
         ev = PositionEvent(
             event_type=event_type,
             position_id=pos.id,
