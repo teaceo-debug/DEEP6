@@ -17,6 +17,7 @@ import { VolumeProfile } from './VolumeProfile';
 import { ChartModeSelector } from './ChartModeSelector';
 import { ReturnToLivePill } from '@/components/replay/ReturnToLivePill';
 import { ChartLegend } from './ChartLegend';
+import { SignalMarkerOverlay } from './SignalMarkerOverlay';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -176,6 +177,7 @@ export function FootprintChart() {
       <ChartModeSelector />
       <VolumeProfile chartRef={chartRef} />
       <ZoneOverlay chartRef={chartRef} />
+      <SignalMarkerOverlay chartRef={chartRef} />
       <ReturnToLivePill />
       <ChartLegend />
     </div>
