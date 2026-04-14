@@ -10,6 +10,14 @@ TypeA: absorption/exhaustion + zone confluence + 5+ categories = highest convict
 TypeB: 4+ categories + zone = tradeable
 TypeC: 3+ categories = alert only
 Quiet: fewer than 3 categories
+
+Multiplier order (phase 12-01, locked):
+    base → category (confluence_mult) → zone_bonus → IB (ib_mult) → VPIN (vpin_modifier) → clip(0, 100)
+
+IB and VPIN are SEPARATE line items — they MUST NOT be fused/multiplied into a
+single coefficient applied to per-signal scores. Doing so can saturate sizing
+past tier thresholds (FOOTGUN 1 in 12-01-PLAN.md). VPIN modulates the fused
+total_score only, as the final stage before clip.
 """
 from __future__ import annotations
 
@@ -81,6 +89,7 @@ def score_bar(
     bar_delta: int = 0,
     bar_index_in_session: int = -1,
     gex_signal: GexSignal | None = None,
+    vpin_modifier: float = 1.0,
 ) -> ScorerResult:
     """Score a bar using two-layer confluence.
 
@@ -335,6 +344,15 @@ def score_bar(
     if narrative.confirmed_absorptions:
         confirmed_bonus = len(narrative.confirmed_absorptions) * _abs_cfg.confirmation_score_bonus
         total_score = min(total_score + confirmed_bonus, 100.0)
+
+    # --- FINAL STAGE (phase 12-01): VPIN flow-toxicity modifier ---
+    # Applied to fused total_score ONLY — NOT to per-signal scores, NOT stacked
+    # with ib_mult. Separate line item (locked — see FOOTGUN 1 in 12-01-PLAN.md).
+    # Order here is: ... -> ib_mult (above, inside base composition)
+    #                   -> VPIN (this line)
+    #                   -> clip(0, 100)
+    total_score *= vpin_modifier
+    total_score = max(0.0, min(100.0, total_score))
 
     # --- Classify tier (SCOR-04) ---
     has_absorption = "absorption" in categories_agreeing

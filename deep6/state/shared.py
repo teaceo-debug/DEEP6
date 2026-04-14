@@ -19,6 +19,7 @@ from deep6.state.session import SessionContext
 from deep6.state.connection import FreezeGuard, SessionManager
 from deep6.state.persistence import SessionPersistence
 from deep6.signals.atr import ATRTracker
+from deep6.orderflow.vpin import VPINEngine
 
 
 @dataclass
@@ -57,6 +58,12 @@ class SharedState:
         "5m": ATRTracker(period=20),
     })
 
+    # VPIN engine (phase 12-01) — 1m only. 5m deferred.
+    # Fed inside on_bar_close BEFORE the scorer runs; modifier is read by
+    # downstream scorer invocations as a final-stage multiplier on the fused
+    # total_score.
+    vpin: VPINEngine = field(default_factory=VPINEngine)
+
     # Optional on_bar_close override (set by signal pipeline in Phase 2+)
     _on_bar_close_fn: Callable | None = field(default=None, repr=False)
 
@@ -83,6 +90,15 @@ class SharedState:
             total_vol=bar.total_vol,
             bar_range=bar.bar_range,
         )
+        # Phase 12-01: feed VPIN engine before any downstream scoring runs.
+        # 1m only — 5m VPIN deferred (see 12-CONTEXT.md). No-op for malformed
+        # / zero-volume bars (handled inside VPINEngine.update_from_bar).
+        if label == "1m":
+            try:
+                self.vpin.update_from_bar(bar)
+            except Exception:
+                # VPIN must never break the bar-close path. Log and continue.
+                log.exception("vpin.update_failed", label=label)
         if self._on_bar_close_fn is not None:
             await self._on_bar_close_fn(label, bar)
 
