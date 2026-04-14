@@ -1,5 +1,15 @@
 """Databento historical data feed for development and backtesting.
 
+.. deprecated:: 13-01
+    Use :class:`deep6.backtest.mbo_adapter.MBOAdapter` instead. This module
+    is trades-only, so DOM-dependent signals (E2 absorption, E3 exhaustion,
+    E4 imbalance) never fire when a backtest is driven by it. MBOAdapter
+    replays the full MBO stream (T/A/C/M/F/R) through the same callback
+    shapes the live Rithmic feed uses, closing that gap.
+
+Kept importable to avoid breaking legacy call sites while they migrate;
+emits a DeprecationWarning on import.
+
 Replays CME MBO (Market-by-Order) data through the same FootprintBar
 pipeline as live Rithmic data. Uses identical trade classification
 (aggressor field A=ask/B=bid from CME native data).
@@ -11,11 +21,21 @@ Usage:
         signals = engine.process(bar)
 """
 import asyncio
+import warnings
 from collections import defaultdict
 from datetime import datetime, timezone
 from typing import AsyncIterator
 
 import databento as db
+
+warnings.warn(
+    "deep6.data.databento_feed is deprecated (phase 13-01); "
+    "use deep6.backtest.mbo_adapter.MBOAdapter which replays MBO "
+    "(not just trades) through the same on_tick/on_dom callbacks as "
+    "the live Rithmic feed.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 from deep6.state.footprint import FootprintBar, FootprintLevel, price_to_tick
 
