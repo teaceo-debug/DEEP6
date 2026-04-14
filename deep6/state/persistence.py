@@ -83,7 +83,7 @@ class SessionPersistence:
             await db.execute(
                 "INSERT OR REPLACE INTO session_state "
                 "(session_id, key, value, updated_at) VALUES (?, ?, ?, ?)",
-                (session_id, key, value, time.time()),
+                (session_id, key, value, time.time()),  # live-only: persistence timestamp, replay correctness unaffected
             )
             await db.commit()
 
@@ -93,7 +93,7 @@ class SessionPersistence:
         More efficient than calling write() N times when persisting an entire
         SessionContext at session close.
         """
-        now = time.time()
+        now = time.time()  # live-only: persistence timestamp, replay correctness unaffected
         async with aiosqlite.connect(self.db_path) as db:
             await db.executemany(
                 "INSERT OR REPLACE INTO session_state "
@@ -142,7 +142,7 @@ class SessionPersistence:
         Per D-07: unfinished business levels must survive process restart.
         Uses INSERT OR REPLACE so repeated calls are idempotent.
         """
-        now = time.time()
+        now = time.time()  # live-only: persistence timestamp, replay correctness unaffected
         async with aiosqlite.connect(self.db_path) as db:
             for level in levels:
                 await db.execute(
