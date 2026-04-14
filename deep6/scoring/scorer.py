@@ -69,7 +69,9 @@ CATEGORY_WEIGHTS = {
     "imbalance": 12.0,
     "volume_profile": 10.0,
     "auction": 8.0,
-    "poc": 3.0,            # Was 7 — POC fires too liberally, adds noise to combos
+    "poc": 1.0,            # TIER-1 FIX 2: forensic shows POC combos lose money.
+                           # Reduced 3.0→1.0 (sweepable via ScorerConfig.poc_weight).
+                           # Category still counted toward cat_count for confluence.
 }
 
 
@@ -330,6 +332,9 @@ def score_bar(
     base_score = 0.0
     for cat in categories_agreeing:
         weight = CATEGORY_WEIGHTS.get(cat, 5.0)
+        # TIER-1 FIX 2: POC weight overrideable via ScorerConfig for sweeps.
+        if cat == "poc":
+            weight = cfg.poc_weight
         # GEX regime modifies category weights based on dealer positioning
         if cat in ("absorption", "exhaustion"):
             weight *= gex_abs_mult    # Positive gamma boosts, negative suppresses
@@ -360,6 +365,21 @@ def score_bar(
     has_zone = zone_bonus > 0
     min_strength = narrative.strength >= 0.3
 
+    # TIER-1 FIX 3: Trap veto for TYPE_A — forensic shows TYPE_A losers have
+    # 2.4x more trap signals than winners. Any trap present downgrades TYPE_A.
+    trap_signals = sum(1 for s in narrative.imbalances if "TRAP" in s.imb_type.name)
+    type_a_trap_veto = trap_signals >= 1
+
+    # TIER-1 FIX 4: Delta-direction veto for TYPE_A — chasing with delta loses.
+    # TYPE_A longs need fading delta (negative = sellers being absorbed).
+    # TYPE_A shorts need fading delta (positive = buyers being absorbed).
+    type_a_delta_chase = False
+    if bar_delta != 0 and direction != 0:
+        if direction > 0 and bar_delta > 0:
+            type_a_delta_chase = True   # Long with positive delta = chasing
+        elif direction < 0 and bar_delta < 0:
+            type_a_delta_chase = True   # Short with negative delta = chasing
+
     # GEX direction conflict: going long at call wall or short at put wall
     # = fighting massive dealer hedging flow. Demote to TYPE_C max.
     if gex_direction_conflict:
@@ -372,7 +392,9 @@ def score_bar(
             and (has_absorption or has_exhaustion)
             and has_zone
             and cat_count >= 5
-            and delta_agrees):
+            and delta_agrees
+            and not type_a_trap_veto
+            and not type_a_delta_chase):
         tier = SignalTier.TYPE_A
     elif (total_score >= cfg.type_b_min
             and cat_count >= 4
@@ -382,6 +404,12 @@ def score_bar(
     elif total_score >= cfg.type_c_min and cat_count >= 4 and min_strength:
         tier = SignalTier.TYPE_C
     else:
+        tier = SignalTier.QUIET
+
+    # TIER-1 FIX 1: Midday window block — forensic finding bars 240-330
+    # (10:30-13:00 ET) accumulate -$1,622 across 25 days. Force QUIET here.
+    if (bar_index_in_session >= cfg.midday_block_start
+            and bar_index_in_session <= cfg.midday_block_end):
         tier = SignalTier.QUIET
 
     # --- Build label (SCOR-06) ---
