@@ -9,7 +9,7 @@ export function HeaderStrip() {
   const lastBarVersion = useTradingStore((s) => s.lastBarVersion);
   // lastBarVersion is consumed to trigger re-render; actual price comes from getState
   void lastBarVersion;
-  const latestBar = useTradingStore.getState().bars.toArray()[0] ?? null;
+  const latestBar = useTradingStore.getState().bars.latest ?? null;
 
   const dotColor = status.connected
     ? 'bg-ask'

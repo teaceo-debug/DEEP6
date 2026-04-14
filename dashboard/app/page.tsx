@@ -1,6 +1,7 @@
 'use client';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { HeaderStrip } from '@/components/layout/HeaderStrip';
+import { FootprintChart } from '@/components/footprint/FootprintChart';
 
 export default function Home() {
   useWebSocket(
@@ -14,19 +15,8 @@ export default function Home() {
 
       {/* Main 3-column region */}
       <div className="flex-1 flex min-h-0">
-        {/* Footprint chart — flex 1 (Task 2 replaces this) */}
-        <section
-          className="flex-1 flex items-center justify-center text-[13px]"
-          style={{
-            minWidth: '600px',
-            background: 'var(--bg-base)',
-            borderRight: '1px solid var(--border-subtle)',
-            color: 'var(--muted)',
-          }}
-          id="footprint-placeholder"
-        >
-          Footprint (Wave 2)
-        </section>
+        {/* Footprint chart — flex 1 */}
+        <FootprintChart />
 
         {/* Signal feed + T&S — 320px (Task 3 replaces this) */}
         <section
