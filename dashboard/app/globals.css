@@ -39,6 +39,49 @@
 
   /* Font */
   --font-jetbrains-mono: "JetBrains Mono", monospace;
+
+  /* ===================================================================
+   * Numbers Bar footprint cell colors — tuned for text legibility
+   *
+   * Alpha rationale:
+   *   --cell-buy-bg / --cell-sell-bg at 0.18 (vs 0.22 previously): cell
+   *   text sits ON TOP of the background color. At 0.22 the neon bleeds
+   *   into the glyph edges and looks fuzzy. 0.18 lets the numbers pop
+   *   while still communicating imbalance direction clearly.
+   *
+   *   --cell-poc-bg at 0.32 (vs 0.35 previously): amber at 0.32 gives
+   *   pure-black text (#000000) a clean foreground on the POC row.
+   *
+   *   --cell-neutral-* capped at 0.08: keeps low-to-medium volume cells
+   *   readable at 11px without eye-strain on extended sessions.
+   *
+   * RENDERER MIGRATION NOTE (for FootprintRenderer agent):
+   *   Read these tokens once on load via:
+   *     getComputedStyle(document.body).getPropertyValue('--cell-buy-bg')
+   *   Migrate away from any hard-coded rgba() values in the canvas
+   *   renderer and use these CSS variables instead so color updates
+   *   flow from a single source of truth.
+   * =================================================================== */
+
+  /* Cell backgrounds */
+  --cell-buy-bg:      rgba(0, 255, 136, 0.18);   /* ask green at 18% — slightly lighter than 22% so text pops */
+  --cell-sell-bg:     rgba(255, 46, 99, 0.18);    /* bid red at 18% — matches buy-bg symmetry */
+  --cell-poc-bg:      rgba(255, 214, 10, 0.32);   /* amber at 32% — black text reads cleanly */
+  --cell-neutral-base: rgba(255, 255, 255, 0.025); /* near-zero tint for zero-trade cells */
+  --cell-neutral-max:  rgba(255, 255, 255, 0.08);  /* max tint for mid-volume neutral cells */
+
+  /* Cell text */
+  --cell-text-on-imbalance: #ffffff;    /* high-contrast white on buy/sell bg */
+  --cell-text-on-neutral:   #b0b0b0;   /* slightly brighter than --text-dim (#8a8a8a) for neutral cells */
+  --cell-text-on-poc:       #000000;   /* black on amber POC bg — see --cell-poc-bg */
+  --cell-text-low-vol:      #4a4a4a;   /* matches --text-mute — de-emphasises near-zero volume */
+
+  /* Stacked imbalance line */
+  --stacked-lime-line: #a3ff00;               /* matches --lime exactly */
+  --stacked-lime-glow: rgba(163, 255, 0, 0.4); /* glow halo for stacked imbalance stripe */
+
+  /* Canvas font stack — read once on renderer init via getComputedStyle */
+  --font-mono-canvas: 'JetBrains Mono', 'ui-monospace', 'Menlo', monospace;
 }
 
 /* =====================================================================
