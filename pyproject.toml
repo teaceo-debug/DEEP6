@@ -13,6 +13,10 @@ dependencies = [
     "aiosqlite==0.22.1",
     "numpy>=2.0",
     "structlog>=25.0",
+    # Phase 13: backtest engine core
+    "duckdb>=0.10",
+    "pyyaml>=6.0",
+    "order-book>=0.6",  # bmoscon — C-backed L2 OrderBook, imported as `order_book`
 ]
 
 [project.optional-dependencies]
