@@ -843,27 +843,31 @@ async def on_bar_close(bar: FootprintBar, app_state):
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Does bar_history table already exist or is it in a later Phase 9 plan?**
    - What we know: Phase 9 plans 03-04 are not yet executed; `deep6/api/store.py` only has `signal_events` + `trade_events`
    - What's unclear: Plan 09-04 (PerformanceTracker + E7 wiring) might add it
    - Recommendation: Check 09-04-PLAN.md before creating the table in Phase 11; if it exists, skip
+   - **RESOLVED:** Plan 11-01 adds `bar_history` via `INSERT OR REPLACE` — idempotent whether or not the table pre-exists. No coordination needed with Phase 9.
 
 2. **Where does `dashboard/` live: at repo root or inside `deep6/`?**
    - What we know: CONTEXT.md says "no existing Next.js codebase yet — this phase scaffolds `web/` (or `frontend/`) subdirectory" — planner picks exact location
    - What's unclear: Whether the Python package install scripts expect a specific path
    - Recommendation: Use `dashboard/` at repo root alongside `deep6/`; matches CLAUDE.md reference to "Next.js 15 + FastAPI backend"
+   - **RESOLVED:** `dashboard/` is at repo root (`/Users/teaceo/DEEP6/dashboard/`), confirmed by all four Phase 11 plans.
 
 3. **Should the WebSocket manager be a singleton in `app.state` or injected differently?**
    - What we know: Phase 9 uses `app.state.event_store`; the same pattern works for `app.state.ws_manager`
    - What's unclear: If Phase 9 plans 03-04 already add other lifespan resources that may conflict
    - Recommendation: Add `ws_manager` to lifespan in the same pattern as `event_store`
+   - **RESOLVED:** `ws_manager` is stored in `app.state.ws_manager` per FastAPI lifespan pattern, mirroring `app.state.event_store`. Plan 11-01 Task 2 implements this.
 
 4. **Replay session selector UI (date picker) is deferred — how does operator trigger replay?**
    - What we know: UI-SPEC says "replay triggered via URL param `?session=YYYY-MM-DD`"
    - What's unclear: How operator discovers available sessions; no session list endpoint defined
    - Recommendation: Add `GET /api/sessions` endpoint listing distinct dates from `signal_events.ts`; render as a simple dropdown above the replay controls (not deferred — needed for ANY replay use)
+   - **RESOLVED:** Path A adopted. Plan 11-04 Task 2 now includes a `<SessionSelector>` component (shadcn `<Select>`) rendered in `ReplayControls`, calling the existing `fetchSessions()` from `replayClient.ts` to populate the dropdown.
 
 ---
 
