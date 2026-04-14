@@ -108,7 +108,7 @@ async def connect_rithmic(config: Config) -> RithmicClient:
         user=config.rithmic_user,
         password=config.rithmic_password,
         system_name=config.rithmic_system_name,
-        app_name="DEEP6",
+        app_name="migo:DEEP6",  # Rithmic conformance: "migo:" prefix required per Kashyap Upadhyay
         app_version="2.0.0",
         url=config.rithmic_uri,
         reconnection_settings=ReconnectionSettings(
