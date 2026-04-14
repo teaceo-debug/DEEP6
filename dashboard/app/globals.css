@@ -1,93 +1,241 @@
 @import "tailwindcss";
 
-/* === DEEP6 Design Tokens (per UI-SPEC §Color) === */
+/* =====================================================================
+   DEEP6 TERMINAL NOIR — Design Tokens (UI-SPEC v2 §1)
+   ===================================================================== */
 :root {
-  --bg-base: #0a0a0f;
-  --bg-surface: #111118;
-  --bg-elevated: #16161f;
-  --border-subtle: #1e1e2e;
+  /* Surface palette */
+  --void: #000000;
+  --surface-1: #0a0a0a;
+  --surface-2: #141414;
+  --rule: #1f1f1f;
+  --rule-bright: #2a2a2a;
 
-  --bid: #ef4444;
-  --ask: #22c55e;
+  /* Text */
+  --text: #f5f5f5;
+  --text-dim: #8a8a8a;
+  --text-mute: #4a4a4a;
 
-  --type-a: #a3e635;
-  --type-b: #facc15;
-  --type-c: #38bdf8;
+  /* Neon palette — strict semantic owners (UI-SPEC §1) */
+  --bid: #ff2e63;        /* bearish/sellers/SHORT/loss */
+  --ask: #00ff88;        /* bullish/buyers/LONG/win/OK */
+  --cyan: #00d9ff;       /* TYPE_C, LVN, replay-active */
+  --amber: #ffd60a;      /* TYPE_B, HVN/POC, warning */
+  --lime: #a3ff00;       /* TYPE_A, confluence ≥80, the ONLY wow color */
+  --magenta: #ff00aa;    /* Kronos / all ML attribution */
 
-  --score-high: #a3e635;
-  --score-mid: #facc15;
-  --score-low: #6b7280;
+  /* Spacing — 8-point grid (UI-SPEC §3) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 32px;
 
-  --muted: #6b7280;
-  --foreground: #e4e4e7;
-  --foreground-strong: #fafafa;
-
-  --destructive: #ef4444;
-
-  /* Zone overlays — all with transparency */
-  --zone-lvn: rgba(56, 189, 248, 0.12);
-  --zone-hvn: rgba(250, 204, 21, 0.10);
-  --zone-absorption: rgba(163, 230, 53, 0.15);
-  --zone-gex-call: rgba(34, 197, 94, 0.10);
-  --zone-gex-put: rgba(239, 68, 68, 0.10);
-
-  /* LW Charts specific — must be passed as hex/rgba strings to chart options */
-  --lw-bg: #0a0a0f;
-  --lw-grid: #1e1e2e;
-  --lw-crosshair: #6b7280;
-  --lw-scale-text: #6b7280;
-
-  /* Font stacks */
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
-  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+  /* Font */
+  --font-jetbrains-mono: "JetBrains Mono", monospace;
 }
 
-/* === Tailwind v4 theme mapping === */
+/* =====================================================================
+   Tailwind v4 theme mapping — enables bg-void, text-lime, etc.
+   ===================================================================== */
 @theme inline {
-  --color-bg-base: var(--bg-base);
-  --color-bg-surface: var(--bg-surface);
-  --color-bg-elevated: var(--bg-elevated);
-  --color-border-subtle: var(--border-subtle);
+  /* Surface */
+  --color-void: var(--void);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-rule: var(--rule);
+  --color-rule-bright: var(--rule-bright);
+
+  /* Text */
+  --color-text: var(--text);
+  --color-text-dim: var(--text-dim);
+  --color-text-mute: var(--text-mute);
+
+  /* Neons */
   --color-bid: var(--bid);
   --color-ask: var(--ask);
-  --color-type-a: var(--type-a);
-  --color-type-b: var(--type-b);
-  --color-type-c: var(--type-c);
-  --color-score-high: var(--score-high);
-  --color-score-mid: var(--score-mid);
-  --color-score-low: var(--score-low);
-  --color-muted: var(--muted);
-  --color-fg: var(--foreground);
-  --color-fg-strong: var(--foreground-strong);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-mono);
+  --color-cyan: var(--cyan);
+  --color-amber: var(--amber);
+  --color-lime: var(--lime);
+  --color-magenta: var(--magenta);
+
+  /* Font */
+  --font-mono: var(--font-jetbrains-mono);
 }
 
-html {
-  font-size: 13px !important;
-}
-
+/* =====================================================================
+   Base — true-black canvas, mono-only
+   ===================================================================== */
 html, body {
-  background: var(--bg-base);
-  color: var(--foreground);
-  font-family: var(--font-sans);
-  font-size: 13px;
-  line-height: 1.5;
+  margin: 0;
+  padding: 0;
+  background: var(--void);
+  color: var(--text);
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-feature-settings: "calt" off;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.font-mono, .mono { font-family: var(--font-mono); line-height: 1.0; }
+/* =====================================================================
+   Vignette — body::before, pulls focus to center (UI-SPEC §6)
+   ===================================================================== */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background: radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.4) 100%);
+}
 
-/* TYPE_A pulse — per UI-SPEC §Signal Feed §Animation */
+/* =====================================================================
+   Typography scale — 4 sizes, strict (UI-SPEC §2)
+   ===================================================================== */
+.text-xs {
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 400;
+}
+
+.text-sm {
+  font-size: 13px;
+  line-height: 1.3;
+  font-weight: 500;
+}
+
+.text-md {
+  font-size: 16px;
+  line-height: 1.2;
+  font-weight: 600;
+}
+
+.text-display {
+  font-size: 56px;
+  line-height: 1.0;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+/* =====================================================================
+   Tabular numerics — mandatory for all real-time numbers (UI-SPEC §2)
+   ===================================================================== */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* =====================================================================
+   Letter-spacing utilities
+   ===================================================================== */
+.label-tracked {
+  letter-spacing: 0.08em;
+}
+
+/* =====================================================================
+   Glow utilities — bloom, not blur (UI-SPEC §1 "Glow recipe")
+   filter: drop-shadow clips to glyph edges — NOT box-shadow
+   ===================================================================== */
+.glow-lime {
+  color: var(--lime);
+  filter:
+    drop-shadow(0 0 4px color-mix(in oklch, var(--lime) 80%, transparent))
+    drop-shadow(0 0 12px color-mix(in oklch, var(--lime) 40%, transparent));
+}
+
+.glow-ask {
+  color: var(--ask);
+  filter:
+    drop-shadow(0 0 4px color-mix(in oklch, var(--ask) 80%, transparent))
+    drop-shadow(0 0 12px color-mix(in oklch, var(--ask) 40%, transparent));
+}
+
+.glow-bid {
+  color: var(--bid);
+  filter:
+    drop-shadow(0 0 4px color-mix(in oklch, var(--bid) 80%, transparent))
+    drop-shadow(0 0 12px color-mix(in oklch, var(--bid) 40%, transparent));
+}
+
+.glow-amber {
+  color: var(--amber);
+  filter:
+    drop-shadow(0 0 4px color-mix(in oklch, var(--amber) 80%, transparent))
+    drop-shadow(0 0 12px color-mix(in oklch, var(--amber) 40%, transparent));
+}
+
+.glow-cyan {
+  color: var(--cyan);
+  filter:
+    drop-shadow(0 0 4px color-mix(in oklch, var(--cyan) 80%, transparent))
+    drop-shadow(0 0 12px color-mix(in oklch, var(--cyan) 40%, transparent));
+}
+
+.glow-magenta {
+  color: var(--magenta);
+  filter:
+    drop-shadow(0 0 4px color-mix(in oklch, var(--magenta) 80%, transparent))
+    drop-shadow(0 0 12px color-mix(in oklch, var(--magenta) 40%, transparent));
+}
+
+/* =====================================================================
+   Connection dot pulse animation (UI-SPEC §5, §4.7)
+   ===================================================================== */
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1.0); opacity: 0.6; }
+  50%       { transform: scale(1.15); opacity: 1.0; }
+}
+
+.animate-pulse-dot {
+  animation: pulse-dot 2000ms ease-in-out infinite;
+}
+
+@keyframes flash-amber {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1.0; }
+}
+
+.animate-flash-amber {
+  animation: flash-amber 600ms ease-in-out infinite;
+}
+
+/* Price flash keyframes (UI-SPEC §4.7) */
+@keyframes flash-ask {
+  0%   { color: var(--ask); }
+  100% { color: var(--text); }
+}
+
+@keyframes flash-bid {
+  0%   { color: var(--bid); }
+  100% { color: var(--text); }
+}
+
+.flash-ask {
+  animation: flash-ask 300ms ease-out forwards;
+}
+
+.flash-bid {
+  animation: flash-bid 300ms ease-out forwards;
+}
+
+/* TYPE_A pulse (signal feed) */
 @keyframes typeAPulse {
-  0%   { background-color: rgba(163, 230, 53, 0); }
-  50%  { background-color: rgba(163, 230, 53, 0.18); }
-  100% { background-color: rgba(163, 230, 53, 0); }
+  0%   { background-color: rgba(163, 255, 0, 0); }
+  50%  { background-color: rgba(163, 255, 0, 0.18); }
+  100% { background-color: rgba(163, 255, 0, 0); }
 }
 
 .signal-type-a-pulse {
   animation: typeAPulse 1000ms ease-in-out 1 forwards;
 }
 
+/* =====================================================================
+   Reduced motion — disable all animations
+   ===================================================================== */
 @media (prefers-reduced-motion: reduce) {
-  .signal-type-a-pulse { animation: none; }
+  .animate-pulse-dot,
+  .animate-flash-amber,
+  .flash-ask,
+  .flash-bid,
+  .signal-type-a-pulse {
+    animation: none;
+  }
 }
