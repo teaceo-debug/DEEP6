@@ -78,10 +78,12 @@ function arcPath(
   const startRad = degToRad(startDeg - 90);
   const endRad = degToRad(endDeg - 90);
 
-  const x1 = cx + r * Math.cos(startRad);
-  const y1 = cy + r * Math.sin(startRad);
-  const x2 = cx + r * Math.cos(endRad);
-  const y2 = cy + r * Math.sin(endRad);
+  // Round to 3 decimals to avoid SSR/client float-precision hydration mismatches.
+  const round = (n: number) => Math.round(n * 1000) / 1000;
+  const x1 = round(cx + r * Math.cos(startRad));
+  const y1 = round(cy + r * Math.sin(startRad));
+  const x2 = round(cx + r * Math.cos(endRad));
+  const y2 = round(cy + r * Math.sin(endRad));
 
   const sweepDeg = endDeg - startDeg;
   const largeArc = sweepDeg > 180 ? 1 : 0;

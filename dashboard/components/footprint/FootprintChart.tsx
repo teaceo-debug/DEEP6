@@ -50,6 +50,8 @@ export function FootprintChart() {
         borderColor: '#1f1f1f', // --rule
         timeVisible: true,
         secondsVisible: false,
+        barSpacing: 80, // footprint bars need wide columns for bid/ask wings + labels
+        rightOffset: 2, // minimal pad at right edge
       },
       autoSize: true,
     });

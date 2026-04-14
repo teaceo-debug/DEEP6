@@ -83,6 +83,7 @@ export default function Home() {
           style={{
             flex: 1,
             minWidth: 0,
+            display: 'flex',
             borderRight: '1px solid var(--rule)',
           }}
         >
