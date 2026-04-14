@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 15-02-PLAN.md
-last_updated: "2026-04-14T11:44:19.063Z"
+stopped_at: Completed 11.2-01-PLAN.md
+last_updated: "2026-04-14T12:15:19Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 16
@@ -74,6 +74,7 @@ Progress: [░░░░░░░░░░] 2%
 | Phase 11 P04 | 251 | 2 tasks | 13 files |
 | Phase 15 P01 | 45 | 3 tasks | 8 files |
 | Phase 15 P02 | 15 | 2 tasks | 3 files |
+| Phase 11.2 P01 | 3 | 3 tasks | 9 files |
 
 ## Quick Tasks Completed
 
@@ -126,6 +127,10 @@ Recent decisions affecting current work:
 - [Phase 15]: Phase 15-01: RULES.md canonical table has 38 CR-IDs (47 source rules deduped with lineage audit)
 - [Phase 15]: 15-02: narrative signals with strength>=0.4 persisted as Levels via LevelFactory at VPContextEngine.process step 2.5 (D-06, D-31); ABSORB/EXHAUST use full-wick geometry (D-07)
 - [Phase 15]: 15-02: cross-session decay — narrative Levels with score>=60 carry over with score*0.70, touches halved, state reset to CREATED; below-60 GC'd at session reset (D-08)
+- [Phase 11.2]: 11.2-01: Tailwind v4 CSS-first — color extensions via @theme inline in globals.css; bg-void, text-lime, border-rule work as Tailwind utilities
+- [Phase 11.2]: 11.2-01: motion resolved to ^11.18.2; MIT confirmed; npm audit 0 high/critical (T-11.2-01 mitigated)
+- [Phase 11.2]: 11.2-01: CRTSweep checks prefers-reduced-motion via window.matchMedia at render time to avoid flash-of-animation
+- [Phase 11.2]: 11.2-01: ScoreWidget removed from page.tsx; data-slot=confluence-pulse placeholder for Plan 11.2-02
 
 ### Roadmap Evolution
 
@@ -147,6 +152,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-14T11:44:19.060Z
-Stopped at: Completed 15-02-PLAN.md
+Last session: 2026-04-14T12:15:19Z
+Stopped at: Completed 11.2-01-PLAN.md
 Resume file: None
