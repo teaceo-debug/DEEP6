@@ -35,6 +35,7 @@ from typing import Any, Awaitable, Callable, Iterable, Literal
 
 import structlog
 
+from deep6.backtest.bracket_exit import BracketExitTracker, ClosedTrade
 from deep6.backtest.clock import EventClock
 from deep6.backtest.config import BacktestConfig
 from deep6.backtest.mbo_adapter import MBOAdapter
@@ -193,6 +194,15 @@ class ReplaySession(AbstractAsyncContextManager["ReplaySession"]):
         # Trades produced by the simple sim-fill hook. Count exposed as a
         # property for test assertions.
         self._trades_written = 0
+        self._trades_closed = 0
+        self._trades_truncated = 0
+
+        # Bracket-exit simulator (Phase 13-03). Resolves TYPE_A/TYPE_B
+        # trades against the high/low of subsequent bars.
+        self._bracket = BracketExitTracker(config)
+        # Last bar close seen — used to force-close open trades on exit.
+        self._last_bar_close: float = 0.0
+        self._last_bar_ts: float = 0.0
 
         # Session-bounded narrative state is global (absorption confirmations).
         # Reset on init so back-to-back replays never see stale trackers.
@@ -229,8 +239,38 @@ class ReplaySession(AbstractAsyncContextManager["ReplaySession"]):
         return self
 
     async def __aexit__(self, exc_type, exc, tb) -> None:
+        # Force-close any still-open trades at the last bar's close with
+        # exit_reason="TRUNCATED" — so no row dangles with NULL exit
+        # columns at stream end.
+        if self._bracket.open_count > 0 and self._last_bar_ts:
+            closed = self._bracket.force_close_all(
+                last_price=self._last_bar_close,
+                ts=self._last_bar_ts,
+                reason="TRUNCATED",
+            )
+            for ct in closed:
+                self._persist_closed_trade(ct)
         self._store.flush()
         self._store.__exit__(exc_type, exc, tb)
+
+    # ------------------------------------------------------------------
+    # Bracket-exit persistence
+    # ------------------------------------------------------------------
+
+    def _persist_closed_trade(self, ct: ClosedTrade) -> None:
+        """Write a bracket exit back to the backtest_trades row."""
+        exit_dt = datetime.fromtimestamp(ct.exit_ts, tz=timezone.utc)
+        self._store.update_trade_exit(
+            trade_id=ct.trade_id,
+            exit_ts=exit_dt,
+            exit_price=ct.exit_price,
+            pnl=ct.pnl_dollars,
+            exit_reason=ct.exit_reason,
+        )
+        if ct.exit_reason == "TRUNCATED":
+            self._trades_truncated += 1
+        else:
+            self._trades_closed += 1
 
     # ------------------------------------------------------------------
     # Run
@@ -259,6 +299,16 @@ class ReplaySession(AbstractAsyncContextManager["ReplaySession"]):
     @property
     def trades_written(self) -> int:
         return self._trades_written
+
+    @property
+    def trades_closed(self) -> int:
+        """Trades resolved by stop / target / hold-expiry (not truncation)."""
+        return self._trades_closed
+
+    @property
+    def trades_truncated(self) -> int:
+        """Trades force-closed at stream end (bracket never resolved)."""
+        return self._trades_truncated
 
     # ------------------------------------------------------------------
     # Callbacks (shape: live-compatible)
@@ -377,14 +427,24 @@ class ReplaySession(AbstractAsyncContextManager["ReplaySession"]):
         )
         self._bars_written += 1
 
-        # Simple sim-fill hook (matches BacktestConfig.fill_model="perfect"):
-        # any TYPE_A/TYPE_B with a direction emits a trade row. TYPE_C is
-        # excluded (alert-only tier per scorer.py docstring). Exit columns
-        # left NULL — exit logic is out of scope for this plan.
+        # Resolve any previously-open trades against THIS bar's high/low.
+        # Done BEFORE opening a new trade so the just-opened trade is
+        # never resolved on its own entry bar (entry is at bar.close —
+        # we have no intrabar info to fairly evaluate brackets against
+        # the same bar's range).
+        closed_trades = self._bracket.on_bar(bar, ts_now)
+        for ct in closed_trades:
+            self._persist_closed_trade(ct)
+
+        # Simple sim-fill hook: any TYPE_A/TYPE_B with a direction opens a
+        # trade. TYPE_C is excluded (alert-only tier per scorer.py
+        # docstring). Exit is resolved by BracketExitTracker on subsequent
+        # bars; see Phase 13-03 bracket_exit.py for fill model + tie-break.
         if (
             scorer_result.tier in (SignalTier.TYPE_A, SignalTier.TYPE_B)
             and scorer_result.direction != 0
         ):
+            trade_id = str(uuid.uuid4())
             self._store.record_trade(
                 run_id=self.run_id,
                 entry_ts=bar_ts,
@@ -395,9 +455,20 @@ class ReplaySession(AbstractAsyncContextManager["ReplaySession"]):
                 exit_price=None,
                 pnl=0.0,
                 tier=tier_name,
-                fill_model="perfect",
+                fill_model=self.config.fill_model,
+                trade_id=trade_id,
+                exit_reason=None,
+            )
+            self._bracket.open_trade(
+                trade_id=trade_id,
+                entry_price=bar.close,
+                direction=1 if scorer_result.direction > 0 else -1,
+                entry_ts=ts_now,
             )
             self._trades_written += 1
+
+        self._last_bar_close = bar.close
+        self._last_bar_ts = ts_now
 
         if self._bar_close_hook is not None:
             try:

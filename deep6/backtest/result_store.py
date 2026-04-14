@@ -63,6 +63,7 @@ CREATE TABLE IF NOT EXISTS backtest_bars (
 
 _TRADES_SCHEMA = """
 CREATE TABLE IF NOT EXISTS backtest_trades (
+    trade_id VARCHAR,
     run_id VARCHAR,
     entry_ts TIMESTAMP,
     exit_ts TIMESTAMP,
@@ -72,9 +73,16 @@ CREATE TABLE IF NOT EXISTS backtest_trades (
     exit_price DOUBLE,
     pnl DOUBLE,
     tier VARCHAR,
-    fill_model VARCHAR
+    fill_model VARCHAR,
+    exit_reason VARCHAR
 )
 """
+
+# Columns added in Phase 13-03 — tolerated ALTER on existing dev databases.
+_TRADES_ALTERS = (
+    "ALTER TABLE backtest_trades ADD COLUMN IF NOT EXISTS trade_id VARCHAR",
+    "ALTER TABLE backtest_trades ADD COLUMN IF NOT EXISTS exit_reason VARCHAR",
+)
 
 
 class DuckDBResultStore:
@@ -105,6 +113,15 @@ class DuckDBResultStore:
         self._con.execute(_RUNS_SCHEMA)
         self._con.execute(_BARS_SCHEMA)
         self._con.execute(_TRADES_SCHEMA)
+        # Tolerant upgrade for dev DBs created before Phase 13-03 added
+        # trade_id / exit_reason. No-op on fresh schemas created above.
+        for stmt in _TRADES_ALTERS:
+            try:
+                self._con.execute(stmt)
+            except Exception:
+                # DuckDB versions without IF NOT EXISTS for ADD COLUMN will
+                # throw if the column already exists — safe to ignore.
+                pass
         return self
 
     def __exit__(self, exc_type, exc, tb) -> None:
@@ -187,17 +204,48 @@ class DuckDBResultStore:
         pnl: float,
         tier: str,
         fill_model: str = "perfect",
+        trade_id: str | None = None,
+        exit_reason: str | None = None,
     ) -> None:
         self._trade_buffer.append(
             (
-                run_id, entry_ts, exit_ts, side, int(qty),
+                trade_id, run_id, entry_ts, exit_ts, side, int(qty),
                 float(entry_price),
                 float(exit_price) if exit_price is not None else None,
-                float(pnl), tier, fill_model,
+                float(pnl), tier, fill_model, exit_reason,
             )
         )
         if len(self._trade_buffer) >= self.batch_size:
             self._flush_trades()
+
+    def update_trade_exit(
+        self,
+        trade_id: str,
+        exit_ts: datetime,
+        exit_price: float,
+        pnl: float,
+        exit_reason: str,
+    ) -> None:
+        """Fill in exit_ts / exit_price / pnl / exit_reason for a trade.
+
+        Phase 13-03. ReplaySession inserts trades open (exit columns NULL)
+        when the signal bar closes, then calls this once the bracket
+        resolves (subsequent bar touches stop or target) or ``on_exit``
+        force-closes at stream end.
+
+        The update flushes the trade buffer first so newly-inserted rows
+        are visible. This makes bracket-resolution O(flush_per_exit) in
+        the worst case — acceptable for replay throughput and keeps the
+        schema simple (no separate trade_exits side-table).
+        """
+        # Ensure the open row exists in the DB before updating.
+        self._flush_trades()
+        self._require_con().execute(
+            "UPDATE backtest_trades "
+            "SET exit_ts = ?, exit_price = ?, pnl = ?, exit_reason = ? "
+            "WHERE trade_id = ?",
+            [exit_ts, float(exit_price), float(pnl), exit_reason, trade_id],
+        )
 
     def flush(self) -> None:
         """Flush both bar and trade buffers."""
@@ -231,9 +279,9 @@ class DuckDBResultStore:
         con = self._require_con()
         con.executemany(
             "INSERT INTO backtest_trades "
-            "(run_id, entry_ts, exit_ts, side, qty, entry_price, exit_price, "
-            " pnl, tier, fill_model) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "(trade_id, run_id, entry_ts, exit_ts, side, qty, entry_price, "
+            " exit_price, pnl, tier, fill_model, exit_reason) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             self._trade_buffer,
         )
         log.debug("result_store.flush_trades", n=len(self._trade_buffer))
