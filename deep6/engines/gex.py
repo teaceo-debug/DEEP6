@@ -39,6 +39,9 @@ class GexLevels:
     put_wall: float = 0.0           # Strike with largest put gamma × OI
     gamma_flip: float = 0.0         # Price where net GEX crosses zero
     hvl: float = 0.0                # High volatility level (peak |GEX|)
+    # D-28 (Phase 15): peak raw call γ × OI strike BEFORE put netting.
+    # Distinct from ``hvl`` (peak |net GEX|). Consumed by CR-04 (Pin Regime).
+    largest_gamma_strike: float = 0.0
     regime: GexRegime = GexRegime.NEUTRAL
     net_gex_at_spot: float = 0.0    # Net GEX value at current spot price
     timestamp: float = 0.0          # When levels were last computed
@@ -51,6 +54,17 @@ class GexLevels:
         # callers are unchanged.
         ref = now if now is not None else time.time()  # live-only fallback
         return ref - self.timestamp if self.timestamp > 0 else float('inf')
+
+    @property
+    def zero_gamma(self) -> float:
+        """D-29 alias: ``zero_gamma`` ≡ ``gamma_flip``.
+
+        Naming alias only — no separate computation. Downstream confluence
+        rules may address ZERO_GAMMA as a distinct LevelKind so the API
+        layer stays explicit about intent, but the price is the same
+        interpolated zero-net-GEX strike.
+        """
+        return self.gamma_flip
 
 
 @dataclass

@@ -135,8 +135,9 @@ def test_peak_bucket_keeps_stronger_range():
     active = reg.get_all_active()
     assert len(active) == 1
     # Incoming (z2) had higher score → its range is used
-    assert active[0].top_price == 100.75
-    assert active[0].bot_price == 100.25
+    # Phase 15 D-09: get_all_active() now returns list[Level] — use price_top/price_bot.
+    assert active[0].price_top == 100.75
+    assert active[0].price_bot == 100.25
 
 
 def test_peak_bucket_keeps_existing_range_when_weaker():
@@ -149,8 +150,9 @@ def test_peak_bucket_keeps_existing_range_when_weaker():
     active = reg.get_all_active()
     assert len(active) == 1
     # Existing (z1) had higher score → its range is kept
-    assert active[0].top_price == 100.50
-    assert active[0].bot_price == 100.00
+    # Phase 15 D-09: get_all_active() now returns list[Level] — use price_top/price_bot.
+    assert active[0].price_top == 100.50
+    assert active[0].price_bot == 100.00
 
 
 # ---------------------------------------------------------------------------
