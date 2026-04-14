@@ -25,6 +25,12 @@
  *   - Both display brief ▲▼ DeltaIndicator for 800ms after change
  *   - Confidence flashes background on Δ > FLASH_THRESHOLD_CONFIDENCE (20 pts)
  *
+ * v4 enhancements (compass density):
+ *   - Regime tag: TRENDING ↗ / RANGING ~ / CHOPPY ?? derived from direction history
+ *   - Sparkline: dashed y=50 midpoint gridline + min/max tick markers
+ *   - Confidence dot rating: ●●●○○ (1–5) based on confidence vs recent mean
+ *   - Last-update timer: "updated Xs ago" counting up since last Kronos tick
+ *
  * Color semantics:
  *   Direction: --ask (LONG), --bid (SHORT), --text-mute (NEUTRAL)
  *   Confidence + bias + sparkline: --magenta
@@ -118,6 +124,129 @@ function stdDev(values: number[]): number {
   const mean = values.reduce((a, b) => a + b, 0) / values.length;
   const variance = values.reduce((acc, v) => acc + (v - mean) ** 2, 0) / values.length;
   return Math.sqrt(variance);
+}
+
+// ---------------------------------------------------------------------------
+// Regime tag — derived from last 10 direction slots
+// Returns: { label, arrow, color }
+// TRENDING: last 10 all same direction
+// CHOPPY: high alternation rate (>= 4 flips in last 9 transitions)
+// RANGING: everything else
+// ---------------------------------------------------------------------------
+
+interface RegimeInfo {
+  label: string;
+  arrow: string;
+  color: string;
+}
+
+function computeRegime(history: HistoryEntry[], kronosDirection: string): RegimeInfo | null {
+  if (history.length < 5) return null;
+
+  const last10 = history.slice(-10);
+  const dirs = last10.map((h) => h.direction);
+
+  // Count direction flips
+  let flips = 0;
+  for (let i = 1; i < dirs.length; i++) {
+    if (dirs[i] !== dirs[i - 1]) flips++;
+  }
+
+  const uniqueDirs = new Set(dirs.filter((d) => d !== 'NEUTRAL'));
+
+  if (uniqueDirs.size === 1 && flips === 0) {
+    // All same non-neutral direction — TRENDING
+    const isContrarian = uniqueDirs.has('SHORT') && kronosDirection === 'LONG' ||
+                         uniqueDirs.has('LONG') && kronosDirection === 'SHORT';
+    return {
+      label: 'TRENDING',
+      arrow: uniqueDirs.has('LONG') ? '↗' : '↘',
+      color: isContrarian ? 'var(--bid)' : 'var(--ask)',
+    };
+  }
+
+  if (flips >= 4) {
+    // High alternation — CHOPPY
+    return {
+      label: 'CHOPPY',
+      arrow: '??',
+      color: 'var(--bid)',
+    };
+  }
+
+  // Otherwise — RANGING
+  return {
+    label: 'RANGING',
+    arrow: '~',
+    color: 'var(--amber)',
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Confidence dot rating — 1–5 filled dots based on confidence vs recent mean
+// Thresholds: < 20 → 1, < 40 → 2, < 60 → 3, < 80 → 4, >= 80 → 5
+// ---------------------------------------------------------------------------
+
+function ConfidenceDots({ confidence }: { confidence: number }) {
+  const filled = confidence < 20 ? 1
+    : confidence < 40 ? 2
+    : confidence < 60 ? 3
+    : confidence < 80 ? 4
+    : 5;
+
+  return (
+    <span
+      style={{
+        fontFamily: 'var(--font-mono, "JetBrains Mono", monospace)',
+        fontSize: '10px',
+        letterSpacing: '1px',
+        lineHeight: 1,
+        userSelect: 'none',
+      }}
+    >
+      {Array.from({ length: 5 }, (_, i) => (
+        <span
+          key={i}
+          style={{ color: i < filled ? 'var(--ask)' : 'var(--rule-bright)' }}
+        >
+          ●
+        </span>
+      ))}
+    </span>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Last-update timer — counts up in seconds since last Kronos tick
+// ---------------------------------------------------------------------------
+
+function UpdateTimer({ lastUpdateTs }: { lastUpdateTs: number }) {
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    if (lastUpdateTs === 0) return;
+    const tick = () => {
+      setElapsed(Math.floor((Date.now() - lastUpdateTs) / 1000));
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [lastUpdateTs]);
+
+  if (lastUpdateTs === 0) return null;
+
+  return (
+    <span
+      style={{
+        fontFamily: 'var(--font-mono, "JetBrains Mono", monospace)',
+        fontSize: '9px',
+        color: 'var(--text-mute)',
+        letterSpacing: '0.02em',
+      }}
+    >
+      updated {elapsed}s ago
+    </span>
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -326,6 +455,9 @@ function DirectionText({ direction, color }: DirectionTextProps) {
 
 // ---------------------------------------------------------------------------
 // Sparkline — 80×14px SVG line + area chart of last 20 bias values
+// Now with:
+//   - Dashed midpoint gridline at y=50 (mapped to SVG space)
+//   - Min/max horizontal tick markers at extreme points
 // ---------------------------------------------------------------------------
 
 interface SparklineProps {
@@ -341,9 +473,12 @@ function Sparkline({ history }: SparklineProps) {
   const maxV = Math.max(...biasValues);
   const range = maxV - minV || 1; // avoid division by zero when all same
 
+  // Map a bias value to SVG y coordinate
+  const toY = (v: number) => H - ((v - minV) / range) * H;
+
   const points = biasValues.map((v, i) => {
-    const x = (i / (biasValues.length - 1)) * W;
-    const y = H - ((v - minV) / range) * H;
+    const x = (i / Math.max(biasValues.length - 1, 1)) * W;
+    const y = toY(v);
     return { x, y };
   });
 
@@ -358,6 +493,19 @@ function Sparkline({ history }: SparklineProps) {
 
   const last = points[points.length - 1];
 
+  // Midpoint gridline at bias=50 — only render if 50 is within the visible range
+  const mid50 = toY(50);
+  const showMidline = mid50 >= 0 && mid50 <= H;
+
+  // Min/max tick markers — find the x positions of global min and max
+  const minBias = Math.min(...biasValues);
+  const maxBias = Math.max(...biasValues);
+  const minIdx = biasValues.lastIndexOf(minBias);
+  const maxIdx = biasValues.lastIndexOf(maxBias);
+  const minPt = points[minIdx];
+  const maxPt = points[maxIdx];
+  const showMinMax = minBias !== maxBias; // only when there's spread
+
   return (
     <svg
       width={W}
@@ -365,12 +513,27 @@ function Sparkline({ history }: SparklineProps) {
       viewBox={`0 0 ${W} ${H}`}
       style={{ display: 'block', overflow: 'visible' }}
     >
+      {/* Dashed midpoint gridline at y=50 */}
+      {showMidline && (
+        <line
+          x1="0"
+          y1={mid50.toFixed(1)}
+          x2={W}
+          y2={mid50.toFixed(1)}
+          stroke="var(--rule-bright)"
+          strokeWidth="0.5"
+          strokeDasharray="2,2"
+          opacity="0.6"
+        />
+      )}
+
       {/* Area fill */}
       <path
         d={areaPath}
         fill="rgba(255,0,170,0.10)"
         stroke="none"
       />
+
       {/* Line */}
       <path
         d={linePath}
@@ -380,6 +543,33 @@ function Sparkline({ history }: SparklineProps) {
         strokeLinejoin="round"
         strokeLinecap="round"
       />
+
+      {/* Min tick marker — horizontal 3px tick at min extreme */}
+      {showMinMax && minPt && (
+        <line
+          x1={(minPt.x - 1.5).toFixed(1)}
+          y1={minPt.y.toFixed(1)}
+          x2={(minPt.x + 1.5).toFixed(1)}
+          y2={minPt.y.toFixed(1)}
+          stroke="var(--bid)"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+      )}
+
+      {/* Max tick marker — horizontal 3px tick at max extreme */}
+      {showMinMax && maxPt && (
+        <line
+          x1={(maxPt.x - 1.5).toFixed(1)}
+          y1={maxPt.y.toFixed(1)}
+          x2={(maxPt.x + 1.5).toFixed(1)}
+          y2={maxPt.y.toFixed(1)}
+          stroke="var(--ask)"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+      )}
+
       {/* Current point dot */}
       {last && (
         <circle
@@ -478,6 +668,35 @@ function TrendArrow({ current, oldest }: TrendArrowProps) {
 }
 
 // ---------------------------------------------------------------------------
+// Regime tag — small pill below confidence showing market character
+// ---------------------------------------------------------------------------
+
+interface RegimeTagProps {
+  regime: RegimeInfo;
+}
+
+function RegimeTag({ regime }: RegimeTagProps) {
+  return (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '3px',
+        fontFamily: 'var(--font-mono, "JetBrains Mono", monospace)',
+        fontSize: '9px',
+        letterSpacing: '0.06em',
+        color: regime.color,
+        opacity: 0.85,
+        lineHeight: 1,
+      }}
+    >
+      {regime.label}
+      <span style={{ fontSize: '10px' }}>{regime.arrow}</span>
+    </span>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
 
@@ -500,6 +719,9 @@ export function KronosBar() {
   const prevBiasRef = useRef(kronosBias);
   const [pingKey, setPingKey] = useState(0);
 
+  // Last update timestamp
+  const [lastUpdateTs, setLastUpdateTs] = useState(0);
+
   // ---------------------------------------------------------------------------
   // Local history (component-level only, not persisted to store)
   // ---------------------------------------------------------------------------
@@ -511,6 +733,7 @@ export function KronosBar() {
       prevBiasRef.current = kronosBias;
       pingKeyRef.current += 1;
       setPingKey(pingKeyRef.current);
+      setLastUpdateTs(Date.now());
 
       setHistory((prev) => {
         const next = [
@@ -536,6 +759,9 @@ export function KronosBar() {
   const biasExceedsConfidence = biasAbs > confidence;
 
   const hasEnoughHistory = history.length >= 3;
+
+  // Regime tag — requires at least 5 history entries
+  const regime = useMemo(() => computeRegime(history, direction), [history, direction]);
 
   return (
     <div
@@ -648,6 +874,28 @@ export function KronosBar() {
         </div>
       </div>
 
+      {/* Confidence dots + Regime tag row */}
+      {!noData && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            minHeight: '13px',
+          }}
+        >
+          <HoverTip text="Confidence rating: 1 dot (weak) → 5 dots (strong).">
+            <ConfidenceDots confidence={confidence} />
+          </HoverTip>
+
+          {regime && (
+            <HoverTip text="Market regime derived from last 10 direction slots.">
+              <RegimeTag regime={regime} />
+            </HoverTip>
+          )}
+        </div>
+      )}
+
       {/* Gradient confidence bar (8px) */}
       <div
         style={{
@@ -687,6 +935,11 @@ export function KronosBar() {
             borderRadius: '1px',
           }}
         />
+      </div>
+
+      {/* Last update timer — bottom right */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <UpdateTimer lastUpdateTs={lastUpdateTs} />
       </div>
     </div>
   );
