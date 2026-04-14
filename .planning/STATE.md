@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 11.2-01-PLAN.md
-last_updated: "2026-04-14T12:15:19Z"
+stopped_at: Completed 11.2-02-PLAN.md
+last_updated: "2026-04-14T12:23:58.993Z"
 last_activity: 2026-04-14
 progress:
-  total_phases: 16
+  total_phases: 17
   completed_phases: 11
-  total_plans: 52
-  completed_plans: 45
-  percent: 87
+  total_plans: 56
+  completed_plans: 47
+  percent: 84
 ---
 
 # Project State
@@ -75,6 +75,7 @@ Progress: [░░░░░░░░░░] 2%
 | Phase 15 P01 | 45 | 3 tasks | 8 files |
 | Phase 15 P02 | 15 | 2 tasks | 3 files |
 | Phase 11.2 P01 | 3 | 3 tasks | 9 files |
+| Phase 11.2 P02 | 4 | 2 tasks | 7 files |
 
 ## Quick Tasks Completed
 
@@ -131,6 +132,9 @@ Recent decisions affecting current work:
 - [Phase 11.2]: 11.2-01: motion resolved to ^11.18.2; MIT confirmed; npm audit 0 high/critical (T-11.2-01 mitigated)
 - [Phase 11.2]: 11.2-01: CRTSweep checks prefers-reduced-motion via window.matchMedia at render time to avoid flash-of-animation
 - [Phase 11.2]: 11.2-01: ScoreWidget removed from page.tsx; data-slot=confluence-pulse placeholder for Plan 11.2-02
+- [Phase 11.2]: foreignObject for SVG inner core text — enables CSS classes (.text-display, .tnum, .glow-lime) inside SVG without SVG text attribute workarounds
+- [Phase 11.2]: typeAFlashKeyframes uses explicit type annotations not as-const — Motion TargetAndTransition requires mutable arrays, not readonly tuples
+- [Phase 11.2]: arc firing derived from categoriesFiring[] string array — store does not expose raw signalFlags bitmask; all arcs in a category ignite together
 
 ### Roadmap Evolution
 
@@ -152,6 +156,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-14T12:15:19Z
-Stopped at: Completed 11.2-01-PLAN.md
+Last session: 2026-04-14T12:23:51.325Z
+Stopped at: Completed 11.2-02-PLAN.md
 Resume file: None
