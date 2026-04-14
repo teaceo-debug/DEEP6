@@ -45,6 +45,24 @@ function useFeedStaleWatcher() {
   }, []);
 }
 
+// ── Column separator — 1px --rule gradient that fades at top+bottom ──────────
+
+function ColSep() {
+  return (
+    <div
+      aria-hidden
+      style={{
+        width: 1,
+        flexShrink: 0,
+        alignSelf: 'stretch',
+        background:
+          'linear-gradient(to bottom, transparent 0%, var(--rule) 12%, var(--rule) 88%, transparent 100%)',
+        pointerEvents: 'none',
+      }}
+    />
+  );
+}
+
 export default function Home() {
   useWebSocket(
     process.env.NEXT_PUBLIC_WS_URL ?? 'ws://localhost:8000/ws/live',
@@ -62,20 +80,22 @@ export default function Home() {
         background: 'var(--void)',
         color: 'var(--text)',
         overflow: 'hidden',
+        position: 'relative',
       }}
     >
       {/* Header strip — 44px */}
       <HeaderStrip />
 
-      {/* Error banner — surfaces connection loss, feed stall, replay errors */}
+      {/* Error banner — absolute overlay at top:44px, does NOT push content */}
       <ErrorBanner />
 
-      {/* Main 3-column asymmetric region — flex-1 | 320px hero | 300px right */}
+      {/* Main 3-column asymmetric region — flex-1 | 340px hero | 320px right */}
       <main
         style={{
           flex: 1,
           display: 'flex',
           minHeight: 0,
+          position: 'relative',
         }}
       >
         {/* Footprint chart — flex-1, min-w-0 */}
@@ -84,18 +104,19 @@ export default function Home() {
             flex: 1,
             minWidth: 0,
             display: 'flex',
-            borderRight: '1px solid var(--rule)',
           }}
         >
           <FootprintChart />
         </section>
 
-        {/* Hero column — 320px fixed (Confluence Pulse + Kronos + Zone List) */}
+        {/* Gradient column separator — chart / hero */}
+        <ColSep />
+
+        {/* Hero column — 340px fixed (Confluence Pulse + Kronos + Zone List) */}
         <aside
           style={{
-            width: '320px',
+            width: '340px',
             flexShrink: 0,
-            borderRight: '1px solid var(--rule)',
             display: 'flex',
             flexDirection: 'column',
           }}
@@ -137,10 +158,13 @@ export default function Home() {
           </div>
         </aside>
 
-        {/* Right column — 300px fixed (Signal Feed + T&S Tape) */}
+        {/* Gradient column separator — hero / right */}
+        <ColSep />
+
+        {/* Right column — 320px fixed (Signal Feed + T&S Tape) */}
         <aside
           style={{
-            width: '300px',
+            width: '320px',
             flexShrink: 0,
             display: 'flex',
             flexDirection: 'column',
@@ -168,16 +192,8 @@ export default function Home() {
         </aside>
       </main>
 
-      {/* Replay strip — 52px */}
-      <footer
-        style={{
-          height: '52px',
-          flexShrink: 0,
-          borderTop: '1px solid var(--rule)',
-        }}
-      >
-        <ReplayControls />
-      </footer>
+      {/* Replay strip — variable height (52px + optional 4px scrubber) */}
+      <ReplayControls />
     </div>
   );
 }
