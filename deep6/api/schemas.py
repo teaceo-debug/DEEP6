@@ -12,7 +12,8 @@ LiveBarMessage     — WS multiplexed bar message (type="bar")
 LiveSignalMessage  — WS multiplexed signal message (type="signal")
 LiveScoreMessage   — WS multiplexed confluence score message (type="score")
 LiveStatusMessage  — WS multiplexed connection/status message (type="status")
-LiveMessage        — discriminated Union of the four live message types
+LiveTapeMessage    — WS multiplexed T&S trade print message (type="tape")
+LiveMessage        — discriminated Union of the five live message types
 """
 from __future__ import annotations
 
@@ -156,6 +157,21 @@ class LiveStatusMessage(BaseModel):
     ts: float
 
 
+class TapeEventIn(BaseModel):
+    """A single trade print (time & sales entry)."""
+    ts: float                                                  # epoch seconds
+    price: float
+    size: int
+    side: Literal["BID", "ASK"]                               # who hit: BID=seller hit bid, ASK=buyer lifted ask
+    marker: Literal["", "SWEEP", "ICEBERG", "KRONOS"] = ""   # optional annotation
+
+
+class LiveTapeMessage(BaseModel):
+    """Backend → client: single trade print for T&S feed."""
+    type: Literal["tape"] = "tape"
+    event: TapeEventIn
+
+
 #: Discriminated union of all live message types.
 #: Client dispatches on the ``type`` field.
-LiveMessage = Union[LiveBarMessage, LiveSignalMessage, LiveScoreMessage, LiveStatusMessage]
+LiveMessage = Union[LiveBarMessage, LiveSignalMessage, LiveScoreMessage, LiveStatusMessage, LiveTapeMessage]

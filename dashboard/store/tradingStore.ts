@@ -8,6 +8,7 @@ import type {
   TapeEntry,
   LiveScoreMessage,
   LiveStatusMessage,
+  LiveTapeMessage,
 } from '@/types/deep6';
 
 export const BAR_CAPACITY = 500;
@@ -133,6 +134,17 @@ export const useTradingStore = create<TradingState>()(
         case 'status':
           g.setStatus(msg);
           break;
+        case 'tape': {
+          const m = msg as LiveTapeMessage;
+          g.pushTape({
+            ts:     m.event.ts,
+            price:  m.event.price,
+            size:   m.event.size,
+            side:   m.event.side,
+            marker: m.event.marker,
+          });
+          break;
+        }
         default: {
           // T-11-07: unknown message type — log and drop, do not mutate state
           // eslint-disable-next-line no-console

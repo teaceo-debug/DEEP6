@@ -153,3 +153,82 @@ class TestWebSocketEndpoint:
                 ws.send_text("ping")
                 msg = ws.receive_text()
                 assert msg == "pong"
+
+
+# ---------------------------------------------------------------------------
+# LiveTapeMessage broadcast integration test
+# ---------------------------------------------------------------------------
+
+class TestTapeBroadcast:
+    """POST /api/live/test-broadcast with a tape payload reaches WS clients."""
+
+    def setup_method(self):
+        os.environ["WS_TOKEN"] = "test-secret-token"
+
+    def teardown_method(self):
+        os.environ.pop("WS_TOKEN", None)
+
+    def _get_app(self):
+        from deep6.api.app import app
+        return app
+
+    def test_tape_broadcast_accepted_and_received_by_ws_client(self):
+        """POST tape payload → 200, connected WS client receives the message."""
+        import json
+
+        app = self._get_app()
+
+        tape_payload = {
+            "type": "tape",
+            "event": {
+                "ts":     1_700_000_000.0,
+                "price":  19_483.50,
+                "size":   125,
+                "side":   "ASK",
+                "marker": "SWEEP",
+            },
+        }
+
+        with TestClient(app) as client:
+            # Connect a WS listener (subprotocol auth)
+            with client.websocket_connect(
+                "/ws/live"
+            ) as ws:
+                # Drain the initial LiveStatusMessage sent on connect
+                _initial = ws.receive_text()
+
+                # POST tape message via HTTP broadcast helper
+                resp = client.post(
+                    "/api/live/test-broadcast",
+                    json=tape_payload,
+                )
+                assert resp.status_code == 200, resp.text
+                data = resp.json()
+                assert data["status"] == "broadcast"
+
+                # WS client should receive the tape message
+                raw = ws.receive_text()
+                received = json.loads(raw)
+                assert received["type"] == "tape"
+                assert received["event"]["side"] == "ASK"
+                assert received["event"]["marker"] == "SWEEP"
+                assert received["event"]["size"] == 125
+
+    def test_tape_broadcast_rejects_invalid_side(self):
+        """POST tape payload with invalid side value → 422."""
+        app = self._get_app()
+
+        bad_payload = {
+            "type": "tape",
+            "event": {
+                "ts":     1_700_000_000.0,
+                "price":  19_483.50,
+                "size":   10,
+                "side":   "BUY",   # invalid — must be "BID" or "ASK"
+                "marker": "",
+            },
+        }
+
+        with TestClient(app) as client:
+            resp = client.post("/api/live/test-broadcast", json=bad_payload)
+            assert resp.status_code == 422

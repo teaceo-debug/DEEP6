@@ -503,15 +503,32 @@ def main() -> None:
             if ticks_since_tape >= TAPE_INTERVAL:
                 ticks_since_tape = 0
                 tape_price = price + random.choice([-0.25, 0, 0.25])
-                tape_size  = random.randint(1, 30)
-                # Tape as a status message is the closest match without a
-                # dedicated tape endpoint; use a custom "tape" type payload.
+                tape_size  = random.randint(1, 200)
+
+                # Weight side by bar delta direction: positive delta = more ASK prints
+                bar_delta_so_far = running_delta
+                ask_weight = 0.60 if bar_delta_so_far > 0 else 0.40
+                tape_side = random.choices(["ASK", "BID"], weights=[ask_weight, 1 - ask_weight])[0]
+
+                # Marker logic (20% of prints get a marker)
+                tape_marker = ""
+                if random.random() < 0.20:
+                    if tape_size >= 100:
+                        tape_marker = "SWEEP"
+                    elif random.random() < 0.40:
+                        tape_marker = "ICEBERG"
+                    else:
+                        tape_marker = "KRONOS"
+
                 ok = post(args.url, {
-                    "type": "tape",
-                    "price": tape_price,
-                    "size":  tape_size,
-                    "side":  random.choice(["BUY", "SELL"]),
-                    "ts":    tick_start,
+                    "type":  "tape",
+                    "event": {
+                        "ts":     tick_start,
+                        "price":  tape_price,
+                        "size":   tape_size,
+                        "side":   tape_side,
+                        "marker": tape_marker,
+                    },
                 })
                 if ok:
                     stats.tape += 1

@@ -52,12 +52,13 @@ export interface ZoneRef {
   score?: number;
 }
 
-// === Tape row (placeholder shape for Wave 3) ===
+// === Tape row (mirrors TapeEventIn in deep6/api/schemas.py) ===
 export interface TapeEntry {
   ts: number;
   price: number;
   size: number;
   side: 'ASK' | 'BID'; // ask=buy-aggressor, bid=sell-aggressor
+  marker: '' | 'SWEEP' | 'ICEBERG' | 'KRONOS';
 }
 
 // === LiveMessage discriminated union (mirrors LiveMessage in deep6/api/schemas.py) ===
@@ -96,8 +97,14 @@ export interface LiveStatusMessage {
   ts: number;
 }
 
+export interface LiveTapeMessage {
+  type: 'tape';
+  event: TapeEntry;
+}
+
 export type LiveMessage =
   | LiveBarMessage
   | LiveSignalMessage
   | LiveScoreMessage
-  | LiveStatusMessage;
+  | LiveStatusMessage
+  | LiveTapeMessage;
