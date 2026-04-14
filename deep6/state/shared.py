@@ -20,6 +20,8 @@ from deep6.state.connection import FreezeGuard, SessionManager
 from deep6.state.persistence import SessionPersistence
 from deep6.signals.atr import ATRTracker
 from deep6.orderflow.vpin import VPINEngine
+from deep6.orderflow.slingshot import SlingshotDetector, SlingshotResult
+from deep6.signals.flags import SignalFlags
 
 
 @dataclass
@@ -64,6 +66,25 @@ class SharedState:
     # total_score.
     vpin: VPINEngine = field(default_factory=VPINEngine)
 
+    # Slingshot detectors (phase 12-03, TRAP_SHOT @ bit 44) — independent
+    # 1m and 5m instances. Each maintains its own delta_history; both reset
+    # at the RTH session boundary via on_session_reset(). Last firing per
+    # timeframe is exposed for phase 12-04 setup state machine consumption.
+    slingshot_1m: SlingshotDetector = field(default_factory=SlingshotDetector)
+    slingshot_5m: SlingshotDetector = field(default_factory=SlingshotDetector)
+    last_slingshot_1m: SlingshotResult | None = field(default=None, repr=False)
+    last_slingshot_5m: SlingshotResult | None = field(default=None, repr=False)
+
+    # Rolling bar cache per timeframe (for slingshot multi-bar lookback).
+    # Kept short (last 5) — slingshot needs up to 4 bars.
+    _bar_cache_1m: list = field(default_factory=list, repr=False)
+    _bar_cache_5m: list = field(default_factory=list, repr=False)
+
+    # Optional GEX-distance provider (ticks) — set by __main__.py once the
+    # GEX engine is wired. Signature: () -> float | None. None when GEX
+    # context is unavailable, which degrades slingshot to no-bypass firing.
+    gex_distance_provider: Callable | None = field(default=None, repr=False)
+
     # Optional on_bar_close override (set by signal pipeline in Phase 2+)
     _on_bar_close_fn: Callable | None = field(default=None, repr=False)
 
@@ -99,8 +120,72 @@ class SharedState:
             except Exception:
                 # VPIN must never break the bar-close path. Log and continue.
                 log.exception("vpin.update_failed", label=label)
+
+        # Phase 12-03: feed SlingshotDetector and run pattern detection.
+        # Must never break the bar-close path — wrapped in try/except.
+        try:
+            self._run_slingshot(label, bar)
+        except Exception:
+            log.exception("slingshot.detect_failed", label=label)
+
         if self._on_bar_close_fn is not None:
             await self._on_bar_close_fn(label, bar)
+
+    def _run_slingshot(self, label: str, bar) -> int:
+        """Run SlingshotDetector for the given timeframe and return the flag bitmask.
+
+        Appends bar_delta to the detector's history, maintains the rolling
+        bar cache, runs detect(), stores last result, and returns
+        int(SignalFlags.TRAP_SHOT) if fired (else 0).
+
+        Return value is used by the signal bitmask assembly in phase 12-04
+        and by integration tests.
+        """
+        if label == "1m":
+            detector = self.slingshot_1m
+            cache = self._bar_cache_1m
+        elif label == "5m":
+            detector = self.slingshot_5m
+            cache = self._bar_cache_5m
+        else:
+            return 0
+
+        detector.update_history(int(getattr(bar, "bar_delta", 0)))
+        cache.append(bar)
+        # Keep only the last 5 bars (slingshot needs at most 4).
+        if len(cache) > 5:
+            del cache[: len(cache) - 5]
+
+        gex_distance = None
+        if self.gex_distance_provider is not None:
+            try:
+                gex_distance = self.gex_distance_provider()
+            except Exception:
+                gex_distance = None
+
+        result = detector.detect(cache, gex_distance)
+        if label == "1m":
+            self.last_slingshot_1m = result
+        else:
+            self.last_slingshot_5m = result
+
+        return int(SignalFlags.TRAP_SHOT) if result.fired else 0
+
+    def on_session_reset(self) -> None:
+        """Hook invoked at RTH session open (9:30 ET) by SessionManager.
+
+        Per 12-CONTEXT.md FOOTGUN 2: both slingshot detectors must clear
+        their delta_history at the session boundary to avoid threshold drift
+        across the overnight gap. Bar caches are also cleared so pre-open
+        bars (if any) cannot satisfy multi-bar patterns on the first fresh
+        RTH bar.
+        """
+        self.slingshot_1m.reset_session()
+        self.slingshot_5m.reset_session()
+        self._bar_cache_1m.clear()
+        self._bar_cache_5m.clear()
+        self.last_slingshot_1m = None
+        self.last_slingshot_5m = None
 
     @classmethod
     def build(cls, config: Config) -> "SharedState":

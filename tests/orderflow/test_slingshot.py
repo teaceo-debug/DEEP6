@@ -40,12 +40,14 @@ def test_slingshot_result_exports_expected_fields():
 # Test fixtures — synthetic bars
 # --------------------------------------------------------------------------
 class _SyntheticBar:
-    """Minimal bar shape the detector needs.
+    """Minimal bar shape the detector + on_bar_close logger need.
 
-    Only attributes: open, high, low, close, bar_delta.
+    Detector fields: open, high, low, close, bar_delta.
+    Logger fields: timestamp, cvd, poc_price, total_vol, bar_range.
     Using an ad-hoc class (not FootprintBar) keeps unit tests hermetic.
     """
-    __slots__ = ("open", "high", "low", "close", "bar_delta")
+    __slots__ = ("open", "high", "low", "close", "bar_delta",
+                 "timestamp", "cvd", "poc_price", "total_vol", "bar_range")
 
     def __init__(self, open, high, low, close, bar_delta):
         self.open = float(open)
@@ -53,6 +55,12 @@ class _SyntheticBar:
         self.low = float(low)
         self.close = float(close)
         self.bar_delta = int(bar_delta)
+        # Logger attributes (SharedState.on_bar_close reads these).
+        self.timestamp = 0.0
+        self.cvd = 0
+        self.poc_price = 0.0
+        self.total_vol = 0
+        self.bar_range = float(high) - float(low)
 
 
 def _warmup_history(detector, n=35, base_delta=50):
@@ -204,3 +212,120 @@ def test_coexists_with_delt_slingshot():
     assert int(SignalFlags.TRAP_SHOT) == 1 << 44
     assert int(SignalFlags.DELT_SLINGSHOT) == 1 << 28
     assert int(SignalFlags.TRAP_SHOT) != int(SignalFlags.DELT_SLINGSHOT)
+
+
+# --------------------------------------------------------------------------
+# Integration tests — SharedState wiring (T-12-03-03)
+# --------------------------------------------------------------------------
+def _make_state():
+    """Build a minimal SharedState with an in-memory persistence db."""
+    from deep6.config import Config
+    from deep6.state.shared import SharedState
+    cfg = Config(
+        rithmic_user="test",
+        rithmic_password="test",
+        rithmic_system_name="Rithmic Test",
+        rithmic_uri="wss://localhost:0",
+        db_path=":memory:",
+    )
+    return SharedState.build(cfg)
+
+
+def _feed_history(detector, n=40, base_delta=50):
+    for i in range(n):
+        detector.update_history(base_delta if i % 2 == 0 else -base_delta)
+
+
+@pytest.mark.asyncio
+async def test_end_to_end_flag_set_1m():
+    """After warmup, a 2-bar bull template driven through on_bar_close
+    produces a TRAP_SHOT fire in last_slingshot_1m."""
+    from deep6.signals.flags import SignalFlags
+    state = _make_state()
+    # Pre-seed warmup on the 1m detector directly — faster than feeding 30
+    # synthetic bars through on_bar_close.
+    _feed_history(state.slingshot_1m, n=40, base_delta=50)
+
+    bars = _bull_2bar_template(extreme_delta=400)
+    # Must push the first bar through on_bar_close so it lands in the cache.
+    await state.on_bar_close("1m", bars[0])
+    await state.on_bar_close("1m", bars[1])
+
+    assert state.last_slingshot_1m is not None
+    assert state.last_slingshot_1m.fired is True
+    assert state.last_slingshot_1m.variant == 2
+    assert state.last_slingshot_1m.direction == "LONG"
+    # Confirm bit 44 mask is what _run_slingshot returns. Call the private
+    # helper directly with the template (replaces the cache) to get a
+    # deterministic mask.
+    state._bar_cache_1m.clear()
+    state._run_slingshot("1m", bars[0])
+    flag_mask = state._run_slingshot("1m", bars[1])
+    assert (flag_mask & int(SignalFlags.TRAP_SHOT)) == int(SignalFlags.TRAP_SHOT)
+
+
+@pytest.mark.asyncio
+async def test_end_to_end_flag_set_5m_independent():
+    """5m detector has its own history — feeding 1m must not arm 5m."""
+    state = _make_state()
+    _feed_history(state.slingshot_1m, n=40, base_delta=50)
+    # 5m has zero history still → warmup gates fire even on perfect pattern.
+    bars = _bull_2bar_template(extreme_delta=400)
+    await state.on_bar_close("5m", bars[0])
+    await state.on_bar_close("5m", bars[1])
+    assert state.last_slingshot_5m is not None
+    assert state.last_slingshot_5m.fired is False  # 5m still in warmup
+
+
+def test_on_session_reset_clears_detectors():
+    """SharedState.on_session_reset clears BOTH timeframe histories + caches."""
+    state = _make_state()
+    _feed_history(state.slingshot_1m, n=40, base_delta=50)
+    _feed_history(state.slingshot_5m, n=40, base_delta=50)
+    state._bar_cache_1m.append("sentinel")
+    state._bar_cache_5m.append("sentinel")
+    assert len(state.slingshot_1m.delta_history) > 0
+    assert len(state.slingshot_5m.delta_history) > 0
+
+    state.on_session_reset()
+
+    assert len(state.slingshot_1m.delta_history) == 0
+    assert len(state.slingshot_5m.delta_history) == 0
+    assert state._bar_cache_1m == []
+    assert state._bar_cache_5m == []
+    assert state.last_slingshot_1m is None
+    assert state.last_slingshot_5m is None
+
+
+@pytest.mark.asyncio
+async def test_gex_distance_provider_triggers_bypass():
+    """When state.gex_distance_provider returns a small value, the fired
+    result has triggers_state_bypass=True."""
+    state = _make_state()
+    _feed_history(state.slingshot_1m, n=40, base_delta=50)
+    state.gex_distance_provider = lambda: 2.0  # within default 8-tick proximity
+
+    bars = _bull_2bar_template(extreme_delta=400)
+    await state.on_bar_close("1m", bars[0])
+    await state.on_bar_close("1m", bars[1])
+
+    assert state.last_slingshot_1m.fired is True
+    assert state.last_slingshot_1m.triggers_state_bypass is True
+
+
+@pytest.mark.asyncio
+async def test_gex_provider_exception_does_not_break_bar_close():
+    """A misbehaving GEX provider must not break the bar-close path —
+    slingshot should still fire with triggers_state_bypass=False."""
+    state = _make_state()
+    _feed_history(state.slingshot_1m, n=40, base_delta=50)
+    def _boom():
+        raise RuntimeError("gex fetch failed")
+    state.gex_distance_provider = _boom
+
+    bars = _bull_2bar_template(extreme_delta=400)
+    await state.on_bar_close("1m", bars[0])
+    await state.on_bar_close("1m", bars[1])
+
+    assert state.last_slingshot_1m.fired is True
+    assert state.last_slingshot_1m.triggers_state_bypass is False

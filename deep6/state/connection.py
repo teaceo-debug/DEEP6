@@ -209,6 +209,16 @@ class SessionManager:
         gc.disable()   # D-16: no GC during RTH — prevents latency spikes
         self.state.session.reset()
 
+        # Phase 12-03: clear SlingshotDetector delta_history at RTH open to
+        # prevent cross-session threshold drift (see 12-CONTEXT.md FOOTGUN 2).
+        # The hook is idempotent and safe even if detectors aren't wired.
+        reset_hook = getattr(self.state, "on_session_reset", None)
+        if callable(reset_hook):
+            try:
+                reset_hook()
+            except Exception:
+                log.exception("session.on_reset_hook_failed")
+
         # Attempt to restore prior session state (mid-session restart, D-07)
         sid = self._session_id()
         restored = await self.state.persistence.restore_session_context(sid)
