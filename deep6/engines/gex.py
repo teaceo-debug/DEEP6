@@ -292,6 +292,11 @@ class GexEngine:
             put_wall=max_put_strike,
             gamma_flip=gamma_flip,
             hvl=hvl_strike,
+            # D-28: peak raw call γ×OI BEFORE put netting. In the loop above
+            # max_call_strike is tracked from the per-contract ``gex`` value
+            # on the call branch — that is the raw call γ×OI. (The net-peak
+            # strike is ``hvl_strike``, a different quantity by construction.)
+            largest_gamma_strike=max_call_strike,
             regime=regime,
             net_gex_at_spot=net_gex_at_spot,
             timestamp=time.time(),
