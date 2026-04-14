@@ -87,6 +87,123 @@ let _separatorChar: string | null = null;
 // Unicode minus for negative delta
 const UNICODE_MINUS = '\u2212';
 
+// ── prefers-reduced-motion — checked once at module load ─────────────────────
+const REDUCED_MOTION: boolean =
+  typeof window !== 'undefined'
+    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    : false;
+
+// ── Animation durations (ms) ─────────────────────────────────────────────────
+const DUR_BAR_SWEEP        = 400;   // new bar column opacity ramp
+const DUR_IMBALANCE_PULSE  = 300;   // newly-imbalanced cell bg flash
+const DUR_POC_PULSE        = 500;   // POC row establishment pulse
+const DUR_DELTA_TICK       = 300;   // delta footer flash
+const DUR_STACKED_GROW     = 400;   // stacked run grow-in at 4+ milestone
+const DUR_SEPARATOR_FADE   = 200;   // column separator fade-in
+
+// ── Animation state types ────────────────────────────────────────────────────
+
+interface TimedAnim {
+  startTs:  number;
+  duration: number;
+}
+
+interface DeltaTickAnim extends TimedAnim {
+  fromBarW: number;   // previous proportional bar width [0,1] for smooth easing
+}
+
+// ── Module-level animation state maps ───────────────────────────────────────
+// All keyed by barIndex (number) or composite string.
+
+/** bar_index → bar arrival sweep */
+const _barSweep    = new Map<number, TimedAnim>();
+/** `${barIndex}:${tickKey}` → imbalance cell pulse */
+const _cellPulse   = new Map<string, TimedAnim>();
+/** bar_index → POC row pulse */
+const _pocPulse    = new Map<number, TimedAnim>();
+/** bar_index → delta footer tick */
+const _deltaTick   = new Map<number, DeltaTickAnim>();
+/** `${barIndex}:${side}` → stacked run grow-in */
+const _stackedGrow = new Map<string, TimedAnim>();
+/** bar_index → column separator fade-in */
+const _sepFade     = new Map<number, TimedAnim>();
+
+// ── Previous-frame state (change detection) ──────────────────────────────────
+/** bar_index → last seen POC price */
+const _lastPoc      = new Map<number, number>();
+/** bar_index → last seen bar_delta value */
+const _lastDelta    = new Map<number, number>();
+/** bar_index → last seen delta proportional bar width [0,1] */
+const _lastDeltaW   = new Map<number, number>();
+/** `${barIndex}:${tickKey}` → last imbalance state */
+const _lastImb      = new Map<string, 'ask' | 'bid' | 'none'>();
+/** `${barIndex}:${side}` → set when stacked-grow milestone has fired */
+const _stackedFired = new Set<string>();
+
+// ── RAF invalidation ─────────────────────────────────────────────────────────
+// LW Charts drives the draw() cycle. When animations are active we run a
+// parallel RAF loop that calls the registered invalidate callback so LW Charts
+// repaints on each browser frame.
+
+let _rafHandle:    number | null  = null;
+let _invalidateFn: (() => void) | null = null;
+
+function _hasActiveAnims(): boolean {
+  return (
+    _barSweep.size > 0 || _cellPulse.size > 0 || _pocPulse.size > 0 ||
+    _deltaTick.size > 0 || _stackedGrow.size > 0 || _sepFade.size > 0
+  );
+}
+
+function _pruneExpired(now: number): void {
+  for (const [k, a] of _barSweep)    { if (now - a.startTs >= a.duration) _barSweep.delete(k); }
+  for (const [k, a] of _cellPulse)   { if (now - a.startTs >= a.duration) _cellPulse.delete(k); }
+  for (const [k, a] of _pocPulse)    { if (now - a.startTs >= a.duration) _pocPulse.delete(k); }
+  for (const [k, a] of _deltaTick)   { if (now - a.startTs >= a.duration) _deltaTick.delete(k); }
+  for (const [k, a] of _stackedGrow) { if (now - a.startTs >= a.duration) _stackedGrow.delete(k); }
+  for (const [k, a] of _sepFade)     { if (now - a.startTs >= a.duration) _sepFade.delete(k); }
+}
+
+function _startRafLoop(): void {
+  if (_rafHandle !== null || REDUCED_MOTION) return;
+  const tick = () => {
+    _pruneExpired(performance.now());
+    if (_hasActiveAnims()) {
+      if (_invalidateFn) _invalidateFn();
+      _rafHandle = requestAnimationFrame(tick);
+    } else {
+      _rafHandle = null;
+    }
+  };
+  _rafHandle = requestAnimationFrame(tick);
+}
+
+function _scheduleAnim(): void {
+  if (!REDUCED_MOTION) _startRafLoop();
+}
+
+// ── Easing helpers ────────────────────────────────────────────────────────────
+
+/** Linear progress [0,1]. Returns 1 when expired. */
+function _prog(a: TimedAnim, now: number): number {
+  return Math.min(1, (now - a.startTs) / a.duration);
+}
+
+/** Triangle: 0 → 1 → 0 */
+function _tri(t: number): number {
+  return t < 0.5 ? t * 2 : (1 - t) * 2;
+}
+
+/** Ease-out cubic */
+function _easeOut(t: number): number {
+  return 1 - Math.pow(1 - t, 3);
+}
+
+/** Ease-in-out quad */
+function _easeInOut(t: number): number {
+  return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+}
+
 // ── Thousand-separator formatter ──────────────────────────────────────────────
 // Cached Intl.NumberFormat instance — created once, reused for every cell.
 // Numbers >= 1000 format as "1,234"; smaller numbers format without separator.
@@ -151,6 +268,7 @@ function _neutralTextColor(totalVol: number, barMaxTotalVol: number): string {
 
 interface RowInfo {
   price:          number;
+  tickKey:        string;    // raw levels key — used as part of animation map keys
   yBitmap:        number;
   bidVol:         number;
   askVol:         number;
@@ -163,6 +281,8 @@ interface RowInfo {
 export class FootprintRenderer implements ICustomSeriesPaneRenderer {
   private _data: PaneRendererCustomData<Time, FootprintBarLW> | null = null;
   private _options: FootprintSeriesOptions | null = null;
+  /** bar_index of the newest bar seen on the previous draw pass */
+  private _lastNewestBarIndex: number = -1;
 
   update(
     data: PaneRendererCustomData<Time, FootprintBarLW>,
@@ -170,6 +290,17 @@ export class FootprintRenderer implements ICustomSeriesPaneRenderer {
   ): void {
     this._data    = data;
     this._options = options;
+  }
+
+  /**
+   * Register an invalidation callback so the RAF animation loop can trigger
+   * LW Charts redraws between its own paint cycles.
+   * Typical usage after series creation:
+   *   paneView.renderer().setInvalidateFn(() => series.update(series.data().at(-1)!))
+   * Or more simply, any call that causes LW Charts to redraw.
+   */
+  setInvalidateFn(fn: () => void): void {
+    _invalidateFn = fn;
   }
 
   draw(
@@ -225,6 +356,25 @@ export class FootprintRenderer implements ICustomSeriesPaneRenderer {
 
       const to = Math.min(range.to, data.bars.length - 1, MAX_BARS_CAP - 1);
 
+      // ── Animation: snapshot current time once for the whole frame ────────
+      const now = performance.now();
+
+      // ── Anim §1 + §6: detect newest bar arrival ───────────────────────────
+      // Compare bar_index of the rightmost visible bar. On first render or when
+      // the chart is scrolled, _lastNewestBarIndex may already match — only fire
+      // animations when a genuinely new bar has appeared.
+      const newestD    = data.bars[to]?.originalData;
+      const newestBidx = newestD?.bar_index ?? to;
+
+      if (!REDUCED_MOTION && this._lastNewestBarIndex !== -1 && newestBidx !== this._lastNewestBarIndex) {
+        // New bar arrived: sweep the new column in, fade the separator of the
+        // column that just became "previous".
+        _barSweep.set(newestBidx, { startTs: now, duration: DUR_BAR_SWEEP });
+        _sepFade.set(newestBidx - 1, { startTs: now, duration: DUR_SEPARATOR_FADE });
+        _scheduleAnim();
+      }
+      this._lastNewestBarIndex = newestBidx;
+
       // ── Compute cross-bar maxima for scaling ──────────────────────────────
       let maxAbsDelta  = 1;
       let maxTotalVol  = 1;
@@ -252,6 +402,8 @@ export class FootprintRenderer implements ICustomSeriesPaneRenderer {
         const d = bar.originalData;
         if (!d || !d.levels) continue;
 
+        const barIdx = d.bar_index ?? i;
+
         // Bar center in bitmap pixels — keep as-is (LW Charts provides this)
         const xC = Math.round(bar.x * hpr);
 
@@ -259,9 +411,16 @@ export class FootprintRenderer implements ICustomSeriesPaneRenderer {
         const colLeft  = xC - Math.floor(innerW / 2);
         const colRight = colLeft + innerW;
 
+        // ── Anim §6: separator fade-in opacity ────────────────────────────
+        const sepAnim  = !REDUCED_MOTION ? _sepFade.get(barIdx) : undefined;
+        const sepAlpha = sepAnim ? _easeOut(_prog(sepAnim, now)) * 0.3 : undefined;
+
         // ── 1. Column separator (1px --rule line at left edge of column) ──
+        ctx.save();
+        if (sepAlpha !== undefined) ctx.globalAlpha = sepAlpha;
         ctx.fillStyle = C_RULE;
         ctx.fillRect(colLeft - GAP_BITMAP, 0, Math.max(1, GAP_BITMAP), canvasH);
+        ctx.restore();
 
         const levelKeys = Object.keys(d.levels);
         if (levelKeys.length === 0) continue;
@@ -284,6 +443,29 @@ export class FootprintRenderer implements ICustomSeriesPaneRenderer {
             pocVolMax = tv;
             pocPrice  = Number(key) * 0.25;
           }
+        }
+
+        // ── Anim §3: POC establishment detection ─────────────────────────
+        if (!REDUCED_MOTION && pocPrice !== null) {
+          const lastPoc = _lastPoc.get(barIdx);
+          if (lastPoc !== undefined && Math.abs(lastPoc - pocPrice) > 0.01) {
+            _pocPulse.set(barIdx, { startTs: now, duration: DUR_POC_PULSE });
+            _scheduleAnim();
+          }
+          _lastPoc.set(barIdx, pocPrice);
+        }
+
+        // ── Anim §4: delta tick detection ─────────────────────────────────
+        if (!REDUCED_MOTION && options.showDelta) {
+          const curDelta = d.bar_delta ?? 0;
+          const lastDelta = _lastDelta.get(barIdx);
+          if (lastDelta !== undefined && lastDelta !== curDelta) {
+            const prevW = _lastDeltaW.get(barIdx) ?? Math.min(1, Math.abs(lastDelta) / maxAbsDelta);
+            _deltaTick.set(barIdx, { startTs: now, duration: DUR_DELTA_TICK, fromBarW: prevW });
+            _scheduleAnim();
+          }
+          _lastDelta.set(barIdx, curDelta);
+          _lastDeltaW.set(barIdx, Math.min(1, Math.abs(curDelta) / maxAbsDelta));
         }
 
         // ── 3. Single-column optimization (replay first bar or extreme zoom) ──
@@ -314,55 +496,87 @@ export class FootprintRenderer implements ICustomSeriesPaneRenderer {
           const askVol = clampVol(lv.ask_vol);
           const imbRatio = askVol / Math.max(bidVol, 1);
 
+          const isImbalanceBid = options.showImbalance && imbRatio <= (1 / IMBALANCE_THRESHOLD);
+          const isImbalanceAsk = options.showImbalance && imbRatio >= IMBALANCE_THRESHOLD;
+
+          // ── Anim §2: imbalance cell pulse detection ──────────────────────
+          if (!REDUCED_MOTION) {
+            const cellKey   = `${barIdx}:${tickKey}`;
+            const curState: 'ask' | 'bid' | 'none' =
+              isImbalanceAsk ? 'ask' : isImbalanceBid ? 'bid' : 'none';
+            const lastState = _lastImb.get(cellKey) ?? 'none';
+            if (curState !== 'none' && lastState === 'none') {
+              _cellPulse.set(cellKey, { startTs: now, duration: DUR_IMBALANCE_PULSE });
+              _scheduleAnim();
+            }
+            _lastImb.set(cellKey, curState);
+          }
+
           rows.push({
             price,
+            tickKey,
             yBitmap,
             bidVol,
             askVol,
-            isImbalanceBid: options.showImbalance && imbRatio <= (1 / IMBALANCE_THRESHOLD),
-            isImbalanceAsk: options.showImbalance && imbRatio >= IMBALANCE_THRESHOLD,
+            isImbalanceBid,
+            isImbalanceAsk,
           });
         }
 
         // Sort price descending (higher price → top of chart → lower yBitmap)
         rows.sort((a, b) => b.price - a.price);
 
+        // ── Anim §1: bar sweep opacity ────────────────────────────────────
+        const sweepAnim    = !REDUCED_MOTION ? _barSweep.get(barIdx) : undefined;
+        const sweepOpacity = sweepAnim ? 0.3 + _easeOut(_prog(sweepAnim, now)) * 0.7 : undefined;
+
         // ── 5. Clip to this column — prevents overflow into neighbors ─────
         ctx.save();
+        if (sweepOpacity !== undefined) ctx.globalAlpha = sweepOpacity;
         ctx.beginPath();
         ctx.rect(effectiveColLeft, 0, effectiveInnerW, canvasH);
         ctx.clip();
 
         // ── 6. Draw all cell backgrounds + text ──────────────────────────
         for (const row of rows) {
-          const isPoc = pocPrice !== null && Math.abs(row.price - pocPrice) < 0.01;
+          const isPoc    = pocPrice !== null && Math.abs(row.price - pocPrice) < 0.01;
+          const cellKey  = `${barIdx}:${row.tickKey}`;
+          const cellAnim = !REDUCED_MOTION ? _cellPulse.get(cellKey) : undefined;
+          const pocAnim  = isPoc && !REDUCED_MOTION ? _pocPulse.get(barIdx) : undefined;
           _drawNumberCell(
             ctx, row, effectiveColLeft, effectiveInnerW, rowH, fontSize, font, sep,
-            hpr, vpr, isPoc, barMaxTotalVol, colWCss,
+            hpr, vpr, isPoc, barMaxTotalVol, colWCss, now, cellAnim, pocAnim,
           );
         }
 
-        ctx.restore();   // clip ends
+        ctx.restore();   // clip + sweep opacity ends
 
         // ── 7. Stacked imbalance run lines (outside clip so they sit
         //       exactly on the column edge without being clipped away) ──────
         if (options.showImbalance && rows.length >= STACKED_RUN_MIN) {
-          _drawStackedRunLines(ctx, rows, rowH, colLeft, colRight, hpr, vpr);
+          _drawStackedRunLines(ctx, rows, rowH, colLeft, colRight, hpr, vpr, barIdx, now);
         }
 
         // ── 8. POC dot marker — 4×4 amber square on left edge at POC row ──
         if (pocPrice !== null) {
           const yPocMedia = priceToCoordinate(pocPrice);
           if (yPocMedia !== null) {
-            const yPoc   = Math.round(yPocMedia * vpr);
-            const dotSzB = Math.max(2, Math.round(POC_DOT_SIZE_CSS * hpr));
-            const dotH   = Math.max(2, Math.round(POC_DOT_SIZE_CSS * vpr));
+            const yPoc    = Math.round(yPocMedia * vpr);
+            const dotSzB  = Math.max(2, Math.round(POC_DOT_SIZE_CSS * hpr));
+            const dotH    = Math.max(2, Math.round(POC_DOT_SIZE_CSS * vpr));
+            const pocAnim = !REDUCED_MOTION ? _pocPulse.get(barIdx) : undefined;
+
+            // Anim §3: dot scales 1.0 → 1.3 → 1.0 on POC shift
+            const dotScale     = pocAnim ? 1.0 + _tri(_prog(pocAnim, now)) * 0.3 : 1.0;
+            const scaledDotSzB = Math.round(dotSzB * dotScale);
+            const scaledDotH   = Math.round(dotH   * dotScale);
+
             ctx.fillStyle = C_AMBER;
             ctx.fillRect(
-              colLeft - dotSzB,
-              yPoc - Math.floor(dotH / 2),
-              dotSzB,
-              dotH,
+              colLeft - scaledDotSzB,
+              yPoc - Math.floor(scaledDotH / 2),
+              scaledDotSzB,
+              scaledDotH,
             );
           }
         }
@@ -378,9 +592,10 @@ export class FootprintRenderer implements ICustomSeriesPaneRenderer {
             bottomY = canvasH - Math.round((DELTA_GAP_CSS + DELTA_FONT_SIZE_CSS + 8) * vpr);
           }
 
+          const deltaAnim = !REDUCED_MOTION ? _deltaTick.get(barIdx) : undefined;
           _drawDeltaFooter(
             ctx, d.bar_delta ?? 0, maxAbsDelta,
-            colLeft, innerW, bottomY, hpr, vpr,
+            colLeft, innerW, bottomY, hpr, vpr, now, deltaAnim,
           );
         }
 
@@ -440,6 +655,9 @@ function _drawNumberCell(
   isPoc:          boolean,
   barMaxTotalVol: number,
   colWCss:        number,
+  now:            number,
+  cellAnim?:      TimedAnim,
+  pocAnim?:       TimedAnim,
 ): void {
   const { yBitmap, bidVol, askVol, isImbalanceBid, isImbalanceAsk } = row;
 
@@ -450,7 +668,7 @@ function _drawNumberCell(
   const cellH   = Math.max(1, rowH - 1);   // 1px inter-row gap
 
   // ── Background color ──────────────────────────────────────────────────────
-  let bgColor: string;
+  let bgR: number, bgG: number, bgB: number, bgAlpha: number;
   let textColor: string;
 
   const totalVol = bidVol + askVol;
@@ -458,27 +676,36 @@ function _drawNumberCell(
 
   if (isPoc) {
     // POC override — amber tint, black text (high contrast against amber)
-    bgColor   = 'rgba(255, 214, 10, 0.35)';
+    bgR = 255; bgG = 214; bgB = 10;
+    bgAlpha = 0.35;
+    // Anim §3: POC pulse — bg oscillates 0.35 → 0.60 → 0.35
+    if (pocAnim) bgAlpha = 0.35 + _tri(_prog(pocAnim, now)) * 0.25;
     textColor = '#000000';
   } else if (isImbalanceAsk || imbRatio >= IMBALANCE_THRESHOLD) {
     // BUY imbalance — ask dominates — green tint
-    bgColor   = 'rgba(0, 255, 136, 0.22)';
+    bgR = 0; bgG = 255; bgB = 136;
+    bgAlpha = 0.22;
+    // Anim §2: newly-imbalanced cell pulse — bg oscillates 0.22 → 0.45 → 0.22
+    if (cellAnim) bgAlpha = 0.22 + _tri(_prog(cellAnim, now)) * 0.23;
     textColor = C_TEXT;   // always white on imbalance cells
   } else if (isImbalanceBid || imbRatio <= (1 / IMBALANCE_THRESHOLD)) {
     // SELL imbalance — bid dominates — red tint
-    bgColor   = 'rgba(255, 46, 99, 0.22)';
+    bgR = 255; bgG = 46; bgB = 99;
+    bgAlpha = 0.22;
+    // Anim §2: newly-imbalanced cell pulse — bg oscillates 0.22 → 0.45 → 0.22
+    if (cellAnim) bgAlpha = 0.22 + _tri(_prog(cellAnim, now)) * 0.23;
     textColor = C_TEXT;   // always white on imbalance cells
   } else {
     // Neutral — subtle tint scaled by volume activity
     const totalRatio = barMaxTotalVol > 0 ? totalVol / barMaxTotalVol : 0;
-    const alpha      = 0.02 + totalRatio * 0.06;
-    bgColor   = `rgba(255, 255, 255, ${alpha.toFixed(3)})`;
+    bgR = 255; bgG = 255; bgB = 255;
+    bgAlpha = 0.02 + totalRatio * 0.06;
     // Volume-tier text: low→mute, medium→dim, high→text
     textColor = _neutralTextColor(totalVol, barMaxTotalVol);
   }
 
   // Fill cell background
-  ctx.fillStyle = bgColor;
+  ctx.fillStyle = `rgba(${bgR},${bgG},${bgB},${bgAlpha.toFixed(3)})`;
   ctx.fillRect(colLeft, cellTop, innerW, cellH);
 
   // ── Text rendering ────────────────────────────────────────────────────────
@@ -541,10 +768,12 @@ function _drawStackedRunLines(
   colRight: number,
   hpr:      number,
   _vpr:     number,
+  barIdx:   number,
+  now:      number,
 ): void {
   const lineW = Math.max(2, Math.round(STACKED_LINE_W_CSS * hpr));
-  _scanAndDrawRun(ctx, rows, rowH, colLeft, colRight, lineW, 'bid');
-  _scanAndDrawRun(ctx, rows, rowH, colLeft, colRight, lineW, 'ask');
+  _scanAndDrawRun(ctx, rows, rowH, colLeft, colRight, lineW, 'bid', barIdx, now);
+  _scanAndDrawRun(ctx, rows, rowH, colLeft, colRight, lineW, 'ask', barIdx, now);
 }
 
 function _scanAndDrawRun(
@@ -555,6 +784,8 @@ function _scanAndDrawRun(
   colRight: number,
   lineW:    number,
   side:     'bid' | 'ask',
+  barIdx:   number,
+  now:      number,
 ): void {
   let runStart = -1;
   let runLen   = 0;
@@ -565,12 +796,28 @@ function _scanAndDrawRun(
     const endRow   = rows[endIdx - 1];
     const topY     = Math.min(startRow.yBitmap, endRow.yBitmap) - Math.floor(rowH / 2);
     const botY     = Math.max(startRow.yBitmap, endRow.yBitmap) + Math.ceil(rowH / 2);
-    const runH     = botY - topY;
+    const fullRunH = botY - topY;
+    const lineX    = side === 'bid' ? colLeft : colRight - lineW;
+
+    // Anim §5: grow-in when run first reaches 4+ rows (milestone)
+    const growKey = `${barIdx}:${side}`;
+    if (!REDUCED_MOTION && runLen >= 4 && !_stackedFired.has(growKey)) {
+      _stackedFired.add(growKey);
+      _stackedGrow.set(growKey, { startTs: now, duration: DUR_STACKED_GROW });
+      _scheduleAnim();
+    }
+    const growAnim = !REDUCED_MOTION ? _stackedGrow.get(growKey) : undefined;
 
     ctx.save();
     ctx.fillStyle = C_LIME;
-    const lineX   = side === 'bid' ? colLeft : colRight - lineW;
-    ctx.fillRect(lineX, topY, lineW, runH);
+    if (growAnim) {
+      // Reveal from topY downward over the animation duration
+      const drawH = Math.round(fullRunH * _easeOut(_prog(growAnim, now)));
+      ctx.beginPath();
+      ctx.rect(lineX, topY, lineW, drawH);
+      ctx.clip();
+    }
+    ctx.fillRect(lineX, topY, lineW, fullRunH);
     ctx.restore();
   };
 
@@ -601,6 +848,8 @@ function _drawDeltaFooter(
   bottomRowY:  number,
   hpr:         number,
   vpr:         number,
+  now:         number,
+  deltaAnim?:  DeltaTickAnim,
 ): void {
   if (!Number.isFinite(barDelta) || maxAbsDelta <= 0) return;
 
@@ -619,15 +868,34 @@ function _drawDeltaFooter(
 
   ctx.save();
   ctx.font         = `400 ${fontSzPx}px ${FONT_FAMILY}`;
-  ctx.fillStyle    = color;
   ctx.textAlign    = 'left';
   ctx.textBaseline = 'top';
-  ctx.globalAlpha  = 0.85;
+
+  // Anim §4: on delta change, flash white at peak then fade back to delta-color.
+  // We layer a white overdraw at triangle alpha on top of the normal colored text.
+  if (deltaAnim) {
+    const pulse = _tri(_prog(deltaAnim, now));
+    if (pulse > 0.01) {
+      ctx.fillStyle   = `rgba(255,255,255,${(pulse * 0.65).toFixed(3)})`;
+      ctx.globalAlpha = 1.0;
+      ctx.fillText(label, colLeft + leftPadB, labelY);
+    }
+  }
+
+  ctx.fillStyle   = color;
+  ctx.globalAlpha = 0.85;
   ctx.fillText(label, colLeft + leftPadB, labelY);
 
-  const ratio  = Math.min(1, Math.abs(barDelta) / maxAbsDelta);
-  const barW   = Math.max(2, Math.round(innerW * ratio));
-  const miniY  = labelY + fontSzPx + Math.round(2 * vpr);
+  // Mini proportional bar — smoothly eases to new width during delta changes
+  const targetRatio = Math.min(1, Math.abs(barDelta) / maxAbsDelta);
+  let displayRatio  = targetRatio;
+  if (deltaAnim) {
+    const t = _easeInOut(_prog(deltaAnim, now));
+    displayRatio = deltaAnim.fromBarW + (targetRatio - deltaAnim.fromBarW) * t;
+  }
+
+  const barW  = Math.max(2, Math.round(innerW * displayRatio));
+  const miniY = labelY + fontSzPx + Math.round(2 * vpr);
 
   ctx.fillStyle   = color;
   ctx.globalAlpha = 0.70;
