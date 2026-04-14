@@ -181,31 +181,40 @@ class VPINEngine:
         return count_below / len(self._vpin_history)
 
     def get_confidence_modifier(self) -> float:
-        """Continuous multiplier in [0.2, 1.2].
+        """Confidence multiplier with floor at 0.65 (TIER-1 FIX 5).
 
         Returns neutral 1.0 during warmup (< warmup_buckets completed).
-        Linear interp over percentile:
-            percentile 0.0 -> 1.20x
-            percentile 0.5 -> 1.00x
-            percentile 1.0 -> 0.20x
+        Uses FlowRegime-based quantization rather than linear interp:
+            CLEAN / NORMAL  -> 1.0
+            ELEVATED        -> 0.85
+            TOXIC           -> 0.65 (floor, was 0.20)
+        The previous 0.20-0.40 range over-dampened tradeable signals during
+        toxic flow when the signal itself was correct.
         """
         if self.buckets_completed < self.warmup_buckets:
             return _MODIFIER_MID
 
-        pct = self.get_percentile()
-        if pct <= 0.5:
-            # 0.0 -> 1.2, 0.5 -> 1.0 (linear)
-            mod = _MODIFIER_MAX - (pct / 0.5) * (_MODIFIER_MAX - _MODIFIER_MID)
-        else:
-            # 0.5 -> 1.0, 1.0 -> 0.2 (linear)
-            mod = _MODIFIER_MID - ((pct - 0.5) / 0.5) * (_MODIFIER_MID - _MODIFIER_MIN)
+        regime = self.get_flow_regime()
+        if regime == FlowRegime.TOXIC:
+            return 0.65  # floor, was 0.20
+        if regime == FlowRegime.ELEVATED:
+            return 0.85  # was 0.6-0.8
+        return 1.0
 
-        # Defensive clamp — the math above is exact, but guard against FP drift.
-        if mod < _MODIFIER_MIN:
-            mod = _MODIFIER_MIN
-        elif mod > _MODIFIER_MAX:
-            mod = _MODIFIER_MAX
-        return mod
+    def should_block_type_a(
+        self, raw_vpin_gate: float = 0.40, pct_gate: float = 0.95
+    ) -> bool:
+        """TIER-1 FIX 5: Absolute VPIN gate for TYPE_A blocking.
+
+        Binary block when BOTH conditions hold:
+            - raw VPIN > raw_vpin_gate (default 0.40)
+            - percentile > pct_gate (default 0.95)
+        When true, TYPE_A signals should be suppressed entirely — extreme
+        flow toxicity is not salvageable by sizing reduction alone.
+        """
+        if self.buckets_completed < self.warmup_buckets:
+            return False
+        return self.get_vpin() > raw_vpin_gate and self.get_percentile() > pct_gate
 
     def get_flow_regime(self) -> FlowRegime:
         """Qualitative regime label derived from current VPIN percentile."""
