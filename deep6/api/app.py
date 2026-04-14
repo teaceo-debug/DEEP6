@@ -28,6 +28,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from deep6.api.store import EventStore
 from deep6.api.ws_manager import WSManager
+from deep6.api.live_bridge import LiveBridge
 from deep6.api.routes import events as events_router
 from deep6.api.routes import weights as weights_router
 from deep6.api.routes import metrics as metrics_router
@@ -45,7 +46,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     store = EventStore(db_path)
     await store.initialize()
     app.state.event_store = store
-    app.state.ws_manager = WSManager()
+    ws_manager = WSManager()
+    app.state.ws_manager = ws_manager
+    # LiveBridge: adapter from real engine output → WSManager broadcasts.
+    # The engine (FootprintBuilder, scorer, Rithmic callbacks) calls
+    # app.state.live_bridge.on_bar_close / on_signal_fired / etc.
+    bridge = LiveBridge(ws_manager)
+    app.state.live_bridge = bridge
     yield
     # aiosqlite opens/closes per operation — no explicit teardown required
 
