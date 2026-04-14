@@ -196,7 +196,7 @@ Plans:
 **Plans**: 5 plans (Wave 1: plan-01; Wave 2: plan-02; Wave 3: plan-03, plan-04, plan-05 parallel)
 
 Plans:
-- [ ] 10-01-PLAN.md — FastAPI WebSocket endpoint + /backtest/* API + WS broadcast wiring
+- [x] 10-01-PLAN.md — FastAPI WebSocket endpoint + /backtest/* API + WS broadcast wiring
 - [ ] 10-02-PLAN.md — Next.js 15 scaffold + Tailwind dark theme + WS client + Zustand stores + two-tab shell
 - [ ] 10-03-PLAN.md — LIVE tab: SignalFeed + RegimePanel + KronosBiasGauge + PositionPanel
 - [ ] 10-04-PLAN.md — Footprint chart: LW Charts v5.1 custom series plugin + zone overlays
@@ -242,7 +242,7 @@ Note: Phase 6 (Kronos + TVMCP) can begin after Phase 1 completes, running in par
 | 7. Scoring + Backtesting Framework | 0/? | Not started | - |
 | 8. Auto-Execution + Risk Layer | 0/? | Not started | - |
 | 9. ML Backend | 0/? | Not started | - |
-| 10. Analytics Dashboard | 0/? | Not started | - |
+| 10. Analytics Dashboard | 1/5 | In Progress|  |
 | 11. DEEP6 Trading Web App | 0/? | Not started | - |
 
 ### Phase 12: Integrate borrowed orderflow patterns: VPIN confidence modifier, Delta Slingshot, Delta At Extreme, setup state machine, per-regime walk-forward tracker
