@@ -17,9 +17,8 @@ import type { FootprintBar } from '@/types/deep6';
 import { FootprintSeries, footprintSeriesDefaults, type FootprintBarLW } from '@/lib/lw-charts/FootprintSeries';
 import { ZoneOverlay } from './ZoneOverlay';
 import { VolumeProfile } from './VolumeProfile';
-import { ChartModeSelector } from './ChartModeSelector';
+import { ChartToolbar } from './ChartToolbar';
 import { ReturnToLivePill } from '@/components/replay/ReturnToLivePill';
-import { ChartLegend } from './ChartLegend';
 import { SignalMarkerOverlay } from './SignalMarkerOverlay';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -217,12 +216,11 @@ export function FootprintChart() {
     <div className="relative flex-1 min-w-0 overflow-hidden bg-bg-base border-r border-border-subtle">
       {/* tabIndex makes the div focusable so keyboard shortcuts work after click */}
       <div ref={hostRef} className="absolute inset-0" tabIndex={-1} style={{ outline: 'none' }} />
-      <ChartModeSelector />
+      <ChartToolbar />
       <VolumeProfile chartRef={chartRef} />
       <ZoneOverlay chartRef={chartRef} />
       <SignalMarkerOverlay chartRef={chartRef} />
       <ReturnToLivePill />
-      <ChartLegend />
     </div>
   );
 }
