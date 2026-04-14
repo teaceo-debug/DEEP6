@@ -278,7 +278,7 @@ class MBOAdapter:
                 new_instrument_id=inst_id,
                 ts=ts_s,
             )
-            self._book.clear()
+            self._reset_book()
             self._current_instrument_id = inst_id
             # Emit an empty DOM so downstream state knows the book reset.
             await on_dom([], [])
@@ -323,7 +323,7 @@ class MBOAdapter:
                 await on_dom(bids, asks)
             elif action == "R":
                 # Reset/clear — wipe book, emit empty DOM.
-                self._book.clear()
+                self._reset_book()
                 await on_dom([], [])
             else:
                 # Unknown action — log and skip.
@@ -350,6 +350,14 @@ class MBOAdapter:
         if side == "A":
             return self._book.asks
         return self._book.bids  # default bid for 'B' or anything else
+
+    def _reset_book(self) -> None:
+        """Wipe all price levels. bmoscon.OrderBook has no clear() method,
+        so we iterate the sorted-dict sides and delete each key."""
+        for price in list(self._book.bids.keys()):
+            del self._book.bids[price]
+        for price in list(self._book.asks.keys()):
+            del self._book.asks[price]
 
     def _apply_add(self, side: str, price: float, size: int) -> None:
         book_side = self._side_dict(side)
