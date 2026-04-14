@@ -583,7 +583,8 @@ export function ZoneList() {
   ];
 
   // Update established timestamps and history rings
-  const barTsMs = barTs > 0 ? barTs : Date.now();
+  // barTs is unix seconds (from backend); convert to ms to match Date.now()
+  const barTsMs = barTs > 0 ? barTs * 1000 : Date.now();
   for (const def of zoneDefs) {
     if (!def.isPending && def.price !== null) {
       if (!establishedRef.current[def.kind]) {

@@ -11,7 +11,16 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { useTradingStore } from '@/store/tradingStore';
 import { TapeRow } from './TapeRow';
+import type { TapeMarker } from './TapeRow';
 import type { TapeEntry } from '@/types/deep6';
+
+// Map backend marker strings (uppercase) to TapeRow marker type (lowercase)
+function toMarker(m: TapeEntry['marker']): TapeMarker {
+  if (m === 'SWEEP')   return 'sweep';
+  if (m === 'ICEBERG') return 'iceberg';
+  if (m === 'KRONOS')  return 'kronos';
+  return null;
+}
 
 // ── Blinking cursor ───────────────────────────────────────────────────────────
 
@@ -40,8 +49,9 @@ function BlinkingCursor() {
 const SCROLL_THRESHOLD = 8; // px — if scrollTop > this, user has scrolled up
 
 export function TapeScroll() {
-  const _lastBarVersion = useTradingStore((s) => s.lastBarVersion);
-  void _lastBarVersion;
+  // Subscribe to lastTapeVersion so this component re-renders on every new tape entry
+  const _lastTapeVersion = useTradingStore((s) => s.lastTapeVersion);
+  void _lastTapeVersion;
 
   const tape: TapeEntry[] = useTradingStore.getState().tape.toArray();
   // newest first
@@ -136,6 +146,7 @@ export function TapeScroll() {
           <TapeRow
             key={`${entry.ts}-${idx}`}
             entry={entry}
+            marker={toMarker(entry.marker)}
             isNew={idx === 0 && prevLengthRef.current !== displayTape.length}
           />
         ))}

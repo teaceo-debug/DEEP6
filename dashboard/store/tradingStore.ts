@@ -42,6 +42,7 @@ export interface TradingState {
   status: StatusSlice;
   lastBarVersion: number;
   lastSignalVersion: number;
+  lastTapeVersion: number;
   // Actions
   pushBar: (b: FootprintBar) => void;
   pushSignal: (s: SignalEvent) => void;
@@ -79,6 +80,7 @@ export const useTradingStore = create<TradingState>()(
     status: INIT_STATUS,
     lastBarVersion: 0,
     lastSignalVersion: 0,
+    lastTapeVersion: 0,
 
     pushBar: (b) => {
       get().bars.push(b);
@@ -92,6 +94,7 @@ export const useTradingStore = create<TradingState>()(
 
     pushTape: (t) => {
       get().tape.push(t);
+      set((s) => ({ lastTapeVersion: s.lastTapeVersion + 1 }));
     },
 
     setScore: (m) =>
