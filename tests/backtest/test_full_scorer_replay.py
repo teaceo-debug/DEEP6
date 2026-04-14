@@ -197,8 +197,9 @@ async def test_forced_type_a_produces_trade_row(tmp_path: Path, monkeypatch) -> 
     for side, entry_price, exit_price, pnl, tier, fill_model in trade_rows:
         assert side == "LONG"
         assert entry_price > 0
-        assert exit_price is None  # exit logic out of scope
-        assert pnl == 0.0
+        # Phase 13-03: trades are either bracket-resolved or flushed as
+        # TRUNCATED on session exit — exit_price is always populated.
+        assert exit_price is not None
         assert tier == "TYPE_A"
         assert fill_model == "perfect"
 
