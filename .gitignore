@@ -3,6 +3,10 @@
 .env.local
 .env.*.local
 
+# DEEP6 runtime state (PID files, logs)
+.deep6/
+logs/
+
 # Python
 __pycache__/
 *.py[cod]

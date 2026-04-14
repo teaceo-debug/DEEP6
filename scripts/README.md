@@ -77,3 +77,62 @@ DEEP6 PIPELINE HEALTH CHECK
 **Prerequisites:** No external Python packages needed — uses only stdlib
 (`http.client`, `socket`, `struct`, `urllib`). Works with `.venv/bin/python`
 or system Python 3.12+.
+
+---
+
+## Stack Lifecycle — deep6_up / down / status
+
+One-command startup that brings up the entire DEEP6 stack (backend + frontend + optional demo broadcaster).
+
+### Quick start
+
+```bash
+# Bring up everything (backend + frontend + demo broadcaster)
+make up
+
+# Or call the script directly
+./scripts/deep6_up.sh           # backend + frontend only
+./scripts/deep6_up.sh --demo    # + demo broadcaster at 2x speed
+./scripts/deep6_up.sh --force   # skip kill-confirmation prompts
+
+# Status at a glance
+make status                     # or ./scripts/deep6_status.sh
+
+# Tail all logs live
+make logs                       # or tail -f logs/*.log
+
+# Shut everything down
+make down                       # or ./scripts/deep6_down.sh
+```
+
+### What `deep6_up.sh` does
+
+1. **Pre-flight** — verifies Python 3.12+, `.venv/`, Node.js, `dashboard/node_modules/`. Runs `npm install` automatically if modules are missing.
+2. **Port check** — if :8000 or :3000 are occupied, prompts to kill the blocker (or kills silently with `--force`).
+3. **Idempotency** — if both processes are already alive, prints their PIDs and exits cleanly without double-starting.
+4. **Backend** — starts `uvicorn deep6.api.app:app --port 8000`, saves PID to `.deep6/backend.pid`, waits up to 10s for HTTP 200.
+5. **Frontend** — starts `npx next dev -p 3000`, saves PID to `.deep6/frontend.pid`, waits up to 20s for HTTP 200.
+6. **Demo** — if `--demo` flag is set, starts `scripts/demo_broadcast.py --rate 2.0`, saves PID to `.deep6/demo.pid`.
+7. **Report** — prints a summary with PIDs, URLs, and quick reference commands.
+
+### Logs
+
+All process stdout/stderr is written to `logs/`:
+
+| File | Contents |
+|------|----------|
+| `logs/uvicorn.log` | FastAPI backend |
+| `logs/next.log` | Next.js frontend |
+| `logs/demo.log` | Demo broadcaster |
+
+Both `logs/` and `.deep6/` are git-ignored.
+
+### Makefile targets
+
+| Target | Action |
+|--------|--------|
+| `make up` | `deep6_up.sh --demo` |
+| `make down` | `deep6_down.sh` |
+| `make status` | `deep6_status.sh` |
+| `make logs` | `tail -f logs/*.log` |
+| `make health` | `scripts/deep6_healthcheck.py` |
