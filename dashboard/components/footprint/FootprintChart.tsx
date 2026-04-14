@@ -14,7 +14,7 @@ import { FootprintSeries, footprintSeriesDefaults, type FootprintBarLW } from '@
 import { ZoneOverlay } from './ZoneOverlay';
 import { ReturnToLivePill } from '@/components/replay/ReturnToLivePill';
 
-// ── Helper ────────────────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function toLWData(bars: FootprintBar[]): FootprintBarLW[] {
   // RingBuffer.toArray() is insertion order (oldest→newest) — LW Charts needs
@@ -23,6 +23,26 @@ function toLWData(bars: FootprintBar[]): FootprintBarLW[] {
     ...b,
     time: b.ts as UTCTimestamp,
   }));
+}
+
+/**
+ * Compute an appropriate barSpacing (media pixels per bar) based on how many
+ * bars are visible.  Footprint cells must be readable — at ≤5 bars we want
+ * wide columns (~110px) so bid/ask wings and volume numbers are clear; at 30+
+ * bars we compress to ~40px and rely on color intensity alone.
+ *
+ * Range: [40, 120] px — hard limits that keep cells legible.
+ */
+function computeBarSpacing(visibleBarCount: number): number {
+  if (visibleBarCount <= 0) return 80;
+  // Linear interpolation: 5 bars → 110px, 30 bars → 40px
+  const MIN_BARS = 5;
+  const MAX_BARS = 30;
+  const MAX_SPACING = 110;
+  const MIN_SPACING = 40;
+  const clamped = Math.max(MIN_BARS, Math.min(MAX_BARS, visibleBarCount));
+  const t = (clamped - MIN_BARS) / (MAX_BARS - MIN_BARS);  // 0..1
+  return Math.round(MAX_SPACING + t * (MIN_SPACING - MAX_SPACING));
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -50,7 +70,7 @@ export function FootprintChart() {
         borderColor: '#1f1f1f', // --rule
         timeVisible: true,
         secondsVisible: false,
-        barSpacing: 80, // footprint bars need wide columns for bid/ask wings + labels
+        barSpacing: 80, // initial value; recalculated dynamically below
         rightOffset: 2, // minimal pad at right edge
       },
       autoSize: true,
@@ -103,12 +123,23 @@ export function FootprintChart() {
 
     // Subscribe to lastBarVersion WITHOUT triggering React re-renders.
     // On each new bar, update the series data and scroll to latest ONLY when
-    // the user has not manually panned away.
+    // the user has not manually panned away.  Also recompute barSpacing so
+    // columns stay readable regardless of how many bars are on screen.
     const unsub = useTradingStore.subscribe(
       (s) => s.lastBarVersion,
       () => {
         const arr = useTradingStore.getState().bars.toArray();
         series.setData(toLWData(arr));
+
+        // Dynamic barSpacing: measure how many bars are currently visible and
+        // pick a width that keeps bid/ask wings and numbers legible.
+        const logicalRange = chart.timeScale().getVisibleLogicalRange();
+        if (logicalRange) {
+          const visibleCount = Math.max(1, Math.round(logicalRange.to - logicalRange.from));
+          const spacing = computeBarSpacing(visibleCount);
+          chart.timeScale().applyOptions({ barSpacing: spacing });
+        }
+
         if (!useReplayStore.getState().userHasPanned) {
           chart.timeScale().scrollToRealTime();
         }
