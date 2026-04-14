@@ -162,9 +162,9 @@
 
 ### Zone Registry (ZONE)
 
-- [ ] **ZONE-01**: Centralized ZoneRegistry manages all zone types (absorption, exhaustion, LVN, HVN, GEX levels)
+- [x] **ZONE-01**: Centralized ZoneRegistry manages all zone types (absorption, exhaustion, LVN, HVN, GEX levels)
 - [ ] **ZONE-02**: Zone-signal interaction scored — absorption at LVN + GEX confluence = highest conviction
-- [ ] **ZONE-03**: Zone merge logic — overlapping same-direction zones consolidate with combined score
+- [x] **ZONE-03**: Zone merge logic — overlapping same-direction zones consolidate with combined score
 - [ ] **ZONE-04**: Zone visual representation in dashboard — strong/medium/weak with distinct styling
 - [ ] **ZONE-05**: Peak bucket cluster — zones narrowed to volume concentration peak
 
@@ -361,9 +361,9 @@ Updated during roadmap creation (2026-04-11).
 | GEX-04 | Phase 5 | Pending |
 | GEX-05 | Phase 5 | Pending |
 | GEX-06 | Phase 5 | Pending |
-| ZONE-01 | Phase 5 | Pending |
+| ZONE-01 | Phase 5 | Complete |
 | ZONE-02 | Phase 5 | Pending |
-| ZONE-03 | Phase 5 | Pending |
+| ZONE-03 | Phase 5 | Complete |
 | ZONE-04 | Phase 5 | Pending |
 | ZONE-05 | Phase 5 | Pending |
 | ENG-06 | Phase 5 | Pending |

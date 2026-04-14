@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 15-01; 15-02 unblocked (narrative zone persistence)
-last_updated: "2026-04-14T05:50:18.313Z"
+stopped_at: Completed 15-02-PLAN.md
+last_updated: "2026-04-14T11:44:19.063Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 16
   completed_phases: 11
   total_plans: 52
-  completed_plans: 44
-  percent: 85
+  completed_plans: 45
+  percent: 87
 ---
 
 # Project State
@@ -73,6 +73,7 @@ Progress: [░░░░░░░░░░] 2%
 | Phase 11 P03 | 40 | 3 tasks | 23 files |
 | Phase 11 P04 | 251 | 2 tasks | 13 files |
 | Phase 15 P01 | 45 | 3 tasks | 8 files |
+| Phase 15 P02 | 15 | 2 tasks | 3 files |
 
 ## Quick Tasks Completed
 
@@ -123,6 +124,8 @@ Recent decisions affecting current work:
 - [Phase 15]: Phase 15-01: Unified Level primitive (uid: int stable mutation key via uuid4) with 17 LevelKind variants
 - [Phase 15]: Phase 15-01: LevelBus = in-place rename of ZoneRegistry (D-09); ZoneRegistry alias preserved; get_all_active() now returns list[Level]
 - [Phase 15]: Phase 15-01: RULES.md canonical table has 38 CR-IDs (47 source rules deduped with lineage audit)
+- [Phase 15]: 15-02: narrative signals with strength>=0.4 persisted as Levels via LevelFactory at VPContextEngine.process step 2.5 (D-06, D-31); ABSORB/EXHAUST use full-wick geometry (D-07)
+- [Phase 15]: 15-02: cross-session decay — narrative Levels with score>=60 carry over with score*0.70, touches halved, state reset to CREATED; below-60 GC'd at session reset (D-08)
 
 ### Roadmap Evolution
 
@@ -144,6 +147,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-14T05:50:18.309Z
-Stopped at: Completed 15-01; 15-02 unblocked (narrative zone persistence)
+Last session: 2026-04-14T11:44:19.060Z
+Stopped at: Completed 15-02-PLAN.md
 Resume file: None
