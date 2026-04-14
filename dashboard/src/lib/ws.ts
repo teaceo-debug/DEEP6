@@ -19,7 +19,12 @@ export class WsClient {
   onMessage: (data: unknown) => void = () => {}
   onStatusChange: (s: WsStatus) => void = () => {}
 
-  connect(token: string, url = "ws://localhost:8000/ws"): void {
+  connect(token: string, url?: string): void {
+    // Default WS URL derived from NEXT_PUBLIC_API_URL (swap http→ws); falls back to localhost:8765.
+    if (!url) {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8765"
+      url = `${apiUrl.replace(/^http/, "ws")}/ws`
+    }
     if (!this.shouldReconnect) return
     this.onStatusChange("connecting")
 

@@ -16,6 +16,10 @@ class Config:
     rithmic_uri: str
     db_path: str
 
+    # DEEP6 API (FastAPI) — unified on port 8765 across backend + dashboard.
+    api_host: str = "127.0.0.1"
+    api_port: int = 8765
+
     # NQ instrument constants
     instrument: str = "NQM5"  # update to front month as needed
     exchange: str = "CME"
@@ -41,6 +45,8 @@ class Config:
             rithmic_system_name=os.environ.get("RITHMIC_SYSTEM_NAME", "Rithmic Test"),
             rithmic_uri=os.environ.get("RITHMIC_URI", "wss://rituz00100.rithmic.com:443"),
             db_path=os.environ.get("DEEP6_DB_PATH", "./deep6_session.db"),
+            api_host=os.environ.get("DEEP6_API_HOST", "127.0.0.1"),
+            api_port=int(os.environ.get("DEEP6_API_PORT", "8765")),
         )
 
     def safe_log_fields(self) -> dict:

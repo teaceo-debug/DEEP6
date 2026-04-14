@@ -8,7 +8,7 @@ No `uvicorn.run()` here — the caller mounts via:
 
 or for standalone:
 
-    uvicorn deep6.api.app:app --port 8000
+    uvicorn deep6.api.app:app --port 8765
 
 Lifespan:
     - Creates EventStore from DB_PATH env var (default ./deep6_ml.db)

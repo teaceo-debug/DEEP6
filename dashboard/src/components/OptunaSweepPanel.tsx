@@ -22,7 +22,7 @@ import {
 import ParamImportanceChart from "@/components/ParamImportanceChart"
 import { Loader2, Play, StopCircle, ChevronDown, ChevronRight, AlertCircle, CheckCircle2 } from "lucide-react"
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8765"
 const POLL_INTERVAL_MS = 3000
 
 type SweepStatus = "idle" | "running" | "complete" | "error"
