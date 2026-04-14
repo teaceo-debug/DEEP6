@@ -245,6 +245,16 @@ Note: Phase 6 (Kronos + TVMCP) can begin after Phase 1 completes, running in par
 | 10. Analytics Dashboard | 5/5 | Complete    | 2026-04-14 |
 | 11. DEEP6 Trading Web App | 4/4 | Complete   | 2026-04-14 |
 
+### Phase 11.1: Phase 11 layout and visual polish (INSERTED)
+
+**Goal:** Fix four CSS/layout/DPR bugs found during Phase 11 smoke review — ScoreWidget column collapse, SignalFeed overlay, HeaderStrip font size, and FootprintRenderer Retina text — bringing the dashboard into compliance with UI-SPEC at standard desktop widths.
+**Requirements**: APP-01, APP-03, APP-04
+**Depends on:** Phase 11
+**Plans:** 1 plan
+
+Plans:
+- [ ] 11.1-01-PLAN.md — Layout shell fix (D-01, D-02), header strip typography (D-03), FootprintRenderer DPR audit (D-04), build gate (D-05)
+
 ### Phase 12: Integrate borrowed orderflow patterns: VPIN confidence modifier, Delta Slingshot, Delta At Extreme, setup state machine, per-regime walk-forward tracker
 
 **Goal:** Integrate five vetted orderflow patterns from the kronos-tv-autotrader reference implementation into DEEP6's existing 44-signal engine, LightGBM meta-learner, and HMM regime detector — (1) VPIN as a continuous 0.2x-1.2x confidence modifier on fused LightGBM score, (2) running intrabar max/min delta on FootprintBar that fixes the existing DELT_TAIL (bit 22) to use real extremes, (3) new TRAP_SHOT signal at bit 44 (2/3/4-bar trapped-trader reversal, session-bounded, GEX-wall bypass), (4) dual-timeframe (1m + 5m) setup state machine with soak-bonus + explicit-close transition rule, and (5) per-category × per-regime walk-forward tracker with auto-disable/recovery feeding back into LightGBM fusion.
