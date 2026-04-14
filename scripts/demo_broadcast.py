@@ -86,6 +86,15 @@ def post(base_url: str, payload: dict) -> bool:
     try:
         with urllib.request.urlopen(req, timeout=3) as resp:
             return 200 <= resp.status < 300
+    except urllib.error.HTTPError as exc:
+        # Read response body for 422 (schema rejection) to surface actual error detail.
+        try:
+            body = exc.read().decode(errors="replace")[:300]
+        except Exception:  # noqa: BLE001
+            body = ""
+        print(f"\n[WARN] HTTP {exc.code} {exc.reason} — {body}",
+              flush=True)
+        return False
     except urllib.error.URLError as exc:
         print(f"\n[WARN] HTTP error: {exc.reason} — backend down? retrying next tick",
               flush=True)
