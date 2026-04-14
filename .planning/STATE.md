@@ -4,7 +4,7 @@ milestone: v2.0
 milestone_name: milestone
 status: executing
 stopped_at: Completed 11-03-PLAN.md
-last_updated: "2026-04-14T02:40:11.766Z"
+last_updated: "2026-04-14T02:41:37.645Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 12
@@ -70,6 +70,7 @@ Progress: [░░░░░░░░░░] 2%
 | Phase 11 P01 | 25 | 3 tasks | 9 files |
 | Phase 11 P02 | 25 | 2 tasks | 14 files |
 | Phase 11 P03 | 45m | 3 tasks | 23 files |
+| Phase 11 P03 | 40 | 3 tasks | 23 files |
 
 ## Quick Tasks Completed
 
@@ -110,6 +111,8 @@ Recent decisions affecting current work:
 - [Phase 11]: Tailwind v4 uses @theme inline CSS directives — no tailwind.config.ts; design tokens mapped via --color-* in @theme block
 - [Phase 11]: Zustand v5 mutable RingBuffer + version counter (lastBarVersion) pattern: Canvas reads getState().bars directly, never via reactive selector
 - [Phase 11]: ZoneOverlay uses priceScale getVisibleRange not getVisiblePriceRange (corrected from plan pseudocode)
+- [Phase 11]: Plan 11-03: LW Charts v5.1 FootprintSeries + FootprintRenderer + Zone overlay canvas + WS reconnect hook — view-only dashboard streams live
+- [Phase 11]: Plan 11-03: RingBuffer direction clarified (oldest→newest) and auto-fixed across HeaderStrip/ZoneOverlay/useFootprintData/FootprintChart
 
 ### Roadmap Evolution
 
@@ -127,6 +130,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-14T02:40:11.763Z
+Last session: 2026-04-14T02:41:31.989Z
 Stopped at: Completed 11-03-PLAN.md
 Resume file: None
