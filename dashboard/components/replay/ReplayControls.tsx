@@ -48,6 +48,7 @@ function TransportBtn({
   return (
     <button
       aria-label={label}
+      title={label}
       disabled={disabled}
       onClick={onClick}
       style={{
@@ -120,7 +121,7 @@ function TimelineScrubber({
       onClick={handleClick}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => setHoverPct(null)}
-      title={hoverBar !== null ? `Bar ${hoverBar + 1} of ${totalBars}` : undefined}
+      title={hoverBar !== null ? `Timeline — click to jump · Bar ${hoverBar + 1} of ${totalBars}` : 'Timeline — click to jump'}
       style={{
         width: '100%',
         height: 4,
@@ -331,6 +332,7 @@ export function ReplayControls() {
         <input
           type="number"
           aria-label="Jump to bar"
+          title="Jump to bar #"
           placeholder="bar #"
           min={1}
           max={totalBars}
@@ -407,6 +409,7 @@ export function ReplayControls() {
         >
           <SelectTrigger
             className="text-sm tnum"
+            title="Playback speed (0.5×–5× or auto)"
             style={{
               height: 36,
               width: 80,

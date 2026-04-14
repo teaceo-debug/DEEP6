@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { HelpCircle } from 'lucide-react';
 import { useTradingStore } from '@/store/tradingStore';
+import { KeyboardHelp } from '@/components/common/KeyboardHelp';
 
 /**
  * HeaderStrip — 44px terminal header per UI-SPEC §4.7
@@ -277,6 +279,29 @@ export function HeaderStrip() {
   // ── Tooltip state ──
   const [dotHovered, setDotHovered] = useState(false);
   const [statsHovered, setStatsHovered] = useState(false);
+  const [sparkHovered, setSparkHovered] = useState(false);
+  const [clockHovered, setClockHovered] = useState(false);
+  const [spmHovered, setSpmHovered] = useState(false);
+
+  // ── Keyboard help modal ──
+  const [helpOpen, setHelpOpen] = useState(false);
+
+  // Global `?` key opens/closes help modal
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (e.key === '?') {
+        e.preventDefault();
+        setHelpOpen((prev) => !prev);
+      }
+      if (e.key === 'Escape') {
+        setHelpOpen(false);
+      }
+    }
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, []);
 
   // ── Update price + sparkline from latest bar ──
   useEffect(() => {
@@ -570,7 +595,34 @@ export function HeaderStrip() {
         )}
 
         {/* Sparkline — inline after delta */}
-        <PriceSparkline prices={sparkPrices} />
+        <span
+          onMouseEnter={() => setSparkHovered(true)}
+          onMouseLeave={() => setSparkHovered(false)}
+          style={{ position: 'relative', display: 'inline-flex' }}
+          title="Last 30 close prices."
+        >
+          <PriceSparkline prices={sparkPrices} />
+          {sparkHovered && sparkPrices.length >= 5 && (
+            <span style={{
+              position: 'absolute',
+              top: '100%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              marginTop: 6,
+              padding: '4px 8px',
+              background: 'var(--surface-2)',
+              border: '1px solid var(--rule-bright)',
+              color: 'var(--text)',
+              fontSize: 11,
+              fontFamily: 'JetBrains Mono, monospace',
+              whiteSpace: 'nowrap',
+              zIndex: 100,
+              pointerEvents: 'none',
+            }}>
+              Last 30 close prices.
+            </span>
+          )}
+        </span>
 
         <PipeSep />
 
@@ -636,37 +688,63 @@ export function HeaderStrip() {
         <PipeSep />
 
         {/* Clock — HH:MM:SS.● ET, dot pulses 1Hz */}
-        <SectionPill>
-          <span
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: '13px',
-              fontVariantNumeric: 'tabular-nums',
-              color: 'var(--text-dim)',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 1,
-            }}
-          >
-            {clockBase.replace(' ET', '')}
+        <span
+          onMouseEnter={() => setClockHovered(true)}
+          onMouseLeave={() => setClockHovered(false)}
+          style={{ position: 'relative', display: 'inline-flex' }}
+        >
+          <SectionPill>
             <span
               style={{
-                display: 'inline-block',
-                width: '4px',
-                height: '4px',
-                borderRadius: '50%',
-                background: 'var(--text-mute)',
-                opacity: dotVisible ? 1 : 0.15,
-                transition: 'opacity 80ms ease',
-                marginLeft: 1,
-                marginRight: 2,
-                flexShrink: 0,
-                alignSelf: 'center',
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: '13px',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'var(--text-dim)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 1,
               }}
-            />
-            <span style={{ color: 'var(--text-dim)', fontSize: '11px', letterSpacing: '0.04em' }}>ET</span>
-          </span>
-        </SectionPill>
+            >
+              {clockBase.replace(' ET', '')}
+              <span
+                style={{
+                  display: 'inline-block',
+                  width: '4px',
+                  height: '4px',
+                  borderRadius: '50%',
+                  background: 'var(--text-mute)',
+                  opacity: dotVisible ? 1 : 0.15,
+                  transition: 'opacity 80ms ease',
+                  marginLeft: 1,
+                  marginRight: 2,
+                  flexShrink: 0,
+                  alignSelf: 'center',
+                }}
+              />
+              <span style={{ color: 'var(--text-dim)', fontSize: '11px', letterSpacing: '0.04em' }}>ET</span>
+            </span>
+          </SectionPill>
+          {clockHovered && (
+            <span style={{
+              position: 'absolute',
+              top: '100%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              marginTop: 6,
+              padding: '4px 8px',
+              background: 'var(--surface-2)',
+              border: '1px solid var(--rule-bright)',
+              color: 'var(--text)',
+              fontSize: 11,
+              fontFamily: 'JetBrains Mono, monospace',
+              whiteSpace: 'nowrap',
+              zIndex: 100,
+              pointerEvents: 'none',
+            }}>
+              New York market time.
+            </span>
+          )}
+        </span>
 
         {/* Right side */}
         <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -674,10 +752,30 @@ export function HeaderStrip() {
 
           {/* Signals-per-minute chart */}
           <span
-            title="Signals fired per minute (last 10 min). Lime=TYPE_A, Amber=TYPE_B, Cyan=TYPE_C"
-            style={{ display: 'inline-flex', alignItems: 'center' }}
+            onMouseEnter={() => setSpmHovered(true)}
+            onMouseLeave={() => setSpmHovered(false)}
+            style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}
           >
             <SpmChart bins={spmBins} />
+            {spmHovered && (
+              <span style={{
+                position: 'absolute',
+                top: '100%',
+                right: 0,
+                marginTop: 6,
+                padding: '4px 8px',
+                background: 'var(--surface-2)',
+                border: '1px solid var(--rule-bright)',
+                color: 'var(--text)',
+                fontSize: 11,
+                fontFamily: 'JetBrains Mono, monospace',
+                whiteSpace: 'nowrap',
+                zIndex: 100,
+                pointerEvents: 'none',
+              }}>
+                Signal arrivals per minute, last 10 min.
+              </span>
+            )}
           </span>
 
           <PipeSep />
@@ -728,6 +826,33 @@ export function HeaderStrip() {
 
           <PipeSep />
 
+          {/* Keyboard help button */}
+          <button
+            aria-label="Keyboard shortcuts (?)"
+            onClick={() => setHelpOpen(true)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--text-mute)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 24,
+              height: 24,
+              borderRadius: 4,
+              flexShrink: 0,
+              padding: 0,
+              transition: 'color 150ms ease',
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text)'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-mute)'; }}
+          >
+            <HelpCircle style={{ width: 14, height: 14, strokeWidth: 1.5 }} />
+          </button>
+
+          <PipeSep />
+
           {/* Connection dot */}
           <span
             className={dotClass}
@@ -769,6 +894,9 @@ export function HeaderStrip() {
           visible={statsHovered}
         />
       </header>
+
+      {/* Keyboard help modal */}
+      <KeyboardHelp open={helpOpen} onClose={() => setHelpOpen(false)} />
     </>
   );
 }

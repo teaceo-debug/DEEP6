@@ -38,13 +38,13 @@ interface ZoneRow {
 }
 
 const ZONE_TOOLTIPS: Record<ZoneKind, string> = {
-  'POC':  'POC — Point of Control. Price level with highest volume in session.',
-  'VAH':  'VAH — Value Area High. Top of the high-volume zone (~70% of session volume).',
-  'VAL':  'VAL — Value Area Low. Bottom of the high-volume zone (~70% of session volume).',
-  'LVN':  'LVN — Low Volume Node. Price range with thin volume; acts as a magnet.',
-  'HVN':  'HVN — High Volume Node. Dense volume area; price tends to consolidate here.',
-  'GEX+': 'GEX+ — Positive GEX level. Dealers sell rallies here; gamma resistance.',
-  'GEX-': 'GEX- — Negative GEX level. Dealers buy dips here; gamma support.',
+  'POC':  'Point of Control — session\'s volume magnet. Prices orbit here.',
+  'VAH':  'Value Area High — top boundary of 68% session volume. Resistance.',
+  'VAL':  'Value Area Low — bottom boundary of 68% session volume. Support.',
+  'LVN':  'Low Volume Node — thin pricing zone. Breaks fast; acceptance = trend.',
+  'HVN':  'High Volume Node — price magnet. Contests reversals.',
+  'GEX+': 'GEX Call Wall — large positive gamma. Suppresses upside.',
+  'GEX-': 'GEX Put Wall — large negative gamma. Suppresses downside.',
 };
 
 // ---------------------------------------------------------------------------

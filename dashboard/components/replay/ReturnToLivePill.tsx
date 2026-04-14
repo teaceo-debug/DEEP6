@@ -80,6 +80,8 @@ export function ReturnToLivePill() {
         // Replay: outlined, click returns to live
         <button
           onClick={handleClick}
+          title="Switch to live mode"
+          aria-label="Switch to live mode"
           style={{
             ...BASE_PILL,
             background: 'transparent',

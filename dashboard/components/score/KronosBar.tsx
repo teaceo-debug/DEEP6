@@ -43,6 +43,43 @@ import { useTradingStore } from '@/store/tradingStore';
 import { prefersReducedMotion, DURATION, EASING, SPRING } from '@/lib/animations';
 
 // ---------------------------------------------------------------------------
+// HoverTip — lightweight tooltip wrapper
+// ---------------------------------------------------------------------------
+
+function HoverTip({ text, children }: { text: string; children: React.ReactNode }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <span
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{ position: 'relative', display: 'inline-flex' }}
+    >
+      {children}
+      {hovered && (
+        <span style={{
+          position: 'absolute',
+          top: '100%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          marginTop: 6,
+          padding: '4px 8px',
+          background: 'var(--surface-2)',
+          border: '1px solid var(--rule-bright)',
+          color: 'var(--text)',
+          fontSize: 11,
+          fontFamily: 'JetBrains Mono, monospace',
+          whiteSpace: 'nowrap',
+          zIndex: 100,
+          pointerEvents: 'none',
+        }}>
+          {text}
+        </span>
+      )}
+    </span>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
@@ -513,12 +550,14 @@ export function KronosBar() {
           gap: '6px',
         }}
       >
-        <span
-          className="text-xs label-tracked"
-          style={{ color: 'var(--text-dim)' }}
-        >
-          KRONOS E10
-        </span>
+        <HoverTip text="Kronos foundation model — directional bias from OHLCV patterns.">
+          <span
+            className="text-xs label-tracked"
+            style={{ color: 'var(--text-dim)' }}
+          >
+            KRONOS E10
+          </span>
+        </HoverTip>
         <motion.div
           animate={{ opacity: [0.5, 1.0, 0.5] }}
           transition={{
@@ -558,12 +597,16 @@ export function KronosBar() {
           justifyContent: 'space-between',
         }}
       >
-        <DirectionText direction={direction} color={dirColor} />
+        <HoverTip text="Kronos-predicted directional bias.">
+          <DirectionText direction={direction} color={dirColor} />
+        </HoverTip>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           {/* σ stability indicator */}
           {history.length >= 2 && (
-            <AnimatedSigma value={sigma} />
+            <HoverTip text="Standard deviation of last 20 bias values. Low σ = stable.">
+              <AnimatedSigma value={sigma} />
+            </HoverTip>
           )}
 
           {biasExceedsConfidence && !noData && (
@@ -578,11 +621,15 @@ export function KronosBar() {
               AWAITING
             </span>
           ) : (
-            <AnimatedNumber value={confidence} color="var(--magenta)" />
+            <HoverTip text="Kronos bias magnitude (0–100).">
+              <AnimatedNumber value={confidence} color="var(--magenta)" />
+            </HoverTip>
           )}
 
           {/* Trend arrow */}
-          <TrendArrow current={kronosBias ?? 0} oldest={oldestBias} />
+          <HoverTip text="Bias trend vs 20 ticks ago.">
+            <TrendArrow current={kronosBias ?? 0} oldest={oldestBias} />
+          </HoverTip>
         </div>
       </div>
 
