@@ -261,13 +261,13 @@ Plans:
 **Requirements**: APP-01, APP-03, APP-04, APP-06 (lite), APP-08
 **Depends on:** Phase 11.1
 **Design contract:** `.planning/phases/11.2-ui-redesign/UI-SPEC-v2.md` (supersedes 11-UI-SPEC.md for this phase)
-**Plans:** 2/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 - [x] 11.2-01-PLAN.md — Foundation: globals.css tokens, atmosphere layers (Scanlines/Grain/CRTSweep), JetBrains Mono only, asymmetric layout shell, HeaderStrip rewrite
 - [x] 11.2-02-PLAN.md — Confluence Pulse hero (320×320 SVG, 44-arc engine ring + 8-sector category ring + digit-roll core + TYPE_A flash), KronosBar, ZoneList
-- [ ] 11.2-03-PLAN.md — FootprintRenderer rewrite (volume bars + bloom on imbalance + stacked-run line + POC glow + signal markers), ZoneOverlay recolor
-- [ ] 11.2-04-PLAN.md — SignalFeedRow + TapeScroll rewrite, ReplayControls/SessionSelector/ReturnToLivePill restyle, ErrorBanner copy, operator visual acceptance checkpoint
+- [x] 11.2-03-PLAN.md — FootprintRenderer rewrite (volume bars + bloom on imbalance + stacked-run line + POC glow + signal markers), ZoneOverlay recolor
+- [x] 11.2-04-PLAN.md — SignalFeedRow + TapeScroll rewrite, ReplayControls/SessionSelector/ReturnToLivePill restyle, ErrorBanner copy, operator visual acceptance checkpoint
 
 ### Phase 12: Integrate borrowed orderflow patterns: VPIN confidence modifier, Delta Slingshot, Delta At Extreme, setup state machine, per-regime walk-forward tracker
 

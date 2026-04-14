@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 11.2-03-PLAN.md
-last_updated: "2026-04-14T12:28:17Z"
+stopped_at: Completed 11.2-04-PLAN.md (Tasks 1-2; Task 3 operator gate deferred)
+last_updated: "2026-04-14T12:35:05.477Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 17
-  completed_phases: 11
+  completed_phases: 12
   total_plans: 56
-  completed_plans: 47
-  percent: 84
+  completed_plans: 49
+  percent: 88
 ---
 
 # Project State
@@ -77,6 +77,7 @@ Progress: [░░░░░░░░░░] 2%
 | Phase 11.2 P01 | 3 | 3 tasks | 9 files |
 | Phase 11.2 P02 | 4 | 2 tasks | 7 files |
 | Phase 11.2 P03 | 8 | 2 tasks | 3 files |
+| Phase 11.2 P04 | 12 | 2 tasks | 9 files |
 
 ## Quick Tasks Completed
 
@@ -139,6 +140,9 @@ Recent decisions affecting current work:
 - [Phase 11.2]: 11.2-03: volume normalization uses max(bid+ask) across all rows in bar for proportional visual weight per level
 - [Phase 11.2]: 11.2-03: imbalance bloom via two-draw (glow layer + crisp bar) rather than canvas filter — broader browser compat, no filter state leak
 - [Phase 11.2]: 11.2-03: ZoneOverlay.tsx unchanged — all color logic lives in zoneDrawer.ts; EXHAUSTION+VAH/VAL added to ZONE_STYLES for forward-compat
+- [Phase 11.2]: SignalFeedRow hover-expand uses motion.div animate height (44→88) for precise sub-content control
+- [Phase 11.2]: TapeScroll uses manual div+onScroll instead of shadcn ScrollArea to expose scrollTop for userScrolled detection
+- [Phase 11.2]: ErrorBanner uses color-mix() for border-bottom opacity to keep CSS custom property names rather than hardcoded rgba values
 
 ### Roadmap Evolution
 
@@ -160,6 +164,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-14T12:28:17Z
-Stopped at: Completed 11.2-03-PLAN.md
+Last session: 2026-04-14T12:34:59.556Z
+Stopped at: Completed 11.2-04-PLAN.md (Tasks 1-2; Task 3 operator gate deferred)
 Resume file: None
