@@ -11,28 +11,20 @@
 
 NinjaTrader keeps its user-space source tree at `%USERPROFILE%\Documents\NinjaTrader 8\bin\Custom\`. Files under `Indicators\` become indicators; files under `AddOns\` are shared helpers/data classes.
 
-Layout after install:
+Layout after install — **one file only**:
 
 ```
 %USERPROFILE%\Documents\NinjaTrader 8\bin\Custom\
-├── Indicators\
-│   └── DEEP6\
-│       └── DEEP6Footprint.cs
-└── AddOns\
+└── Indicators\
     └── DEEP6\
-        ├── FootprintBar.cs
-        ├── AbsorptionDetector.cs
-        ├── ExhaustionDetector.cs
-        └── MassiveGexClient.cs
+        └── DEEP6Footprint.cs    (contains indicator + all AddOn types + GEX client)
 ```
 
 ### Step-by-step
 
-The `ninjatrader/Custom/` directory in this repo mirrors NT8's layout 1:1, so you can merge it in place.
-
 1. Close NinjaTrader if it's running.
-2. Open File Explorer, go to the repo's `ninjatrader/Custom/` folder.
-3. Select both `Indicators` and `AddOns` subfolders and copy them into `%USERPROFILE%\Documents\NinjaTrader 8\bin\Custom\`. Choose **Merge** when Windows asks about the existing `Indicators` / `AddOns` folders — do NOT replace. The DEEP6 subfolders land alongside any existing content.
+2. Open File Explorer and go to `%USERPROFILE%\Documents\NinjaTrader 8\bin\Custom\Indicators\`. Create a `DEEP6` subfolder if one doesn't exist.
+3. Copy `DEEP6Footprint.cs` (from the repo's `ninjatrader/Custom/Indicators/DEEP6/`) into that `DEEP6` subfolder.
 4. Start NinjaTrader.
 5. Open the **NinjaScript Editor** (New → NinjaScript Editor). Press **F5** to compile.
    - Any compile error appears in the Errors tab at the bottom. The build produces `NinjaTrader.Custom.dll` at `%USERPROFILE%\Documents\NinjaTrader 8\bin\Custom\NinjaTrader.Custom.dll`.

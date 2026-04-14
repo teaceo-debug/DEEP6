@@ -1,22 +1,30 @@
-// DEEP6 Footprint — NinjaTrader 8 indicator
-// Renders a per-bar footprint (bid × ask volume per price level), POC/VAH/VAL markers,
-// absorption & exhaustion signal triangles, and optional GEX overlay levels fetched
-// from massive.com.
+// DEEP6 Footprint — unified NinjaTrader 8 indicator (single-file build).
 //
-// Parallel deliverable alongside the DEEP6 Python auto-trading system. Read-only —
-// no order entry. Uses NT8's native Rithmic L2 feed; no external data connection.
+// This file contains the entire DEEP6 Footprint indicator: the main indicator
+// class, the FootprintBar / Cell data structures, AbsorptionDetector (4 variants
+// + VAH/VAL bonus), ExhaustionDetector (6 variants + delta gate + cooldown),
+// and the massive.com GEX client.
 //
-// Install: drop this file + AddOns\DEEP6\*.cs into
-//   %USERPROFILE%\Documents\NinjaTrader 8\bin\Custom\
-// then right-click Indicators pane → Reload NinjaScript. Chart → add "DEEP6 Footprint".
+// Drop-in install: copy this file alone to
+//   %USERPROFILE%\Documents\NinjaTrader 8\bin\Custom\Indicators\DEEP6\DEEP6Footprint.cs
+// then F5 in the NinjaScript Editor.
+//
+// See repository docs/ for SETUP, SIGNALS, and ARCHITECTURE reference.
+// Port spec: .planning/phases/16-*/PORT-SPEC.md (thresholds authoritative).
 
-#region Using declarations
+#region Using
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Json;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
@@ -33,6 +41,852 @@ using SharpDX;
 using SharpDX.Direct2D1;
 using SharpDX.DirectWrite;
 #endregion
+
+namespace NinjaTrader.NinjaScript.AddOns.DEEP6
+{
+
+    // ─── from FootprintBar.cs ───
+    public sealed class Cell
+    {
+        public long BidVol;
+        public long AskVol;
+        public long NeutralVol;
+
+        public long TotalVol => BidVol + AskVol + NeutralVol;
+        public long Delta    => AskVol - BidVol;
+    }
+
+    public sealed class FootprintBar
+    {
+        public int BarIndex;
+        public double Open;
+        public double High;
+        public double Low;
+        public double Close;
+        public SortedDictionary<double, Cell> Levels = new SortedDictionary<double, Cell>();
+        public long TotalVol;
+        public long BarDelta;
+        public long Cvd;
+        public double PocPrice;
+        public double BarRange;
+        public long RunningDelta;
+        public long MaxDelta;
+        public long MinDelta;
+
+        public void AddTrade(double price, long size, int aggressor)
+        {
+            if (size <= 0) return;
+            Cell lv;
+            if (!Levels.TryGetValue(price, out lv))
+            {
+                lv = new Cell();
+                Levels[price] = lv;
+            }
+
+            if (aggressor == 1)        // buy (hit ask)
+            {
+                lv.AskVol += size;
+                RunningDelta += size;
+            }
+            else if (aggressor == 2)   // sell (hit bid)
+            {
+                lv.BidVol += size;
+                RunningDelta -= size;
+            }
+            else                       // unclassified (between spread)
+            {
+                lv.NeutralVol += size;
+            }
+
+            if (RunningDelta > MaxDelta) MaxDelta = RunningDelta;
+            if (RunningDelta < MinDelta) MinDelta = RunningDelta;
+
+            if (Open == 0) Open = price;
+            if (price > High) High = price;
+            if (Low == 0 || price < Low) Low = price;
+            Close = price;
+            TotalVol += size;
+        }
+
+        public void Finalize(long priorCvd)
+        {
+            BarDelta = 0;
+            double bestPx = 0;
+            long bestVol = -1;
+            foreach (var kv in Levels)
+            {
+                BarDelta += kv.Value.AskVol - kv.Value.BidVol;
+                long v = kv.Value.AskVol + kv.Value.BidVol;
+                if (v > bestVol) { bestVol = v; bestPx = kv.Key; }
+            }
+            if (Levels.Count > 0) PocPrice = bestPx;
+            BarRange = High - Low;
+            if (BarRange < 0) BarRange = 0;
+            Cvd = priorCvd + BarDelta;
+        }
+
+        // 70% Value Area. Returns (VAH, VAL).
+        // Port of deep6/engines/poc.py:231-257.
+        public static (double vah, double val) ComputeValueArea(FootprintBar bar, double tickSize, double vaPct = 0.70)
+        {
+            if (bar.Levels.Count == 0 || bar.TotalVol == 0) return (bar.High, bar.Low);
+            var sorted = bar.Levels
+                .OrderByDescending(kv => kv.Value.AskVol + kv.Value.BidVol)
+                .ToList();
+            double target = bar.TotalVol * vaPct;
+            double acc = 0;
+            var ticksInVa = new List<double>();
+            foreach (var kv in sorted)
+            {
+                acc += kv.Value.AskVol + kv.Value.BidVol;
+                ticksInVa.Add(kv.Key);
+                if (acc >= target) break;
+            }
+            if (ticksInVa.Count == 0) return (bar.High, bar.Low);
+            return (ticksInVa.Max() + tickSize, ticksInVa.Min());
+        }
+
+        // Delta conviction scalar used by delta-family signals.
+        // Port of deep6/state/footprint.py:134-161.
+        public double DeltaQualityScalar()
+        {
+            long extreme = Math.Max(Math.Max(Math.Abs(MaxDelta), Math.Abs(MinDelta)), 1);
+            if (RunningDelta == 0 && extreme <= 1) return 1.0;
+            double ratio = Math.Abs((double)RunningDelta) / extreme;
+            if (ratio >= 0.95) return 1.15;
+            if (ratio <= 0.35) return 0.7;
+            // linear: (0.35, 0.7) → (0.95, 1.15)
+            return 0.7 + (ratio - 0.35) * (1.15 - 0.7) / (0.95 - 0.35);
+        }
+    }
+
+    // ─── from AbsorptionDetector.cs ───
+    public enum AbsorptionType
+    {
+        Classic,
+        Passive,
+        StoppingVolume,
+        EffortVsResult,
+    }
+
+    public sealed class AbsorptionSignal
+    {
+        public AbsorptionType Kind;
+        public int Direction;       // +1 bullish, -1 bearish
+        public double Price;
+        public string Wick;          // "upper" | "lower" | "body"
+        public double Strength;      // 0..1
+        public double WickPct;
+        public double DeltaRatio;
+        public string Detail;
+        public bool AtVaExtreme;
+    }
+
+    public sealed class AbsorptionConfig
+    {
+        public double AbsorbWickMin          = 30.0;
+        public double AbsorbDeltaMax         = 0.12;
+        public double PassiveExtremePct      = 0.20;
+        public double PassiveVolPct          = 0.60;
+        public double StopVolMult            = 2.0;
+        public double EvrVolMult             = 1.5;
+        public double EvrRangeCap            = 0.30;
+        public double VaExtremeTicks         = 2.0;
+        public double VaExtremeStrengthBonus = 0.15;
+    }
+
+    public static class AbsorptionDetector
+    {
+        public static List<AbsorptionSignal> Detect(
+            FootprintBar bar,
+            double atr,
+            double volEma,
+            AbsorptionConfig cfg,
+            double? vah,
+            double? val,
+            double tickSize)
+        {
+            var sigs = new List<AbsorptionSignal>();
+            if (bar == null || bar.Levels.Count == 0 || bar.TotalVol == 0 || bar.BarRange <= 0)
+                return sigs;
+
+            double bodyTop = Math.Max(bar.Open, bar.Close);
+            double bodyBot = Math.Min(bar.Open, bar.Close);
+
+            long upperVol = 0, lowerVol = 0, bodyVol = 0;
+            long upperDelta = 0, lowerDelta = 0;
+            foreach (var kv in bar.Levels)
+            {
+                double px = kv.Key;
+                long v = kv.Value.AskVol + kv.Value.BidVol;
+                long d = kv.Value.AskVol - kv.Value.BidVol;
+                if (px > bodyTop) { upperVol += v; upperDelta += d; }
+                else if (px < bodyBot) { lowerVol += v; lowerDelta += d; }
+                else { bodyVol += v; }
+            }
+
+            double effWickMin = cfg.AbsorbWickMin * (bar.BarRange > atr * 1.5 ? 1.2 : 1.0);
+            double barDeltaRatio = bar.TotalVol == 0
+                ? 0.0
+                : Math.Abs((double)bar.BarDelta) / bar.TotalVol;
+
+            // ABS-01 CLASSIC
+            TryClassic(upperVol, upperDelta, bar.TotalVol, effWickMin, cfg.AbsorbDeltaMax,
+                barDeltaRatio, bar.High, "upper", -1, sigs);
+            TryClassic(lowerVol, lowerDelta, bar.TotalVol, effWickMin, cfg.AbsorbDeltaMax,
+                barDeltaRatio, bar.Low, "lower", +1, sigs);
+
+            // ABS-02 PASSIVE
+            double extremeRange = bar.BarRange * cfg.PassiveExtremePct;
+            long upperZoneVol = 0, lowerZoneVol = 0;
+            foreach (var kv in bar.Levels)
+            {
+                long v = kv.Value.AskVol + kv.Value.BidVol;
+                if (kv.Key >= bar.High - extremeRange) upperZoneVol += v;
+                if (kv.Key <= bar.Low + extremeRange) lowerZoneVol += v;
+            }
+            if (upperZoneVol / (double)bar.TotalVol >= cfg.PassiveVolPct &&
+                bar.Close < bar.High - extremeRange)
+            {
+                double strength = Math.Min(upperZoneVol / (double)bar.TotalVol, 1.0);
+                sigs.Add(new AbsorptionSignal
+                {
+                    Kind = AbsorptionType.Passive,
+                    Direction = -1,
+                    Price = bar.High,
+                    Wick = "upper",
+                    Strength = strength,
+                    WickPct = upperZoneVol * 100.0 / bar.TotalVol,
+                    DeltaRatio = 0,
+                    Detail = "PASSIVE upper — heavy vol at top, close held below",
+                });
+            }
+            if (lowerZoneVol / (double)bar.TotalVol >= cfg.PassiveVolPct &&
+                bar.Close > bar.Low + extremeRange)
+            {
+                double strength = Math.Min(lowerZoneVol / (double)bar.TotalVol, 1.0);
+                sigs.Add(new AbsorptionSignal
+                {
+                    Kind = AbsorptionType.Passive,
+                    Direction = +1,
+                    Price = bar.Low,
+                    Wick = "lower",
+                    Strength = strength,
+                    WickPct = lowerZoneVol * 100.0 / bar.TotalVol,
+                    DeltaRatio = 0,
+                    Detail = "PASSIVE lower — heavy vol at bottom, close held above",
+                });
+            }
+
+            // ABS-03 STOPPING VOLUME
+            if (volEma > 0 && bar.TotalVol > volEma * cfg.StopVolMult)
+            {
+                double strength = Math.Min(bar.TotalVol / (volEma * cfg.StopVolMult * 2.0), 1.0);
+                if (bar.PocPrice > bodyTop)
+                {
+                    sigs.Add(new AbsorptionSignal
+                    {
+                        Kind = AbsorptionType.StoppingVolume,
+                        Direction = -1,
+                        Price = bar.PocPrice,
+                        Wick = "upper",
+                        Strength = strength,
+                        Detail = "STOPPING VOL — POC in upper wick",
+                    });
+                }
+                else if (bar.PocPrice < bodyBot)
+                {
+                    sigs.Add(new AbsorptionSignal
+                    {
+                        Kind = AbsorptionType.StoppingVolume,
+                        Direction = +1,
+                        Price = bar.PocPrice,
+                        Wick = "lower",
+                        Strength = strength,
+                        Detail = "STOPPING VOL — POC in lower wick",
+                    });
+                }
+            }
+
+            // ABS-04 EFFORT vs RESULT
+            if (volEma > 0 && atr > 0 &&
+                bar.TotalVol > volEma * cfg.EvrVolMult &&
+                bar.BarRange < atr * cfg.EvrRangeCap)
+            {
+                int dir = bar.BarDelta < 0 ? +1 : -1;
+                double strength = Math.Min(bar.TotalVol / (volEma * cfg.EvrVolMult * 2.0), 1.0);
+                double deltaRatio = bar.TotalVol == 0
+                    ? 0
+                    : Math.Abs((double)bar.BarDelta) / bar.TotalVol;
+                sigs.Add(new AbsorptionSignal
+                {
+                    Kind = AbsorptionType.EffortVsResult,
+                    Direction = dir,
+                    Price = (bar.High + bar.Low) / 2.0,
+                    Wick = "body",
+                    Strength = strength,
+                    DeltaRatio = deltaRatio,
+                    Detail = "EFFORT vs RESULT — high vol, narrow range",
+                });
+            }
+
+            // ABS-07 VA extreme proximity bonus
+            double prox = cfg.VaExtremeTicks * tickSize;
+            for (int i = 0; i < sigs.Count; i++)
+            {
+                var s = sigs[i];
+                bool atVah = vah.HasValue && Math.Abs(s.Price - vah.Value) <= prox;
+                bool atVal = val.HasValue && Math.Abs(s.Price - val.Value) <= prox;
+                if (atVah || atVal)
+                {
+                    s.AtVaExtreme = true;
+                    s.Strength = Math.Min(s.Strength + cfg.VaExtremeStrengthBonus, 1.0);
+                    s.Detail = s.Detail + (atVah ? " @VAH" : " @VAL");
+                }
+            }
+
+            return sigs;
+        }
+
+        private static void TryClassic(
+            long wickVol, long wickDelta, long totalVol,
+            double effWickMin, double deltaMax, double barDeltaRatio,
+            double price, string side, int direction,
+            List<AbsorptionSignal> sigs)
+        {
+            if (wickVol == 0 || totalVol == 0) return;
+            double wickPct = wickVol * 100.0 / totalVol;
+            double deltaRatio = Math.Abs((double)wickDelta) / wickVol;
+            if (wickPct >= effWickMin &&
+                deltaRatio < deltaMax &&
+                barDeltaRatio < deltaMax * 1.5)
+            {
+                double strength = Math.Min(wickPct / 60.0, 1.0) *
+                                  (1.0 - deltaRatio / deltaMax);
+                if (strength < 0) strength = 0;
+                sigs.Add(new AbsorptionSignal
+                {
+                    Kind = AbsorptionType.Classic,
+                    Direction = direction,
+                    Price = price,
+                    Wick = side,
+                    Strength = strength,
+                    WickPct = wickPct,
+                    DeltaRatio = deltaRatio,
+                    Detail = string.Format("CLASSIC {0} — wick {1:F0}% balanced delta", side, wickPct),
+                });
+            }
+        }
+    }
+
+    // ─── from ExhaustionDetector.cs ───
+    public enum ExhaustionType
+    {
+        ZeroPrint,
+        ExhaustionPrint,
+        ThinPrint,
+        FatPrint,
+        FadingMomentum,
+        BidAskFade,
+    }
+
+    public sealed class ExhaustionSignal
+    {
+        public ExhaustionType Kind;
+        public int Direction;    // +1 bullish, -1 bearish, 0 neutral
+        public double Price;
+        public double Strength;
+        public string Detail;
+    }
+
+    public sealed class ExhaustionConfig
+    {
+        public double ThinPct           = 0.05;
+        public double FatMult           = 2.0;
+        public double ExhaustWickMin    = 35.0;
+        public double FadeThreshold     = 0.60;
+        public int    CooldownBars      = 5;
+        public bool   DeltaGateEnabled  = true;
+        public double DeltaGateMinRatio = 0.10;
+    }
+
+    public sealed class ExhaustionDetector
+    {
+        private readonly Dictionary<ExhaustionType, int> _cooldown = new Dictionary<ExhaustionType, int>();
+
+        public void ResetCooldowns() { _cooldown.Clear(); }
+
+        private bool CheckCooldown(ExhaustionType t, int barIndex, int cooldownBars)
+        {
+            int last;
+            if (!_cooldown.TryGetValue(t, out last)) return true;
+            return (barIndex - last) >= cooldownBars;
+        }
+
+        private void SetCooldown(ExhaustionType t, int barIndex) { _cooldown[t] = barIndex; }
+
+        private static bool DeltaGate(FootprintBar bar, ExhaustionConfig cfg)
+        {
+            if (!cfg.DeltaGateEnabled) return true;
+            if (bar.TotalVol == 0) return true;
+            double r = Math.Abs((double)bar.BarDelta) / bar.TotalVol;
+            if (r < cfg.DeltaGateMinRatio) return true;
+            if (bar.Close > bar.Open) return bar.BarDelta < 0;
+            if (bar.Close < bar.Open) return bar.BarDelta > 0;
+            return true;
+        }
+
+        public List<ExhaustionSignal> Detect(
+            FootprintBar bar,
+            FootprintBar priorBar,
+            int barIndex,
+            double atr,
+            ExhaustionConfig cfg)
+        {
+            var sigs = new List<ExhaustionSignal>();
+            if (bar == null || bar.Levels.Count == 0 || bar.TotalVol == 0) return sigs;
+
+            var sortedTicks = bar.Levels.Keys.OrderBy(k => k).ToList();
+            if (sortedTicks.Count < 2) return sigs;
+
+            long maxLevelVol = 0;
+            foreach (var lv in bar.Levels.Values)
+            {
+                long v = lv.AskVol + lv.BidVol;
+                if (v > maxLevelVol) maxLevelVol = v;
+            }
+            double avgLevelVol = (double)bar.TotalVol / bar.Levels.Count;
+
+            // EXH-01 ZERO PRINT — gate exempt
+            if (CheckCooldown(ExhaustionType.ZeroPrint, barIndex, cfg.CooldownBars))
+            {
+                double bodyTop = Math.Max(bar.Open, bar.Close);
+                double bodyBot = Math.Min(bar.Open, bar.Close);
+                foreach (var tick in sortedTicks)
+                {
+                    var lv = bar.Levels[tick];
+                    if (lv.AskVol == 0 && lv.BidVol == 0 && tick > bodyBot && tick < bodyTop)
+                    {
+                        int dir = bar.Close > bar.Open ? +1 : -1;
+                        sigs.Add(new ExhaustionSignal
+                        {
+                            Kind = ExhaustionType.ZeroPrint,
+                            Direction = dir,
+                            Price = tick,
+                            Strength = 0.6,
+                            Detail = string.Format("ZERO PRINT @ {0:F2} — must revisit", tick),
+                        });
+                        SetCooldown(ExhaustionType.ZeroPrint, barIndex);
+                        break;
+                    }
+                }
+            }
+
+            // Delta gate — applies to variants 2-6
+            if (!DeltaGate(bar, cfg)) return sigs;
+
+            // EXH-02 EXHAUSTION PRINT — heavy volume at single bar extreme
+            if (CheckCooldown(ExhaustionType.ExhaustionPrint, barIndex, cfg.CooldownBars))
+            {
+                double effMin = cfg.ExhaustWickMin * (bar.BarRange > atr * 1.5 ? 1.2 : 1.0);
+                double eachLevelThreshold = effMin / 3.0;
+
+                double highTick = sortedTicks[sortedTicks.Count - 1];
+                var highLv = bar.Levels[highTick];
+                if (highLv.AskVol > 0)
+                {
+                    double pct = highLv.AskVol * 100.0 / bar.TotalVol;
+                    if (pct >= eachLevelThreshold)
+                    {
+                        double strength = Math.Min(pct / 20.0, 1.0);
+                        sigs.Add(new ExhaustionSignal
+                        {
+                            Kind = ExhaustionType.ExhaustionPrint,
+                            Direction = -1,
+                            Price = highTick,
+                            Strength = strength,
+                            Detail = string.Format("EXHAUSTION PRINT high — ask {0:F0}%", pct),
+                        });
+                        SetCooldown(ExhaustionType.ExhaustionPrint, barIndex);
+                    }
+                }
+
+                if (CheckCooldown(ExhaustionType.ExhaustionPrint, barIndex, cfg.CooldownBars))
+                {
+                    double lowTick = sortedTicks[0];
+                    var lowLv = bar.Levels[lowTick];
+                    if (lowLv.BidVol > 0)
+                    {
+                        double pct = lowLv.BidVol * 100.0 / bar.TotalVol;
+                        if (pct >= eachLevelThreshold)
+                        {
+                            double strength = Math.Min(pct / 20.0, 1.0);
+                            sigs.Add(new ExhaustionSignal
+                            {
+                                Kind = ExhaustionType.ExhaustionPrint,
+                                Direction = +1,
+                                Price = lowTick,
+                                Strength = strength,
+                                Detail = string.Format("EXHAUSTION PRINT low — bid {0:F0}%", pct),
+                            });
+                            SetCooldown(ExhaustionType.ExhaustionPrint, barIndex);
+                        }
+                    }
+                }
+            }
+
+            // EXH-03 THIN PRINT — fast move through body
+            if (CheckCooldown(ExhaustionType.ThinPrint, barIndex, cfg.CooldownBars))
+            {
+                double bodyTop = Math.Max(bar.Open, bar.Close);
+                double bodyBot = Math.Min(bar.Open, bar.Close);
+                int thinCount = 0;
+                foreach (var tick in sortedTicks)
+                {
+                    if (tick < bodyBot || tick > bodyTop) continue;
+                    var lv = bar.Levels[tick];
+                    long v = lv.AskVol + lv.BidVol;
+                    if (maxLevelVol > 0 && v < maxLevelVol * cfg.ThinPct) thinCount++;
+                }
+                if (thinCount >= 3)
+                {
+                    int dir = bar.Close > bar.Open ? +1 : -1;
+                    double strength = Math.Min(thinCount / 7.0, 1.0);
+                    sigs.Add(new ExhaustionSignal
+                    {
+                        Kind = ExhaustionType.ThinPrint,
+                        Direction = dir,
+                        Price = (bar.High + bar.Low) / 2.0,
+                        Strength = strength,
+                        Detail = string.Format("THIN PRINT — {0} skipped levels", thinCount),
+                    });
+                    SetCooldown(ExhaustionType.ThinPrint, barIndex);
+                }
+            }
+
+            // EXH-04 FAT PRINT — strong acceptance level (neutral)
+            if (CheckCooldown(ExhaustionType.FatPrint, barIndex, cfg.CooldownBars))
+            {
+                double fattestPx = 0;
+                long fattestVol = 0;
+                foreach (var kv in bar.Levels)
+                {
+                    long v = kv.Value.AskVol + kv.Value.BidVol;
+                    if (v > avgLevelVol * cfg.FatMult && v > fattestVol)
+                    {
+                        fattestPx = kv.Key;
+                        fattestVol = v;
+                    }
+                }
+                if (fattestVol > 0)
+                {
+                    double strength = Math.Min(fattestVol / (avgLevelVol * cfg.FatMult * 2.0), 1.0);
+                    sigs.Add(new ExhaustionSignal
+                    {
+                        Kind = ExhaustionType.FatPrint,
+                        Direction = 0,
+                        Price = fattestPx,
+                        Strength = strength,
+                        Detail = string.Format("FAT PRINT @ {0:F2} — acceptance", fattestPx),
+                    });
+                    SetCooldown(ExhaustionType.FatPrint, barIndex);
+                }
+            }
+
+            // EXH-05 FADING MOMENTUM — delta diverges from price direction
+            if (CheckCooldown(ExhaustionType.FadingMomentum, barIndex, cfg.CooldownBars))
+            {
+                if (bar.BarRange > 0 && Math.Abs((double)bar.BarDelta) > bar.TotalVol * 0.15)
+                {
+                    bool bullish = bar.Close > bar.Open;
+                    int dir = bullish ? -1 : +1;
+                    double strength = Math.Min(Math.Abs((double)bar.BarDelta) / bar.TotalVol, 1.0);
+                    sigs.Add(new ExhaustionSignal
+                    {
+                        Kind = ExhaustionType.FadingMomentum,
+                        Direction = dir,
+                        Price = bar.Close,
+                        Strength = strength,
+                        Detail = "FADING MOMENTUM — delta opposite to price",
+                    });
+                    SetCooldown(ExhaustionType.FadingMomentum, barIndex);
+                }
+            }
+
+            // EXH-06 BID/ASK FADE vs prior bar
+            if (priorBar != null && priorBar.Levels.Count > 0 &&
+                CheckCooldown(ExhaustionType.BidAskFade, barIndex, cfg.CooldownBars))
+            {
+                double currHighTick = sortedTicks[sortedTicks.Count - 1];
+                long currHighAsk = bar.Levels[currHighTick].AskVol;
+
+                var priorSorted = priorBar.Levels.Keys.OrderBy(k => k).ToList();
+                double priorHighTick = priorSorted[priorSorted.Count - 1];
+                long priorHighAsk = priorBar.Levels[priorHighTick].AskVol;
+
+                if (priorHighAsk > 0 && currHighAsk < priorHighAsk * cfg.FadeThreshold)
+                {
+                    double strength = 1.0 - (currHighAsk / (double)priorHighAsk);
+                    sigs.Add(new ExhaustionSignal
+                    {
+                        Kind = ExhaustionType.BidAskFade,
+                        Direction = -1,
+                        Price = currHighTick,
+                        Strength = strength,
+                        Detail = "BID/ASK FADE — ask intensity dropped at top",
+                    });
+                    SetCooldown(ExhaustionType.BidAskFade, barIndex);
+                }
+                else
+                {
+                    double currLowTick = sortedTicks[0];
+                    long currLowBid = bar.Levels[currLowTick].BidVol;
+                    double priorLowTick = priorSorted[0];
+                    long priorLowBid = priorBar.Levels[priorLowTick].BidVol;
+                    if (priorLowBid > 0 && currLowBid < priorLowBid * cfg.FadeThreshold)
+                    {
+                        double strength = 1.0 - (currLowBid / (double)priorLowBid);
+                        sigs.Add(new ExhaustionSignal
+                        {
+                            Kind = ExhaustionType.BidAskFade,
+                            Direction = +1,
+                            Price = currLowTick,
+                            Strength = strength,
+                            Detail = "BID/ASK FADE — bid intensity dropped at bottom",
+                        });
+                        SetCooldown(ExhaustionType.BidAskFade, barIndex);
+                    }
+                }
+            }
+
+            return sigs;
+        }
+    }
+
+    // ─── from MassiveGexClient.cs ───
+    public enum GexLevelKind
+    {
+        GammaFlip,
+        CallWall,
+        PutWall,
+        MajorPositive,
+        MajorNegative,
+    }
+
+    public sealed class GexLevel
+    {
+        public double Strike;
+        public double GexNotional;   // signed $ per 1% move
+        public GexLevelKind Kind;
+        public string Label;
+    }
+
+    public sealed class GexProfile
+    {
+        public string Underlying;
+        public double Spot;
+        public double GammaFlip;
+        public double CallWall;
+        public double PutWall;
+        public List<GexLevel> Levels = new List<GexLevel>();
+        public DateTime FetchedUtc;
+
+        public static GexProfile FromChain(string underlying, double spot, Dictionary<double, double> byStrike)
+        {
+            var profile = new GexProfile { Underlying = underlying, Spot = spot, FetchedUtc = DateTime.UtcNow };
+            var sorted = byStrike.OrderBy(kv => kv.Key).ToList();
+
+            // gamma flip = cumulative GEX zero-crossing (ascending strikes)
+            double cum = 0.0;
+            double flip = spot;
+            bool found = false;
+            foreach (var kv in sorted)
+            {
+                double prev = cum;
+                cum += kv.Value;
+                if (!found && ((prev <= 0 && cum > 0) || (prev >= 0 && cum < 0)))
+                {
+                    flip = kv.Key;
+                    found = true;
+                }
+            }
+            profile.GammaFlip = flip;
+
+            double callWallStrike = spot, callWallVal = double.NegativeInfinity;
+            double putWallStrike  = spot, putWallVal  = double.PositiveInfinity;
+            foreach (var kv in sorted)
+            {
+                if (kv.Value > callWallVal) { callWallVal = kv.Value; callWallStrike = kv.Key; }
+                if (kv.Value < putWallVal)  { putWallVal  = kv.Value; putWallStrike  = kv.Key; }
+            }
+            profile.CallWall = callWallStrike;
+            profile.PutWall  = putWallStrike;
+
+            // top 5 absolute GEX nodes as major positive / major negative
+            var nodes = sorted
+                .OrderByDescending(kv => Math.Abs(kv.Value))
+                .Take(8)
+                .ToList();
+            foreach (var kv in nodes)
+            {
+                GexLevelKind kind;
+                if (Math.Abs(kv.Key - flip) < 1e-6) kind = GexLevelKind.GammaFlip;
+                else if (Math.Abs(kv.Key - callWallStrike) < 1e-6) kind = GexLevelKind.CallWall;
+                else if (Math.Abs(kv.Key - putWallStrike) < 1e-6) kind = GexLevelKind.PutWall;
+                else if (kv.Value > 0) kind = GexLevelKind.MajorPositive;
+                else kind = GexLevelKind.MajorNegative;
+
+                profile.Levels.Add(new GexLevel
+                {
+                    Strike = kv.Key,
+                    GexNotional = kv.Value,
+                    Kind = kind,
+                    Label = string.Format("{0} {1:F0}", KindLabel(kind), kv.Key),
+                });
+            }
+            return profile;
+        }
+
+        private static string KindLabel(GexLevelKind k)
+        {
+            switch (k)
+            {
+                case GexLevelKind.GammaFlip: return "FLIP";
+                case GexLevelKind.CallWall:  return "CALL WALL";
+                case GexLevelKind.PutWall:   return "PUT WALL";
+                case GexLevelKind.MajorPositive: return "+GEX";
+                case GexLevelKind.MajorNegative: return "-GEX";
+                default: return "GEX";
+            }
+        }
+    }
+
+    public sealed class MassiveGexClient : IDisposable
+    {
+        private readonly HttpClient _http;
+        private readonly string _apiKey;
+        private readonly string _baseUrl;
+
+        public MassiveGexClient(string apiKey, string baseUrl = "https://api.massive.com")
+        {
+            _apiKey = apiKey ?? throw new ArgumentNullException("apiKey");
+            _baseUrl = baseUrl.TrimEnd('/');
+
+            ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
+            _http = new HttpClient
+            {
+                BaseAddress = new Uri(_baseUrl),
+                Timeout = TimeSpan.FromSeconds(8),
+            };
+            _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+            _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            _http.DefaultRequestHeaders.UserAgent.ParseAdd("DEEP6-NT8/1.0");
+        }
+
+        // Aggregates chain gamma × OI × 100 × spot² × 0.01 × sign(call=+1, put=-1) per strike.
+        // Returns null on failure (caller logs and keeps last good profile).
+        public async Task<GexProfile> FetchAsync(string underlying, CancellationToken ct = default(CancellationToken))
+        {
+            try
+            {
+                var byStrike = new Dictionary<double, double>();
+                double spot = 0;
+                string url = string.Format("/v3/snapshot/options/{0}?limit=250", underlying);
+                int safetyPages = 0;
+
+                while (!string.IsNullOrEmpty(url) && safetyPages < 20)
+                {
+                    safetyPages++;
+                    var req = new HttpRequestMessage(HttpMethod.Get, url);
+                    var resp = await _http.SendAsync(req, ct).ConfigureAwait(false);
+                    if (!resp.IsSuccessStatusCode) return null;
+                    var json = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                    var parsed = ParseChain(json);
+                    foreach (var c in parsed.results)
+                    {
+                        if (c.open_interest <= 0) continue;
+                        if (c.greeks == null) continue;
+                        if (c.details == null) continue;
+                        if (c.underlying_asset != null && c.underlying_asset.price > 0)
+                            spot = c.underlying_asset.price;
+                        double sign = string.Equals(c.details.contract_type, "call", StringComparison.OrdinalIgnoreCase) ? +1.0 : -1.0;
+                        double gamma = c.greeks.gamma;
+                        double gex = gamma * c.open_interest * 100.0 * spot * spot * 0.01 * sign;
+                        double strike = c.details.strike_price;
+                        double acc;
+                        byStrike.TryGetValue(strike, out acc);
+                        byStrike[strike] = acc + gex;
+                    }
+                    url = parsed.next_url;
+                    if (!string.IsNullOrEmpty(url) && url.StartsWith(_baseUrl)) url = url.Substring(_baseUrl.Length);
+                }
+
+                if (spot == 0 || byStrike.Count == 0) return null;
+                return GexProfile.FromChain(underlying, spot, byStrike);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static ChainResponse ParseChain(string json)
+        {
+            var ser = new DataContractJsonSerializer(typeof(ChainResponse));
+            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(json)))
+            {
+                return (ChainResponse)ser.ReadObject(ms);
+            }
+        }
+
+        public void Dispose() { _http.Dispose(); }
+
+        // --- DTOs (DataContract for .NET Framework 4.8 compatibility) ---
+
+        [DataContract]
+        private sealed class ChainResponse
+        {
+            [DataMember(Name = "status")]    public string status;
+            [DataMember(Name = "next_url")]  public string next_url;
+            [DataMember(Name = "results")]   public List<OptionContract> results = new List<OptionContract>();
+        }
+
+        [DataContract]
+        private sealed class OptionContract
+        {
+            [DataMember(Name = "open_interest")]    public int open_interest;
+            [DataMember(Name = "greeks")]           public Greeks greeks;
+            [DataMember(Name = "details")]          public Details details;
+            [DataMember(Name = "underlying_asset")] public UnderlyingAsset underlying_asset;
+        }
+
+        [DataContract]
+        private sealed class Greeks
+        {
+            [DataMember(Name = "delta")] public double delta;
+            [DataMember(Name = "gamma")] public double gamma;
+            [DataMember(Name = "theta")] public double theta;
+            [DataMember(Name = "vega")]  public double vega;
+        }
+
+        [DataContract]
+        private sealed class Details
+        {
+            [DataMember(Name = "ticker")]          public string ticker;
+            [DataMember(Name = "contract_type")]   public string contract_type;
+            [DataMember(Name = "strike_price")]    public double strike_price;
+            [DataMember(Name = "expiration_date")] public string expiration_date;
+        }
+
+        [DataContract]
+        private sealed class UnderlyingAsset
+        {
+            [DataMember(Name = "ticker")] public string ticker;
+            [DataMember(Name = "price")]  public double price;
+        }
+    }
+}
 
 namespace NinjaTrader.NinjaScript.Indicators.DEEP6
 {

@@ -17,9 +17,9 @@ All thresholds and algorithms match the DEEP6 Python engine; see `docs/SIGNALS.m
 
 ## Installation
 
-See `docs/SETUP.md` for the full walkthrough. Short version — the `Custom/` folder in this repo **mirrors NT8's layout exactly**, so you can merge it in place:
+See `docs/SETUP.md` for the full walkthrough. Short version — **everything is in one file**:
 
-1. Copy the contents of `ninjatrader/Custom/` into `%USERPROFILE%\Documents\NinjaTrader 8\bin\Custom\` (merge, don't replace). This drops `Indicators\DEEP6\DEEP6Footprint.cs` and `AddOns\DEEP6\*.cs` into the right subfolders.
+1. Copy `ninjatrader/Custom/Indicators/DEEP6/DEEP6Footprint.cs` to `%USERPROFILE%\Documents\NinjaTrader 8\bin\Custom\Indicators\DEEP6\DEEP6Footprint.cs` (create the `DEEP6` subfolder if it doesn't exist).
 2. In NT8: right-click the Indicators panel → Reload NinjaScript (or press F5 in the NinjaScript editor).
 3. Add `DEEP6 Footprint` to a chart via Indicators → DEEP6 → DEEP6 Footprint.
 
@@ -31,18 +31,18 @@ Requires NinjaTrader 8.1.x, a Rithmic-connected feed with L2 depth enabled, and 
 ninjatrader/
 ├── README.md                      (you are here)
 ├── Custom/                        mirrors %USERPROFILE%\Documents\NinjaTrader 8\bin\Custom\
-│   ├── Indicators/DEEP6/
-│   │   └── DEEP6Footprint.cs      Main indicator — lifecycle, L2 intake, OnRender, GEX overlay
-│   └── AddOns/DEEP6/
-│       ├── FootprintBar.cs        Cell / FootprintBar / POC / VAH-VAL computation
-│       ├── AbsorptionDetector.cs  4-variant absorption port
-│       ├── ExhaustionDetector.cs  6-variant exhaustion port + cooldown state
-│       └── MassiveGexClient.cs    massive.com /v3/snapshot/options client, GEX aggregation
+│   └── Indicators/DEEP6/
+│       └── DEEP6Footprint.cs      Single-file build — indicator + all AddOn types + GEX client
 └── docs/
     ├── SETUP.md                   Install, import, first-run checklist
     ├── SIGNALS.md                 Signal reference — visuals, thresholds, Python ↔ C# audit
     └── ARCHITECTURE.md            Data flow, threading model, rendering pipeline
 ```
+
+The single file contains three logical sections, organized by namespace:
+- `NinjaTrader.NinjaScript.AddOns.DEEP6` — Cell, FootprintBar, AbsorptionDetector + config + signal, ExhaustionDetector + config + signal, MassiveGexClient + GexProfile + GexLevel
+- `NinjaTrader.NinjaScript.Indicators.DEEP6` — the DEEP6Footprint indicator class itself
+- `#region NinjaScript generated code` — NT8 factory partials (Indicator, MarketAnalyzerColumn, Strategy)
 
 ## Relationship to the Python DEEP6 system
 
