@@ -78,6 +78,16 @@ class Position:
             * contracts
         )
 
+    def current_R(self, current_price: float) -> float:
+        """Realized R-multiple at ``current_price`` (phase 15-04 MANAGING hook).
+
+        R_distance is |entry - initial_stop|. Returns 0.0 when r_distance is
+        zero (pre-init). Positive when price has moved in favor of position.
+        """
+        if self.r_distance <= 0.0:
+            return 0.0
+        return (current_price - self.entry_price) * self.direction / self.r_distance
+
 
 @dataclass
 class PositionEvent:
@@ -420,6 +430,21 @@ class PositionManager:
     ) -> PositionEvent | None:
         """Manually close a position. Emits MANUAL_EXIT event."""
         return self._close(position_id, exit_price, PositionEventType.MANUAL_EXIT, reason)
+
+    def current_mfe_R(self, pos: Position) -> float:
+        """Return the realized MFE in R-units for ``pos`` (phase 15-04 MANAGING).
+
+        Uses the position's last known ``unrealized_pnl`` divided by the
+        per-R dollar risk. Callers (TradeDecisionMachine) max this with a
+        running tracker to get true MFE, since update_pnl() is called each bar.
+        """
+        if pos.r_distance <= 0.0:
+            return 0.0
+        contracts = pos.remaining_contracts or pos.contracts or 1
+        dollar_risk_per_R = pos.r_distance * NQ_DOLLARS_PER_POINT * contracts
+        if dollar_risk_per_R <= 0.0:
+            return 0.0
+        return pos.unrealized_pnl / dollar_risk_per_R
 
     def _close(
         self,
