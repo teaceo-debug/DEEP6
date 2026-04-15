@@ -1,8 +1,10 @@
-# Roadmap: DEEP6 v2.0 — Python Edition
+# Roadmap: DEEP6 v2.0 — NinjaScript Edition (Python reference-only)
+
+> **2026-04-15 pivot — NT8 primary.** Apex refused to enable Rithmic API/plugin mode, shelving the async-rithmic live-runtime track. Phases 1–15 are retained as the **validated Python reference implementation** and source-of-truth for porting signals into NinjaScript. They are NOT the live runtime. Live implementation begins at Phase 16 (NT8 indicator, built) and continues through Phase 19 (paper-trade gate).
 
 ## Overview
 
-DEEP6 v2.0 is built from the data pipeline outward. The foundation is a correct, validated footprint engine driven by Rithmic's native aggressor field — nothing downstream is trustworthy until bid/ask volumes per price level per bar are confirmed accurate. From that foundation, the 44-signal cascade assembles in dependency order: absorption and exhaustion first (highest alpha), then the imbalance/delta/auction family, then DOM depth signals, then volume profile and GEX context with zone lifecycle. The Kronos E10 bias engine and TradingView MCP are built in parallel with the signal cascade since they only need OHLCV. Scoring and backtesting come next to calibrate the system, then execution with mandatory paper trading, then ML optimization, and finally the analytics dashboard once all data flows are stable.
+DEEP6 v2.0 is built in two tracks. Track A (Phases 1–15) is the validated Python signal engine — reference-only after the 2026-04-15 Apex pivot. Track B (Phases 16–19) is the live NT8 NinjaScript implementation: a footprint indicator with absorption/exhaustion + GEX overlay (Phase 16, built), full signal port and detector refactor (Phase 17), scoring + backtest parity validation (Phase 18), and a 30-day Apex/Lucid paper-trade gate (Phase 19). The absorption/exhaustion thesis, 44-signal taxonomy, LVN lifecycle, and scoring architecture are unchanged — only the runtime and language change.
 
 ## Phases
 
@@ -12,20 +14,31 @@ DEEP6 v2.0 is built from the data pipeline outward. The foundation is a correct,
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Data Pipeline + Architecture Foundation** - async-rithmic connection, FootprintBar accumulator, DOMState pre-allocation, aggressor field verification, session persistence, Python package structure
-- [ ] **Phase 2: Absorption + Exhaustion Core** - All 4 absorption variants and 6 exhaustion variants with narrative cascade — the highest-alpha signals in the system
-- [ ] **Phase 3: Footprint Signal Engines (E1, E8, E9)** - Imbalance (9 types), Delta (11 types), Auction Theory (5 types) implemented via E1 FootprintEngine, E8 CVDEngine, E9 AuctionFSM
-- [ ] **Phase 4: DOM Depth Signal Engines (E2, E3, E4, E5)** - Trapped traders, volume patterns, DOM queue imbalance, spoofing detection, iceberg detection, Naive Bayes micro probability
-- [ ] **Phase 5: Volume Profile + GEX Context + Zone Registry (E6, E7)** - POC/value area signals, LVN/HVN zone lifecycle FSM, GEX integration, ZoneRegistry, ML quality engine scaffold
-- [ ] **Phase 6: Kronos E10 + TradingView MCP** - Kronos-small subprocess with GPU inference, multiprocessing.Pipe bridge, confidence decay; TV MCP configuration and chart interaction
-- [ ] **Phase 7: Scoring + Backtesting Framework** - Two-layer confluence scorer, zone bonuses, TypeA/B/C classification, Databento MBO replay, vectorbt parameter sweeps, walk-forward validation
-- [ ] **Phase 8: Auto-Execution + Risk Layer** - Direct Rithmic order submission, bracket orders, circuit breakers, reconnection freeze, 30-day paper trading gate
-- [ ] **Phase 9: ML Backend** - FastAPI signal/trade event ingestion, XGBoost weight optimization, Optuna threshold tuning, HMM regime detection, walk-forward with purged splits
-- [x] **Phase 10: Analytics Dashboard** - Next.js 15 dashboard with WebSocket real-time updates, signal performance view, regime viz, parameter evolution, footprint chart rendering, session replay (completed 2026-04-14)
+- [ ] **[REFERENCE-ONLY — signal logic source for NT8 port, not live runtime] Phase 1: Data Pipeline + Architecture Foundation** - async-rithmic connection, FootprintBar accumulator, DOMState pre-allocation, aggressor field verification, session persistence, Python package structure
+- [ ] **[REFERENCE-ONLY — signal logic source for NT8 port, not live runtime] Phase 2: Absorption + Exhaustion Core** - All 4 absorption variants and 6 exhaustion variants with narrative cascade — the highest-alpha signals in the system
+- [ ] **[REFERENCE-ONLY — signal logic source for NT8 port, not live runtime] Phase 3: Footprint Signal Engines (E1, E8, E9)** - Imbalance (9 types), Delta (11 types), Auction Theory (5 types) implemented via E1 FootprintEngine, E8 CVDEngine, E9 AuctionFSM
+- [ ] **[REFERENCE-ONLY — signal logic source for NT8 port, not live runtime] Phase 4: DOM Depth Signal Engines (E2, E3, E4, E5)** - Trapped traders, volume patterns, DOM queue imbalance, spoofing detection, iceberg detection, Naive Bayes micro probability
+- [ ] **[REFERENCE-ONLY — signal logic source for NT8 port, not live runtime] Phase 5: Volume Profile + GEX Context + Zone Registry (E6, E7)** - POC/value area signals, LVN/HVN zone lifecycle FSM, GEX integration, ZoneRegistry, ML quality engine scaffold
+- [ ] **[REFERENCE-ONLY — signal logic source for NT8 port, not live runtime] Phase 6: Kronos E10 + TradingView MCP** - Kronos-small subprocess with GPU inference, multiprocessing.Pipe bridge, confidence decay; TV MCP configuration and chart interaction
+- [ ] **[REFERENCE-ONLY — signal logic source for NT8 port, not live runtime] Phase 7: Scoring + Backtesting Framework** - Two-layer confluence scorer, zone bonuses, TypeA/B/C classification, Databento MBO replay, vectorbt parameter sweeps, walk-forward validation
+- [ ] **[REFERENCE-ONLY — signal logic source for NT8 port, not live runtime] Phase 8: Auto-Execution + Risk Layer** - Direct Rithmic order submission, bracket orders, circuit breakers, reconnection freeze, 30-day paper trading gate
+- [ ] **[REFERENCE-ONLY — signal logic source for NT8 port, not live runtime] Phase 9: ML Backend** - FastAPI signal/trade event ingestion, XGBoost weight optimization, Optuna threshold tuning, HMM regime detection, walk-forward with purged splits
+- [x] **[REFERENCE-ONLY — signal logic source for NT8 port, not live runtime] Phase 10: Analytics Dashboard** - Next.js 15 dashboard with WebSocket real-time updates, signal performance view, regime viz, parameter evolution, footprint chart rendering, session replay (completed 2026-04-14)
+- [x] **[REFERENCE-ONLY — signal logic source for NT8 port, not live runtime] Phase 11: DEEP6 Trading Web App** - Full-stack trading platform with Lightweight Charts v5.1 custom footprint, signal alerts, session replay (completed 2026-04-14)
+- [x] **[REFERENCE-ONLY — signal logic source for NT8 port, not live runtime] Phase 11.1: Phase 11 layout and visual polish (INSERTED)**
+- [x] **[REFERENCE-ONLY — signal logic source for NT8 port, not live runtime] Phase 11.2: UI redesign — Terminal Noir visual rebuild (INSERTED)**
+- [x] **[REFERENCE-ONLY — signal logic source for NT8 port, not live runtime] Phase 12: Integrate borrowed orderflow patterns** - VPIN, Delta Slingshot, Delta At Extreme, setup state machine, per-regime walk-forward tracker (completed 2026-04-14)
+- [ ] **[REFERENCE-ONLY — signal logic source for NT8 port, not live runtime] Phase 13: Backtest Engine Core** - Clock + MBO Adapter + DuckDB Store
+- [ ] **[REFERENCE-ONLY — signal logic source for NT8 port, not live runtime] Phase 14: Databento Live Feed**
+- [x] **[REFERENCE-ONLY — signal logic source for NT8 port, not live runtime] Phase 15: LevelBus + Confluence Rules + Trade Decision FSM** - Unified Level primitive, ConfluenceRules, TradeDecisionMachine 7-state FSM (completed 2026-04-14)
+- [ ] **Phase 16: NinjaTrader 8 Footprint Indicator** - NT8 NinjaScript C# footprint indicator, native Rithmic L2, absorption/exhaustion, massive.com GEX overlay (built)
+- [ ] **Phase 17: NT8 Detector Refactor + Remaining Signals Port** - ISignalDetector registry; IMB/DELT/AUCT/TRAP/VOLP/ENG signals ported from Python reference; live NT8 parity
+- [ ] **Phase 18: NT8 Scoring + Backtest Validation** - Two-layer confluence scorer in NinjaScript; replay harness; C#↔Python parity on ≥5 recorded sessions
+- [ ] **Phase 19: Apex/Lucid Paper-Trade Gate** - 30-day paper run on APEX-262674 and LT-45N3KIV8; risk-gate validation; go/no-go decision
 
 ## Phase Details
 
-### Phase 1: Data Pipeline + Architecture Foundation
+### Phase 1: Data Pipeline + Architecture Foundation [REFERENCE-ONLY — signal logic source for NT8 port, not live runtime]
 **Goal**: A running Python process connects to Rithmic, receives real-time L2 DOM and tick data, accumulates correct FootprintBars at bar close, persists session state to disk, and handles reconnection safely — with the aggressor field verified before any signal code is written.
 **Depends on**: Nothing (first phase)
 **Requirements**: DATA-01, DATA-02, DATA-03, DATA-04, DATA-05, DATA-06, DATA-07, DATA-08, DATA-09, DATA-10, ARCH-01, ARCH-02, ARCH-03, ARCH-04, ARCH-05
@@ -43,7 +56,7 @@ Plans:
 - [x] 01-03-PLAN.md — SQLite session persistence, FreezeGuard reconnection state, GC control, SharedState
 - [x] 01-04-PLAN.md — Main entrypoint wiring, footprint validation script, loop lag measurement, human verification checkpoint
 
-### Phase 2: Absorption + Exhaustion Core
+### Phase 2: Absorption + Exhaustion Core [REFERENCE-ONLY — signal logic source for NT8 port, not live runtime]
 **Goal**: All 4 absorption variants and all 6 exhaustion variants fire correctly from live FootprintBar data with proper narrative prioritization — the system can identify the highest-conviction reversal signals.
 **Depends on**: Phase 1
 **Requirements**: ABS-01, ABS-02, ABS-03, ABS-04, ABS-05, ABS-06, ABS-07, EXH-01, EXH-02, EXH-03, EXH-04, EXH-05, EXH-06, EXH-07, EXH-08
@@ -60,7 +73,7 @@ Plans:
 - [x] 02-02-PLAN.md — VA extremes conviction bonus (ABS-07), absorption confirmation logic (ABS-06)
 - [x] 02-03-PLAN.md — Comprehensive test suite for all absorption/exhaustion variants, gate, cooldown, cascade, confirmation
 
-### Phase 3: Footprint Signal Engines (E1, E8, E9)
+### Phase 3: Footprint Signal Engines (E1, E8, E9) [REFERENCE-ONLY — signal logic source for NT8 port, not live runtime]
 **Goal**: All 25 imbalance, delta, and auction theory signals are implemented in E1 FootprintEngine, E8 CVDEngine, and E9 AuctionFSM — every signal fires on the correct bar condition with the right tier/sub-type classification.
 **Depends on**: Phase 2
 **Requirements**: IMB-01, IMB-02, IMB-03, IMB-04, IMB-05, IMB-06, IMB-07, IMB-08, IMB-09, DELT-01, DELT-02, DELT-03, DELT-04, DELT-05, DELT-06, DELT-07, DELT-08, DELT-09, DELT-10, DELT-11, AUCT-01, AUCT-02, AUCT-03, AUCT-04, AUCT-05, ENG-01, ENG-08, ENG-09
@@ -78,7 +91,7 @@ Plans:
 - [x] 03-03-PLAN.md — Comprehensive test suite for all imbalance, delta, and auction variants
 - [x] 03-04-PLAN.md — Pairwise Pearson correlation matrix script for all signals
 
-### Phase 4: DOM Depth Signal Engines (E2, E3, E4, E5)
+### Phase 4: DOM Depth Signal Engines (E2, E3, E4, E5) [REFERENCE-ONLY — signal logic source for NT8 port, not live runtime]
 **Goal**: Trapped trader signals, volume pattern signals, DOM queue imbalance, spoofing detection, iceberg detection, and Naive Bayes micro probability are all operational — providing the second tier of signal confirmation from order book depth and flow analysis.
 **Depends on**: Phase 3
 **Requirements**: TRAP-01, TRAP-02, TRAP-03, TRAP-04, TRAP-05, VOLP-01, VOLP-02, VOLP-03, VOLP-04, VOLP-05, VOLP-06, ENG-02, ENG-03, ENG-04, ENG-05
@@ -96,14 +109,14 @@ Plans:
 - [x] 04-03-PLAN.md — E4 IcebergEngine (ENG-04) + E5 MicroEngine (ENG-05)
 - [x] 04-04-PLAN.md — Comprehensive test suite for all Phase 4 engines
 
-### Phase 5: Volume Profile + GEX Context + Zone Registry (E6, E7)
+### Phase 5: Volume Profile + GEX Context + Zone Registry (E6, E7) [REFERENCE-ONLY — signal logic source for NT8 port, not live runtime]
 **Goal**: Session volume profile with LVN/HVN detection, the 5-state zone lifecycle FSM, GEX integration, centralized ZoneRegistry, and the E6/E7 engine scaffold are all operational — providing the macro context layer that all high-conviction signals require.
 **Depends on**: Phase 4
 **Requirements**: POC-01, POC-02, POC-03, POC-04, POC-05, POC-06, POC-07, POC-08, VPRO-01, VPRO-02, VPRO-03, VPRO-04, VPRO-05, VPRO-06, VPRO-07, VPRO-08, GEX-01, GEX-02, GEX-03, GEX-04, GEX-05, GEX-06, ZONE-01, ZONE-02, ZONE-03, ZONE-04, ZONE-05, ENG-06, ENG-07
 **Success Criteria** (what must be TRUE):
   1. Session volume profile bins correctly at tick resolution — LVN zones (< 30% of session average) and HVN zones (> 170%) are detected and match manual review of Bookmap reference
   2. Each LVN zone transitions through the 5-state FSM (Created → Defended → Broken → Flipped → Invalidated) when the correct price action triggers the transition, with multi-session persistence and decay weighting
-  3. GEX data ingests from FlashAlpha API every 60 seconds — call wall, put wall, gamma flip, and HVL are available as priced levels; stale flag activates when data age exceeds threshold
+  3. GEX data ingests from massive.com API every 60 seconds — call wall, put wall, gamma flip, and HVL are available as priced levels; stale flag activates when data age exceeds threshold
   4. ZoneRegistry consolidates absorption, exhaustion, LVN, HVN, and GEX zones — overlapping same-direction zones merge with combined score; confluence between zone types produces the highest conviction flag
   5. E7 MLQualityEngine returns 1.0 (neutral) when model not yet trained — system functions correctly before ML pipeline is built in Phase 9
 **Plans**: 3 plans (Wave 1: plan-01; Wave 2: plan-02; Wave 3: plan-03)
@@ -114,7 +127,9 @@ Plans:
 - [x] 05-02-PLAN.md — ZoneRegistry (ZONE-01..05), E6VPContextEngine + E7MLQualityEngine stub (ENG-06, ENG-07)
 - [ ] 05-03-PLAN.md — Comprehensive test suite for all POC/VP/GEX/Zone/E6/E7 components
 
-### Phase 6: Kronos E10 + TradingView MCP
+### Phase 6: Kronos E10 + TradingView MCP [REFERENCE-ONLY — signal logic source for NT8 port, not live runtime]
+> Kronos E10 is deferred post-v1 in the NT8 track. Not on the live path.
+
 **Goal**: Kronos-small runs in a dedicated subprocess with persistent GPU model load providing directional bias every 5 bars with confidence decay; TradingView MCP is configured so Claude can read chart state, inject Pine Script, and capture screenshots for visual confirmation.
 **Depends on**: Phase 1
 **Requirements**: KRON-01, KRON-02, KRON-03, KRON-04, KRON-05, KRON-06, TVMCP-01, TVMCP-02, TVMCP-03, TVMCP-04, TVMCP-05, TVMCP-06, ENG-10
@@ -130,7 +145,7 @@ Plans:
 - [x] 06-01-PLAN.md — KronosConfig + subprocess worker + KronosSubprocessBridge + benchmark script
 - [ ] 06-02-PLAN.md — TradingView MCP config, launch script, human verification checkpoint
 
-### Phase 7: Scoring + Backtesting Framework
+### Phase 7: Scoring + Backtesting Framework [REFERENCE-ONLY — signal logic source for NT8 port, not live runtime]
 **Goal**: The two-layer confluence scorer synthesizes all 44 signal flags into a typed ScorerResult; the Databento MBO replay engine generates ground-truth labeled bars; vectorbt runs parameter sweeps; walk-forward validation gates any weight changes.
 **Depends on**: Phase 5, Phase 6
 **Requirements**: SCOR-01, SCOR-02, SCOR-03, SCOR-04, SCOR-05, SCOR-06, TEST-01, TEST-02, TEST-03, TEST-04, TEST-05, TEST-06, TEST-07
@@ -147,7 +162,7 @@ Plans:
 - [x] 07-02-PLAN.md — vectorbt/optuna install + Optuna sweep framework (TEST-04, TEST-06)
 - [x] 07-03-PLAN.md — Walk-forward validation, WFE gate, best_params.json, human checkpoint (TEST-05, TEST-07)
 
-### Phase 8: Auto-Execution + Risk Layer
+### Phase 8: Auto-Execution + Risk Layer [REFERENCE-ONLY — signal logic source for NT8 port, not live runtime]
 **Goal**: Direct Rithmic order submission fires from TypeA/B confluence signals with server-side bracket orders, full circuit-breaker risk management, reconnection freeze on disconnect, and a mandatory 30-day paper trading validation period before live capital.
 **Depends on**: Phase 7
 **Requirements**: EXEC-01, EXEC-02, EXEC-03, EXEC-04, EXEC-05, EXEC-06, EXEC-07, EXEC-08
@@ -165,7 +180,7 @@ Plans:
 - [ ] 08-03-PLAN.md — RiskManager (circuit breakers, GEX regime gate)
 - [x] 08-04-PLAN.md — PaperTrader (slippage model, 30-day gate, full pipeline)
 
-### Phase 9: ML Backend
+### Phase 9: ML Backend [REFERENCE-ONLY — signal logic source for NT8 port, not live runtime]
 **Goal**: FastAPI receives all signal and trade events in the same asyncio event loop; XGBoost trains on signal history to produce optimized per-signal weights; Optuna sweeps all 44 thresholds; HMM detects market regime; no weight file deploys without human approval.
 **Depends on**: Phase 7, Phase 8
 **Requirements**: ML-01, ML-02, ML-03, ML-04, ML-05, ML-06, ML-07, ML-08
@@ -183,7 +198,7 @@ Plans:
 - [x] 09-03-PLAN.md — Optuna sweep endpoint + full weight deploy gate (WFE + OOS count + token)
 - [x] 09-04-PLAN.md — PerformanceTracker + E7 wiring + test suite
 
-### Phase 10: Analytics Dashboard
+### Phase 10: Analytics Dashboard [REFERENCE-ONLY — signal logic source for NT8 port, not live runtime]
 **Goal**: Next.js 15 dashboard provides real-time signal monitoring, signal performance analytics, regime visualization, ML parameter evolution, zone analysis, footprint chart rendering, and full session replay — all backed by WebSocket from FastAPI.
 **Depends on**: Phase 9
 **Requirements**: DASH-01, DASH-02, DASH-03, DASH-04, DASH-05, DASH-06, DASH-07
@@ -203,7 +218,7 @@ Plans:
 - [x] 10-05-PLAN.md — BACKTEST tab: config form + equity curve + trade table + Optuna sweep subtab
 **UI hint**: yes
 
-### Phase 11: DEEP6 Trading Web App
+### Phase 11: DEEP6 Trading Web App [REFERENCE-ONLY — signal logic source for NT8 port, not live runtime]
 **Goal**: Full-stack trading platform replacing TradingView dependency — Next.js 15 frontend with Lightweight Charts v5.1 custom footprint rendering, one-click trade execution panel connected to Rithmic via FastAPI WebSocket, real-time signal alerts with full context, mobile push notifications for TYPE_A signals, and complete session replay with bar-by-bar stepping.
 **Depends on**: Phase 10
 **Requirements**: APP-01, APP-02, APP-03, APP-04, APP-05, APP-06, APP-07, APP-08
@@ -245,7 +260,7 @@ Note: Phase 6 (Kronos + TVMCP) can begin after Phase 1 completes, running in par
 | 10. Analytics Dashboard | 5/5 | Complete    | 2026-04-14 |
 | 11. DEEP6 Trading Web App | 4/4 | Complete   | 2026-04-14 |
 
-### Phase 11.1: Phase 11 layout and visual polish (INSERTED)
+### Phase 11.1: Phase 11 layout and visual polish (INSERTED) [REFERENCE-ONLY — signal logic source for NT8 port, not live runtime]
 
 **Goal:** Fix four CSS/layout/DPR bugs found during Phase 11 smoke review — ScoreWidget column collapse, SignalFeed overlay, HeaderStrip font size, and FootprintRenderer Retina text — bringing the dashboard into compliance with UI-SPEC at standard desktop widths.
 **Requirements**: APP-01, APP-03, APP-04
@@ -255,7 +270,7 @@ Note: Phase 6 (Kronos + TVMCP) can begin after Phase 1 completes, running in par
 Plans:
 - [ ] 11.1-01-PLAN.md — Layout shell fix (D-01, D-02), header strip typography (D-03), FootprintRenderer DPR audit (D-04), build gate (D-05)
 
-### Phase 11.2: UI redesign — Terminal Noir visual rebuild (INSERTED)
+### Phase 11.2: UI redesign — Terminal Noir visual rebuild (INSERTED) [REFERENCE-ONLY — signal logic source for NT8 port, not live runtime]
 
 **Goal:** Replace the v1 visual layer with a distinctive, dense, Bloomberg-meets-cyberpunk design — JetBrains Mono only, pure-black canvas, signature Confluence Pulse hero, six-color saturated neon palette, atmospheric texture. Functional wiring (WebSocket, Zustand, replay, backend) untouched.
 **Requirements**: APP-01, APP-03, APP-04, APP-06 (lite), APP-08
@@ -269,7 +284,7 @@ Plans:
 - [x] 11.2-03-PLAN.md — FootprintRenderer rewrite (volume bars + bloom on imbalance + stacked-run line + POC glow + signal markers), ZoneOverlay recolor
 - [x] 11.2-04-PLAN.md — SignalFeedRow + TapeScroll rewrite, ReplayControls/SessionSelector/ReturnToLivePill restyle, ErrorBanner copy, operator visual acceptance checkpoint
 
-### Phase 12: Integrate borrowed orderflow patterns: VPIN confidence modifier, Delta Slingshot, Delta At Extreme, setup state machine, per-regime walk-forward tracker
+### Phase 12: Integrate borrowed orderflow patterns: VPIN confidence modifier, Delta Slingshot, Delta At Extreme, setup state machine, per-regime walk-forward tracker [REFERENCE-ONLY — signal logic source for NT8 port, not live runtime]
 
 **Goal:** Integrate five vetted orderflow patterns from the kronos-tv-autotrader reference implementation into DEEP6's existing 44-signal engine, LightGBM meta-learner, and HMM regime detector — (1) VPIN as a continuous 0.2x-1.2x confidence modifier on fused LightGBM score, (2) running intrabar max/min delta on FootprintBar that fixes the existing DELT_TAIL (bit 22) to use real extremes, (3) new TRAP_SHOT signal at bit 44 (2/3/4-bar trapped-trader reversal, session-bounded, GEX-wall bypass), (4) dual-timeframe (1m + 5m) setup state machine with soak-bonus + explicit-close transition rule, and (5) per-category × per-regime walk-forward tracker with auto-disable/recovery feeding back into LightGBM fusion.
 **Requirements**: OFP-01, OFP-02, OFP-03, OFP-04, OFP-05, OFP-06, OFP-07, OFP-08
@@ -291,7 +306,7 @@ Plans:
 
 **Status:** Phase 12 COMPLETE (2026-04-14) — all 5 plans shipped, 628 tests pass.
 
-### Phase 13: Backtest Engine Core — Clock + MBO Adapter + DuckDB Store
+### Phase 13: Backtest Engine Core — Clock + MBO Adapter + DuckDB Store [REFERENCE-ONLY — signal logic source for NT8 port, not live runtime]
 
 **Goal:** Unify live and backtest code paths by injecting a `Clock` abstraction into `SharedState` and feeding Databento MBO events through the same `on_tick`/`on_dom` callback surfaces the live Rithmic feed uses. Capture per-bar artifacts (OHLC, 44-bit SignalFlags, ScorerResult, DOMSnapshot, simulated fill) into a DuckDB result store for post-run analysis. Integration + plumbing — the existing `deep6/data/databento_feed.py` (trades-only) is deprecated in favor of `deep6/backtest/mbo_adapter.py`.
 **Requirements**: TBD
@@ -301,7 +316,7 @@ Plans:
 Plans:
 - [ ] 13-01-PLAN.md — Clock protocol + WallClock/EventClock, MBOAdapter + FeedAdapter protocol (bmoscon/orderbook backed), DuckDB result_store, ReplaySession orchestrator, clock injection refactor
 
-### Phase 14: Databento Live Feed
+### Phase 14: Databento Live Feed [REFERENCE-ONLY — signal logic source for NT8 port, not live runtime]
 
 **Goal:** Build a live Databento MBO feed adapter that replaces Rithmic market data in the live pipeline — same MBO schema used in backtest, eliminating data drift. Rithmic continues to handle order execution only. New `deep6/data/databento_live.py` feeds the same `DOMState` and `FootprintBar` pipeline; data source selected via `DEEP6_DATA_SOURCE` env var (`"databento"` default | `"rithmic"`).
 **Requirements**: TBD
@@ -311,7 +326,7 @@ Plans:
 Plans:
 - [ ] TBD (run /gsd-plan-phase 14 to break down)
 
-### Phase 15: LevelBus + Confluence Rules + Trade Decision FSM
+### Phase 15: LevelBus + Confluence Rules + Trade Decision FSM [REFERENCE-ONLY — signal logic source for NT8 port, not live runtime]
 
 **Goal:** Unify tape-derived zones (LVN/HVN/VPOC/VAH/VAL/ABSORB/EXHAUST/MOMENTUM/REJECTION/FLIPPED) and GEX levels (call_wall, put_wall, gamma_flip, zero_gamma, hvl, largest_gamma) into a single `LevelBus` with normalized `Level` dataclass. Persist narrative signals (absorption/exhaustion/momentum/rejection) as lifecycle-tracked zones with VA-proximity boost and confirmation-boost scoring (BOOKMAP Pine methodology). Implement `ConfluenceRules` module encoding ~47 cross-stream rules from research (8 VP/GEX confluence, 12 vendor/academic, 12 microstructure, 15 auction-theory trade plans). Build `TradeDecisionMachine` 7-state FSM (IDLE→WATCHING→ARMED→TRIGGERED→IN_POSITION→MANAGING→EXITING) with 17 entry triggers + stop/target/invalidation/sizing policies replacing the current bar-close-only execution path. Research basis: `.planning/research/pine/*.md` + `.planning/research/pine/deep/*.md` (~12,500 words, 47 rules, 35 papers).
 **Requirements**: TBD
@@ -330,3 +345,39 @@ Plans:
 
 Plans:
 - [ ] TBD (run /gsd-plan-phase 16 to break down)
+
+### Phase 17: NT8 Detector Refactor + Remaining Signals Port
+**Goal**: DEEP6Footprint.cs monolith split into per-family detector files with an ISignalDetector registry; all 34 remaining signals (IMB-01..09, DELT-01..11, AUCT-01..05, TRAP-01..05, VOLP-01..06, ENG-02..07) ported from the Python reference engine into NinjaScript and firing correctly against the live NT8 Rithmic feed on NQ. Excludes Kronos E10 (deferred post-v1).
+**Depends on**: Phase 16
+**Requirements**: IMB-01..09, DELT-01..11, AUCT-01..05, TRAP-01..05, VOLP-01..06, ENG-02..07
+**Success Criteria** (what must be TRUE):
+  1. DEEP6Footprint.cs split into modular files per detector family under `ninjatrader/Custom/Indicators/DEEP6/` and `ninjatrader/Custom/AddOns/DEEP6/`; no single file exceeds 2000 LOC.
+  2. `ISignalDetector` interface + detector registry implemented; `EvaluateEntry` iterates the registry — no hardcoded ABS+EXH routing.
+  3. All 34 ported signals fire on a live NT8 Rithmic feed bar-for-bar matching the Python reference engine on a recorded session replay, within configured tolerance.
+  4. Per-family unit test fixtures committed under `ninjatrader/tests/`.
+  5. No regression in the existing 10 signals from Phase 16 (ABS-01..04, ABS-07, EXH-01..06) or the massive.com GEX overlay behavior.
+**Plans** (outline for later /gsd-plan-phase 17): refactor + ISignalDetector interface; IMB detectors; DELT detectors; AUCT + TRAP + VOLP detectors; ENG-02..07 detectors; parity validation harness.
+
+### Phase 18: NT8 Scoring + Backtest Validation
+**Goal**: Two-layer confluence scorer ported from Python into NinjaScript with matching weights and thresholds; chart-side per-bar scoring display; manual replay harness validates signal parity and scoring output against the Python reference on ≥5 recorded NQ sessions.
+**Depends on**: Phase 17
+**Requirements**: (NT8 ports of) scoring/confluence requirements from the Python reference engine
+**Success Criteria** (what must be TRUE):
+  1. Two-layer confluence scorer (engine agreement + category agreement) implemented in NinjaScript with weights and thresholds matching the Python reference engine.
+  2. Zone bonus + narrative cascade wired; signal narrative rendered on chart.
+  3. Replay harness consumes recorded tick/depth data and emits per-bar signal + score output.
+  4. Parity report: C# vs Python scoring matches within configured tolerance on ≥5 recorded sessions.
+  5. TypeA/B/C signal classification visible in strategy logs.
+**Plans** (outline): scorer port; narrative + on-chart display; replay harness; parity report.
+
+### Phase 19: Apex/Lucid Paper-Trade Gate
+**Goal**: DEEP6Strategy runs live on Apex (APEX-262674) and Lucid (LT-45N3KIV8) paper/sim accounts for 30 continuous trading days with dry-run disabled (paper mode only); P&L, slippage, fill quality, and risk-gate behavior reviewed; go/no-go decision for live capital documented.
+**Depends on**: Phase 18
+**Requirements**: Risk-management and execution requirements (NT8 substitutes)
+**Success Criteria** (what must be TRUE):
+  1. Strategy runs 30 consecutive RTH sessions on both Apex and Lucid paper accounts without crashes or stalls.
+  2. Daily P&L log captured with per-signal attribution.
+  3. All risk gates (account whitelist, news blackout, daily loss cap, max trades/session, RTH window) verified firing correctly at least once each.
+  4. Slippage report: median and 95th-percentile fill slip documented per signal tier.
+  5. Written go/no-go decision for live-capital deployment committed to `.planning/`.
+**Plans** (outline): paper-deployment runbook; telemetry + logging; 30-day observation + review; decision doc.
