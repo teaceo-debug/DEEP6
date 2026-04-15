@@ -1,0 +1,16 @@
+{"type":"session_reset","ts_ms":1744891200000}
+{"type":"depth","ts_ms":1744891200001,"side":0,"levelIdx":0,"price":20100.0,"size":150}
+{"type":"depth","ts_ms":1744891200002,"side":0,"levelIdx":1,"price":19999.75,"size":140}
+{"type":"depth","ts_ms":1744891200003,"side":0,"levelIdx":2,"price":19999.5,"size":130}
+{"type":"depth","ts_ms":1744891200004,"side":1,"levelIdx":0,"price":20100.25,"size":160}
+{"type":"depth","ts_ms":1744891200005,"side":1,"levelIdx":1,"price":20100.5,"size":150}
+{"type":"depth","ts_ms":1744891200006,"side":1,"levelIdx":2,"price":20100.75,"size":140}
+{"type":"bar","ts_ms":1744891260000,"open":20100.0,"high":20101.5,"low":20098.0,"close":20100.5,"barDelta":30,"totalVol":300}
+{"type":"depth","ts_ms":1744891260001,"side":0,"levelIdx":0,"price":20100.5,"size":155,"priorSize":150}
+{"type":"depth","ts_ms":1744891260002,"side":1,"levelIdx":0,"price":20100.75,"size":155,"priorSize":160}
+{"type":"bar","ts_ms":1744891320000,"open":20100.5,"high":20102.0,"low":20099.0,"close":20101.0,"barDelta":20,"totalVol":280}
+{"type":"depth","ts_ms":1744891320001,"side":0,"levelIdx":0,"price":20101.0,"size":160}
+{"type":"depth","ts_ms":1744891320002,"side":1,"levelIdx":0,"price":20101.25,"size":145}
+{"type":"bar","ts_ms":1744891380000,"open":20101.0,"high":20102.5,"low":20099.5,"close":20101.5,"barDelta":25,"totalVol":260}
+{"type":"bar","ts_ms":1744891440000,"open":20101.5,"high":20103.0,"low":20100.0,"close":20102.0,"barDelta":40,"totalVol":290}
+{"type":"bar","ts_ms":1744891500000,"open":20102.0,"high":20104.0,"low":20101.0,"close":20102.5,"barDelta":35,"totalVol":310}

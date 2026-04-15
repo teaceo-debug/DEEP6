@@ -200,6 +200,13 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
         public double VaExtremeStrengthBonus = 0.15;
     }
 
+    /// <summary>
+    /// Legacy static absorption detector. Superseded by the ISignalDetector registry
+    /// (NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Absorption.AbsorptionDetector).
+    /// Use DEEP6Strategy.UseNewRegistry=true to activate the registry path.
+    /// This class will be removed in Phase 18 once session-replay parity is confirmed.
+    /// </summary>
+    [System.Obsolete("Legacy path superseded by AbsorptionDetector (ISignalDetector). Set UseNewRegistry=true. Scheduled for removal in Phase 18.")]
     public static class AbsorptionDetector
     {
         public static List<AbsorptionSignal> Detect(
@@ -415,6 +422,13 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
         public double DeltaGateMinRatio = 0.10;
     }
 
+    /// <summary>
+    /// Legacy exhaustion detector. Superseded by the ISignalDetector registry
+    /// (NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Exhaustion.ExhaustionDetector).
+    /// Use DEEP6Strategy.UseNewRegistry=true to activate the registry path.
+    /// This class will be removed in Phase 18 once session-replay parity is confirmed.
+    /// </summary>
+    [System.Obsolete("Legacy path superseded by ExhaustionDetector (ISignalDetector). Set UseNewRegistry=true. Scheduled for removal in Phase 18.")]
     public sealed class ExhaustionDetector
     {
         private readonly Dictionary<ExhaustionType, int> _cooldown = new Dictionary<ExhaustionType, int>();

@@ -795,13 +795,14 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
         public string AtmTemplateDefault { get; set; }
 
         // ---- Phase 17 migration flag ----
-        // Default false: strategy runs legacy ABS/EXH path (Phase 16 behavior).
-        // Set true ONLY after Wave 2 parity passes; see CONTEXT.md D-06 and Phase 17 RESEARCH.md.
+        // Default true: Phase 17 Wave 5 session-replay parity PASSED (180/180 tests).
+        // Legacy ABS/EXH path marked [Obsolete]; scheduled for removal in Phase 18.
+        // See 17-05-PARITY-REPORT.md for full parity verdict.
         [NinjaScriptProperty]
         [Display(Name = "UseNewRegistry", Order = 100, GroupName = "DEEP6 Migration",
-                 Description = "Phase 17 migration flag. Default false = legacy ABS/EXH path. " +
-                               "Set true only after Wave 2 parity passes. Do NOT enable in live trading until Phase 17 Wave 5.")]
-        public bool UseNewRegistry { get; set; } = false;
+                 Description = "Phase 17 migration flag. Default true = full Wave 1-5 registry path (ENG-02..07). " +
+                               "Flipped to true after Wave 5 session-replay parity PASSED 2026-04-15.")]
+        public bool UseNewRegistry { get; set; } = true;
 
         #endregion
     }

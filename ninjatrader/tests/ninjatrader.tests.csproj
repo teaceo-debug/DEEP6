@@ -40,6 +40,7 @@
 
   <ItemGroup>
     <None Update="fixtures\**\*.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="fixtures\**\*.ndjson" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Parity\fixtures\**\*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
