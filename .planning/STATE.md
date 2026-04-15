@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 15 COMPLETE — all 5 plans + integration verification
-last_updated: "2026-04-14T16:51:44.009Z"
-last_activity: 2026-04-14
+stopped_at: Phase 16 COMPLETE — NT8 indicator + strategy shell; next Phase 17 detector refactor
+last_updated: "2026-04-15T00:00:00Z"
+last_activity: 2026-04-15
 progress:
-  total_phases: 17
+  total_phases: 19
   completed_phases: 13
   total_plans: 56
   completed_plans: 53
-  percent: 95
+  percent: 68
 ---
 
 # Project State
@@ -20,17 +20,18 @@ progress:
 
 See: .planning/PROJECT.md (updated 2026-04-13)
 
-**Core value:** Detect absorption and exhaustion with the highest accuracy of any footprint system ever built, and auto-execute trades via direct Rithmic orders — all in Python, running on macOS.
-**Current focus:** Phase 10 — analytics-dashboard
+**Core value:** Detect absorption and exhaustion with the highest accuracy of any footprint system ever built, and auto-execute trades via NT8 Rithmic orders on Apex + Lucid funded accounts — with the Python engine preserved as the validated reference specification.
+**Current focus:** Phase 16 built (NT8 indicator + strategy shell with 10/44 signals). Next: Phase 17 — NT8 detector refactor + remaining signals port.
 
 ## Current Position
 
-Phase: 15
-Plan: Complete (5/5)
-Status: Phase 15 complete — ready to advance
+Phase: 17 (next)
+Plan: none yet — /gsd-plan-phase 17 pending
+Status: 2026-04-15 NT8 pivot: Phases 1–15 reclassified REFERENCE-ONLY (Python reference engine); Phase 16 built; Phase 17/18/19 appended to roadmap.
 Last activity: 2026-04-15 - Completed quick task 260415-fdu: Fix GEX level disconnects
+2026-04-15 - Restructured planning docs for NT8-only pivot after Apex refused Rithmic API/plugin mode
 
-Progress: [█████████░] 95%
+Progress: [██████▊░░░] 68%
 
 ## Performance Metrics
 
@@ -161,6 +162,10 @@ Recent decisions affecting current work:
 - Phase 15 added: LevelBus + Confluence Rules + Trade Decision FSM — unifies VP/narrative/GEX levels into single bus, encodes ~47 research-derived confluence rules, replaces bar-close execution with 7-state trade-decision FSM. Basis: .planning/research/pine/ (12,500 words, 35 papers)
 - Phase 11.1 inserted after Phase 11: Phase 11 layout and visual polish (URGENT) — ScoreWidget sidebar collapse, SignalFeed overlay bleeding into chart, header-strip font-size cascade, footprint cell DPR scaling
 - Phase 16 added: NinjaTrader 8 Footprint Indicator — standalone parallel deliverable (NT8 NinjaScript C# indicator, native Rithmic L2, absorption/exhaustion, massive.com GEX overlay). Does NOT replace Python pivot.
+- Phase 17 added: NT8 Detector Refactor + Remaining Signals Port — ISignalDetector registry, port IMB/DELT/AUCT/TRAP/VOLP/ENG signals from Python reference engine to NinjaScript, live NT8 parity
+- Phase 18 added: NT8 Scoring + Backtest Validation — two-layer confluence scorer in NinjaScript, replay harness, ≥5-session parity vs Python reference
+- Phase 19 added: Apex/Lucid Paper-Trade Gate — 30-day paper run on APEX-262674 and LT-45N3KIV8, risk-gate validation, go/no-go decision
+- Architecture pivot superseded (2026-04-15): Python + async-rithmic live runtime shelved — Apex refused API/plugin mode. NT8 NinjaScript is now primary; Python engine reference-only.
 
 ### Pending Todos
 
@@ -171,6 +176,7 @@ None yet.
 - [Phase 1]: async-rithmic aggressor field (DATA-02) is unverified hands-on — async-rithmic docs partially 403; must inspect live on_trade callback before footprint code is written
 - [Phase 1]: async-rithmic Issue #49 (ForcedLogout reconnection loop) is open as of March 2026 — pin to v1.5.9, connect plants sequentially with 500ms delay
 - [Phase 6]: Kronos CPU/MPS inference latency on M2 Mac is extrapolated, not measured — benchmark must run before inference cadence is finalized
+- [2026-04-15]: Apex refused API/plugin mode on APEX-262674 — async-rithmic live-runtime track unblocked only if Apex reverses or user migrates to a broker that supports API mode (EdgeClear, Tradovate via Rithmic, AMP Futures per CLAUDE.md).
 
 ## Session Continuity
 
