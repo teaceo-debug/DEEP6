@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
-status: completed
-stopped_at: Phase 17 COMPLETE — NT8 detector refactor + 34-signal port, UseNewRegistry flipped, 180/180 tests green
-last_updated: "2026-04-15T22:00:00.000Z"
-last_activity: 2026-04-15
+status: NT8 detector refactor + 34 signals ported; 180/180 NUnit tests green; UseNewRegistry=true default; live Rithmic session-replay parity deferred to Phase 18
+stopped_at: Completed 18-01-PLAN.md
+last_updated: "2026-04-15T21:01:17.119Z"
+last_activity: 2026-04-15 — resolved verifier gaps (dup UseNewRegistry property, double EvaluateBar, LOC cap)
 progress:
   total_phases: 21
-  completed_phases: 16
-  total_plans: 68
-  completed_plans: 68
-  percent: 100
+  completed_phases: 15
+  total_plans: 67
+  completed_plans: 60
+  percent: 90
 ---
 
 # Project State
@@ -157,6 +157,8 @@ Recent decisions affecting current work:
 - [Phase 17]: IAbsorptionZoneReceiver interface in DetectorRegistry avoids forward type ref to IcebergDetector
 - [Phase 17]: MicroProbDetector registers LAST to read ENG-02/04 session fields populated in same bar cycle
 - [Phase 17]: VPContextDetector Phase 17 scope: POC proximity only; LVN/GEX deferred to Phase 18
+- [Phase 18]: TypeC gate is cat_count >= 4 per Python scorer.py line 485 (docstring says 3 — code is authoritative)
+- [Phase 18]: System.Math fully qualified in Scoring/*.cs — DEEP6.Math namespace shadows unqualified Math
 
 ### Roadmap Evolution
 
@@ -179,6 +181,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-15T20:01:28.878Z
-Stopped at: Completed 17-05-PLAN.md
+Last session: 2026-04-15T21:01:10.513Z
+Stopped at: Completed 18-01-PLAN.md
 Resume file: None

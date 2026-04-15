@@ -183,12 +183,12 @@ Following the 2026-04-15 NT8 pivot (Apex refused to enable Rithmic API/plugin mo
 
 ### Scoring & Confluence (SCOR)
 
-- [ ] **SCOR-01**: Two-layer consensus — engine-level agreement ratio + category-level confluence multiplier
-- [ ] **SCOR-02**: Category-level confluence — 8 signal categories each vote; 5+ agreement triggers 1.25× multiplier
-- [ ] **SCOR-03**: Zone bonus scoring — zones scoring ≥50 add +6 to +8 points to confluence score
-- [ ] **SCOR-04**: TypeA/B/C signal classification — TypeA requires absorption/exhaustion + zone confluence + 5+ category agreement
-- [ ] **SCOR-05**: Volatility-adaptive scoring — all thresholds scale with ATR(20)
-- [ ] **SCOR-06**: Signal narrative labels — human-readable context (ABSORBED @VAH, EXHAUSTED, DON'T CHASE)
+- [x] **SCOR-01**: Two-layer consensus — engine-level agreement ratio + category-level confluence multiplier
+- [x] **SCOR-02**: Category-level confluence — 8 signal categories each vote; 5+ agreement triggers 1.25× multiplier
+- [x] **SCOR-03**: Zone bonus scoring — zones scoring ≥50 add +6 to +8 points to confluence score
+- [x] **SCOR-04**: TypeA/B/C signal classification — TypeA requires absorption/exhaustion + zone confluence + 5+ category agreement
+- [x] **SCOR-05**: Volatility-adaptive scoring — all thresholds scale with ATR(20)
+- [x] **SCOR-06**: Signal narrative labels — human-readable context (ABSORBED @VAH, EXHAUSTED, DON'T CHASE)
 
 ### Auto-Execution (EXEC)
 
@@ -394,12 +394,12 @@ Updated during roadmap creation (2026-04-11).
 | TVMCP-05 | Phase 6 | Pending |
 | TVMCP-06 | Phase 6 | Pending |
 | ENG-10 | Phase 6 | Pending |
-| SCOR-01 | Phase 7 | Pending |
-| SCOR-02 | Phase 7 | Pending |
-| SCOR-03 | Phase 7 | Pending |
-| SCOR-04 | Phase 7 | Pending |
-| SCOR-05 | Phase 7 | Pending |
-| SCOR-06 | Phase 7 | Pending |
+| SCOR-01 | Phase 7 | Complete |
+| SCOR-02 | Phase 7 | Complete |
+| SCOR-03 | Phase 7 | Complete |
+| SCOR-04 | Phase 7 | Complete |
+| SCOR-05 | Phase 7 | Complete |
+| SCOR-06 | Phase 7 | Complete |
 | TEST-01 | Phase 7 | Pending |
 | TEST-02 | Phase 7 | Pending |
 | TEST-03 | Phase 7 | Pending |
