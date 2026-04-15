@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: "2026-04-15 NT8 pivot: Phases 1–15 reclassified REFERENCE-ONLY (Python reference engine); Phase 16 built; Phase 17/18/19 appended to roadmap."
-stopped_at: Completed 17-01-PLAN.md
-last_updated: "2026-04-15T18:43:15.418Z"
+stopped_at: Completed 17-02-PLAN.md — parity gate PASS, Wave 3 cleared
+last_updated: "2026-04-15T19:07:28.647Z"
 last_activity: "2026-04-15 - Completed quick task 260415-fdu: Fix GEX level disconnects"
 progress:
   total_phases: 21
   completed_phases: 14
   total_plans: 63
-  completed_plans: 55
-  percent: 87
+  completed_plans: 56
+  percent: 89
 ---
 
 # Project State
@@ -83,6 +83,7 @@ Progress: [██████▊░░░] 68%
 | Phase 15 P04 | 40 | 3 tasks | 9 files |
 | Phase 15 P05 | 48 | 3 tasks | 8 files |
 | Phase 17 P01 | 12 | 3 tasks | 17 files |
+| Phase 17-nt8-detector-refactor-remaining-signals-port P02 | 1 | 2 tasks | 18 files |
 
 ## Quick Tasks Completed
 
@@ -158,6 +159,7 @@ Recent decisions affecting current work:
 - [Phase 17]: AbsorptionDetector and ExhaustionDetector qualify System.Math.* to avoid DEEP6.Math namespace collision
 - [Phase 17]: RollForward=Major in test csproj enables .NET 10 runtime to run net8.0 test binary (no .NET 8 on dev Mac)
 - [Phase 17]: ExhaustionDetector uses DetectCore() returning SignalResult[] bridged by legacy Detect() for DEEP6Strategy compat
+- [Phase 17-nt8-detector-refactor-remaining-signals-port]: LegacyDetectorsBridge uses PORT-SPEC semantics; EXH-02 inner-cooldown fix aligns registry with legacy; DEEP6Strategy converts SignalResult[] to legacy types for zero-touch downstream
 
 ### Roadmap Evolution
 
@@ -185,6 +187,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-15T18:43:15.415Z
-Stopped at: Completed 17-01-PLAN.md
+Last session: 2026-04-15T19:07:28.644Z
+Stopped at: Completed 17-02-PLAN.md — parity gate PASS, Wave 3 cleared
 Resume file: None
