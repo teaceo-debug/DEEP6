@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-def _make_config(instrument: str = "NQM5", exchange: str = "CME") -> MagicMock:
+def _make_config(instrument: str = "NQM6", exchange: str = "CME") -> MagicMock:
     cfg = MagicMock()
     cfg.instrument = instrument
     cfg.exchange = exchange
@@ -33,7 +33,7 @@ async def test_reconcile_success_unfreeze():
     client = MagicMock()
     client.connect = AsyncMock()
     client.get_positions = AsyncMock(return_value=[
-        _make_position_item("NQM5", 0),  # flat
+        _make_position_item("NQM6", 0),  # flat
     ])
 
     config = _make_config()
@@ -55,7 +55,7 @@ async def test_reconcile_success_with_open_position():
     client = MagicMock()
     client.connect = AsyncMock()
     client.get_positions = AsyncMock(return_value=[
-        _make_position_item("NQM5", -1),  # short 1 contract
+        _make_position_item("NQM6", -1),  # short 1 contract
     ])
 
     config = _make_config()
@@ -111,7 +111,7 @@ async def test_sync_position_state_success():
 
     client = MagicMock()
     client.get_positions = AsyncMock(return_value=[
-        _make_position_item("NQM5", 1),
+        _make_position_item("NQM6", 1),
     ])
     config = _make_config()
 

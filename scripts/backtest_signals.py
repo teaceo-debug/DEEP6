@@ -91,12 +91,12 @@ def run_backtest(bars: list[FootprintBar]) -> list[dict]:
     vpin_eng = VPINEngine()
     reset_cooldowns()
 
-    # Optional: GEX engine (requires POLYGON_API_KEY)
+    # Optional: GEX engine (requires MASSIVE_API_KEY — massive.com GEX API)
     gex_eng = None
-    polygon_key = os.environ.get("POLYGON_API_KEY", "")
-    if _HAS_GEX and polygon_key:
+    gex_key = os.environ.get("MASSIVE_API_KEY", "") or os.environ.get("POLYGON_API_KEY", "")
+    if _HAS_GEX and gex_key:
         try:
-            gex_eng = GexEngine(api_key=polygon_key)
+            gex_eng = GexEngine(api_key=gex_key)
         except Exception as exc:
             print(f"[warn] GEX engine init failed: {exc}")
             gex_eng = None
