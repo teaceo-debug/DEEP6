@@ -737,10 +737,21 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         // session reset tracking
         private DateTime _lastSessionDate = DateTime.MinValue;
 
+        // ---- Profile Anchor Levels ----
+        private ProfileAnchorLevels _profileAnchors = new ProfileAnchorLevels();
+        private DateTime _profileSessionDate = DateTime.MinValue;
+
         // SharpDX brushes (device-dependent)
         private SharpDX.Direct2D1.Brush _bidDx, _askDx, _textDx, _imbalBuyDx, _imbalSellDx,
                                          _pocDx, _vahDx, _valDx, _gridDx,
                                          _wallBidDx, _wallAskDx;
+        // Profile anchor brushes
+        private SharpDX.Direct2D1.SolidColorBrush _anchorPocDx;       // #FFD23F  PD POC
+        private SharpDX.Direct2D1.SolidColorBrush _anchorVaDx;        // #C8D17A  PD VAH/VAL/PDH/PDL/PDM
+        private SharpDX.Direct2D1.SolidColorBrush _anchorNakedDx;     // #FFD23F @ 60%  naked POC
+        private SharpDX.Direct2D1.SolidColorBrush _anchorPwPocDx;     // #E5C24A  prior-week POC
+        private SharpDX.Direct2D1.SolidColorBrush _anchorCompositeDx; // #C8D17A @ 12%  composite VA band
+        private StrokeStyle _dashStyle;
         private TextFormat _cellFont, _labelFont;
 
         protected override void OnStateChange()
@@ -774,6 +785,18 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                 LiquidityMaxPerSide     = 4;
                 ShowChartTrader         = true;
 
+                ShowProfileAnchors     = true;
+                ShowPriorDayLevels     = true;
+                ShowNakedPocs          = true;
+                ShowCompositeVA        = false;
+                NakedPocMaxAgeSessions = 20;
+
+                AnchorPocBrush       = MakeFrozenBrush(Color.FromRgb(0xFF, 0xD2, 0x3F));
+                AnchorVaBrush        = MakeFrozenBrush(Color.FromRgb(0xC8, 0xD1, 0x7A));
+                AnchorNakedBrush     = MakeFrozenBrush(Color.FromArgb(153, 0xFF, 0xD2, 0x3F)); // 60% alpha
+                AnchorPwPocBrush     = MakeFrozenBrush(Color.FromRgb(0xE5, 0xC2, 0x4A));
+                AnchorCompositeBrush = MakeFrozenBrush(Color.FromArgb(30, 0xC8, 0xD1, 0x7A));  // ~12% alpha
+
                 BidCellBrush      = Brushes.IndianRed;
                 AskCellBrush      = Brushes.LimeGreen;
                 CellTextBrush     = Brushes.WhiteSmoke;
@@ -799,11 +822,17 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                 _priorCvd = 0;
                 _priorFinalized = null;
 
+                _profileAnchors.Reset();
+                _profileAnchors.TickSize = TickSize > 0 ? TickSize : 0.25;
+                _profileAnchors.NakedPocMaxAgeSessions = NakedPocMaxAgeSessions;
+                _profileSessionDate = DateTime.MinValue;
+
                 _ctButtons = new List<TraderButton>
                 {
                     new TraderButton { Label = "CELLS", Get = () => ShowFootprintCells,    Set = v => ShowFootprintCells    = v },
                     new TraderButton { Label = "POC",   Get = () => ShowPoc,               Set = v => ShowPoc               = v },
                     new TraderButton { Label = "VA",    Get = () => ShowValueArea,         Set = v => ShowValueArea         = v },
+                    new TraderButton { Label = "ANCH",  Get = () => ShowProfileAnchors,    Set = v => ShowProfileAnchors    = v },
                     new TraderButton { Label = "ABS",   Get = () => ShowAbsorptionMarkers, Set = v => ShowAbsorptionMarkers = v },
                     new TraderButton { Label = "EXH",   Get = () => ShowExhaustionMarkers, Set = v => ShowExhaustionMarkers = v },
                     new TraderButton { Label = "L2",    Get = () => ShowLiquidityWalls,    Set = v => ShowLiquidityWalls    = v },
@@ -936,6 +965,17 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                 _lastSessionDate = barDate;
             }
 
+            // Feed profile anchor aggregator — session boundary before bar accumulation.
+            {
+                DateTime barTimeEt = Bars.GetTime(prevIdx);
+                if (barDate != _profileSessionDate)
+                {
+                    _profileAnchors.OnSessionBoundary(barDate);
+                    _profileSessionDate = barDate;
+                }
+                _profileAnchors.OnBarClose(prev, barTimeEt);
+            }
+
             // Compute VAH/VAL for this bar (used by absorption VA bonus).
             var va = FootprintBar.ComputeValueArea(prev, TickSize);
 
@@ -1010,6 +1050,16 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             _gridDx       = MakeFrozenBrush(Color.FromArgb(40, 200, 200, 200)).ToDxBrush(RenderTarget);
             _wallBidDx    = WallBidBrush.ToDxBrush(RenderTarget);
             _wallAskDx    = WallAskBrush.ToDxBrush(RenderTarget);
+
+            // Profile anchor brushes
+            _anchorPocDx       = (SharpDX.Direct2D1.SolidColorBrush)AnchorPocBrush.ToDxBrush(RenderTarget);
+            _anchorVaDx        = (SharpDX.Direct2D1.SolidColorBrush)AnchorVaBrush.ToDxBrush(RenderTarget);
+            _anchorNakedDx     = (SharpDX.Direct2D1.SolidColorBrush)AnchorNakedBrush.ToDxBrush(RenderTarget);
+            _anchorPwPocDx     = (SharpDX.Direct2D1.SolidColorBrush)AnchorPwPocBrush.ToDxBrush(RenderTarget);
+            _anchorCompositeDx = (SharpDX.Direct2D1.SolidColorBrush)AnchorCompositeBrush.ToDxBrush(RenderTarget);
+            if (_dashStyle != null) { _dashStyle.Dispose(); _dashStyle = null; }
+            _dashStyle = new StrokeStyle(NinjaTrader.Core.Globals.D2DFactory,
+                new StrokeStyleProperties { DashStyle = DashStyle.Dash });
             _ctOnDx       = MakeFrozenBrush(Color.FromArgb(220, 50, 130, 75)).ToDxBrush(RenderTarget);
             _ctOffDx      = MakeFrozenBrush(Color.FromArgb(220, 35, 40, 50)).ToDxBrush(RenderTarget);
             _ctBorderDx   = MakeFrozenBrush(Color.FromArgb(255, 90, 100, 115)).ToDxBrush(RenderTarget);
@@ -1048,12 +1098,17 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             DisposeBrush(ref _gridDx);
             DisposeBrush(ref _wallBidDx); DisposeBrush(ref _wallAskDx);
             DisposeBrush(ref _ctOnDx); DisposeBrush(ref _ctOffDx); DisposeBrush(ref _ctBorderDx);
+            DisposeSolidBrush(ref _anchorPocDx); DisposeSolidBrush(ref _anchorVaDx);
+            DisposeSolidBrush(ref _anchorNakedDx); DisposeSolidBrush(ref _anchorPwPocDx);
+            DisposeSolidBrush(ref _anchorCompositeDx);
+            if (_dashStyle != null) { _dashStyle.Dispose(); _dashStyle = null; }
             if (_cellFont != null) { _cellFont.Dispose(); _cellFont = null; }
             if (_labelFont != null) { _labelFont.Dispose(); _labelFont = null; }
             if (_ctBtnFont != null) { _ctBtnFont.Dispose(); _ctBtnFont = null; }
         }
 
         private static void DisposeBrush(ref SharpDX.Direct2D1.Brush b) { if (b != null) { b.Dispose(); b = null; } }
+        private static void DisposeSolidBrush(ref SharpDX.Direct2D1.SolidColorBrush b) { if (b != null) { b.Dispose(); b = null; } }
 
         protected override void OnRender(ChartControl chartControl, ChartScale chartScale)
         {
@@ -1216,6 +1271,94 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             }
         }
 
+        // Renders prior-day POC/VAH/VAL, PDH/PDL/PDM, naked POCs, prior-week POC,
+        // and optional composite VA band as full-width horizontal lines with right-gutter labels.
+        // Colors per FOOTPRINT-VISUAL-SPEC.md §2 and planner notes at top of plan.
+        private void RenderProfileAnchors(ChartControl cc, ChartScale cs, float panelRight)
+        {
+            if (_anchorPocDx == null || _anchorVaDx == null) return;
+
+            var snap = _profileAnchors.BuildSnapshot();
+            double minVis = cs.MinValue;
+            double maxVis = cs.MaxValue;
+
+            // Draw composite VA band first (lowest z-order among anchors — translucent fill)
+            if (ShowCompositeVA && snap.CompositeVah.HasValue && snap.CompositeVal.HasValue && _anchorCompositeDx != null)
+            {
+                float yVah = cs.GetYByValue(snap.CompositeVah.Value);
+                float yVal = cs.GetYByValue(snap.CompositeVal.Value);
+                if (yVah >= 0 && yVal >= 0)
+                {
+                    float top  = System.Math.Min(yVah, yVal);
+                    float bot  = System.Math.Max(yVah, yVal);
+                    var rect = new RectangleF((float)ChartPanel.X, top, panelRight - (float)ChartPanel.X, bot - top);
+                    RenderTarget.FillRectangle(rect, _anchorCompositeDx);
+                }
+            }
+
+            foreach (var anchor in snap.Levels)
+            {
+                // Gate by user-facing toggles
+                bool priorDayKind = anchor.Kind == ProfileAnchorKind.PriorDayPoc ||
+                                    anchor.Kind == ProfileAnchorKind.PriorDayVah ||
+                                    anchor.Kind == ProfileAnchorKind.PriorDayVal ||
+                                    anchor.Kind == ProfileAnchorKind.Pdh         ||
+                                    anchor.Kind == ProfileAnchorKind.Pdl         ||
+                                    anchor.Kind == ProfileAnchorKind.Pdm;
+                if (priorDayKind && !ShowPriorDayLevels) continue;
+                if (anchor.Kind == ProfileAnchorKind.NakedPoc && !ShowNakedPocs) continue;
+                if ((anchor.Kind == ProfileAnchorKind.CompositeVah ||
+                     anchor.Kind == ProfileAnchorKind.CompositeVal) && !ShowCompositeVA) continue;
+
+                double price = anchor.Price;
+                if (price < minVis || price > maxVis) continue;
+
+                float y = cs.GetYByValue(price);
+
+                // Choose brush and stroke style
+                SharpDX.Direct2D1.SolidColorBrush brush;
+                StrokeStyle stroke;
+                switch (anchor.Kind)
+                {
+                    case ProfileAnchorKind.PriorDayPoc:
+                        brush = _anchorPocDx; stroke = null; break;
+                    case ProfileAnchorKind.PriorDayVah:
+                    case ProfileAnchorKind.PriorDayVal:
+                    case ProfileAnchorKind.Pdh:
+                    case ProfileAnchorKind.Pdl:
+                    case ProfileAnchorKind.Pdm:
+                        brush = _anchorVaDx; stroke = null; break;
+                    case ProfileAnchorKind.NakedPoc:
+                        brush = _anchorNakedDx; stroke = _dashStyle; break;
+                    case ProfileAnchorKind.PriorWeekPoc:
+                        brush = _anchorPwPocDx; stroke = _dashStyle; break;
+                    case ProfileAnchorKind.CompositeVah:
+                    case ProfileAnchorKind.CompositeVal:
+                        brush = _anchorVaDx; stroke = null; break;
+                    default:
+                        brush = _anchorVaDx; stroke = null; break;
+                }
+                if (brush == null) continue;
+
+                // Full-width horizontal line (1.5 px weight per plan)
+                RenderTarget.DrawLine(
+                    new Vector2((float)ChartPanel.X, y),
+                    new Vector2(panelRight, y),
+                    brush, 1.5f, stroke);
+
+                // Right-gutter label: Segoe UI 9pt, right-aligned, 156×16 px
+                if (_labelFont != null)
+                {
+                    string text = string.Format("{0} ({1:F2})", anchor.Label, price);
+                    using (var layout = new TextLayout(NinjaTrader.Core.Globals.DirectWriteFactory,
+                                                       text, _labelFont, 156f, 16f))
+                    {
+                        RenderTarget.DrawTextLayout(new Vector2(panelRight - 160f, y - 8f), layout, brush);
+                    }
+                }
+            }
+        }
+
         // Renders Liquidity Walls (large persistent resting bids/asks from Rithmic L2).
         // Only shows top N walls per side ranked by max-size; only shows fresh walls (recent depth update);
         // line thickness scales with size; iceberg refills annotated with "ICE" tag.
@@ -1340,6 +1483,56 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         [Range(40, 200)]
         [Display(Name = "Cell Column Width (px)", Order = 16, GroupName = "2. Display")]
         public int CellColumnWidth { get; set; }
+
+        // --- Profile Anchor Levels ---
+
+        [NinjaScriptProperty]
+        [Display(Name = "Show Profile Anchors", Order = 20, GroupName = "3. Profile Anchors")]
+        public bool ShowProfileAnchors { get; set; }
+
+        [NinjaScriptProperty]
+        [Display(Name = "Show Prior-Day Levels", Order = 21, GroupName = "3. Profile Anchors")]
+        public bool ShowPriorDayLevels { get; set; }
+
+        [NinjaScriptProperty]
+        [Display(Name = "Show Naked POCs", Order = 22, GroupName = "3. Profile Anchors")]
+        public bool ShowNakedPocs { get; set; }
+
+        [NinjaScriptProperty]
+        [Display(Name = "Show Composite 5-Day VA", Order = 23, GroupName = "3. Profile Anchors")]
+        public bool ShowCompositeVA { get; set; }
+
+        [NinjaScriptProperty]
+        [Range(1, 60)]
+        [Display(Name = "Naked POC Max Age (sessions)", Order = 24, GroupName = "3. Profile Anchors")]
+        public int NakedPocMaxAgeSessions { get; set; }
+
+        // Anchor brush properties
+
+        [XmlIgnore]
+        [Display(Name = "Anchor POC Color",       Order = 40, GroupName = "4. Colors")]
+        public Brush AnchorPocBrush { get; set; }
+        [Browsable(false)] public string AnchorPocBrushSerialize       { get { return Serialize.BrushToString(AnchorPocBrush); }       set { AnchorPocBrush = Serialize.StringToBrush(value); } }
+
+        [XmlIgnore]
+        [Display(Name = "Anchor VA Color",        Order = 41, GroupName = "4. Colors")]
+        public Brush AnchorVaBrush { get; set; }
+        [Browsable(false)] public string AnchorVaBrushSerialize        { get { return Serialize.BrushToString(AnchorVaBrush); }        set { AnchorVaBrush = Serialize.StringToBrush(value); } }
+
+        [XmlIgnore]
+        [Display(Name = "Anchor Naked POC Color", Order = 42, GroupName = "4. Colors")]
+        public Brush AnchorNakedBrush { get; set; }
+        [Browsable(false)] public string AnchorNakedBrushSerialize     { get { return Serialize.BrushToString(AnchorNakedBrush); }     set { AnchorNakedBrush = Serialize.StringToBrush(value); } }
+
+        [XmlIgnore]
+        [Display(Name = "Anchor PW POC Color",    Order = 43, GroupName = "4. Colors")]
+        public Brush AnchorPwPocBrush { get; set; }
+        [Browsable(false)] public string AnchorPwPocBrushSerialize     { get { return Serialize.BrushToString(AnchorPwPocBrush); }     set { AnchorPwPocBrush = Serialize.StringToBrush(value); } }
+
+        [XmlIgnore]
+        [Display(Name = "Anchor Composite VA",    Order = 44, GroupName = "4. Colors")]
+        public Brush AnchorCompositeBrush { get; set; }
+        [Browsable(false)] public string AnchorCompositeBrushSerialize { get { return Serialize.BrushToString(AnchorCompositeBrush); } set { AnchorCompositeBrush = Serialize.StringToBrush(value); } }
 
         [NinjaScriptProperty]
         [Display(Name = "Show Liquidity Walls (Rithmic L2)", Order = 30, GroupName = "5. Liquidity (L2)")]
