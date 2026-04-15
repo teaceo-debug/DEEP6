@@ -175,8 +175,17 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                     _registry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Auction.AuctionDetector());
                     _registry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.VolPattern.VolPatternDetector());
                     _registry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Trap.TrapDetector());
+                    // Wave 5 (Phase 17-05): Engine detectors ENG-02..07
+                    // CRITICAL: registration order — MicroProbDetector (ENG-05) MUST be last
+                    // because it reads session fields written by TrespassDetector (ENG-02) and
+                    // IcebergDetector (ENG-04) during the same bar cycle.
+                    _registry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Engines.TrespassDetector());
+                    _registry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Engines.CounterSpoofDetector());
+                    _registry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Engines.IcebergDetector());
+                    _registry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Engines.VPContextDetector());
+                    _registry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Engines.MicroProbDetector());  // LAST
                     _session  = new NinjaTrader.NinjaScript.AddOns.DEEP6.Registry.SessionContext { TickSize = TickSize > 0 ? TickSize : 0.25 };
-                    Print("[DEEP6 Strategy] UseNewRegistry=true: Waves 1-4 detectors registered (ABS/EXH/IMB/DELT/AUCT/VOLP/TRAP).");
+                    Print("[DEEP6 Strategy] UseNewRegistry=true: Waves 1-5 detectors registered (ABS/EXH/IMB/DELT/AUCT/VOLP/TRAP + ENG-02..07).");
                 }
                 else
                 {

@@ -1,0 +1,16 @@
+{
+  "description": "ENG-06 VP+Context (Phase 17 POC scope): close within 4 ticks of session POC → fires ENG-06",
+  "bar": {
+    "open": 19999.0, "high": 20002.0, "low": 19998.0, "close": 20000.5,
+    "barDelta": 50, "totalVol": 200, "cvd": 50
+  },
+  "sessionInputs": {
+    "sessionPocPrice": 20000.0,
+    "barsSinceOpen": 5,
+    "tickSize": 0.25
+  },
+  "expected": [
+    { "signalId": "ENG-06", "direction": 1 }
+  ],
+  "notes": "Phase 17 scope: POC context only. Close=20000.5 is 2 ticks above POC=20000.0, within PocProximityTicks=4. Fires bullish (closed above POC). LVN lifecycle and GEX deferred to Phase 18."
+}

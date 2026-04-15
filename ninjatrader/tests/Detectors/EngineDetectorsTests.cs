@@ -287,5 +287,192 @@ namespace NinjaTrader.Tests.Detectors
             Assert.That(session.BidDomLevels[0], Is.EqualTo(500),
                 "DispatchDepth should update session.BidDomLevels[0] in place");
         }
+
+        // =========================================================
+        // ENG-05 MicroProbDetector
+        // =========================================================
+
+        [Test]
+        public void Eng05_MicroProb_FiresBullish_WhenTrespassBullAndIceberg()
+        {
+            // Fixture: eng-05-micro-prob.json — trespass bullish + iceberg signals
+            var session  = new SessionContext { TickSize = 0.25 };
+            var detector = new MicroProbDetector();
+
+            // Manually set session cross-detector fields as TrespassDetector + IcebergDetector would
+            session.LastTrespassProbability = 0.80;  // strong bullish trespass
+            session.LastTrespassDirection   = 1;
+            session.LastIcebergSignals.Add("ENG-04-SYNTHETIC");
+
+            var bar     = MakeBar(20000.0, 20002.0, 19998.0, 20001.0, 200, 500);
+            var results = detector.OnBar(bar, session);
+
+            Assert.That(results, Has.Some.Matches<SignalResult>(
+                r => r.SignalId == "ENG-05" && r.Direction == 1),
+                "ENG-05 should fire bullish when trespass prob=0.80 and iceberg count=1");
+        }
+
+        [Test]
+        public void Eng05_MicroProb_FiresBearish_WhenTrespassBearish()
+        {
+            var session  = new SessionContext { TickSize = 0.25 };
+            var detector = new MicroProbDetector();
+
+            session.LastTrespassProbability = 0.05;  // extreme bearish trespass (logOdds=-0.90 → pBull=0.289 < 0.30 threshold)
+            session.LastTrespassDirection   = -1;
+
+            var bar     = MakeBar(20002.0, 20004.0, 20000.0, 20001.0, -200, 500);
+            var results = detector.OnBar(bar, session);
+
+            Assert.That(results, Has.Some.Matches<SignalResult>(
+                r => r.SignalId == "ENG-05" && r.Direction == -1),
+                "ENG-05 should fire bearish when trespass prob=0.05 (extreme bearish, pBull < 0.30 threshold)");
+        }
+
+        [Test]
+        public void Eng05_MicroProb_DoesNotFire_WhenAllNeutral()
+        {
+            var session  = new SessionContext { TickSize = 0.25 };
+            var detector = new MicroProbDetector();
+
+            // Default neutral: prob=0.5, direction=0, no iceberg signals
+            var bar     = MakeBar(20000.0, 20002.0, 19998.0, 20001.0);
+            var results = detector.OnBar(bar, session);
+
+            Assert.That(results, Is.Empty,
+                "ENG-05 should NOT fire when all inputs are neutral (prob=0.5, dir=0, iceberg_n=0)");
+        }
+
+        [Test]
+        public void Eng05_MicroProb_IsNotIDepthConsumingDetector()
+        {
+            // MicroProbDetector reads session fields only — no DOM depth needed
+            var detector = new MicroProbDetector();
+            Assert.That(detector, Is.Not.InstanceOf<IDepthConsumingDetector>(),
+                "MicroProbDetector should NOT implement IDepthConsumingDetector (reads session fields, not DOM)");
+        }
+
+        [Test]
+        public void Eng05_MicroProb_IsRegisteredLast_InSignalConfigScaffold()
+        {
+            // Verify SignalConfigScaffold.BuildDetectors() returns MicroProbDetector as the last element
+            var cfg = SignalConfigScaffold.Default;
+            var detectors = cfg.BuildDetectors();
+
+            // The last returned detector (MicroProb) must be MicroProbDetector, not a depth consumer
+            Assert.That(detectors.MicroProb, Is.InstanceOf<MicroProbDetector>(),
+                "SignalConfigScaffold.BuildDetectors().MicroProb must be MicroProbDetector");
+
+            // Verify TrespassDetector comes before MicroProbDetector in the natural tuple order
+            Assert.That(detectors.Trespass, Is.InstanceOf<TrespassDetector>(),
+                "Trespass (ENG-02) must be available before MicroProb (ENG-05) in registration order");
+            Assert.That(detectors.Iceberg, Is.InstanceOf<IcebergDetector>(),
+                "IcebergDetector (ENG-04) must be available before MicroProb (ENG-05) in registration order");
+        }
+
+        // =========================================================
+        // ENG-06 VPContextDetector
+        // =========================================================
+
+        [Test]
+        public void Eng06_VPContext_FiresBullish_WhenCloseNearPocAbove()
+        {
+            // Fixture: eng-06-vp-context.json — close near POC from above
+            var session = new SessionContext { TickSize = 0.25, BarsSinceOpen = 5 };
+            session.SessionPocPrice = 20000.0;
+
+            var bar     = MakeBar(19999.0, 20002.0, 19998.0, 20000.5);  // close 2 ticks above POC
+            var results = new VPContextDetector().OnBar(bar, session);
+
+            Assert.That(results, Has.Some.Matches<SignalResult>(
+                r => r.SignalId == "ENG-06" && r.Direction == 1),
+                "ENG-06 should fire bullish when close is within PocProximityTicks above POC");
+        }
+
+        [Test]
+        public void Eng06_VPContext_FiresBearish_WhenCloseNearPocBelow()
+        {
+            var session = new SessionContext { TickSize = 0.25, BarsSinceOpen = 5 };
+            session.SessionPocPrice = 20000.0;
+
+            var bar     = MakeBar(20001.0, 20002.0, 19997.0, 19999.5);  // close 2 ticks below POC
+            var results = new VPContextDetector().OnBar(bar, session);
+
+            Assert.That(results, Has.Some.Matches<SignalResult>(
+                r => r.SignalId == "ENG-06" && r.Direction == -1),
+                "ENG-06 should fire bearish when close is within PocProximityTicks below POC");
+        }
+
+        [Test]
+        public void Eng06_VPContext_DoesNotFire_WhenFarFromPoc()
+        {
+            var session = new SessionContext { TickSize = 0.25, BarsSinceOpen = 5 };
+            session.SessionPocPrice = 20000.0;
+
+            var bar     = MakeBar(20010.0, 20015.0, 20009.0, 20012.0);  // 48 ticks from POC
+            var results = new VPContextDetector().OnBar(bar, session);
+
+            Assert.That(results, Is.Empty,
+                "ENG-06 should NOT fire when close is far from session POC");
+        }
+
+        [Test]
+        public void Eng06_VPContext_DoesNotFire_WhenPocNotSet()
+        {
+            var session = new SessionContext { TickSize = 0.25, BarsSinceOpen = 5 };
+            // SessionPocPrice = 0 (default — not set)
+
+            var bar     = MakeBar(20000.0, 20002.0, 19998.0, 20001.0);
+            var results = new VPContextDetector().OnBar(bar, session);
+
+            Assert.That(results, Is.Empty,
+                "ENG-06 should NOT fire when SessionPocPrice is 0 (not yet populated)");
+        }
+
+        [Test]
+        public void Eng06_VPContext_DoesNotFire_TooEarlyInSession()
+        {
+            var session = new SessionContext { TickSize = 0.25, BarsSinceOpen = 1 };  // < MinBarsForPoc=3
+            session.SessionPocPrice = 20000.0;
+
+            var bar     = MakeBar(20000.0, 20002.0, 19998.0, 20000.25);
+            var results = new VPContextDetector().OnBar(bar, session);
+
+            Assert.That(results, Is.Empty,
+                "ENG-06 should NOT fire before MinBarsForPoc=3 bars have elapsed (POC not stable)");
+        }
+
+        // =========================================================
+        // ENG-07 SignalConfigScaffold
+        // =========================================================
+
+        [Test]
+        public void Eng07_SignalConfigScaffold_DefaultCreatesAllConfigs()
+        {
+            var scaffold = SignalConfigScaffold.Default;
+            Assert.That(scaffold.Trespass,     Is.Not.Null, "Trespass config must be non-null");
+            Assert.That(scaffold.CounterSpoof,  Is.Not.Null, "CounterSpoof config must be non-null");
+            Assert.That(scaffold.Iceberg,       Is.Not.Null, "Iceberg config must be non-null");
+            Assert.That(scaffold.MicroProb,     Is.Not.Null, "MicroProb config must be non-null");
+            Assert.That(scaffold.VPContext,     Is.Not.Null, "VPContext config must be non-null");
+        }
+
+        [Test]
+        public void Eng07_SignalConfigScaffold_BuildDetectors_MicroProbIsLast()
+        {
+            // Structural: BuildDetectors() tuple order has MicroProbDetector last
+            var scaffold  = SignalConfigScaffold.Default;
+            var detectors = scaffold.BuildDetectors();
+
+            // Register in tuple order and verify MicroProb is at the last index
+            var registry = new DetectorRegistry();
+            registry.Register(detectors.Trespass);
+            registry.Register(detectors.CounterSpoof);
+            registry.Register(detectors.Iceberg);
+            registry.Register(detectors.VPContext);
+            registry.Register(detectors.MicroProb);  // MUST be last
+
+            Assert.That(registry.Count, Is.EqualTo(5), "Registry should have 5 engine detectors");
+        }
     }
 }

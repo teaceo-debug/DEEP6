@@ -1,0 +1,16 @@
+{
+  "description": "ENG-05 MicroProb: trespass bullish (prob=0.80) + iceberg signal → fires bullish ENG-05",
+  "bar": {
+    "open": 20000.0, "high": 20002.0, "low": 19998.0, "close": 20001.0,
+    "barDelta": 200, "totalVol": 500, "cvd": 200
+  },
+  "sessionInputs": {
+    "lastTrespassProbability": 0.80,
+    "lastTrespassDirection": 1,
+    "lastIcebergSignals": ["ENG-04-SYNTHETIC"]
+  },
+  "expected": [
+    { "signalId": "ENG-05", "direction": 1 }
+  ],
+  "notes": "Alpha=2.0: logOdds = 2.0*(0.80-0.5) + 0.5*1 = 0.6+0.5 = 1.1. pBull = sigmoid(1.1) ≈ 0.750 > threshold=0.70 → fires bullish."
+}
