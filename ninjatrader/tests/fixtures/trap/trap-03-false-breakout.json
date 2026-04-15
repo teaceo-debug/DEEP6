@@ -1,0 +1,38 @@
+{
+  "_comment": "TRAP-03: priorBar.high=20010.00. Current bar high=20012.00 (>prior high), close=20008.00 (<prior high). Vol=900>volEma=600*1.0=600. Expected: TRAP-03 direction=-1 (longs trapped).",
+  "priorBars": [
+    {
+      "barIndex": 140,
+      "open": 20005.00, "high": 20010.00, "low": 20004.50, "close": 20009.50,
+      "barDelta": 250, "cvd": 1200, "totalVol": 700
+    }
+  ],
+  "bar": {
+    "barIndex": 141,
+    "open": 20009.75,
+    "high": 20012.00,
+    "low": 20007.00,
+    "close": 20008.00,
+    "barDelta": -400,
+    "cvd": 800,
+    "totalVol": 900,
+    "maxDelta": 200,
+    "minDelta": -450,
+    "levels": {
+      "20007.00": { "askVol": 100, "bidVol": 300 },
+      "20008.00": { "askVol": 150, "bidVol": 200 },
+      "20010.50": { "askVol": 100, "bidVol": 50  },
+      "20012.00": { "askVol": 0,   "bidVol": 0   }
+    }
+  },
+  "session": {
+    "tickSize": 0.25,
+    "atr20": 5.0,
+    "volEma20": 600.0
+  },
+  "expected": {
+    "signalId": "TRAP-03",
+    "direction": -1,
+    "comment": "bar.high=20012>priorBar.high=20010; bar.close=20008<priorBar.high=20010; vol=900>volEma*1.0=600 → TRAP-03 direction=-1 (longs trapped by false breakout)"
+  }
+}
