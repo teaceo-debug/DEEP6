@@ -194,5 +194,111 @@ namespace NinjaTrader.Tests.SessionReplay
             while (end < json.Length && json[end] != ',' && json[end] != '}') end++;
             return json.Substring(start, end - start).Trim();
         }
+
+        // -----------------------------------------------------------------------
+        // Phase 18: scored_bar NDJSON loading for ScoringParityHarness
+        // -----------------------------------------------------------------------
+
+        /// <summary>
+        /// Load scored-bar records from a Phase 18 scoring-session NDJSON file.
+        /// Parses lines where "type":"scored_bar" and returns ScoredBarRecord per line.
+        /// The signals[] array is parsed into SignalResult[] for direct use with ConfluenceScorer.Score().
+        /// </summary>
+        public static System.Collections.Generic.IEnumerable<ScoredBarRecord> LoadScoredBars(string ndjsonPath)
+        {
+            var lines = System.IO.File.ReadAllLines(ndjsonPath);
+            foreach (string raw in lines)
+            {
+                string line = raw?.Trim();
+                if (string.IsNullOrEmpty(line)) continue;
+
+                string type = ExtractString(line, "type");
+                if (type != "scored_bar") continue;
+
+                var rec = new ScoredBarRecord
+                {
+                    BarIdx         = ExtractInt(line, "barIdx"),
+                    BarsSinceOpen  = ExtractInt(line, "barsSinceOpen"),
+                    BarDelta       = ExtractLong(line, "barDelta"),
+                    BarClose       = ExtractDouble(line, "barClose"),
+                    ZoneScore      = ExtractDouble(line, "zoneScore"),
+                    ZoneDistTicks  = HasKey(line, "zoneDistTicks") ? ExtractDouble(line, "zoneDistTicks") : double.MaxValue,
+                    Signals        = ParseSignalsArray(line),
+                };
+                yield return rec;
+            }
+        }
+
+        /// <summary>
+        /// Parse the inline signals[] JSON array from a scored_bar line.
+        /// Extracts signalId, direction, strength, price, detail per element.
+        /// </summary>
+        private static NinjaTrader.NinjaScript.AddOns.DEEP6.Registry.SignalResult[] ParseSignalsArray(string line)
+        {
+            // Find signals array: "signals":[...]
+            int arrStart = line.IndexOf("\"signals\":[", StringComparison.Ordinal);
+            if (arrStart < 0) return new NinjaTrader.NinjaScript.AddOns.DEEP6.Registry.SignalResult[0];
+
+            arrStart += "\"signals\":[".Length;
+            int arrEnd = line.LastIndexOf(']');
+            if (arrEnd <= arrStart) return new NinjaTrader.NinjaScript.AddOns.DEEP6.Registry.SignalResult[0];
+
+            string arrContent = line.Substring(arrStart, arrEnd - arrStart).Trim();
+            if (string.IsNullOrEmpty(arrContent))
+                return new NinjaTrader.NinjaScript.AddOns.DEEP6.Registry.SignalResult[0];
+
+            // Split on },{  to get individual signal objects
+            var results = new System.Collections.Generic.List<NinjaTrader.NinjaScript.AddOns.DEEP6.Registry.SignalResult>();
+            int depth   = 0;
+            int objStart = -1;
+
+            for (int i = 0; i < arrContent.Length; i++)
+            {
+                if (arrContent[i] == '{')
+                {
+                    if (depth == 0) objStart = i;
+                    depth++;
+                }
+                else if (arrContent[i] == '}')
+                {
+                    depth--;
+                    if (depth == 0 && objStart >= 0)
+                    {
+                        string obj = arrContent.Substring(objStart, i - objStart + 1);
+                        results.Add(ParseSignalObject(obj));
+                        objStart = -1;
+                    }
+                }
+            }
+
+            return results.ToArray();
+        }
+
+        private static NinjaTrader.NinjaScript.AddOns.DEEP6.Registry.SignalResult ParseSignalObject(string obj)
+        {
+            return new NinjaTrader.NinjaScript.AddOns.DEEP6.Registry.SignalResult
+            {
+                SignalId  = ExtractString(obj, "signalId") ?? string.Empty,
+                Direction = ExtractInt(obj, "direction"),
+                Strength  = ExtractDouble(obj, "strength"),
+                Price     = ExtractDouble(obj, "price"),
+                Detail    = ExtractString(obj, "detail") ?? string.Empty,
+            };
+        }
+    }
+
+    /// <summary>
+    /// A single scored-bar record from a Phase 18 scoring-session NDJSON file.
+    /// Used by ScoringParityHarness to drive both C# ConfluenceScorer and Python replay_scorer.
+    /// </summary>
+    public sealed class ScoredBarRecord
+    {
+        public int    BarIdx;
+        public int    BarsSinceOpen;
+        public long   BarDelta;
+        public double BarClose;
+        public double ZoneScore;
+        public double ZoneDistTicks;
+        public NinjaTrader.NinjaScript.AddOns.DEEP6.Registry.SignalResult[] Signals;
     }
 }

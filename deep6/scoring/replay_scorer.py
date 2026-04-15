@@ -444,7 +444,7 @@ def main() -> None:
             "tier": result.tier.name,
             "narrative": result.label,
         }
-        sys.stdout.write(json.dumps(out) + "\n")
+        sys.stdout.write(json.dumps(out, separators=(',', ':')) + "\n")
         sys.stdout.flush()
 
 
