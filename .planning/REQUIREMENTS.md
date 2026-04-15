@@ -135,7 +135,7 @@ Following the 2026-04-15 NT8 pivot (Apex refused to enable Rithmic API/plugin mo
 
 ### GEX Integration (GEX)
 
-- [ ] **GEX-01**: GEX data ingested from FlashAlpha API (or Massive.com if better evaluated)
+- [ ] **GEX-01**: GEX data ingested from massive.com API (confirmed provider; original text referenced an alternative that was evaluated and not selected)
 - [ ] **GEX-02**: Call wall, put wall, gamma flip level, and HVL available as price levels
 - [ ] **GEX-03**: GEX regime classified — positive gamma (mean-reverting) vs negative gamma (amplifying)
 - [x] **GEX-04**: GEX regime modifies signal weighting — below gamma flip prefers trend signals, above prefers fade signals
