@@ -1,0 +1,28 @@
+{
+  "_comment": "IMB-04 REVERSE: both buy and sell imbalances in same bar. Expected: IMB-04 direction=0 (equal counts).",
+  "bar": {
+    "barIndex": 22,
+    "open": 20001.00,
+    "high": 20002.00,
+    "low": 19999.50,
+    "close": 20001.00,
+    "levels": {
+      "19999.50": { "askVol": 50,  "bidVol": 60  },
+      "19999.75": { "askVol": 400, "bidVol": 80  },
+      "20000.00": { "askVol": 50,  "bidVol": 50  },
+      "20000.25": { "askVol": 60,  "bidVol": 400 },
+      "20000.50": { "askVol": 50,  "bidVol": 60  },
+      "20000.75": { "askVol": 50,  "bidVol": 55  }
+    }
+  },
+  "session": {
+    "tickSize": 0.25,
+    "atr20": 3.0,
+    "volEma20": 400.0
+  },
+  "expected": {
+    "signalId": "IMB-04",
+    "direction": 0,
+    "comment": "1 buy imb (19999.75 ask=400 vs bid[19999.50]=60) + 1 sell imb (20000.25 bid=400 vs ask[20000.50]=50) → REVERSE direction=0"
+  }
+}

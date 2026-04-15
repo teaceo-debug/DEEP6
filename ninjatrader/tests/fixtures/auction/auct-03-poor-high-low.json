@@ -1,0 +1,27 @@
+{
+  "_comment": "AUCT-03 POOR HIGH: high level vol=5 << avg_vol=200 (2.5%). avgVol=totalVol/levels=(5+200+200+200+200)/5=161, poorTh=161*0.15=24.1. Expected: AUCT-03 direction=-1.",
+  "bar": {
+    "barIndex": 51,
+    "open": 20000.00,
+    "high": 20002.50,
+    "low": 19999.75,
+    "close": 20001.00,
+    "levels": {
+      "19999.75": { "askVol": 90,  "bidVol": 110 },
+      "20000.00": { "askVol": 100, "bidVol": 100 },
+      "20001.00": { "askVol": 95,  "bidVol": 105 },
+      "20002.00": { "askVol": 98,  "bidVol": 102 },
+      "20002.50": { "askVol": 3,   "bidVol": 2   }
+    }
+  },
+  "session": {
+    "tickSize": 0.25,
+    "atr20": 3.0,
+    "volEma20": 400.0
+  },
+  "expected": {
+    "signalId": "AUCT-03",
+    "direction": -1,
+    "comment": "High level total vol=5, avg=161, threshold=24.1; 5 < 24.1 → POOR HIGH direction=-1"
+  }
+}

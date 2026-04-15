@@ -1,0 +1,30 @@
+{
+  "signalId": "AUCT-02",
+  "description": "Finished auction at bar high. Level at 20010.00 has askVol=200, bidVol=0 — buyers absent at top. Direction=-1 (bearish: finished upside auction).",
+  "bar": {
+    "barIndex": 20,
+    "open": 20005.00,
+    "high": 20010.00,
+    "low": 20003.00,
+    "close": 20006.00,
+    "levels": [
+      {"price": 20003.00, "askVol": 50,  "bidVol": 50},
+      {"price": 20005.00, "askVol": 200, "bidVol": 150},
+      {"price": 20006.00, "askVol": 180, "bidVol": 120},
+      {"price": 20010.00, "askVol": 200, "bidVol": 0}
+    ],
+    "notes": "Level at 20010.00 (bar high): bidVol=0, askVol=200. Zero bid at high = finished auction, bearish. Python auction.py line 138: if high_level.bid_vol == 0 and high_level.ask_vol > 0 → direction=-1."
+  },
+  "session": {
+    "tickSize": 0.25
+  },
+  "expected": [
+    {
+      "signalId": "AUCT-02",
+      "direction": -1,
+      "strengthMin": 1.0,
+      "strengthMax": 1.0,
+      "detail_contains": "FINISHED AUCTION"
+    }
+  ]
+}

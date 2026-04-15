@@ -1,0 +1,45 @@
+{
+  "_comment": "IMB-09 REVERSAL: priorBar dominated by buy imbalances (3 buy, 0 sell); current bar dominated by sell (0 buy, 3 sell). Expected: IMB-09 direction=-1.",
+  "priorBars": [
+    {
+      "barIndex": 39,
+      "open": 20000.00,
+      "high": 20001.00,
+      "low": 19999.50,
+      "close": 20000.75,
+      "levels": {
+        "19999.50": { "askVol": 50,  "bidVol": 60  },
+        "19999.75": { "askVol": 410, "bidVol": 82  },
+        "20000.00": { "askVol": 420, "bidVol": 84  },
+        "20000.25": { "askVol": 430, "bidVol": 86  },
+        "20000.50": { "askVol": 80,  "bidVol": 85  },
+        "20001.00": { "askVol": 60,  "bidVol": 55  }
+      }
+    }
+  ],
+  "bar": {
+    "barIndex": 40,
+    "open": 20001.00,
+    "high": 20001.50,
+    "low": 19999.75,
+    "close": 20000.00,
+    "levels": {
+      "19999.75": { "askVol": 60,  "bidVol": 55  },
+      "20000.00": { "askVol": 80,  "bidVol": 85  },
+      "20000.25": { "askVol": 55,  "bidVol": 420 },
+      "20000.50": { "askVol": 52,  "bidVol": 430 },
+      "20000.75": { "askVol": 50,  "bidVol": 410 },
+      "20001.50": { "askVol": 60,  "bidVol": 55  }
+    }
+  },
+  "session": {
+    "tickSize": 0.25,
+    "atr20": 3.0,
+    "volEma20": 500.0
+  },
+  "expected": {
+    "signalId": "IMB-09",
+    "direction": -1,
+    "comment": "Prior bar had 3 dominant buy imbalances; current bar has 3 dominant sell imbalances → reversal direction=-1"
+  }
+}

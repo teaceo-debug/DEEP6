@@ -1,0 +1,29 @@
+{
+  "_comment": "IMB-02 MULTIPLE: 4 buy imbalances in same bar (>= 3 threshold). Expected: IMB-02 direction=+1.",
+  "bar": {
+    "barIndex": 20,
+    "open": 20000.00,
+    "high": 20002.00,
+    "low": 19999.50,
+    "close": 20001.50,
+    "levels": {
+      "19999.50": { "askVol": 50,  "bidVol": 60  },
+      "19999.75": { "askVol": 400, "bidVol": 80  },
+      "20000.00": { "askVol": 420, "bidVol": 85  },
+      "20000.25": { "askVol": 410, "bidVol": 82  },
+      "20000.50": { "askVol": 430, "bidVol": 88  },
+      "20000.75": { "askVol": 200, "bidVol": 150 },
+      "20001.00": { "askVol": 100, "bidVol": 120 }
+    }
+  },
+  "session": {
+    "tickSize": 0.25,
+    "atr20": 3.0,
+    "volEma20": 500.0
+  },
+  "expected": {
+    "signalId": "IMB-02",
+    "direction": 1,
+    "comment": "4 buy imbalances fires IMB-02 direction=+1; strength = min(4/6, 1.0) = 0.667"
+  }
+}

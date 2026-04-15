@@ -1,0 +1,43 @@
+{
+  "_comment": "IMB-07 CONSECUTIVE: priorBar has buy imbalance at 20000.00; current bar also has buy imbalance at 20000.00. Expected: IMB-07 direction=+1.",
+  "priorBars": [
+    {
+      "barIndex": 29,
+      "open": 19999.75,
+      "high": 20000.50,
+      "low": 19999.50,
+      "close": 20000.25,
+      "levels": {
+        "19999.50": { "askVol": 50,  "bidVol": 60  },
+        "19999.75": { "askVol": 50,  "bidVol": 55  },
+        "20000.00": { "askVol": 400, "bidVol": 80  },
+        "20000.25": { "askVol": 100, "bidVol": 110 },
+        "20000.50": { "askVol": 60,  "bidVol": 65  }
+      }
+    }
+  ],
+  "bar": {
+    "barIndex": 30,
+    "open": 20000.00,
+    "high": 20000.75,
+    "low": 19999.50,
+    "close": 20000.50,
+    "levels": {
+      "19999.50": { "askVol": 50,  "bidVol": 60  },
+      "19999.75": { "askVol": 50,  "bidVol": 55  },
+      "20000.00": { "askVol": 420, "bidVol": 82  },
+      "20000.25": { "askVol": 110, "bidVol": 120 },
+      "20000.75": { "askVol": 60,  "bidVol": 65  }
+    }
+  },
+  "session": {
+    "tickSize": 0.25,
+    "atr20": 3.0,
+    "volEma20": 500.0
+  },
+  "expected": {
+    "signalId": "IMB-07",
+    "direction": 1,
+    "comment": "ask[20000.00]=420 vs bid[19999.75]=55 → ratio=7.6 fires in both bars → IMB-07 direction=+1 strength=0.75"
+  }
+}
