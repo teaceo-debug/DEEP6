@@ -1,0 +1,43 @@
+{
+  "_comment": "VOLP-01 SEQUENCING: 3 bars of non-decreasing volume, all bullish. volHistory=[300, 400]. current totalVol=600>=400. Expected: VOLP-01 direction=+1.",
+  "priorBars": [
+    {
+      "barIndex": 90,
+      "open": 20000.00, "high": 20001.00, "low": 19999.75, "close": 20000.75,
+      "barDelta": 100, "cvd": 500, "totalVol": 300
+    },
+    {
+      "barIndex": 91,
+      "open": 20000.75, "high": 20001.75, "low": 20000.50, "close": 20001.50,
+      "barDelta": 120, "cvd": 620, "totalVol": 400
+    }
+  ],
+  "bar": {
+    "barIndex": 92,
+    "open": 20001.50,
+    "high": 20003.00,
+    "low": 20001.25,
+    "close": 20002.75,
+    "barDelta": 200,
+    "cvd": 820,
+    "totalVol": 600,
+    "maxDelta": 220,
+    "minDelta": -20,
+    "levels": {
+      "20001.25": { "askVol": 200, "bidVol": 100 },
+      "20002.75": { "askVol": 300, "bidVol": 200 }
+    }
+  },
+  "session": {
+    "tickSize": 0.25,
+    "atr20": 3.0,
+    "volEma20": 350.0,
+    "volHistory": [300, 400],
+    "deltaHistory": [100, 120]
+  },
+  "expected": {
+    "signalId": "VOLP-01",
+    "direction": 1,
+    "comment": "volHistory=[300,400], current=600; 400>=300*1.0, 600>=400*1.0 → run=3 >= min_bars=3 → VOLP-01 direction=+1"
+  }
+}

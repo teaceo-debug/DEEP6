@@ -1,0 +1,27 @@
+{
+  "_comment": "AUCT-04 VOLUME VOID: 3 thin levels (vol < maxVol * 0.05). maxVol=500, voidTh=25. Expected: AUCT-04 fires.",
+  "bar": {
+    "barIndex": 52,
+    "open": 20000.00,
+    "high": 20003.00,
+    "low": 19999.75,
+    "close": 20001.00,
+    "levels": {
+      "19999.75": { "askVol": 240, "bidVol": 260 },
+      "20000.00": { "askVol": 10,  "bidVol": 8   },
+      "20000.25": { "askVol": 9,   "bidVol": 7   },
+      "20000.50": { "askVol": 8,   "bidVol": 6   },
+      "20001.00": { "askVol": 220, "bidVol": 280 },
+      "20003.00": { "askVol": 200, "bidVol": 200 }
+    }
+  },
+  "session": {
+    "tickSize": 0.25,
+    "atr20": 3.0,
+    "volEma20": 400.0
+  },
+  "expected": {
+    "signalId": "AUCT-04",
+    "comment": "maxVol=500, voidTh=25; levels 20000.00(18), 20000.25(16), 20000.50(14) all < 25 → voidCount=3 >= 2 → AUCT-04 fires"
+  }
+}

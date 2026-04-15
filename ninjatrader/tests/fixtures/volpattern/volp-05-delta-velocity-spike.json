@@ -1,0 +1,37 @@
+{
+  "_comment": "VOLP-05 DELTA VELOCITY SPIKE: priorDelta=50, currentDelta=800, velocity=750, threshold=500*0.5=250. 750>250. Expected: VOLP-05 direction=+1.",
+  "priorBars": [
+    {
+      "barIndex": 109,
+      "open": 20000.00, "high": 20000.75, "low": 19999.75, "close": 20000.25,
+      "barDelta": 50, "cvd": 400, "totalVol": 500
+    }
+  ],
+  "bar": {
+    "barIndex": 110,
+    "open": 20000.25,
+    "high": 20003.00,
+    "low": 20000.00,
+    "close": 20002.75,
+    "barDelta": 800,
+    "cvd": 1200,
+    "totalVol": 1100,
+    "maxDelta": 820,
+    "minDelta": -20,
+    "levels": {
+      "20000.00": { "askVol": 700, "bidVol": 100 },
+      "20002.75": { "askVol": 300, "bidVol": 200 }
+    }
+  },
+  "session": {
+    "tickSize": 0.25,
+    "atr20": 4.0,
+    "volEma20": 500.0,
+    "deltaHistory": [50]
+  },
+  "expected": {
+    "signalId": "VOLP-05",
+    "direction": 1,
+    "comment": "velocity=800-50=750, threshold=500*0.5=250; 750>250 → VOLP-05 direction=+1 (acceleration)"
+  }
+}

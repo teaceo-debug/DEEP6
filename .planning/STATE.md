@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
-status: "2026-04-15 NT8 pivot: Phases 1–15 reclassified REFERENCE-ONLY (Python reference engine); Phase 16 built; Phase 17/18/19 appended to roadmap."
-stopped_at: Completed 17-03-PLAN.md
-last_updated: "2026-04-15T19:18:39.279Z"
-last_activity: "2026-04-15 - Completed quick task 260415-fdu: Fix GEX level disconnects"
+status: completed
+stopped_at: "Completed 17-04-PLAN.md: 21 MODERATE-tier signals ported; 119/119 tests green"
+last_updated: "2026-04-15T19:32:49.317Z"
+last_activity: 2026-04-14
 progress:
-  total_phases: 21
+  total_phases: 18
   completed_phases: 14
-  total_plans: 63
-  completed_plans: 57
-  percent: 90
+  total_plans: 58
+  completed_plans: 54
+  percent: 93
 ---
 
 # Project State
@@ -20,18 +20,17 @@ progress:
 
 See: .planning/PROJECT.md (updated 2026-04-13)
 
-**Core value:** Detect absorption and exhaustion with the highest accuracy of any footprint system ever built, and auto-execute trades via NT8 Rithmic orders on Apex + Lucid funded accounts — with the Python engine preserved as the validated reference specification.
-**Current focus:** Phase 16 built (NT8 indicator + strategy shell with 10/44 signals). Next: Phase 17 — NT8 detector refactor + remaining signals port.
+**Core value:** Detect absorption and exhaustion with the highest accuracy of any footprint system ever built, and auto-execute trades via direct Rithmic orders — all in Python, running on macOS.
+**Current focus:** Phase 10 — analytics-dashboard
 
 ## Current Position
 
-Phase: 17 (next)
-Plan: none yet — /gsd-plan-phase 17 pending
-Status: 2026-04-15 NT8 pivot: Phases 1–15 reclassified REFERENCE-ONLY (Python reference engine); Phase 16 built; Phase 17/18/19 appended to roadmap.
-Last activity: 2026-04-15 - Completed quick task 260415-fdu: Fix GEX level disconnects
-2026-04-15 - Restructured planning docs for NT8-only pivot after Apex refused Rithmic API/plugin mode
+Phase: 15
+Plan: Complete (5/5)
+Status: Phase 15 complete — ready to advance
+Last activity: 2026-04-14
 
-Progress: [██████▊░░░] 68%
+Progress: [█████████░] 95%
 
 ## Performance Metrics
 
@@ -82,9 +81,7 @@ Progress: [██████▊░░░] 68%
 | Phase 15 P03 | 35 | 3 tasks | 7 files |
 | Phase 15 P04 | 40 | 3 tasks | 9 files |
 | Phase 15 P05 | 48 | 3 tasks | 8 files |
-| Phase 17 P01 | 12 | 3 tasks | 17 files |
-| Phase 17-nt8-detector-refactor-remaining-signals-port P02 | 1 | 2 tasks | 18 files |
-| Phase 17 P03 | 1 | 3 tasks | 23 files |
+| Phase 17 P04 | 210 | 3 tasks | 38 files |
 
 ## Quick Tasks Completed
 
@@ -93,7 +90,6 @@ Progress: [██████▊░░░] 68%
 | 260413-s1d | 2026-04-14 | Fix databento_feed.py attribute bugs (total_vol, tick_size kwarg, open_time/close_time, CVD chain) | deep6/data/databento_feed.py |
 | 260414-gzv | 2026-04-13 | perf(r5): rAF audit + Zustand scoped selectors + ringBuffer toArray single-pass + animations.ts perf notes | store/ringBuffer.ts, store/tradingStore.ts, lib/animations.ts, store/tradingStore.test.ts |
 | 260413-r8t | 2026-04-13 | feat(11.3-r8): unified chart toolbar — consolidate ChartModeSelector + ChartLegend into single top-left ChartToolbar strip | dashboard/components/footprint/ChartToolbar.tsx, FootprintChart.tsx |
-| 260415-fdu | 2026-04-15 | Fix GEX level disconnects — timer-driven fetch + backoff + query-param auth | ninjatrader/Custom/Indicators/DEEP6/DEEP6Footprint.cs, ninjatrader/docs/{SETUP,ARCHITECTURE}.md |
 
 ## Accumulated Context
 
@@ -156,12 +152,7 @@ Recent decisions affecting current work:
 - [Phase 15]: 15-03: 38 CR-XX rules encoded with priority-based regime merge; meta-flags at bits 45/46/47; SignalTier.DISQUALIFIED=-1 added; scorer zone-bonus duck-typed for VolumeZone/Level migration
 - [Phase 15]: 15-04: 7-state TradeDecisionMachine + 11 transitions + 17 ET-XX + EventStore fsm_transitions persistence; ExecutionEngine evaluate() preserved as delegate with DeprecationWarning
 - [Phase 15]: Phase 15 complete: 5 plans delivered (Level/LevelBus, narrative persistence, ConfluenceRules+scorer, FSM+EventStore, integration gate). 757 tests green; p95 evaluate 0.85ms; Phase 13 replay harness missing → synthetic fixtures used (D-36 fallback).
-- [Phase 17]: FootprintBar.Finalize() auto-recomputes TotalVol from Levels when TotalVol==0 (test construction pattern)
-- [Phase 17]: AbsorptionDetector and ExhaustionDetector qualify System.Math.* to avoid DEEP6.Math namespace collision
-- [Phase 17]: RollForward=Major in test csproj enables .NET 10 runtime to run net8.0 test binary (no .NET 8 on dev Mac)
-- [Phase 17]: ExhaustionDetector uses DetectCore() returning SignalResult[] bridged by legacy Detect() for DEEP6Strategy compat
-- [Phase 17-nt8-detector-refactor-remaining-signals-port]: LegacyDetectorsBridge uses PORT-SPEC semantics; EXH-02 inner-cooldown fix aligns registry with legacy; DEEP6Strategy converts SignalResult[] to legacy types for zero-touch downstream
-- [Phase 17]: Wave 3 TRIVIAL detectors (IMB-01/06/08, DELT-01/02/03/05/09, AUCT-02, VOLP-02/03/06): emit both IMB-01+IMB-06 for oversized levels; DELT-05 guards priorCvd!=0 to prevent false fire on first bar
+- [Phase 17]: TRAP-01 requires stacked (>=3) inverse imbalances; IMB-05 fires on any. UseNewRegistry=false until Wave 5 confluencer wiring. DELT-04 uses 3-bar slope, not polyfit.
 
 ### Roadmap Evolution
 
@@ -171,10 +162,6 @@ Recent decisions affecting current work:
 - Phase 15 added: LevelBus + Confluence Rules + Trade Decision FSM — unifies VP/narrative/GEX levels into single bus, encodes ~47 research-derived confluence rules, replaces bar-close execution with 7-state trade-decision FSM. Basis: .planning/research/pine/ (12,500 words, 35 papers)
 - Phase 11.1 inserted after Phase 11: Phase 11 layout and visual polish (URGENT) — ScoreWidget sidebar collapse, SignalFeed overlay bleeding into chart, header-strip font-size cascade, footprint cell DPR scaling
 - Phase 16 added: NinjaTrader 8 Footprint Indicator — standalone parallel deliverable (NT8 NinjaScript C# indicator, native Rithmic L2, absorption/exhaustion, massive.com GEX overlay). Does NOT replace Python pivot.
-- Phase 17 added: NT8 Detector Refactor + Remaining Signals Port — ISignalDetector registry, port IMB/DELT/AUCT/TRAP/VOLP/ENG signals from Python reference engine to NinjaScript, live NT8 parity
-- Phase 18 added: NT8 Scoring + Backtest Validation — two-layer confluence scorer in NinjaScript, replay harness, ≥5-session parity vs Python reference
-- Phase 19 added: Apex/Lucid Paper-Trade Gate — 30-day paper run on APEX-262674 and LT-45N3KIV8, risk-gate validation, go/no-go decision
-- Architecture pivot superseded (2026-04-15): Python + async-rithmic live runtime shelved — Apex refused API/plugin mode. NT8 NinjaScript is now primary; Python engine reference-only.
 
 ### Pending Todos
 
@@ -185,10 +172,9 @@ None yet.
 - [Phase 1]: async-rithmic aggressor field (DATA-02) is unverified hands-on — async-rithmic docs partially 403; must inspect live on_trade callback before footprint code is written
 - [Phase 1]: async-rithmic Issue #49 (ForcedLogout reconnection loop) is open as of March 2026 — pin to v1.5.9, connect plants sequentially with 500ms delay
 - [Phase 6]: Kronos CPU/MPS inference latency on M2 Mac is extrapolated, not measured — benchmark must run before inference cadence is finalized
-- [2026-04-15]: Apex refused API/plugin mode on APEX-262674 — async-rithmic live-runtime track unblocked only if Apex reverses or user migrates to a broker that supports API mode (EdgeClear, Tradovate via Rithmic, AMP Futures per CLAUDE.md).
 
 ## Session Continuity
 
-Last session: 2026-04-15T19:18:33.088Z
-Stopped at: Completed 17-03-PLAN.md
+Last session: 2026-04-15T19:32:49.315Z
+Stopped at: Completed 17-04-PLAN.md: 21 MODERATE-tier signals ported; 119/119 tests green
 Resume file: None

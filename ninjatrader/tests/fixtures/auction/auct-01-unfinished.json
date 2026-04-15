@@ -1,0 +1,26 @@
+{
+  "_comment": "AUCT-01 UNFINISHED: bar high level has non-zero bidVol. Expected: AUCT-01 direction=+1.",
+  "bar": {
+    "barIndex": 50,
+    "open": 20000.00,
+    "high": 20002.50,
+    "low": 19999.75,
+    "close": 20001.50,
+    "levels": {
+      "19999.75": { "askVol": 80,  "bidVol": 0   },
+      "20000.00": { "askVol": 200, "bidVol": 180 },
+      "20001.00": { "askVol": 150, "bidVol": 140 },
+      "20002.50": { "askVol": 60,  "bidVol": 45  }
+    }
+  },
+  "session": {
+    "tickSize": 0.25,
+    "atr20": 3.0,
+    "volEma20": 400.0
+  },
+  "expected": {
+    "signalId": "AUCT-01",
+    "direction": 1,
+    "comment": "High level 20002.50 bidVol=45 > 0 → unfinished business upward, price will return direction=+1"
+  }
+}

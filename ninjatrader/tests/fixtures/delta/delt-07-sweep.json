@@ -1,0 +1,33 @@
+{
+  "_comment": "DELT-07 SWEEP: 6 levels, upper 3 levels vol=1800, lower 3 levels vol=300. 1800 >= 300*1.5=450. Expected: DELT-07 direction=+1.",
+  "bar": {
+    "barIndex": 72,
+    "open": 20000.00,
+    "high": 20001.50,
+    "low": 19999.75,
+    "close": 20001.25,
+    "barDelta": 600,
+    "cvd": 1200,
+    "totalVol": 2200,
+    "maxDelta": 650,
+    "minDelta": -50,
+    "levels": {
+      "19999.75": { "askVol": 50,  "bidVol": 50  },
+      "20000.00": { "askVol": 55,  "bidVol": 55  },
+      "20000.25": { "askVol": 50,  "bidVol": 40  },
+      "20000.75": { "askVol": 600, "bidVol": 400 },
+      "20001.25": { "askVol": 620, "bidVol": 380 },
+      "20001.50": { "askVol": 590, "bidVol": 410 }
+    }
+  },
+  "session": {
+    "tickSize": 0.25,
+    "atr20": 3.0,
+    "volEma20": 600.0
+  },
+  "expected": {
+    "signalId": "DELT-07",
+    "direction": 1,
+    "comment": "6 levels (>= 4 min). First half vol=300, second half vol=1800 (6.0x > 1.5). direction=sign(delta=600)=+1"
+  }
+}

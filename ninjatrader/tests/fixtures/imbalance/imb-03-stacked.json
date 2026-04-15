@@ -1,0 +1,29 @@
+{
+  "_comment": "IMB-03 STACKED T1: 3 consecutive buy imbalances. Expected: IMB-03 T1 fires direction=+1 strength=0.33",
+  "bar": {
+    "barIndex": 21,
+    "open": 20000.00,
+    "high": 20002.50,
+    "low": 19999.75,
+    "close": 20001.75,
+    "levels": {
+      "19999.75": { "askVol": 50,  "bidVol": 60  },
+      "20000.00": { "askVol": 400, "bidVol": 80  },
+      "20000.25": { "askVol": 410, "bidVol": 82  },
+      "20000.50": { "askVol": 420, "bidVol": 84  },
+      "20000.75": { "askVol": 200, "bidVol": 180 },
+      "20001.00": { "askVol": 150, "bidVol": 160 }
+    }
+  },
+  "session": {
+    "tickSize": 0.25,
+    "atr20": 3.0,
+    "volEma20": 500.0
+  },
+  "expected": {
+    "signalId": "IMB-03",
+    "direction": 1,
+    "detail_contains": "T1",
+    "comment": "3 consecutive buy imbalances at 20000.00/20000.25/20000.50 → T1, strength=0.33"
+  }
+}

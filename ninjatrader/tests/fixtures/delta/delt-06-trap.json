@@ -1,0 +1,38 @@
+{
+  "_comment": "DELT-06 TRAP: priorBar delta=+800 (totalVol=1000), ratio=0.8 >= 0.35. Current bar close < open → longs trapped. Expected: DELT-06 direction=-1.",
+  "priorBars": [
+    {
+      "barIndex": 70,
+      "open": 20000.00, "high": 20002.00, "low": 19999.50, "close": 20001.75,
+      "barDelta": 800, "cvd": 800, "totalVol": 1000,
+      "maxDelta": 850, "minDelta": -50
+    }
+  ],
+  "bar": {
+    "barIndex": 71,
+    "open": 20002.00,
+    "high": 20002.50,
+    "low": 19999.50,
+    "close": 19999.75,
+    "barDelta": -300,
+    "cvd": 500,
+    "totalVol": 800,
+    "maxDelta": 100,
+    "minDelta": -350,
+    "levels": {
+      "19999.50": { "askVol": 500, "bidVol": 300 },
+      "20002.50": { "askVol": 100, "bidVol": 200 }
+    }
+  },
+  "session": {
+    "tickSize": 0.25,
+    "atr20": 3.0,
+    "volEma20": 600.0,
+    "deltaHistory": [800]
+  },
+  "expected": {
+    "signalId": "DELT-06",
+    "direction": -1,
+    "comment": "prevDelta=800, trapTh=800*0.35=280; 800>280 and close(19999.75)<open(20002.00) → DELT-06 direction=-1"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "_comment": "VOLP-04 POC WAVE: pocHistory=[20000.00, 20001.25, 20002.50] all strictly increasing. Expected: VOLP-04 direction=+1.",
+  "bar": {
+    "barIndex": 100,
+    "open": 20002.00,
+    "high": 20003.50,
+    "low": 20001.75,
+    "close": 20003.00,
+    "barDelta": 300,
+    "cvd": 1200,
+    "totalVol": 800,
+    "maxDelta": 320,
+    "minDelta": -20,
+    "pocPrice": 20002.75,
+    "levels": {
+      "20001.75": { "askVol": 200, "bidVol": 100 },
+      "20003.00": { "askVol": 400, "bidVol": 300 }
+    }
+  },
+  "session": {
+    "tickSize": 0.25,
+    "atr20": 3.0,
+    "volEma20": 500.0,
+    "pocHistory": [20000.00, 20001.25, 20002.50]
+  },
+  "expected": {
+    "signalId": "VOLP-04",
+    "direction": 1,
+    "comment": "pocHistory=[20000.00, 20001.25, 20002.50]; 20001.25>20000.00, 20002.50>20001.25 → strictly increasing → VOLP-04 direction=+1"
+  }
+}

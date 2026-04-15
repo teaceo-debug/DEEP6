@@ -1,0 +1,28 @@
+{
+  "_comment": "IMB-05 INVERSE TRAP: RED bar (close < open) with 3 buy imbalances = trapped longs. Expected: IMB-05 direction=-1.",
+  "bar": {
+    "barIndex": 23,
+    "open": 20002.00,
+    "high": 20002.25,
+    "low": 19999.50,
+    "close": 19999.75,
+    "levels": {
+      "19999.50": { "askVol": 50,  "bidVol": 60  },
+      "19999.75": { "askVol": 400, "bidVol": 80  },
+      "20000.00": { "askVol": 410, "bidVol": 82  },
+      "20000.25": { "askVol": 420, "bidVol": 84  },
+      "20000.50": { "askVol": 180, "bidVol": 170 },
+      "20001.00": { "askVol": 120, "bidVol": 130 }
+    }
+  },
+  "session": {
+    "tickSize": 0.25,
+    "atr20": 3.0,
+    "volEma20": 500.0
+  },
+  "expected": {
+    "signalId": "IMB-05",
+    "direction": -1,
+    "comment": "RED bar (close 19999.75 < open 20002.00) with 3 buy imbalances → IMB-05 direction=-1 (longs trapped)"
+  }
+}

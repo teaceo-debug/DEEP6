@@ -88,11 +88,34 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Registry
         public double SessionPocPrice;
 
         // --- Session delta extremes (DELT-09) ---
-        /// <summary>Session maximum bar delta (most positive delta seen this session). DELT-09.</summary>
+        /// <summary>Session maximum bar delta seen so far. Updated AFTER detector evaluation each bar.</summary>
         public long SessionMaxDelta;
 
-        /// <summary>Session minimum bar delta (most negative delta seen this session). DELT-09.</summary>
+        /// <summary>Session minimum bar delta seen so far (typically negative). Updated AFTER detector evaluation.</summary>
         public long SessionMinDelta;
+
+        // --- Imbalance history (IMB-07 consecutive, IMB-09 reversal) ---
+        /// <summary>
+        /// Per-bar imbalance ratio maps: price → ratio at that level.
+        /// Each dictionary represents one bar (the key is an exact price, value is the diagonal ratio).
+        /// Queue contains recent bars (oldest first, maxlen = MaxHistory).
+        /// IMB-07: intersect current bar's imbalance prices with prior bar entry.
+        /// </summary>
+        public Queue<Dictionary<double, double>> ImbalanceHistory;
+
+        // --- Unfinished auction levels (AUCT-01 in-memory tracking; cross-session SQLite deferred Phase 18) ---
+        /// <summary>
+        /// Price levels with unfinished auction activity. Key=price, value=bar index when first seen.
+        /// Entries expire after UnfinishedMaxAge bars. Managed by AuctionDetector each bar.
+        /// </summary>
+        public Dictionary<double, int> UnfinishedLevels;
+
+        /// <summary>Max bar age before UnfinishedLevels entries are expired (100 bars).</summary>
+        public const int UnfinishedMaxAge = 100;
+
+        // --- Volume history (VOLP-01 sequencing) ---
+        /// <summary>Recent bar total volumes (oldest first, maxlen = MaxHistory). Used by VOLP-01.</summary>
+        public Queue<long> VolHistory;
 
         /// <summary>Maximum depth for all rolling history queues.</summary>
         public const int MaxHistory = 50;
@@ -103,10 +126,13 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Registry
             BidDomLevels = new double[40];
             AskDomLevels = new double[40];
 
-            PriceHistory = new Queue<double>(MaxHistory + 1);
-            CvdHistory   = new Queue<long>(MaxHistory + 1);
-            DeltaHistory = new Queue<long>(MaxHistory + 1);
-            PocHistory   = new Queue<double>(MaxHistory + 1);
+            PriceHistory     = new Queue<double>(MaxHistory + 1);
+            CvdHistory       = new Queue<long>(MaxHistory + 1);
+            DeltaHistory     = new Queue<long>(MaxHistory + 1);
+            PocHistory       = new Queue<double>(MaxHistory + 1);
+            ImbalanceHistory = new Queue<Dictionary<double, double>>(MaxHistory + 1);
+            VolHistory       = new Queue<long>(MaxHistory + 1);
+            UnfinishedLevels = new Dictionary<double, int>();
         }
 
         /// <summary>
@@ -131,15 +157,18 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Registry
             Val             = null;
             BarsSinceOpen   = 0;
             SessionPocPrice = 0;
+            BestBid         = 0;
+            BestAsk         = 0;
             SessionMaxDelta = 0;
             SessionMinDelta = 0;
-            BestBid        = 0;
-            BestAsk        = 0;
 
             PriceHistory.Clear();
             CvdHistory.Clear();
             DeltaHistory.Clear();
             PocHistory.Clear();
+            ImbalanceHistory.Clear();
+            VolHistory.Clear();
+            UnfinishedLevels.Clear();
 
             // Reset DOM arrays to zero
             Array.Clear(BidDomLevels, 0, BidDomLevels.Length);

@@ -1,0 +1,31 @@
+{
+  "_comment": "TRAP-04: bar.totalVol=1100 > volEma=600*1.5=900. Bar range=20010-20000=10. upperZone=20010-2.5=20007.5. Upper levels: 20008+20010 combined vol=700. upperFrac=700/1100=0.636>0.35. Expected: TRAP-04 direction=-1 (upper wick rejection).",
+  "bar": {
+    "barIndex": 150,
+    "open": 20009.00,
+    "high": 20010.00,
+    "low": 20000.00,
+    "close": 20001.00,
+    "barDelta": -600,
+    "cvd": 200,
+    "totalVol": 1100,
+    "maxDelta": 100,
+    "minDelta": -650,
+    "levels": {
+      "20000.00": { "askVol": 100, "bidVol": 100 },
+      "20001.00": { "askVol": 100, "bidVol": 100 },
+      "20008.00": { "askVol": 300, "bidVol": 100 },
+      "20010.00": { "askVol": 200, "bidVol": 100 }
+    }
+  },
+  "session": {
+    "tickSize": 0.25,
+    "atr20": 6.0,
+    "volEma20": 600.0
+  },
+  "expected": {
+    "signalId": "TRAP-04",
+    "direction": -1,
+    "comment": "totalVol=1100 > volEma*1.5=900. Range=10, upperZone=20010-2.5=20007.5. upperVol(>=20007.5)=700, lowerVol(<=20002.5)=300. upperFrac=0.636>0.35 → TRAP-04 direction=-1"
+  }
+}

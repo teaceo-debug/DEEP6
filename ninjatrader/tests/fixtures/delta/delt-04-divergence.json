@@ -1,0 +1,45 @@
+{
+  "_comment": "DELT-04 DIVERGENCE: price going up but CVD declining. priorBars provides 2 prior close/CVD values. Expected: DELT-04 direction=-1.",
+  "priorBars": [
+    {
+      "barIndex": 60,
+      "open": 19999.00, "high": 20000.00, "low": 19998.00, "close": 19999.00,
+      "barDelta": 300, "cvd": 1000,
+      "totalVol": 600
+    },
+    {
+      "barIndex": 61,
+      "open": 19999.00, "high": 20001.00, "low": 19998.50, "close": 20000.00,
+      "barDelta": -100, "cvd": 900,
+      "totalVol": 500
+    }
+  ],
+  "bar": {
+    "barIndex": 62,
+    "open": 20000.00,
+    "high": 20002.00,
+    "low": 19999.50,
+    "close": 20001.00,
+    "barDelta": -200,
+    "cvd": 700,
+    "totalVol": 500,
+    "maxDelta": 50,
+    "minDelta": -250,
+    "levels": {
+      "19999.50": { "askVol": 200, "bidVol": 300 },
+      "20001.00": { "askVol": 200, "bidVol": 300 }
+    }
+  },
+  "session": {
+    "tickSize": 0.25,
+    "atr20": 3.0,
+    "volEma20": 500.0,
+    "priceHistory": [19999.00, 20000.00],
+    "cvdHistory": [1000, 900]
+  },
+  "expected": {
+    "signalId": "DELT-04",
+    "direction": -1,
+    "comment": "priceSlope=(20001-19999)/2=+1.0; deltaSlope=(700-1000)/2=-150; signs differ → DELT-04 direction=-1 (fade price rise)"
+  }
+}
