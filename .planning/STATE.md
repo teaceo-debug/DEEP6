@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: "2026-04-15 NT8 pivot: Phases 1–15 reclassified REFERENCE-ONLY (Python reference engine); Phase 16 built; Phase 17/18/19 appended to roadmap."
-stopped_at: Completed quick-260415-hpe-PLAN.md
-last_updated: "2026-04-15T16:58:20.707Z"
+stopped_at: Completed 17-01-PLAN.md
+last_updated: "2026-04-15T18:43:15.418Z"
 last_activity: "2026-04-15 - Completed quick task 260415-fdu: Fix GEX level disconnects"
 progress:
-  total_phases: 19
-  completed_phases: 13
-  total_plans: 56
-  completed_plans: 53
-  percent: 68
+  total_phases: 21
+  completed_phases: 14
+  total_plans: 63
+  completed_plans: 55
+  percent: 87
 ---
 
 # Project State
@@ -82,6 +82,7 @@ Progress: [██████▊░░░] 68%
 | Phase 15 P03 | 35 | 3 tasks | 7 files |
 | Phase 15 P04 | 40 | 3 tasks | 9 files |
 | Phase 15 P05 | 48 | 3 tasks | 8 files |
+| Phase 17 P01 | 12 | 3 tasks | 17 files |
 
 ## Quick Tasks Completed
 
@@ -153,6 +154,10 @@ Recent decisions affecting current work:
 - [Phase 15]: 15-03: 38 CR-XX rules encoded with priority-based regime merge; meta-flags at bits 45/46/47; SignalTier.DISQUALIFIED=-1 added; scorer zone-bonus duck-typed for VolumeZone/Level migration
 - [Phase 15]: 15-04: 7-state TradeDecisionMachine + 11 transitions + 17 ET-XX + EventStore fsm_transitions persistence; ExecutionEngine evaluate() preserved as delegate with DeprecationWarning
 - [Phase 15]: Phase 15 complete: 5 plans delivered (Level/LevelBus, narrative persistence, ConfluenceRules+scorer, FSM+EventStore, integration gate). 757 tests green; p95 evaluate 0.85ms; Phase 13 replay harness missing → synthetic fixtures used (D-36 fallback).
+- [Phase 17]: FootprintBar.Finalize() auto-recomputes TotalVol from Levels when TotalVol==0 (test construction pattern)
+- [Phase 17]: AbsorptionDetector and ExhaustionDetector qualify System.Math.* to avoid DEEP6.Math namespace collision
+- [Phase 17]: RollForward=Major in test csproj enables .NET 10 runtime to run net8.0 test binary (no .NET 8 on dev Mac)
+- [Phase 17]: ExhaustionDetector uses DetectCore() returning SignalResult[] bridged by legacy Detect() for DEEP6Strategy compat
 
 ### Roadmap Evolution
 
@@ -180,6 +185,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-15T16:58:20.699Z
-Stopped at: Completed quick-260415-hpe-PLAN.md
+Last session: 2026-04-15T18:43:15.415Z
+Stopped at: Completed 17-01-PLAN.md
 Resume file: None

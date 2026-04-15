@@ -359,7 +359,7 @@ Plans:
 **Plans**: 5 plans (Wave 1: plan-01; Wave 2: plan-02 [parity gate]; Wave 3: plan-03 [TRIVIAL]; Wave 4: plan-04 [MODERATE]; Wave 5: plan-05 [HARD + parity + flag flip])
 
 Plans:
-- [ ] 17-01-PLAN.md — ISignalDetector + DetectorRegistry + SessionContext + SignalFlagBits (64-bit) + LeastSquares + Wasserstein + migrate ABS/EXH + net8.0 NUnit harness + UseNewRegistry=false flag
+- [x] 17-01-PLAN.md — ISignalDetector + DetectorRegistry + SessionContext + SignalFlagBits (64-bit) + LeastSquares + Wasserstein + migrate ABS/EXH + net8.0 NUnit harness + UseNewRegistry=false flag
 - [ ] 17-02-PLAN.md — Legacy-vs-registry parity gate: 10 legacy fixtures + parity test suite + DEEP6Strategy UseNewRegistry branch + 17-02-PARITY-REPORT.md (BLOCKS Waves 3-5)
 - [ ] 17-03-PLAN.md — TRIVIAL tier: IMB-01/06/08, DELT-01/02/03/05/09, AUCT-02, VOLP-02/03/06 (12 signals)
 - [ ] 17-04-PLAN.md — MODERATE tier: IMB-02/03/04/05/07/09, DELT-04/06/07/11, AUCT-01/03/04/05, TRAP-01/02/03/04, VOLP-01/04/05 (21 signals)
