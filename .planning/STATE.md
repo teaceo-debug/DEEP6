@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-13)
 Phase: 15
 Plan: Complete (5/5)
 Status: Phase 15 complete — ready to advance
-Last activity: 2026-04-14
+Last activity: 2026-04-15 - Completed quick task 260415-fdu: Fix GEX level disconnects
 
 Progress: [█████████░] 95%
 
@@ -89,6 +89,7 @@ Progress: [█████████░] 95%
 | 260413-s1d | 2026-04-14 | Fix databento_feed.py attribute bugs (total_vol, tick_size kwarg, open_time/close_time, CVD chain) | deep6/data/databento_feed.py |
 | 260414-gzv | 2026-04-13 | perf(r5): rAF audit + Zustand scoped selectors + ringBuffer toArray single-pass + animations.ts perf notes | store/ringBuffer.ts, store/tradingStore.ts, lib/animations.ts, store/tradingStore.test.ts |
 | 260413-r8t | 2026-04-13 | feat(11.3-r8): unified chart toolbar — consolidate ChartModeSelector + ChartLegend into single top-left ChartToolbar strip | dashboard/components/footprint/ChartToolbar.tsx, FootprintChart.tsx |
+| 260415-fdu | 2026-04-15 | Fix GEX level disconnects — timer-driven fetch + backoff + query-param auth | ninjatrader/Custom/Indicators/DEEP6/DEEP6Footprint.cs, ninjatrader/docs/{SETUP,ARCHITECTURE}.md |
 
 ## Accumulated Context
 
