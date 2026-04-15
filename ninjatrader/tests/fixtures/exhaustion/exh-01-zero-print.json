@@ -1,0 +1,35 @@
+{
+  "signalId": "EXH-01",
+  "description": "ZERO PRINT exhaustion. Bar with a level at 20002.00 inside the body (open=20000,close=20004) where askVol=0 and bidVol=0. EXH-01 is delta-gate exempt — fires regardless of delta.",
+  "bar": {
+    "barIndex": 10,
+    "open": 20000.00,
+    "high": 20005.00,
+    "low": 19999.75,
+    "close": 20004.00,
+    "levels": [
+      {"price": 20005.00, "askVol": 200, "bidVol": 10},
+      {"price": 20004.00, "askVol": 150, "bidVol": 20},
+      {"price": 20002.00, "askVol": 0,   "bidVol": 0},
+      {"price": 20000.00, "askVol": 100, "bidVol": 100},
+      {"price": 19999.75, "askVol": 10,  "bidVol": 80}
+    ],
+    "notes": "Level at 20002.00 is inside the body (bodyBot=20000, bodyTop=20004) with zero vol. Delta gate is DeltaGateEnabled=false in this fixture so EXH-02..06 are suppressed; EXH-01 fires unconditionally."
+  },
+  "session": {
+    "atr20": 4.0,
+    "volEma20": 300.0,
+    "tickSize": 0.25,
+    "vah": null,
+    "val": null,
+    "deltaGateEnabled": false
+  },
+  "expected": [
+    {
+      "signalId": "EXH-01",
+      "direction": 1,
+      "strength": 0.6,
+      "detail_contains": "ZERO PRINT"
+    }
+  ]
+}

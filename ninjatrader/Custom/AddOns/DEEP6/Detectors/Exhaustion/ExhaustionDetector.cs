@@ -141,8 +141,8 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Exhaustion
                 if (v > maxLevelVol) maxLevelVol = v;
             }
             double avgLevelVol = bar.Levels.Count > 0 ? (double)bar.TotalVol / bar.Levels.Count : 1.0;
-            double bodyTop     = Math.Max(bar.Open, bar.Close);
-            double bodyBot     = Math.Min(bar.Open, bar.Close);
+            double bodyTop     = System.Math.Max(bar.Open, bar.Close);
+            double bodyBot     = System.Math.Min(bar.Open, bar.Close);
 
             var results = new List<SignalResult>();
 
@@ -182,7 +182,7 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Exhaustion
                     if (pct >= effMin / 3.0)
                     {
                         results.Add(new SignalResult("EXH-02", -1,
-                            Math.Min(pct / 20.0, 1.0),
+                            System.Math.Min(pct / 20.0, 1.0),
                             SignalFlagBits.Mask(SignalFlagBits.EXH_02),
                             string.Format("EXHAUSTION PRINT at high {0:F2}: ask={1} ({2:F1}%)",
                                 hiPx, hiLv.AskVol, pct)));
@@ -197,7 +197,7 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Exhaustion
                     if (pct >= cfg.ExhaustWickMin / 3.0)
                     {
                         results.Add(new SignalResult("EXH-02", +1,
-                            Math.Min(pct / 20.0, 1.0),
+                            System.Math.Min(pct / 20.0, 1.0),
                             SignalFlagBits.Mask(SignalFlagBits.EXH_02),
                             string.Format("EXHAUSTION PRINT at low {0:F2}: bid={1} ({2:F1}%)",
                                 loPx, loLv.BidVol, pct)));
@@ -221,7 +221,7 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Exhaustion
                 {
                     int dir = bar.Close > bar.Open ? +1 : -1;
                     results.Add(new SignalResult("EXH-03", dir,
-                        Math.Min(thinCount / 7.0, 1.0),
+                        System.Math.Min(thinCount / 7.0, 1.0),
                         SignalFlagBits.Mask(SignalFlagBits.EXH_03),
                         string.Format("THIN PRINT: {0} levels < {1:F0}% max vol — fast move",
                             thinCount, cfg.ThinPct * 100)));
@@ -239,7 +239,7 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Exhaustion
                     if (v > avgLevelVol * cfg.FatMult)
                     {
                         results.Add(new SignalResult("EXH-04", 0,
-                            Math.Min(v / (avgLevelVol * cfg.FatMult * 2.0), 1.0),
+                            System.Math.Min(v / (avgLevelVol * cfg.FatMult * 2.0), 1.0),
                             SignalFlagBits.Mask(SignalFlagBits.EXH_04),
                             string.Format("FAT PRINT at {0:F2}: vol={1} ({2:F1}x avg) — strong acceptance",
                                 px, v, v / avgLevelVol)));
@@ -253,12 +253,12 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Exhaustion
             // Python reference: exhaustion.py lines 252-272
             if (CheckCooldown(ExhaustionType.FadingMomentum, barIndex, cfg.CooldownBars))
             {
-                if (bar.BarRange > 0 && Math.Abs(bar.BarDelta) > bar.TotalVol * 0.15)
+                if (bar.BarRange > 0 && System.Math.Abs(bar.BarDelta) > bar.TotalVol * 0.15)
                 {
                     bool barBullish = bar.Close > bar.Open;
                     int  dir        = barBullish ? -1 : +1;
                     results.Add(new SignalResult("EXH-05", dir,
-                        Math.Min((double)Math.Abs(bar.BarDelta) / bar.TotalVol, 1.0),
+                        System.Math.Min((double)System.Math.Abs(bar.BarDelta) / bar.TotalVol, 1.0),
                         SignalFlagBits.Mask(SignalFlagBits.EXH_05),
                         string.Format("FADING MOMENTUM: price {0} but delta={1:+#;-#;0} opposes — aggression fading",
                             barBullish ? "up" : "down", bar.BarDelta)));
@@ -373,7 +373,7 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Exhaustion
         {
             if (!cfg.DeltaGateEnabled) return true;
             if (bar.TotalVol == 0) return true;
-            double r = Math.Abs(bar.BarDelta) / (double)bar.TotalVol;
+            double r = System.Math.Abs(bar.BarDelta) / (double)bar.TotalVol;
             if (r < cfg.DeltaGateMinRatio) return true;   // too small → don't block
             if (bar.Close > bar.Open) return bar.BarDelta < 0;   // bullish bar: buyers must be fading
             if (bar.Close < bar.Open) return bar.BarDelta > 0;   // bearish bar: sellers must be fading

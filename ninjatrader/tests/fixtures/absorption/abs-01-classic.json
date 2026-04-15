@@ -1,0 +1,36 @@
+{
+  "signalId": "ABS-01",
+  "description": "CLASSIC absorption at upper wick, bearish reversal. wickPct=35% >= 30% effWickMin; deltaRatio=0.057 < 0.12 AbsorbDeltaMax; barDeltaRatio=0.08 < 0.18 threshold.",
+  "bar": {
+    "barIndex": 42,
+    "open": 20001.75,
+    "high": 20005.00,
+    "low": 20000.00,
+    "close": 20001.25,
+    "levels": [
+      {"price": 20005.00, "askVol": 185, "bidVol": 165},
+      {"price": 20004.75, "askVol": 0,   "bidVol": 0},
+      {"price": 20002.00, "askVol": 200, "bidVol": 150},
+      {"price": 20001.75, "askVol": 100, "bidVol": 80},
+      {"price": 20001.25, "askVol": 50,  "bidVol": 50},
+      {"price": 20000.50, "askVol": 10,  "bidVol": 10}
+    ],
+    "notes": "Levels at 20005 and 20004.75 are above body (open=20001.75,close=20001.25) → upper wick. upperVol=350, upperDelta=+20, totalVol=1000, barDelta=80."
+  },
+  "session": {
+    "atr20": 4.0,
+    "volEma20": 500.0,
+    "tickSize": 0.25,
+    "vah": 20003.0,
+    "val": 19999.0
+  },
+  "expected": [
+    {
+      "signalId": "ABS-01",
+      "direction": -1,
+      "strengthMin": 0.25,
+      "strengthMax": 0.45,
+      "detail_contains": "CLASSIC upper"
+    }
+  ]
+}

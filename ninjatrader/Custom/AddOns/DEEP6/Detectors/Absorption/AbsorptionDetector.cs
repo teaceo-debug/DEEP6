@@ -88,8 +88,8 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Absorption
 
             var results = new List<SignalResult>();
 
-            double bodyTop = Math.Max(bar.Open, bar.Close);
-            double bodyBot = Math.Min(bar.Open, bar.Close);
+            double bodyTop = System.Math.Max(bar.Open, bar.Close);
+            double bodyBot = System.Math.Min(bar.Open, bar.Close);
 
             long upperVol = 0, upperDelta = 0;
             long lowerVol = 0, lowerDelta = 0;
@@ -104,7 +104,7 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Absorption
             }
 
             double effWickMin    = _cfg.AbsorbWickMin * (bar.BarRange > atr * 1.5 ? 1.2 : 1.0);
-            double barDeltaRatio = bar.TotalVol == 0 ? 0 : (double)Math.Abs(bar.BarDelta) / bar.TotalVol;
+            double barDeltaRatio = bar.TotalVol == 0 ? 0 : (double)System.Math.Abs(bar.BarDelta) / bar.TotalVol;
 
             // --- ABS-01: CLASSIC (upper wick then lower wick) ---
             TryClassic(upperVol, upperDelta, bar.TotalVol, effWickMin, _cfg.AbsorbDeltaMax,
@@ -124,7 +124,7 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Absorption
             if (upperZoneVol / (double)bar.TotalVol >= _cfg.PassiveVolPct
                 && bar.Close < bar.High - extremeRange)
             {
-                double str = Math.Min(upperZoneVol / (double)bar.TotalVol, 1.0);
+                double str = System.Math.Min(upperZoneVol / (double)bar.TotalVol, 1.0);
                 results.Add(new SignalResult("ABS-02", -1, str,
                     SignalFlagBits.Mask(SignalFlagBits.ABS_02),
                     string.Format("PASSIVE upper: {0:F1}% vol at top 20%",
@@ -133,7 +133,7 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Absorption
             if (lowerZoneVol / (double)bar.TotalVol >= _cfg.PassiveVolPct
                 && bar.Close > bar.Low + extremeRange)
             {
-                double str = Math.Min(lowerZoneVol / (double)bar.TotalVol, 1.0);
+                double str = System.Math.Min(lowerZoneVol / (double)bar.TotalVol, 1.0);
                 results.Add(new SignalResult("ABS-02", +1, str,
                     SignalFlagBits.Mask(SignalFlagBits.ABS_02),
                     string.Format("PASSIVE lower: {0:F1}% vol at bottom 20%",
@@ -143,7 +143,7 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Absorption
             // --- ABS-03: STOPPING VOLUME ---
             if (bar.TotalVol > volEma * _cfg.StopVolMult)
             {
-                double str = Math.Min(bar.TotalVol / (volEma * _cfg.StopVolMult * 2.0), 1.0);
+                double str = System.Math.Min(bar.TotalVol / (volEma * _cfg.StopVolMult * 2.0), 1.0);
                 if (bar.PocPrice > bodyTop)
                     results.Add(new SignalResult("ABS-03", -1, str,
                         SignalFlagBits.Mask(SignalFlagBits.ABS_03),
@@ -161,8 +161,8 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Absorption
                 && atr > 0 && bar.BarRange < atr * _cfg.EvrRangeCap)
             {
                 int    dir = bar.BarDelta < 0 ? +1 : -1;
-                double str = Math.Min(bar.TotalVol / (volEma * _cfg.EvrVolMult * 2.0), 1.0);
-                double dr  = bar.TotalVol == 0 ? 0 : Math.Abs(bar.BarDelta) / (double)bar.TotalVol;
+                double str = System.Math.Min(bar.TotalVol / (volEma * _cfg.EvrVolMult * 2.0), 1.0);
+                double dr  = bar.TotalVol == 0 ? 0 : System.Math.Abs(bar.BarDelta) / (double)bar.TotalVol;
                 results.Add(new SignalResult("ABS-04", dir, str,
                     SignalFlagBits.Mask(SignalFlagBits.ABS_04),
                     string.Format("EFFORT vs RESULT: vol={0} ({1:F1}x avg) range={2:F2} ({3:F0}% ATR)",
@@ -185,12 +185,12 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Absorption
                     // For ABS-04 (body) use midpoint
                     if (results[i].SignalId == "ABS-04") sigPrice = (bar.High + bar.Low) / 2.0;
 
-                    bool atVah = vah.HasValue && Math.Abs(sigPrice - vah.Value) <= prox;
-                    bool atVal = val.HasValue && Math.Abs(sigPrice - val.Value) <= prox;
+                    bool atVah = vah.HasValue && System.Math.Abs(sigPrice - vah.Value) <= prox;
+                    bool atVal = val.HasValue && System.Math.Abs(sigPrice - val.Value) <= prox;
                     if (atVah || atVal)
                     {
                         string tag     = atVah ? "@VAH" : "@VAL";
-                        double bumped  = Math.Min(results[i].Strength + _cfg.VaExtremeStrengthBonus, 1.0);
+                        double bumped  = System.Math.Min(results[i].Strength + _cfg.VaExtremeStrengthBonus, 1.0);
                         results[i]     = new SignalResult(
                             results[i].SignalId, results[i].Direction, bumped,
                             results[i].FlagBit,
@@ -217,14 +217,14 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Absorption
         {
             if (wickVol == 0 || totalVol == 0) return;
             double wickPct    = wickVol * 100.0 / totalVol;
-            double deltaRatio = Math.Abs(wickDelta) / (double)wickVol;
+            double deltaRatio = System.Math.Abs(wickDelta) / (double)wickVol;
             if (wickPct >= effWickMin
                 && deltaRatio < deltaMax
                 && barDeltaRatio < deltaMax * 1.5)
             {
-                double strength = Math.Min(wickPct / 60.0, 1.0) * (1.0 - deltaRatio / deltaMax);
+                double strength = System.Math.Min(wickPct / 60.0, 1.0) * (1.0 - deltaRatio / deltaMax);
                 results.Add(new SignalResult(
-                    "ABS-01", direction, Math.Max(0, strength),
+                    "ABS-01", direction, System.Math.Max(0, strength),
                     SignalFlagBits.Mask(SignalFlagBits.ABS_01),
                     string.Format("CLASSIC {0}: wick={1:F1}% delta_ratio={2:F3}",
                         side, wickPct, deltaRatio)));

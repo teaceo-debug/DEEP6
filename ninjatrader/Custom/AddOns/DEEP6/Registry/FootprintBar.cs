@@ -77,6 +77,14 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
 
         public void Finalize(long priorCvd = 0)
         {
+            // Recompute TotalVol from Levels if it wasn't accumulated via AddTrade().
+            // This covers the test-construction pattern where Levels are set directly.
+            if (TotalVol == 0 && Levels.Count > 0)
+            {
+                TotalVol = 0;
+                foreach (var lv in Levels.Values) TotalVol += lv.AskVol + lv.BidVol + lv.NeutralVol;
+            }
+
             BarDelta = 0;
             foreach (var lv in Levels.Values) BarDelta += lv.AskVol - lv.BidVol;
             if (Levels.Count > 0)
