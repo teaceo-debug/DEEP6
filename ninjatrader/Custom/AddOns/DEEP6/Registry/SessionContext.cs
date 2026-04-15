@@ -87,6 +87,13 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Registry
         /// <summary>Current session POC price — updated from each bar's PocPrice.</summary>
         public double SessionPocPrice;
 
+        // --- Session delta extremes (DELT-09) ---
+        /// <summary>Session maximum bar delta (most positive delta seen this session). DELT-09.</summary>
+        public long SessionMaxDelta;
+
+        /// <summary>Session minimum bar delta (most negative delta seen this session). DELT-09.</summary>
+        public long SessionMinDelta;
+
         /// <summary>Maximum depth for all rolling history queues.</summary>
         public const int MaxHistory = 50;
 
@@ -118,12 +125,14 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Registry
         /// </summary>
         public void ResetSession()
         {
-            PriorCvd       = 0;
-            PriorBar       = null;
-            Vah            = null;
-            Val            = null;
-            BarsSinceOpen  = 0;
+            PriorCvd        = 0;
+            PriorBar        = null;
+            Vah             = null;
+            Val             = null;
+            BarsSinceOpen   = 0;
             SessionPocPrice = 0;
+            SessionMaxDelta = 0;
+            SessionMinDelta = 0;
             BestBid        = 0;
             BestAsk        = 0;
 

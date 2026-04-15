@@ -1,0 +1,29 @@
+{
+  "signalId": "DELT-09",
+  "description": "Delta at session maximum. session.SessionMaxDelta=1000, current barDelta=980. 980 >= 0.95*1000=950. Fires DELT-09 direction=-1 (bearish warning at session peak).",
+  "bar": {
+    "barIndex": 34,
+    "open": 20000.00,
+    "high": 20008.00,
+    "low": 19998.00,
+    "close": 20007.00,
+    "levels": [
+      {"price": 19998.00, "askVol": 10,  "bidVol": 0},
+      {"price": 20000.00, "askVol": 500, "bidVol": 10},
+      {"price": 20007.00, "askVol": 480, "bidVol": 0}
+    ],
+    "notes": "barDelta=(10-0)+(500-10)+(480-0)=10+490+480=980. sessionMaxDelta=1000. 980 >= 0.95*1000=950 → DELT-09 direction=-1."
+  },
+  "session": {
+    "sessionMaxDelta": 1000,
+    "sessionMinDelta": 0,
+    "tickSize": 0.25
+  },
+  "expected": [
+    {
+      "signalId": "DELT-09",
+      "direction": -1,
+      "detail_contains": "SESSION MAX"
+    }
+  ]
+}

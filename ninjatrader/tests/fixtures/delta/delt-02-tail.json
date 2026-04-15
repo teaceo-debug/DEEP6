@@ -1,0 +1,27 @@
+{
+  "signalId": "DELT-02",
+  "description": "Delta tail at positive extreme. barDelta=100, MaxDelta=100 (exact tail). tailRatio=1.0 >= 0.95 threshold. Direction=-1 (tail at +extreme implies bearish exhaustion). For test bars built via Levels, MaxDelta=0 so detector uses delta as the trivial extreme (ratio=1.0).",
+  "bar": {
+    "barIndex": 31,
+    "open": 20000.00,
+    "high": 20005.00,
+    "low": 19998.00,
+    "close": 20004.00,
+    "levels": [
+      {"price": 19998.00, "askVol": 50,  "bidVol": 0},
+      {"price": 20000.00, "askVol": 100, "bidVol": 50},
+      {"price": 20004.00, "askVol": 0,   "bidVol": 0}
+    ],
+    "notes": "barDelta=100 (50+50+0=100). MaxDelta=0 (no AddTrade path). Detector treats extreme=delta, ratio=1.0 >= 0.95."
+  },
+  "session": {
+    "tickSize": 0.25
+  },
+  "expected": [
+    {
+      "signalId": "DELT-02",
+      "direction": -1,
+      "detail_contains": "TAIL"
+    }
+  ]
+}

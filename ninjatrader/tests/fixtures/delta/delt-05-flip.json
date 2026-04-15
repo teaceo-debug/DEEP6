@@ -1,0 +1,28 @@
+{
+  "signalId": "DELT-05",
+  "description": "CVD flip from positive to negative. session.PriorCvd=+500 (positive), current barDelta=-700 so bar.Cvd = priorCvd + barDelta = 500 + (-700) = -200 (negative). Sign change fires DELT-05 direction=-1.",
+  "bar": {
+    "barIndex": 33,
+    "open": 20003.00,
+    "high": 20004.00,
+    "low": 19998.00,
+    "close": 19999.00,
+    "levels": [
+      {"price": 19998.00, "askVol": 50,  "bidVol": 400},
+      {"price": 20000.00, "askVol": 100, "bidVol": 350},
+      {"price": 20003.00, "askVol": 0,   "bidVol": 100}
+    ],
+    "notes": "barDelta=(50-400)+(100-350)+(0-100)=-350-250-100=-700. priorCvd=500. cvd=500+(-700)=-200. Sign change: +500 → -200 = DELT-05 direction=-1."
+  },
+  "session": {
+    "priorCvd": 500,
+    "tickSize": 0.25
+  },
+  "expected": [
+    {
+      "signalId": "DELT-05",
+      "direction": -1,
+      "detail_contains": "FLIP"
+    }
+  ]
+}

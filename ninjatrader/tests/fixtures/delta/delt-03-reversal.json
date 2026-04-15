@@ -1,0 +1,27 @@
+{
+  "signalId": "DELT-03",
+  "description": "Delta reversal — bar closed UP (bullish bar) but delta is negative (selling dominated). deltaRatioAbs=300/1000=0.30 > 0.15 threshold. Direction=-1 (bearish hidden reversal).",
+  "bar": {
+    "barIndex": 32,
+    "open": 20000.00,
+    "high": 20005.00,
+    "low": 19997.00,
+    "close": 20003.00,
+    "levels": [
+      {"price": 19997.00, "askVol": 50,  "bidVol": 250},
+      {"price": 20000.00, "askVol": 200, "bidVol": 350},
+      {"price": 20003.00, "askVol": 50,  "bidVol": 100}
+    ],
+    "notes": "close=20003 > open=20000 (bullish bar). barDelta=(50-250)+(200-350)+(50-100)=-200-150-50=-400+100=-300. deltaRatioAbs=300/1000=0.30 > 0.15. Direction=-1 (bar up, delta negative = bearish hidden reversal)."
+  },
+  "session": {
+    "tickSize": 0.25
+  },
+  "expected": [
+    {
+      "signalId": "DELT-03",
+      "direction": -1,
+      "detail_contains": "REVERSAL"
+    }
+  ]
+}

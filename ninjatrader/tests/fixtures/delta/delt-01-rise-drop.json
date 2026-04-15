@@ -1,0 +1,28 @@
+{
+  "signalId": "DELT-01",
+  "description": "Delta rise classification. barDelta=500, totalVol=1000. Strength=0.5 (500/1000). Direction=+1.",
+  "bar": {
+    "barIndex": 30,
+    "open": 20000.00,
+    "high": 20005.00,
+    "low": 19998.00,
+    "close": 20003.00,
+    "levels": [
+      {"price": 19998.00, "askVol": 100, "bidVol": 50},
+      {"price": 20000.00, "askVol": 300, "bidVol": 200},
+      {"price": 20003.00, "askVol": 350, "bidVol": 0}
+    ],
+    "notes": "totalVol=1000, barDelta = (100-50)+(300-200)+(350-0) = 500. direction=+1, strength=0.5."
+  },
+  "session": {
+    "tickSize": 0.25
+  },
+  "expected": [
+    {
+      "signalId": "DELT-01",
+      "direction": 1,
+      "strengthMin": 0.49,
+      "strengthMax": 0.51
+    }
+  ]
+}
