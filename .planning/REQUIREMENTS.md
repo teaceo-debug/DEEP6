@@ -62,34 +62,34 @@ Following the 2026-04-15 NT8 pivot (Apex refused to enable Rithmic API/plugin mo
 
 ### Imbalance (IMB)
 
-- [ ] **IMB-01**: Single imbalance detected at configurable ratio threshold (default 300%+)
+- [x] **IMB-01**: Single imbalance detected at configurable ratio threshold (default 300%+)
 - [ ] **IMB-02**: Multiple imbalance (3+ at same price) detected
 - [ ] **IMB-03**: Stacked imbalances T1/T2/T3 (3/5/7 consecutive levels) detected with tier classification
 - [ ] **IMB-04**: Reverse imbalance detected (opposite direction imbalance within bar)
 - [ ] **IMB-05**: Inverse imbalance (trapped traders) detected — buy imbalances in red bar / sell imbalances in green bar (80-85% win rate)
-- [ ] **IMB-06**: Oversized imbalance detected (10:1+ ratio at single level)
+- [x] **IMB-06**: Oversized imbalance detected (10:1+ ratio at single level)
 - [ ] **IMB-07**: Consecutive imbalance detected (same level across multiple bars)
-- [ ] **IMB-08**: Diagonal imbalance detected — ask[P] vs bid[P-1] (one tick down) per confirmed algorithm
+- [x] **IMB-08**: Diagonal imbalance detected — ask[P] vs bid[P-1] (one tick down) per confirmed algorithm
 - [ ] **IMB-09**: Reversal imbalance pattern detected (imbalance direction change within bar sequence)
 
 ### Delta (DELT)
 
-- [ ] **DELT-01**: Delta rise/drop classified per bar
-- [ ] **DELT-02**: Delta tail detected — bar delta closes at 95%+ of its extreme value
-- [ ] **DELT-03**: Delta reversal detected — intrabar delta flip from one extreme to opposite
+- [x] **DELT-01**: Delta rise/drop classified per bar
+- [x] **DELT-02**: Delta tail detected — bar delta closes at 95%+ of its extreme value
+- [x] **DELT-03**: Delta reversal detected — intrabar delta flip from one extreme to opposite
 - [ ] **DELT-04**: Delta divergence detected — price making new high/low while delta fails to confirm
-- [ ] **DELT-05**: Delta flip detected — sign change in cumulative delta
+- [x] **DELT-05**: Delta flip detected — sign change in cumulative delta
 - [ ] **DELT-06**: Delta trap detected — aggressive delta in one direction followed by price reversal
 - [ ] **DELT-07**: Delta sweep detected — rapid delta accumulation across multiple price levels
 - [ ] **DELT-08**: Delta slingshot detected — compressed delta followed by explosive expansion (72-78% win rate)
-- [ ] **DELT-09**: Delta at min/max classified relative to session range
+- [x] **DELT-09**: Delta at min/max classified relative to session range
 - [ ] **DELT-10**: CVD multi-bar divergence detected via numpy polyfit linear regression over 5-20 bar window
 - [ ] **DELT-11**: Delta velocity computed — rate of change of cumulative delta per unit time
 
 ### Auction Theory (AUCT)
 
 - [ ] **AUCT-01**: Unfinished business detected — non-zero bid at bar high or ask at bar low (price will return)
-- [ ] **AUCT-02**: Finished auction detected — zero volume on bid at high or ask at low (exhaustion confirmation)
+- [x] **AUCT-02**: Finished auction detected — zero volume on bid at high or ask at low (exhaustion confirmation)
 - [ ] **AUCT-03**: Poor high/low detected — single-print or low-volume extreme (incomplete auction)
 - [ ] **AUCT-04**: Volume void (LVN gap) detected within bar — fast-move zone with no acceptance
 - [ ] **AUCT-05**: Market sweep detected — rapid price traversal through multiple levels with increasing volume
@@ -105,11 +105,11 @@ Following the 2026-04-15 NT8 pivot (Apex refused to enable Rithmic API/plugin mo
 ### Volume Patterns (VOLP)
 
 - [ ] **VOLP-01**: Volume sequencing detected — institutional accumulation/distribution pattern across 3+ bars
-- [ ] **VOLP-02**: Volume bubble detected — isolated high-volume price level within bar
-- [ ] **VOLP-03**: Volume surge detected — bar volume exceeds N× session average
+- [x] **VOLP-02**: Volume bubble detected — isolated high-volume price level within bar
+- [x] **VOLP-03**: Volume surge detected — bar volume exceeds N× session average
 - [ ] **VOLP-04**: POC momentum wave detected — POC migrating consistently in one direction across bars
 - [ ] **VOLP-05**: Delta velocity spike detected — acceleration in delta rate-of-change
-- [ ] **VOLP-06**: Big delta per level detected — single price level with outsized net delta
+- [x] **VOLP-06**: Big delta per level detected — single price level with outsized net delta
 
 ### POC / Value Area (POC)
 
@@ -309,28 +309,28 @@ Updated during roadmap creation (2026-04-11).
 | EXH-06 | Phase 2 | Pending |
 | EXH-07 | Phase 2 | Pending |
 | EXH-08 | Phase 2 | Pending |
-| IMB-01 | Phase 3 | Pending |
+| IMB-01 | Phase 3 | Complete |
 | IMB-02 | Phase 3 | Pending |
 | IMB-03 | Phase 3 | Pending |
 | IMB-04 | Phase 3 | Pending |
 | IMB-05 | Phase 3 | Pending |
-| IMB-06 | Phase 3 | Pending |
+| IMB-06 | Phase 3 | Complete |
 | IMB-07 | Phase 3 | Pending |
-| IMB-08 | Phase 3 | Pending |
+| IMB-08 | Phase 3 | Complete |
 | IMB-09 | Phase 3 | Pending |
-| DELT-01 | Phase 3 | Pending |
-| DELT-02 | Phase 3 | Pending |
-| DELT-03 | Phase 3 | Pending |
+| DELT-01 | Phase 3 | Complete |
+| DELT-02 | Phase 3 | Complete |
+| DELT-03 | Phase 3 | Complete |
 | DELT-04 | Phase 3 | Pending |
-| DELT-05 | Phase 3 | Pending |
+| DELT-05 | Phase 3 | Complete |
 | DELT-06 | Phase 3 | Pending |
 | DELT-07 | Phase 3 | Pending |
 | DELT-08 | Phase 3 | Pending |
-| DELT-09 | Phase 3 | Pending |
+| DELT-09 | Phase 3 | Complete |
 | DELT-10 | Phase 3 | Pending |
 | DELT-11 | Phase 3 | Pending |
 | AUCT-01 | Phase 3 | Pending |
-| AUCT-02 | Phase 3 | Pending |
+| AUCT-02 | Phase 3 | Complete |
 | AUCT-03 | Phase 3 | Pending |
 | AUCT-04 | Phase 3 | Pending |
 | AUCT-05 | Phase 3 | Pending |
@@ -343,11 +343,11 @@ Updated during roadmap creation (2026-04-11).
 | TRAP-04 | Phase 4 | Pending |
 | TRAP-05 | Phase 4 | Pending |
 | VOLP-01 | Phase 4 | Pending |
-| VOLP-02 | Phase 4 | Pending |
-| VOLP-03 | Phase 4 | Pending |
+| VOLP-02 | Phase 4 | Complete |
+| VOLP-03 | Phase 4 | Complete |
 | VOLP-04 | Phase 4 | Pending |
 | VOLP-05 | Phase 4 | Pending |
-| VOLP-06 | Phase 4 | Pending |
+| VOLP-06 | Phase 4 | Complete |
 | ENG-02 | Phase 4 | Pending |
 | ENG-03 | Phase 4 | Pending |
 | ENG-04 | Phase 4 | Pending |
