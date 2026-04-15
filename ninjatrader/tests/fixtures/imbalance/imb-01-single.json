@@ -1,0 +1,26 @@
+{
+  "signalId": "IMB-01",
+  "description": "Single buy imbalance at one level. askVol=400, bidVol=100 at one tick below gives ratio 4.0 > 3.0 threshold. Only one level pair, so IMB-08 diagonal also fires.",
+  "bar": {
+    "barIndex": 10,
+    "open": 20000.00,
+    "high": 20000.50,
+    "low": 19999.75,
+    "close": 20000.25,
+    "levels": [
+      {"price": 19999.75, "askVol": 50,  "bidVol": 100},
+      {"price": 20000.00, "askVol": 400, "bidVol": 80}
+    ],
+    "notes": "Buy imbalance: ask[20000.00]=400 vs bid[19999.75]=100, ratio=4.0 > 3.0. One tick gap = 0.25 tickSize."
+  },
+  "session": {
+    "tickSize": 0.25
+  },
+  "expected": [
+    {
+      "signalId": "IMB-01",
+      "direction": 1,
+      "detail_contains": "BUY"
+    }
+  ]
+}

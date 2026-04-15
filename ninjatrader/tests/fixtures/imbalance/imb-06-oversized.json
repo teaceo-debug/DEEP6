@@ -1,0 +1,31 @@
+{
+  "signalId": "IMB-06",
+  "description": "Oversized buy imbalance. askVol=1000, bidVol=90 — ratio ~11.1 > 10.0 oversized_threshold. Both IMB-01 and IMB-06 should fire.",
+  "bar": {
+    "barIndex": 11,
+    "open": 20000.00,
+    "high": 20000.50,
+    "low": 19999.75,
+    "close": 20000.25,
+    "levels": [
+      {"price": 19999.75, "askVol": 50,  "bidVol": 90},
+      {"price": 20000.00, "askVol": 1000, "bidVol": 50}
+    ],
+    "notes": "Buy imbalance: ask[20000.00]=1000 vs bid[19999.75]=90, ratio=11.11 > 10.0 oversized threshold. Both IMB-01 and IMB-06 expected."
+  },
+  "session": {
+    "tickSize": 0.25
+  },
+  "expected": [
+    {
+      "signalId": "IMB-01",
+      "direction": 1,
+      "detail_contains": "BUY"
+    },
+    {
+      "signalId": "IMB-06",
+      "direction": 1,
+      "detail_contains": "OVERSIZED"
+    }
+  ]
+}

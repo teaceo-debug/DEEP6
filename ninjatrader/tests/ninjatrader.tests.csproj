@@ -30,6 +30,10 @@
     <Compile Include="..\Custom\AddOns\DEEP6\Detectors\Absorption\**\*.cs" />
     <Compile Include="..\Custom\AddOns\DEEP6\Detectors\Exhaustion\**\*.cs" />
     <Compile Include="..\Custom\AddOns\DEEP6\Detectors\Legacy\**\*.cs" />
+    <Compile Include="..\Custom\AddOns\DEEP6\Detectors\Imbalance\**\*.cs" />
+    <Compile Include="..\Custom\AddOns\DEEP6\Detectors\Auction\**\*.cs" />
+    <Compile Include="..\Custom\AddOns\DEEP6\Detectors\Delta\**\*.cs" />
+    <Compile Include="..\Custom\AddOns\DEEP6\Detectors\VolPattern\**\*.cs" />
   </ItemGroup>
 
   <ItemGroup>
