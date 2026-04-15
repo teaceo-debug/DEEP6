@@ -1,0 +1,27 @@
+{
+  "name": "type-b-no-zone",
+  "description": "4 categories bullish in IB window, no zone — score hits TypeB band, no zone so TypeA blocked",
+  "inputs": {
+    "signals": [
+      {"signalId": "ABS-01", "direction": 1, "strength": 0.8, "price": 17500.0, "detail": "ABSORBED @LOW"},
+      {"signalId": "EXH-03", "direction": 1, "strength": 0.6, "price": 0.0, "detail": "EXHAUSTION LONG"},
+      {"signalId": "TRAP-01", "direction": 1, "strength": 0.5, "price": 0.0, "detail": "INVERSE TRAP"},
+      {"signalId": "DELT-04", "direction": 1, "strength": 0.5, "price": 0.0, "detail": "DELTA DIVERGENCE"}
+    ],
+    "barsSinceOpen": 20,
+    "barDelta": 10,
+    "barClose": 17500.0,
+    "zoneScore": 0.0,
+    "zoneDistTicks": 999.0
+  },
+  "expected": {
+    "tier": "TYPE_B",
+    "direction": 1,
+    "categoryCount": 4,
+    "minScore": 72.0,
+    "maxScore": 100.0,
+    "narrativeContains": "TYPE B",
+    "categoriesExclude": ["volume_profile"]
+  },
+  "notes": "base=absorption(25)+exhaustion(18)+trapped(14)+delta(13)=70; catCount=4<5 -> confluenceMult=1.0; zoneBonus=0; agreement=1.0; ibMult=1.15 (bars=20<60); score=min(70*1.0*1.0*1.15,100)=80.5; TypeA fails (no zone); TypeB: 80.5>=72 + catCount=4>=4 + deltaAgrees + minStrength=0.8>=0.3 -> TYPE_B"
+}

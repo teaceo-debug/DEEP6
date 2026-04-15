@@ -1,0 +1,25 @@
+{
+  "name": "type-c-suppressed",
+  "description": "3 categories fire (cat_count=3) at score ~55 — expect QUIET because TypeC requires cat_count>=4 (Pitfall 1)",
+  "inputs": {
+    "signals": [
+      {"signalId": "ABS-01", "direction": 1, "strength": 0.5, "price": 0.0, "detail": "ABSORBED"},
+      {"signalId": "EXH-03", "direction": 1, "strength": 0.4, "price": 0.0, "detail": "EXHAUSTION"},
+      {"signalId": "DELT-04", "direction": 1, "strength": 0.4, "price": 0.0, "detail": "DELTA DIV"}
+    ],
+    "barsSinceOpen": 100,
+    "barDelta": 15,
+    "barClose": 17500.0,
+    "zoneScore": 0.0,
+    "zoneDistTicks": 999.0
+  },
+  "expected": {
+    "tier": "QUIET",
+    "direction": 1,
+    "categoryCount": 3,
+    "minScore": 50.0,
+    "maxScore": 100.0,
+    "narrativeContains": "QUIET"
+  },
+  "notes": "base=absorption(25)+exhaustion(18)+delta(13)=56; catCount=3<5 -> confluenceMult=1.0; zoneBonus=0; agreement=1.0; ibMult=1.0; score=56.0>=50 BUT catCount=3<4 fails TypeC gate -> QUIET. Python docstring says min_categories=3 but scorer.py line 485 code requires cat_count>=4 (Pitfall 1)."
+}

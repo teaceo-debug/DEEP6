@@ -1,0 +1,28 @@
+{
+  "name": "midday-block",
+  "description": "Otherwise-TypeA signal set with barsSinceOpen=250 (midday 10:30-13:00 ET) — score is high but tier forced QUIET",
+  "inputs": {
+    "signals": [
+      {"signalId": "ABS-01", "direction": 1, "strength": 0.8, "price": 17500.25, "detail": "ABSORBED @VAL"},
+      {"signalId": "EXH-05", "direction": 1, "strength": 0.6, "price": 0.0, "detail": "BUYERS LOSING STEAM"},
+      {"signalId": "DELT-04", "direction": 1, "strength": 0.5, "price": 0.0, "detail": "DELTA DIVERGENCE"},
+      {"signalId": "IMB-03-T3", "direction": 1, "strength": 0.7, "price": 0.0, "detail": "STACKED_T3"},
+      {"signalId": "AUCT-02", "direction": 1, "strength": 0.5, "price": 0.0, "detail": "FINISHED AUCTION"},
+      {"signalId": "POC-02", "direction": 1, "strength": 0.4, "price": 0.0, "detail": "EXTREME POC LOW"}
+    ],
+    "barsSinceOpen": 250,
+    "barDelta": 40,
+    "barClose": 17500.25,
+    "zoneScore": 60.0,
+    "zoneDistTicks": 0.0
+  },
+  "expected": {
+    "tier": "QUIET",
+    "direction": 1,
+    "categoryCount": 7,
+    "minScore": 80.0,
+    "maxScore": 100.0,
+    "narrativeContains": "QUIET"
+  },
+  "notes": "Same signals as type-a-all-categories (would be TYPE_A) but barsSinceOpen=250 is in midday block [240,330] -> tier forced to QUIET. Score is unchanged (100.0) — only tier is forced."
+}

@@ -1,0 +1,20 @@
+{
+  "name": "quiet-zero-signals",
+  "description": "Empty signals array — expect QUIET with score=0.0 and direction=0",
+  "inputs": {
+    "signals": [],
+    "barsSinceOpen": 50,
+    "barDelta": 0,
+    "barClose": 17500.0,
+    "zoneScore": 0.0,
+    "zoneDistTicks": 999.0
+  },
+  "expected": {
+    "tier": "QUIET",
+    "direction": 0,
+    "categoryCount": 0,
+    "score": 0.0,
+    "narrativeContains": "QUIET"
+  },
+  "notes": "No signals -> no categories -> baseScore=0 -> totalScore=0 -> tier=QUIET, direction=0, agreement=0"
+}
