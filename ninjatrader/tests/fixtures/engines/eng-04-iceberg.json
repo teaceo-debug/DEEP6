@@ -1,0 +1,16 @@
+{
+  "description": "ENG-04 Iceberg: level depleted then refills within 250ms — synthetic iceberg",
+  "bar": {
+    "open": 20000.0, "high": 20002.0, "low": 19998.0, "close": 20001.0,
+    "barDelta": 100, "totalVol": 300, "cvd": 100
+  },
+  "depthEvents": [
+    { "tsMs": 0,   "side": "ask", "idx": 0, "price": 20002.0, "size": 200 },
+    { "tsMs": 50,  "side": "ask", "idx": 0, "price": 20002.0, "size": 2 },
+    { "tsMs": 150, "side": "ask", "idx": 0, "price": 20002.0, "size": 180 }
+  ],
+  "expected": [
+    { "signalId": "ENG-04" }
+  ],
+  "notes": "Level 20002.0 (ask idx=0): size=200 at t=0, drops to 2 at t=50ms (depletion), refills to 180 at t=150ms (within 250ms window, 180 >= 200*0.5=100). Synthetic iceberg fires."
+}

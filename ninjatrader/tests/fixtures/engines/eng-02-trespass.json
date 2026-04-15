@@ -1,0 +1,17 @@
+{
+  "description": "ENG-02 Trespass: heavy ask-side DOM pressure → bullish signal (more bids than asks at top of book)",
+  "bar": {
+    "open": 20000.0, "high": 20002.0, "low": 19998.0, "close": 20001.0,
+    "barDelta": 200, "totalVol": 500, "cvd": 200
+  },
+  "session": {
+    "bidDomLevels": [100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+                     5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+    "askDomLevels": [20, 18, 15, 12, 10, 8, 6, 5, 4, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+                     2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+  },
+  "expected": [
+    { "signalId": "ENG-02", "direction": 1 }
+  ],
+  "notes": "bidDomLevels[0..9] sum >> askDomLevels[0..9] sum → ratio > 1 → probability > 0.65 → bullish"
+}

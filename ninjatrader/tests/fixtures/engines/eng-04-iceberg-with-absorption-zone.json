@@ -1,0 +1,19 @@
+{
+  "description": "ENG-04 Iceberg: refill at price inside absorption zone → detail contains 'in-abs-zone'",
+  "bar": {
+    "open": 20003.0, "high": 20005.0, "low": 20001.0, "close": 20003.25,
+    "barDelta": 50, "totalVol": 200, "cvd": 50
+  },
+  "priorAbsorptionZones": [
+    { "price": 20003.0, "radiusTicks": 2 }
+  ],
+  "depthEvents": [
+    { "tsMs": 0,   "side": "bid", "idx": 0, "price": 20003.0, "size": 150 },
+    { "tsMs": 30,  "side": "bid", "idx": 0, "price": 20003.0, "size": 3 },
+    { "tsMs": 150, "side": "bid", "idx": 0, "price": 20003.0, "size": 130 }
+  ],
+  "expected": [
+    { "signalId": "ENG-04", "detailContains": "in-abs-zone" }
+  ],
+  "notes": "AbsorptionZone at 20003.00 radius=2 ticks. Refill at 20003.0 at t=150ms (within 250ms). Detail should contain 'in-abs-zone'."
+}

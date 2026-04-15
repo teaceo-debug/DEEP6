@@ -1,0 +1,23 @@
+{
+  "description": "ENG-03 CounterSpoof: large ask-side cancel between bars (ask[0] drops 1000→50) → bullish (seller withdrew)",
+  "bar": {
+    "open": 20000.0, "high": 20002.0, "low": 19998.0, "close": 20001.0,
+    "barDelta": 300, "totalVol": 600, "cvd": 300
+  },
+  "priorDomSnapshot": {
+    "bidDomLevels": [100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+                     5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+    "askDomLevels": [1000, 800, 600, 400, 200, 100, 80, 60, 40, 20, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
+                     10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10]
+  },
+  "currentDomSnapshot": {
+    "bidDomLevels": [100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+                     5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+    "askDomLevels": [50, 45, 40, 35, 30, 25, 20, 15, 10, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+                     5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]
+  },
+  "expected": [
+    { "signalId": "ENG-03", "direction": 1 }
+  ],
+  "notes": "Ask side had prior[0]=1000, now current[0]=50 — massive cancel. W1(askPrior, askCurrent) >> threshold → ENG-03 bullish (sellers withdrew)"
+}
