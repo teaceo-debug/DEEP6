@@ -3,34 +3,34 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 17-05-PLAN.md
-last_updated: "2026-04-15T20:01:38.578Z"
-last_activity: 2026-04-14
+stopped_at: Phase 17 COMPLETE — NT8 detector refactor + 34-signal port, UseNewRegistry flipped, 180/180 tests green
+last_updated: "2026-04-15T22:00:00.000Z"
+last_activity: 2026-04-15
 progress:
   total_phases: 21
-  completed_phases: 15
-  total_plans: 63
-  completed_plans: 59
-  percent: 94
+  completed_phases: 16
+  total_plans: 68
+  completed_plans: 68
+  percent: 100
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-13)
+See: .planning/PROJECT.md (updated 2026-04-15)
 
-**Core value:** Detect absorption and exhaustion with the highest accuracy of any footprint system ever built, and auto-execute trades via direct Rithmic orders — all in Python, running on macOS.
-**Current focus:** Phase 10 — analytics-dashboard
+**Core value:** Detect absorption and exhaustion with the highest accuracy of any footprint system ever built, and auto-execute trades via NinjaTrader 8 on funded Apex/Lucid accounts.
+**Current focus:** Phase 18 — NT8 scoring + backtest validation
 
 ## Current Position
 
-Phase: 15
-Plan: Complete (5/5)
-Status: Phase 15 complete — ready to advance
-Last activity: 2026-04-14
+Phase: 17 COMPLETE
+Plan: 5/5 (all waves merged, verifier gaps resolved)
+Status: NT8 detector refactor + 34 signals ported; 180/180 NUnit tests green; UseNewRegistry=true default; live Rithmic session-replay parity deferred to Phase 18
+Last activity: 2026-04-15 — resolved verifier gaps (dup UseNewRegistry property, double EvaluateBar, LOC cap)
 
-Progress: [█████████░] 95%
+Progress: [██████████] 100% of planned milestone phases; Phase 18+19 still open
 
 ## Performance Metrics
 
