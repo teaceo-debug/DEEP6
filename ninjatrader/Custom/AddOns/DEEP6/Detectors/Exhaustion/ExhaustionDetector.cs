@@ -189,19 +189,24 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Exhaustion
                         SetCooldown(ExhaustionType.ExhaustionPrint, barIndex);
                     }
                 }
-                double loPx = sorted[0];
-                var    loLv = bar.Levels[loPx];
-                if (loLv.BidVol > 0)
+                // Re-check cooldown: if high just fired, low must not fire on same bar.
+                // Matches legacy DEEP6Footprint.cs double-cooldown pattern — one EXH-02 per bar.
+                if (CheckCooldown(ExhaustionType.ExhaustionPrint, barIndex, cfg.CooldownBars))
                 {
-                    double pct = (double)loLv.BidVol / bar.TotalVol * 100;
-                    if (pct >= cfg.ExhaustWickMin / 3.0)
+                    double loPx = sorted[0];
+                    var    loLv = bar.Levels[loPx];
+                    if (loLv.BidVol > 0)
                     {
-                        results.Add(new SignalResult("EXH-02", +1,
-                            System.Math.Min(pct / 20.0, 1.0),
-                            SignalFlagBits.Mask(SignalFlagBits.EXH_02),
-                            string.Format("EXHAUSTION PRINT at low {0:F2}: bid={1} ({2:F1}%)",
-                                loPx, loLv.BidVol, pct)));
-                        SetCooldown(ExhaustionType.ExhaustionPrint, barIndex);
+                        double pct = (double)loLv.BidVol / bar.TotalVol * 100;
+                        if (pct >= cfg.ExhaustWickMin / 3.0)
+                        {
+                            results.Add(new SignalResult("EXH-02", +1,
+                                System.Math.Min(pct / 20.0, 1.0),
+                                SignalFlagBits.Mask(SignalFlagBits.EXH_02),
+                                string.Format("EXHAUSTION PRINT at low {0:F2}: bid={1} ({2:F1}%)",
+                                    loPx, loLv.BidVol, pct)));
+                            SetCooldown(ExhaustionType.ExhaustionPrint, barIndex);
+                        }
                     }
                 }
             }

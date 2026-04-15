@@ -71,9 +71,10 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
 
         // ---- Phase 17 detector registry (UseNewRegistry feature flag) ----
         // When UseNewRegistry = false (default), strategy uses legacy ABS/EXH code path above.
-        // When UseNewRegistry = true (after Wave 2 parity passes), strategy uses the registry.
+        // When UseNewRegistry = true (after Wave 5 session-replay parity passes), uses registry.
         // CONTEXT.md D-06: default false protects live trading path during migration.
         private NinjaTrader.NinjaScript.AddOns.DEEP6.Registry.DetectorRegistry _registry;
+        private NinjaTrader.NinjaScript.AddOns.DEEP6.Registry.SessionContext    _session;
 
         // ---- L2 wall state for wall-anchored confluence ----
         private sealed class L2State { public long CurrentSize, MaxSize; public DateTime LastUpdate; }
@@ -153,14 +154,18 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                 // Default is false — live ABS/EXH path stays active until Wave 2 parity passes.
                 if (UseNewRegistry)
                 {
+                    // Phase 17 Wave 2: registry path wired. UseNewRegistry=false is still the default.
+                    // Flip to true ONLY after Wave 5 full session-replay parity passes.
                     _registry = new NinjaTrader.NinjaScript.AddOns.DEEP6.Registry.DetectorRegistry();
-                    // TODO(Phase17 Wave2+): Register migrated detectors when UseNewRegistry=true
-                    // _registry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Absorption.AbsorptionDetector());
-                    // _registry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Exhaustion.ExhaustionDetector());
+                    _registry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Absorption.AbsorptionDetector());
+                    _registry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Exhaustion.ExhaustionDetector());
+                    _session  = new NinjaTrader.NinjaScript.AddOns.DEEP6.Registry.SessionContext();
+                    Print("[DEEP6 Strategy] UseNewRegistry=true: AbsorptionDetector + ExhaustionDetector registered.");
                 }
                 else
                 {
                     _registry = null;
+                    _session  = null;
                 }
             }
             else if (State == State.DataLoaded)
@@ -260,6 +265,12 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                 _killSwitch = false;
                 _sessionStartBalance = double.NaN;   // re-capture below once Account/balance are valid
                 _exhDetector.ResetCooldowns();
+                // Phase 17 Wave 2: reset registry + session at RTH open boundary
+                if (UseNewRegistry && _registry != null)
+                {
+                    _session?.ResetSession();
+                    _registry.ResetAll();
+                }
                 Print(string.Format("[DEEP6 Strategy] New session {0}. Counters reset. Will capture session start balance on first non-null Account.",
                     _sessionDate.ToString("yyyy-MM-dd")));
             }
@@ -278,10 +289,64 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
             var priorBeforePrev = _priorFinalized;
             _priorFinalized = prev;
 
-            // Run detectors
+            // Run detectors — legacy path or registry path depending on UseNewRegistry flag
             var va  = FootprintBar.ComputeValueArea(prev, TickSize);
-            var abs = AbsorptionDetector.Detect(prev, _atr, _volEma, _absCfg, va.vah, va.val, TickSize);
-            var exh = _exhDetector.Detect(prev, priorBeforePrev, prevIdx, _atr, _exhCfg);
+            List<AbsorptionSignal> abs;
+            List<ExhaustionSignal> exh;
+
+            if (UseNewRegistry && _registry != null && _session != null)
+            {
+                // Phase 17 Wave 2: registry path — populate SessionContext then call EvaluateBar.
+                // Risk gates execute BEFORE this branch (above via _killSwitch + Position check).
+                _session.Atr20        = _atr;
+                _session.VolEma20     = _volEma;
+                _session.TickSize     = TickSize;
+                _session.Vah          = va.vah;
+                _session.Val          = va.val;
+                _session.PriorBar     = priorBeforePrev;
+                _session.BarsSinceOpen = prevIdx;
+
+                var regResults = _registry.EvaluateBar(prev, _session);
+                _session.PriorBar = prev;   // advance prior bar for next bar
+
+                // Convert SignalResult[] → legacy list types so EvaluateEntry + CheckOpposingExit
+                // can consume them without modification (risk gates are in those methods, untouched).
+                abs = new List<AbsorptionSignal>();
+                exh = new List<ExhaustionSignal>();
+                foreach (var r in regResults)
+                {
+                    if (r.SignalId.StartsWith("ABS") && r.SignalId != "ABS-07")
+                    {
+                        abs.Add(new AbsorptionSignal
+                        {
+                            Kind        = AbsorptionType.Classic,   // best-effort mapping for confluence
+                            Direction   = r.Direction,
+                            Price       = r.Direction < 0 ? prev.High : r.Direction > 0 ? prev.Low : prev.Close,
+                            Wick        = r.Direction < 0 ? "upper" : "lower",
+                            Strength    = r.Strength,
+                            AtVaExtreme = r.Detail != null && (r.Detail.Contains("@VAH") || r.Detail.Contains("@VAL")),
+                            Detail      = r.Detail,
+                        });
+                    }
+                    else if (r.SignalId.StartsWith("EXH"))
+                    {
+                        exh.Add(new ExhaustionSignal
+                        {
+                            Kind      = ExhaustionType.ZeroPrint,   // best-effort mapping; not used for gating
+                            Direction = r.Direction,
+                            Price     = r.Direction < 0 ? prev.High : r.Direction > 0 ? prev.Low : prev.Close,
+                            Strength  = r.Strength,
+                            Detail    = r.Detail,
+                        });
+                    }
+                }
+            }
+            else
+            {
+                // Legacy path (UseNewRegistry=false, default) — unchanged behavior
+                abs = AbsorptionDetector.Detect(prev, _atr, _volEma, _absCfg, va.vah, va.val, TickSize);
+                exh = _exhDetector.Detect(prev, priorBeforePrev, prevIdx, _atr, _exhCfg);
+            }
 
             // Cleanup history
             int cutoff = CurrentBar - 500;
