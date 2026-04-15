@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: NT8 detector refactor + 34 signals ported; 180/180 NUnit tests green; UseNewRegistry=true default; live Rithmic session-replay parity deferred to Phase 18
-stopped_at: Completed 18-01-PLAN.md
-last_updated: "2026-04-15T21:01:17.119Z"
+stopped_at: Completed 18-02-PLAN.md
+last_updated: "2026-04-15T23:13:52.155Z"
 last_activity: 2026-04-15 — resolved verifier gaps (dup UseNewRegistry property, double EvaluateBar, LOC cap)
 progress:
   total_phases: 21
   completed_phases: 15
   total_plans: 67
-  completed_plans: 60
-  percent: 90
+  completed_plans: 61
+  percent: 91
 ---
 
 # Project State
@@ -82,6 +82,7 @@ Progress: [██████████] 100% of planned milestone phases; Pha
 | Phase 15 P04 | 40 | 3 tasks | 9 files |
 | Phase 15 P05 | 48 | 3 tasks | 8 files |
 | Phase 17 P04 | 210 | 3 tasks | 38 files |
+| Phase 18 P02 | 65 | 2 tasks | 3 files |
 
 ## Quick Tasks Completed
 
@@ -159,6 +160,10 @@ Recent decisions affecting current work:
 - [Phase 17]: VPContextDetector Phase 17 scope: POC proximity only; LVN/GEX deferred to Phase 18
 - [Phase 18]: TypeC gate is cat_count >= 4 per Python scorer.py line 485 (docstring says 3 — code is authoritative)
 - [Phase 18]: System.Math fully qualified in Scoring/*.cs — DEEP6.Math namespace shadows unqualified Math
+- [Phase quick-260415-o94]: GEX extracted to standalone DEEP6GexLevels.cs; DEEP6Footprint gains ProfileAnchorLevels overlay (PDH/PDL/PDM/PD POC/VAH/VAL, naked POC retest, PW POC, composite VA); 10 new NUnit fixtures; 215 tests green
+- [Phase 18]: Indicator-side DetectorRegistry: mirrors DEEP6Strategy pattern; indicator builds own registry so scorer runs independently of strategy
+- [Phase 18]: Draw.Dot fallback: catch(MissingMethodException) per RESEARCH Open Question 3; Diamond at 70% opacity if NT8 lacks Draw.Dot
+- [Phase 18]: zoneScore=0.0 stub: VPContext zone proximity deferred; TypeA gate requires zone_bonus>0 so TypeA signals cannot fire until wired in follow-up wave
 
 ### Roadmap Evolution
 
@@ -181,6 +186,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-15T21:01:10.513Z
-Stopped at: Completed 18-01-PLAN.md
+Last session: 2026-04-15T23:13:45.281Z
+Stopped at: Completed 18-02-PLAN.md
 Resume file: None
