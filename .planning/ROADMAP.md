@@ -375,7 +375,13 @@ Plans:
   3. Replay harness consumes recorded tick/depth data and emits per-bar signal + score output.
   4. Parity report: C# vs Python scoring matches within configured tolerance on ≥5 recorded sessions.
   5. TypeA/B/C signal classification visible in strategy logs.
-**Plans** (outline): scorer port; narrative + on-chart display; replay harness; parity report.
+**Plans**: 4 plans (Wave 1: plan-01; Wave 2: plan-02 [checkpoint]; Wave 3: plan-03; Wave 4: plan-04 [parity gate])
+
+Plans:
+- [ ] 18-01-PLAN.md — Port Python ConfluenceScorer + NarrativeCascade into AddOns/DEEP6/Scoring (NT8-API-free); fix Phase 17 CS0102 + double-EvaluateBar regressions; 5 fixtures + ≥15 NUnit parity tests
+- [ ] 18-02-PLAN.md — DEEP6Footprint scorer invocation + SharpDX HUD badge (top-right, 3 lines) + tier markers (Diamond/Triangle/Dot) + TypeA narrative label + ScorerSharedState hand-off
+- [ ] 18-03-PLAN.md — DEEP6Strategy EvaluateEntry migration to scorer-gated entry + [DEEP6 Scorer] per-bar log + ScorerEntryGate extraction + 8 gate regression tests; risk gates untouched
+- [ ] 18-04-PLAN.md — Python replay_scorer subprocess + 5 augmented scoring-session NDJSON fixtures + ScoringParityHarness (C#↔Python, |Δ|≤0.05 + identical tier per bar) + 18-04-PARITY-REPORT.md + 18-VALIDATION.md sign-off
 
 ### Phase 19: Apex/Lucid Paper-Trade Gate
 **Goal**: DEEP6Strategy runs live on Apex (APEX-262674) and Lucid (LT-45N3KIV8) paper/sim accounts for 30 continuous trading days with dry-run disabled (paper mode only); P&L, slippage, fill quality, and risk-gate behavior reviewed; go/no-go decision for live capital documented.
