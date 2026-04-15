@@ -26,6 +26,7 @@
          FootprintBar.cs lives in Registry/ providing the BCL-only type stubs.
          DEEP6Footprint.cs is intentionally excluded — it requires NT8 runtime types. -->
     <Compile Include="..\Custom\AddOns\DEEP6\Registry\**\*.cs" />
+    <Compile Include="..\Custom\AddOns\DEEP6\Levels\**\*.cs" />
     <Compile Include="..\Custom\AddOns\DEEP6\Math\**\*.cs" />
     <Compile Include="..\Custom\AddOns\DEEP6\Detectors\Absorption\**\*.cs" />
     <Compile Include="..\Custom\AddOns\DEEP6\Detectors\Exhaustion\**\*.cs" />
