@@ -1,0 +1,31 @@
+{
+  "signalId": "VOLP-02",
+  "description": "Volume bubble at 20005.00. totalVol=900, 5 levels → avgLevelVol=180. bubble_mult=4.0 → threshold=720. Level at 20005 has vol=800 > 720. Neighbors 20004.75 and 20005.25 have vol=50 each (low). Direction from net delta at bubble level.",
+  "bar": {
+    "barIndex": 50,
+    "open": 20003.00,
+    "high": 20006.00,
+    "low": 20002.00,
+    "close": 20004.00,
+    "levels": [
+      {"price": 20002.00, "askVol": 30,  "bidVol": 20},
+      {"price": 20003.00, "askVol": 70,  "bidVol": 30},
+      {"price": 20004.75, "askVol": 30,  "bidVol": 20},
+      {"price": 20005.00, "askVol": 500, "bidVol": 300},
+      {"price": 20005.25, "askVol": 30,  "bidVol": 20},
+      {"price": 20006.00, "askVol": 0,   "bidVol": 0}
+    ],
+    "notes": "totalVol=30+20+70+30+30+20+500+300+30+20=1050. 6 non-zero levels used. avgLevelVol=1050/6=175. threshold=175*4=700. vol at 20005.00=800 > 700. Net at 20005=(500-300)=200 → direction=+1."
+  },
+  "session": {
+    "volEma20": 300.0,
+    "tickSize": 0.25
+  },
+  "expected": [
+    {
+      "signalId": "VOLP-02",
+      "direction": 1,
+      "detail_contains": "VOL BUBBLE"
+    }
+  ]
+}

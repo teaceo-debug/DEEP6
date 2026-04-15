@@ -1,0 +1,27 @@
+{
+  "signalId": "VOLP-06",
+  "description": "Big delta per level. Level at 20002.00 has askVol=450, bidVol=50 → net_delta=400. 400 >= threshold=80. barDelta=500, bar total vol=1000. Direction=+1 (ask dominated).",
+  "bar": {
+    "barIndex": 52,
+    "open": 20000.00,
+    "high": 20004.00,
+    "low": 19999.00,
+    "close": 20003.00,
+    "levels": [
+      {"price": 19999.00, "askVol": 50,  "bidVol": 0},
+      {"price": 20002.00, "askVol": 450, "bidVol": 50},
+      {"price": 20003.00, "askVol": 50,  "bidVol": 400}
+    ],
+    "notes": "Level 20002: net_delta=450-50=400 >= threshold=80. barDelta=(50-0)+(450-50)+(50-400)=50+400-350=100. totalVol=50+0+450+50+50+400=1000. Best |net_delta|=400 at 20002.00. Direction=+1."
+  },
+  "session": {
+    "tickSize": 0.25
+  },
+  "expected": [
+    {
+      "signalId": "VOLP-06",
+      "direction": 1,
+      "detail_contains": "BIG DELTA"
+    }
+  ]
+}

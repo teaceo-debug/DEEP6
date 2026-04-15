@@ -1,0 +1,28 @@
+{
+  "signalId": "VOLP-03",
+  "description": "Volume surge. session.volEma20=300, bar totalVol=1000. Ratio=3.33 > surge_mult=3.0. surgeThreshold=900. 1000 > 900. Direction=0 (barDelta small relative to vol).",
+  "bar": {
+    "barIndex": 51,
+    "open": 20000.00,
+    "high": 20004.00,
+    "low": 19997.00,
+    "close": 20001.00,
+    "levels": [
+      {"price": 19997.00, "askVol": 200, "bidVol": 200},
+      {"price": 20000.00, "askVol": 250, "bidVol": 250},
+      {"price": 20001.00, "askVol": 50,  "bidVol": 50}
+    ],
+    "notes": "totalVol=200+200+250+250+50+50=1000. barDelta=0. surgeThreshold=300*3=900. 1000>900. deltaRatio=0/1000=0 < 0.20 → direction=0."
+  },
+  "session": {
+    "volEma20": 300.0,
+    "tickSize": 0.25
+  },
+  "expected": [
+    {
+      "signalId": "VOLP-03",
+      "direction": 0,
+      "detail_contains": "VOL SURGE"
+    }
+  ]
+}

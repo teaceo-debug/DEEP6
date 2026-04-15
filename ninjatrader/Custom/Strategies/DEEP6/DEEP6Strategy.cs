@@ -159,8 +159,13 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                     _registry = new NinjaTrader.NinjaScript.AddOns.DEEP6.Registry.DetectorRegistry();
                     _registry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Absorption.AbsorptionDetector());
                     _registry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Exhaustion.ExhaustionDetector());
+                    // Phase 17 Wave 3: 4 new family detectors (12 TRIVIAL-tier signals)
+                    _registry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Imbalance.ImbalanceDetector());
+                    _registry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Delta.DeltaDetector());
+                    _registry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Auction.AuctionDetector());
+                    _registry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.VolPattern.VolPatternDetector());
                     _session  = new NinjaTrader.NinjaScript.AddOns.DEEP6.Registry.SessionContext();
-                    Print("[DEEP6 Strategy] UseNewRegistry=true: AbsorptionDetector + ExhaustionDetector registered.");
+                    Print("[DEEP6 Strategy] UseNewRegistry=true: Wave1+Wave2+Wave3 detectors registered (ABS/EXH/IMB/DELT/AUCT/VOLP).");
                 }
                 else
                 {
