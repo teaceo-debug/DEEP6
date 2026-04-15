@@ -1,0 +1,42 @@
+{
+  "_comment": "DELT-11 VELOCITY: cvdHistory=[100, 200], current cvd=900. vel=900-200=700, vel1=200-100=100, accel=600. accelTh=800*0.15=120. 600>120 → DELT-11 fires. Expected: direction=+1.",
+  "priorBars": [
+    {
+      "barIndex": 80,
+      "open": 19999.00, "high": 20000.00, "low": 19998.50, "close": 19999.50,
+      "barDelta": 100, "cvd": 100, "totalVol": 400
+    },
+    {
+      "barIndex": 81,
+      "open": 19999.50, "high": 20001.00, "low": 19999.00, "close": 20000.50,
+      "barDelta": 100, "cvd": 200, "totalVol": 450
+    }
+  ],
+  "bar": {
+    "barIndex": 82,
+    "open": 20000.50,
+    "high": 20003.00,
+    "low": 20000.00,
+    "close": 20002.50,
+    "barDelta": 700,
+    "cvd": 900,
+    "totalVol": 800,
+    "maxDelta": 720,
+    "minDelta": -20,
+    "levels": {
+      "20000.00": { "askVol": 400, "bidVol": 50 },
+      "20002.50": { "askVol": 350, "bidVol": 200 }
+    }
+  },
+  "session": {
+    "tickSize": 0.25,
+    "atr20": 4.0,
+    "volEma20": 500.0,
+    "cvdHistory": [100, 200]
+  },
+  "expected": {
+    "signalId": "DELT-11",
+    "direction": 1,
+    "comment": "vel=900-200=700, vel1=200-100=100, accel=600; accelTh=800*0.15=120; 600>120 → DELT-11 direction=+1"
+  }
+}
