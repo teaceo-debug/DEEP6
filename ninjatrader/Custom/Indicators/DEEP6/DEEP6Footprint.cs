@@ -778,12 +778,16 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
             _baseUrl = baseUrl.TrimEnd('/');
 
             ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
+            // Raise connection limit so paginated fetches don't serialize on .NET's default of 2 per host.
+            if (ServicePointManager.DefaultConnectionLimit < 8)
+                ServicePointManager.DefaultConnectionLimit = 8;
+            // NOTE: If massive.com ever returns 401 with query-param auth, swap to DefaultRequestHeaders.Authorization Bearer. Python ref (deep6/engines/gex.py) confirms query-param is correct as of 2026-04-15.
+            // Keep-alive is HTTP/1.1 default on HttpClient; we intentionally do NOT set Connection: close.
             _http = new HttpClient
             {
                 BaseAddress = new Uri(_baseUrl),
-                Timeout = TimeSpan.FromSeconds(8),
+                Timeout = TimeSpan.FromSeconds(30),
             };
-            _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
             _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _http.DefaultRequestHeaders.UserAgent.ParseAdd("DEEP6-NT8/1.0");
         }
@@ -795,7 +799,9 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
             var byStrike = new Dictionary<double, double>();
             double spot = 0;
             int contractsParsed = 0;
-            string url = string.Format("/v3/snapshot/options/{0}?limit=250", underlying);
+            // First-page URL carries apiKey as query param (Polygon-compatible; matches deep6/engines/gex.py ref).
+            // Pagination: next_url returned by the API already embeds apiKey — do NOT re-append.
+            string url = string.Format("/v3/snapshot/options/{0}?limit=250&apiKey={1}", underlying, Uri.EscapeDataString(_apiKey));
             int safetyPages = 0;
 
             while (!string.IsNullOrEmpty(url) && safetyPages < 20)
