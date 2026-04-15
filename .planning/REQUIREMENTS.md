@@ -1,14 +1,27 @@
-# Requirements: DEEP6 v2.0 — Python Edition
+# Requirements: DEEP6 v2.0 — NinjaScript Edition (Python reference-only)
 
 **Defined:** 2026-04-13
 **Core Value:** Detect absorption and exhaustion with the highest accuracy of any footprint system ever built, and auto-execute trades via direct Rithmic orders — all in Python, running on macOS.
+
+## Out of Scope (v1 NT8)
+
+Following the 2026-04-15 NT8 pivot (Apex refused to enable Rithmic API/plugin mode), the following are explicitly OUT OF SCOPE for v1 of the NT8 track. Historical requirement IDs below remain valid for the Python reference implementation but are not on the live path.
+
+- **Python as live runtime** — Python engine is reference-only source-of-truth for C# porting
+- **async-rithmic live runtime** — blocked by Apex refusing API/plugin mode; NT8 native Rithmic connection replaces it on the live path
+- **Kronos E10 bias engine** — deferred post-v1; revisit after NT8 paper-trade gate
+- **FastAPI backend** — reference-only; deferred post-v1
+- **TradingView MCP** — reference-only; deferred post-v1
+- **Next.js dashboard** — reference-only; deferred post-v1
+- **Databento live feed** — reference-only; NT8 Market Replay + recorded fixtures used for backtest/parity validation
+- **EventStore** — reference-only; deferred post-v1
 
 ## v1 Requirements
 
 ### Data Pipeline (DATA)
 
-- [x] **DATA-01**: async-rithmic connection established to Rithmic with L2 DOM subscription for NQ (40+ levels per side)
-- [x] **DATA-02**: Aggressor side field verified in async-rithmic tick callback — exchange-provided, not inferred
+- [x] **DATA-01**: async-rithmic connection established to Rithmic with L2 DOM subscription for NQ (40+ levels per side) (NT8-primary track: substitute NT8 native OnMarketData / OnMarketDepth for async-rithmic)
+- [x] **DATA-02**: Aggressor side field verified in async-rithmic tick callback — exchange-provided, not inferred (NT8-primary track: substitute NT8 native OnMarketData / OnMarketDepth for async-rithmic)
 - [x] **DATA-03**: FootprintBar accumulator built from raw ticks — bid/ask volume per price level per bar using defaultdict[int, FootprintLevel]
 - [x] **DATA-04**: BarBuilder coroutine fires on_bar_close at configurable intervals (1min default) with complete FootprintBar
 - [x] **DATA-05**: DOM state maintained as pre-allocated arrays updated in-place — zero allocation per callback
@@ -179,7 +192,7 @@
 
 ### Auto-Execution (EXEC)
 
-- [x] **EXEC-01**: Direct Rithmic order submission via async-rithmic from TypeA/B confluence signals
+- [x] **EXEC-01**: Direct Rithmic order submission via async-rithmic from TypeA/B confluence signals (NT8-primary track: substitute NT8 native OnMarketData / OnMarketDepth for async-rithmic)
 - [ ] **EXEC-02**: Risk management — circuit breakers (max daily loss), position sizing (max contracts), consecutive loss limits
 - [x] **EXEC-03**: Entry timing — configurable delay after signal to confirm (avoid false triggers)
 - [x] **EXEC-04**: Stop placement — stops placed beyond absorption/exhaustion zone boundary via server-side bracket orders
@@ -253,7 +266,7 @@
 
 | Feature | Reason |
 |---------|--------|
-| NinjaTrader 8 / C# | Replaced by Python + async-rithmic |
+| NinjaTrader 8 / C# as live runtime | Superseded 2026-04-15 — NT8 NinjaScript IS the live runtime now; Python is reference-only |
 | Pine Script maintenance | Reference only — Python is the single codebase |
 | Social/community features | Single-user institutional tool |
 | Mobile app | Desktop + web dashboard |
@@ -434,4 +447,4 @@ Updated during roadmap creation (2026-04-11).
 
 ---
 *Requirements defined: 2026-04-13*
-*Last updated: 2026-04-11 — traceability populated by roadmapper*
+*Last updated: 2026-04-15 after NT8 pivot*
