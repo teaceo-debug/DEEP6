@@ -35,10 +35,12 @@
     <Compile Include="..\Custom\AddOns\DEEP6\Detectors\Delta\**\*.cs" />
     <Compile Include="..\Custom\AddOns\DEEP6\Detectors\VolPattern\**\*.cs" />
     <Compile Include="..\Custom\AddOns\DEEP6\Detectors\Trap\**\*.cs" />
+    <Compile Include="..\Custom\AddOns\DEEP6\Detectors\Engines\**\*.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <None Update="fixtures\**\*.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Parity\fixtures\**\*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

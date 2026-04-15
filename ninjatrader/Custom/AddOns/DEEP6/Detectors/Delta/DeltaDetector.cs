@@ -1,11 +1,11 @@
-// DeltaDetector: ISignalDetector implementation for DELT-01..11 (excluding DELT-08/10, Wave 5).
+// DeltaDetector: ISignalDetector implementation for DELT-01..11 (all signals).
 //
 // Wave 3 (TRIVIAL): DELT-01 Rise/Drop, DELT-02 Tail, DELT-03 Reversal,
 //                   DELT-05 CVD Flip, DELT-09 At Session Min/Max
 // Wave 4 (MODERATE): DELT-04 Divergence (3-bar short-window),
 //                    DELT-06 Delta Trap, DELT-07 Delta Sweep, DELT-11 Velocity
-//
-// DEFERRED to Wave 5: DELT-08 Slingshot (4-bar history), DELT-10 CVD polyfit (LeastSquares)
+// Wave 5 (HARD): DELT-08 Slingshot (compressed-then-explosive, LeastSquares not needed),
+//                DELT-10 CVD polyfit divergence (LeastSquares.Fit1)
 //
 // Python reference: deep6/engines/delta.py DeltaEngine.process()
 //
@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using NinjaTrader.NinjaScript.AddOns.DEEP6.Registry;
+using NinjaTrader.NinjaScript.AddOns.DEEP6.Math;
 
 namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Delta
 {
@@ -54,6 +55,23 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Delta
         /// <summary>CVD velocity threshold for DELT-11 fire (absolute units). Python: velocity_accel_ratio=0.15
         /// (fire when |accel| > totalVol * velocity_accel_ratio)</summary>
         public double VelocityAccelRatio = 0.15;
+
+        // ---- DELT-08 Slingshot (Wave 5) ----
+        /// <summary>Number of prior quiet bars required before current explosive bar. Python: slingshot_quiet_bars=2</summary>
+        public int SlingshotQuietBars = 2;
+
+        /// <summary>Max |delta|/totalVol ratio to qualify a bar as "quiet" (compressed). Python: slingshot_quiet_ratio=0.05</summary>
+        public double SlingshotQuietRatio = 0.05;
+
+        /// <summary>Min |delta|/totalVol ratio to qualify current bar as "explosive". Python: slingshot_explosive_ratio=0.30</summary>
+        public double SlingshotExplosiveRatio = 0.30;
+
+        // ---- DELT-10 CVD Polyfit Divergence (Wave 5) ----
+        /// <summary>Lookback window for CVD polyfit (number of bars). Python: cvd_divergence_min_bars=10</summary>
+        public int CvdDivergenceWindow = 10;
+
+        /// <summary>Divergence factor: cvdSlope must exceed |priceSlope| * this factor. Python: cvd_slope_divergence_factor=0.5</summary>
+        public double CvdSlopeDivergenceFactor = 0.5;
     }
 
     /// <summary>
@@ -366,13 +384,97 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Delta
             }
 
             // ---------------------------------------------------------------
+            // DELT-08 SLINGSHOT — compressed-then-explosive delta
+            // Python: delta.py lines 263-279
+            // Requires at least 4 entries when including current bar (3 prior + current).
+            // Check: 3 prior bars quiet (|delta| < totalVol * quiet_ratio), then explosive.
+            // Uses DeltaHistory (prior deltas) and TotalVolHistory (prior total vols).
+            // ---------------------------------------------------------------
+            if (session != null && session.DeltaHistory.Count >= 3 && session.TotalVolHistory.Count >= 3)
+            {
+                long[] deltaHist  = ToArray(session.DeltaHistory);
+                long[] volHist    = ToArray(session.TotalVolHistory);
+                int    quietCount = 0;
+                int    checkN     = System.Math.Min(3, deltaHist.Length);
+                for (int i = deltaHist.Length - checkN; i < deltaHist.Length; i++)
+                {
+                    long dh = deltaHist[i];
+                    long vh = volHist.Length > i ? volHist[i] : 1L;
+                    if (vh > 0 && System.Math.Abs(dh) < vh * cfg.SlingshotQuietRatio)
+                        quietCount++;
+                }
+                bool isExplosive = total > 0 && System.Math.Abs(delta) > total * cfg.SlingshotExplosiveRatio;
+                if (quietCount >= cfg.SlingshotQuietBars && isExplosive)
+                {
+                    int dir = delta > 0 ? +1 : -1;
+                    results.Add(new SignalResult(
+                        "DELT-08", dir, 0.85,
+                        SignalFlagBits.Mask(SignalFlagBits.DELT_08),
+                        string.Format("DELTA SLINGSHOT: {0} quiet bars then explosive delta={1:+#;-#;0} (polyfit slope: bar delta ratio {2:F2})",
+                            quietCount, delta, (double)System.Math.Abs(delta) / total)));
+                }
+            }
+
+            // ---------------------------------------------------------------
+            // DELT-10 CVD POLYFIT DIVERGENCE
+            // Python: delta.py lines 295-316 (np.polyfit replacement via LeastSquares)
+            // Requires at least CvdDivergenceWindow bars in history.
+            // ---------------------------------------------------------------
+            if (session != null &&
+                session.CvdHistory.Count  >= cfg.CvdDivergenceWindow &&
+                session.PriceHistory.Count >= cfg.CvdDivergenceWindow)
+            {
+                long[]   cvdHistFull   = ToArray(session.CvdHistory);
+                double[] priceHistFull = ToArray(session.PriceHistory);
+
+                // Take last CvdDivergenceWindow values
+                int w = cfg.CvdDivergenceWindow;
+                var cvdWindow   = new double[w];
+                var priceWindow = new double[w];
+                int cvdStart   = cvdHistFull.Length - w;
+                int priceStart = priceHistFull.Length - w;
+                for (int i = 0; i < w; i++)
+                {
+                    cvdWindow[i]   = (double)cvdHistFull[cvdStart + i];
+                    priceWindow[i] = priceHistFull[priceStart + i];
+                }
+
+                var cvdFit   = LeastSquares.Fit1(cvdWindow);
+                var priceFit = LeastSquares.Fit1(priceWindow);
+                double cvdSlope   = cvdFit.Slope;
+                double priceSlope = priceFit.Slope;
+
+                double strength = priceSlope != 0.0
+                    ? System.Math.Min(System.Math.Abs(cvdSlope / priceSlope), 1.0)
+                    : 0.0;
+
+                if (priceSlope > 0 && cvdSlope < -System.Math.Abs(priceSlope) * cfg.CvdSlopeDivergenceFactor)
+                {
+                    results.Add(new SignalResult(
+                        "DELT-10", -1, strength,
+                        SignalFlagBits.Mask(SignalFlagBits.DELT_10),
+                        string.Format("CVD MULTI-BAR DIVERGENCE: price slope={0:F4} (up) but CVD slope={1:F4} (polyfit window={2})",
+                            priceSlope, cvdSlope, w)));
+                }
+                else if (priceSlope < 0 && cvdSlope > System.Math.Abs(priceSlope) * cfg.CvdSlopeDivergenceFactor)
+                {
+                    results.Add(new SignalResult(
+                        "DELT-10", +1, strength,
+                        SignalFlagBits.Mask(SignalFlagBits.DELT_10),
+                        string.Format("CVD MULTI-BAR DIVERGENCE: price slope={0:F4} (down) but CVD slope={1:F4} (polyfit window={2})",
+                            priceSlope, cvdSlope, w)));
+                }
+            }
+
+            // ---------------------------------------------------------------
             // PUSH current bar values to histories AFTER all signals evaluated
             // ---------------------------------------------------------------
             if (session != null)
             {
-                SessionContext.Push(session.DeltaHistory, delta);
-                SessionContext.Push(session.CvdHistory,   cvd);
-                SessionContext.Push(session.PriceHistory, bar.Close);
+                SessionContext.Push(session.DeltaHistory,     delta);
+                SessionContext.Push(session.TotalVolHistory,  total);
+                SessionContext.Push(session.CvdHistory,       cvd);
+                SessionContext.Push(session.PriceHistory,     bar.Close);
             }
 
             return results.ToArray();

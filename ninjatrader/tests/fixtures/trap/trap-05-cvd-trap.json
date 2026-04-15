@@ -1,0 +1,16 @@
+{
+  "description": "TRAP-05 CVD Trap: CVD trending up (slope > 50), current bar delta is negative (reversal)",
+  "bar": {
+    "open": 20010.0, "high": 20012.0, "low": 20002.0, "close": 20003.0,
+    "barDelta": -500, "totalVol": 800, "cvd": 500,
+    "maxDelta": 0, "minDelta": -500
+  },
+  "session": {
+    "cvdHistory": [0, 100, 200, 300, 400, 500, 600, 700, 800, 900],
+    "priceHistory": [19990.0, 19992.0, 19994.0, 19996.0, 19998.0, 20000.0, 20002.0, 20004.0, 20006.0, 20008.0]
+  },
+  "expected": [
+    { "signalId": "TRAP-05", "direction": -1 }
+  ],
+  "notes": "cvdHistory: ascending slope ~100/bar (> min_slope=50). barDelta=-500 (negative = bearish). priorTrendBull=true, currentDeltaBull=false → reversal fires. direction=-1 (bearish)"
+}

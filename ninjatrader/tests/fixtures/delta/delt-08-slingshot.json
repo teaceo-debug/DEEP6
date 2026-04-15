@@ -1,0 +1,18 @@
+{
+  "description": "DELT-08 Slingshot: 3 prior quiet bars (|delta| < totalVol*0.05) followed by explosive current bar",
+  "bar": {
+    "open": 20000.0, "high": 20010.0, "low": 19998.0, "close": 20008.0,
+    "barDelta": 900, "totalVol": 1000, "cvd": 900,
+    "maxDelta": 900, "minDelta": 0
+  },
+  "session": {
+    "deltaHistory": [10, 15, -8],
+    "totalVolHistory": [1000, 1000, 1000],
+    "cvdHistory": [10, 25, 17],
+    "priceHistory": [19990.0, 19995.0, 19998.0]
+  },
+  "expected": [
+    { "signalId": "DELT-08", "direction": 1 }
+  ],
+  "notes": "3 quiet bars (|10|=1%, |15|=1.5%, |8|=0.8% of 1000 vol, all < 5%) then current bar delta=900 (90% of 1000 = explosive > 30%)"
+}

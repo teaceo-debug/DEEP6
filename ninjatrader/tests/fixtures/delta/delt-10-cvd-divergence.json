@@ -1,0 +1,16 @@
+{
+  "description": "DELT-10 CVD Polyfit Divergence (bearish): price ascending, CVD descending",
+  "bar": {
+    "open": 20008.0, "high": 20010.0, "low": 20005.0, "close": 20009.0,
+    "barDelta": -200, "totalVol": 500, "cvd": -400,
+    "maxDelta": 0, "minDelta": -200
+  },
+  "session": {
+    "cvdHistory": [500, 400, 300, 200, 100, 0, -100, -200, -300, -400],
+    "priceHistory": [20000.0, 20001.0, 20002.0, 20003.0, 20004.0, 20005.0, 20006.0, 20007.0, 20008.0, 20009.0]
+  },
+  "expected": [
+    { "signalId": "DELT-10", "direction": -1 }
+  ],
+  "notes": "priceHistory: strictly ascending slope ~+1/bar. cvdHistory: strictly descending slope ~-100/bar. price>0 AND cvdSlope < -|priceSlope|*0.5 → bearish divergence"
+}

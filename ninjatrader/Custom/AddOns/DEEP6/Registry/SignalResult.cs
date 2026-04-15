@@ -31,6 +31,13 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Registry
         /// <summary>Human-readable diagnostic string for logging and visual overlays.</summary>
         public string Detail;
 
+        /// <summary>
+        /// Triggering price level (bar.Close, absorption level, etc.).
+        /// Used by ENG-04 absorption-zone wiring and Phase 18 scorer.
+        /// Default 0.0 when not set.
+        /// </summary>
+        public double Price;
+
         public SignalResult() { }
 
         public SignalResult(string signalId, int direction, double strength, ulong flagBit, string detail)
@@ -40,6 +47,16 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Registry
             Strength  = strength;
             FlagBit   = flagBit;
             Detail    = detail;
+        }
+
+        public SignalResult(string signalId, int direction, double strength, ulong flagBit, string detail, double price)
+        {
+            SignalId  = signalId;
+            Direction = direction;
+            Strength  = strength;
+            FlagBit   = flagBit;
+            Detail    = detail;
+            Price     = price;
         }
     }
 }

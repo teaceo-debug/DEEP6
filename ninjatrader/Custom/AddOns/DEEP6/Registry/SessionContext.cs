@@ -117,6 +117,24 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Registry
         /// <summary>Recent bar total volumes (oldest first, maxlen = MaxHistory). Used by VOLP-01.</summary>
         public Queue<long> VolHistory;
 
+        // --- Total vol history (DELT-08 slingshot compressed gate) ---
+        /// <summary>Recent bar total volumes parallel to DeltaHistory for DELT-08 quiet-ratio calculation.</summary>
+        public Queue<long> TotalVolHistory;
+
+        // --- ENG-02 Trespass result (written by TrespassDetector, read by MicroProbDetector) ---
+        /// <summary>Last trespass probability [0,1] emitted by TrespassDetector this bar. 0.5 = neutral.</summary>
+        public double LastTrespassProbability;
+
+        /// <summary>Last trespass direction emitted by TrespassDetector this bar. +1/-1/0.</summary>
+        public int LastTrespassDirection;
+
+        // --- ENG-04 Iceberg signals (written by IcebergDetector, read by MicroProbDetector) ---
+        /// <summary>
+        /// Signal identifiers emitted by IcebergDetector this bar.
+        /// Cleared at start of each bar by BeginBar(). Read by MicroProbDetector.
+        /// </summary>
+        public List<string> LastIcebergSignals;
+
         /// <summary>Maximum depth for all rolling history queues.</summary>
         public const int MaxHistory = 50;
 
@@ -129,10 +147,16 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Registry
             PriceHistory     = new Queue<double>(MaxHistory + 1);
             CvdHistory       = new Queue<long>(MaxHistory + 1);
             DeltaHistory     = new Queue<long>(MaxHistory + 1);
+            TotalVolHistory  = new Queue<long>(MaxHistory + 1);
             PocHistory       = new Queue<double>(MaxHistory + 1);
             ImbalanceHistory = new Queue<Dictionary<double, double>>(MaxHistory + 1);
             VolHistory       = new Queue<long>(MaxHistory + 1);
             UnfinishedLevels = new Dictionary<double, int>();
+            LastIcebergSignals = new List<string>();
+
+            // ENG-02 defaults — neutral
+            LastTrespassProbability = 0.5;
+            LastTrespassDirection   = 0;
         }
 
         /// <summary>
@@ -143,6 +167,18 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Registry
         {
             q.Enqueue(value);
             while (q.Count > MaxHistory) q.Dequeue();
+        }
+
+        /// <summary>
+        /// Reset per-bar ENG-02/04 fields at the start of each bar evaluation cycle.
+        /// Called by DetectorRegistry before dispatching EvaluateBar to ensure detectors
+        /// writing these fields don't accumulate across bars.
+        /// </summary>
+        public void BeginBar()
+        {
+            LastTrespassProbability = 0.5;
+            LastTrespassDirection   = 0;
+            LastIcebergSignals.Clear();
         }
 
         /// <summary>
@@ -162,9 +198,15 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Registry
             SessionMaxDelta = 0;
             SessionMinDelta = 0;
 
+            // ENG-02/04 state
+            LastTrespassProbability = 0.5;
+            LastTrespassDirection   = 0;
+            LastIcebergSignals.Clear();
+
             PriceHistory.Clear();
             CvdHistory.Clear();
             DeltaHistory.Clear();
+            TotalVolHistory.Clear();
             PocHistory.Clear();
             ImbalanceHistory.Clear();
             VolHistory.Clear();

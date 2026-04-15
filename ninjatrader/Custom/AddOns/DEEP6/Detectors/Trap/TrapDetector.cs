@@ -1,11 +1,10 @@
-// TrapDetector: ISignalDetector implementation for TRAP-01..04.
+// TrapDetector: ISignalDetector implementation for TRAP-01..05.
 //
 // Wave 4 (MODERATE): TRAP-01 Inverse Imbalance Trap (stacked buy imb in red bar),
 //                    TRAP-02 Delta Trap (strong delta + price failure),
 //                    TRAP-03 False Breakout (break + close back inside),
 //                    TRAP-04 Record Vol Rejection (record vol + rejection wick)
-//
-// TRAP-05 CVD Trend Reversal (polyfit) is DEFERRED to Wave 5 (requires LeastSquares).
+// Wave 5 (HARD): TRAP-05 CVD Trend Reversal (polyfit via LeastSquares)
 //
 // Python reference:
 //   TRAP-01: deep6/engines/imbalance.py ImbalanceType.INVERSE_TRAP (stacked version)
@@ -24,6 +23,7 @@
 using System;
 using System.Collections.Generic;
 using NinjaTrader.NinjaScript.AddOns.DEEP6.Registry;
+using NinjaTrader.NinjaScript.AddOns.DEEP6.Math;
 
 namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Trap
 {
@@ -50,6 +50,13 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Trap
 
         /// <summary>Minimum wick fraction for TRAP-04 to fire. Python: hvr_wick_min=0.35</summary>
         public double HvrWickMin = 0.35;
+
+        // ---- TRAP-05 CVD Trend Reversal (Wave 5) ----
+        /// <summary>Lookback window for CVD polyfit slope. Python: cvd_trap_lookback=10</summary>
+        public int CvdTrapLookback = 10;
+
+        /// <summary>Minimum absolute CVD slope to fire TRAP-05. Python: cvd_trap_min_slope=50</summary>
+        public double CvdTrapMinSlope = 50.0;
     }
 
     /// <summary>
@@ -281,7 +288,42 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Trap
                 }
             }
 
-            // TRAP-05 intentionally omitted — Wave 5 (requires LeastSquares polyfit).
+            // ---------------------------------------------------------------
+            // TRAP-05 CVD TREND REVERSAL TRAP
+            // Python: trap.py lines 298-349 (numpy.polyfit equivalent via LeastSquares)
+            // Fire when |cvdSlope| > min_slope AND current bar delta opposes prior CVD trend.
+            // ---------------------------------------------------------------
+            if (session != null && session.CvdHistory.Count >= _cfg.CvdTrapLookback)
+            {
+                long[] cvdHistFull = ToLongArray(session.CvdHistory);
+                int    w           = _cfg.CvdTrapLookback;
+                var    cvdWindow   = new double[w];
+                int    startIdx    = cvdHistFull.Length - w;
+                for (int i = 0; i < w; i++)
+                    cvdWindow[i] = (double)cvdHistFull[startIdx + i];
+
+                var    fit      = LeastSquares.Fit1(cvdWindow);
+                double cvdSlope = fit.Slope;
+
+                if (System.Math.Abs(cvdSlope) > _cfg.CvdTrapMinSlope)
+                {
+                    bool priorTrendBull   = cvdSlope > 0;
+                    bool currentDeltaBull = bar.BarDelta > 0;
+                    bool reversal = (priorTrendBull && !currentDeltaBull) ||
+                                    (!priorTrendBull && currentDeltaBull);
+
+                    if (reversal)
+                    {
+                        int    dir      = currentDeltaBull ? +1 : -1;
+                        double strength = System.Math.Min(System.Math.Abs(cvdSlope) / (_cfg.CvdTrapMinSlope * 10.0), 1.0);
+                        results.Add(new SignalResult(
+                            "TRAP-05", dir, strength,
+                            SignalFlagBits.Mask(SignalFlagBits.TRAP_05),
+                            string.Format("CVD TRAP: prior slope {0:+#.00;-#.00;0} (lookback={1}), current delta {2:+#;-#;0} reverses trend (polyfit)",
+                                cvdSlope, w, bar.BarDelta)));
+                    }
+                }
+            }
 
             return results.ToArray();
         }
@@ -289,6 +331,15 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Trap
         // -----------------------------------------------------------------------
         // Private helpers
         // -----------------------------------------------------------------------
+
+        private static long[] ToLongArray(Queue<long> q)
+        {
+            if (q == null || q.Count == 0) return Array.Empty<long>();
+            var arr = new long[q.Count];
+            int i = 0;
+            foreach (long v in q) arr[i++] = v;
+            return arr;
+        }
 
         /// <summary>Returns true if prices list contains a run of >= minCount consecutive prices
         /// (each within 1 tick of the next).</summary>
