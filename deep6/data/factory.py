@@ -26,7 +26,14 @@ def create_feed(source: str, config: "Config") -> Any:
     if source == "databento":
         from deep6.data.databento_live import DatabentoLiveFeed
 
-        return DatabentoLiveFeed(api_key=config.databento_api_key)
+        # Phase 14 (D-01): prefer GLBX.MDP3-scoped key; fall back to primary.
+        key = config.databento_live_key()
+        if not key:
+            raise RuntimeError(
+                "DATABENTO_API_KEY_GLBX (or DATABENTO_API_KEY) must be set "
+                "for source=databento"
+            )
+        return DatabentoLiveFeed(api_key=key)
     if source == "rithmic":
         from deep6.data.rithmic import connect_rithmic
 

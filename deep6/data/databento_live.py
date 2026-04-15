@@ -159,7 +159,7 @@ class DatabentoLiveFeed:
         api_key: str,
         dataset: str = "GLBX.MDP3",
         symbol: str = "NQ.c.0",
-        schema: str = "trades",
+        schema: str = "mbo",
         batch_interval_s: float = _BATCH_INTERVAL_S,
     ) -> None:
         if db is None:  # pragma: no cover
