@@ -987,11 +987,28 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         // GEX
         private MassiveGexClient _gexClient;
         private volatile GexProfile _gexProfile;
-        private DateTime _lastGexFetch = DateTime.MinValue;
         private readonly TimeSpan _gexInterval = TimeSpan.FromMinutes(2);
         private CancellationTokenSource _gexCts;
-        // Status string updated through every fetch path; visible at top-right of chart and in NT8 Output Window.
-        private volatile string _gexStatus = "GEX: idle (no key)";
+        // Background timer drives GEX fetches independently of tape activity / OnBarUpdate cadence.
+        private System.Threading.Timer _gexTimer;
+        private int _gexFailCount;                    // consecutive failures, resets on success
+        private DateTime _gexLastSuccess = DateTime.MinValue;
+        // Sticky — never cleared on failure. Rendered at top-right of chart / Output Window.
+        private volatile string _gexLastSuccessStatus = "GEX: idle (no key)";
+        // Transient — set during retry, cleared on success.
+        private volatile string _gexRetryStatus = string.Empty;
+        private readonly object _gexTimerLock = new object();
+
+        // Composed view of the two status strings: "<sticky>  [<transient>]" when retry active, else "<sticky>".
+        private string _gexStatus
+        {
+            get
+            {
+                var s = _gexLastSuccessStatus ?? string.Empty;
+                var r = _gexRetryStatus ?? string.Empty;
+                return string.IsNullOrEmpty(r) ? s : s + "  [" + r + "]";
+            }
+        }
 
         // session reset tracking
         private DateTime _lastSessionDate = DateTime.MinValue;
@@ -1069,21 +1086,25 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
 
                 if (!ShowGexLevels)
                 {
-                    _gexStatus = "GEX: disabled";
+                    _gexLastSuccessStatus = "GEX: disabled";
+                    _gexRetryStatus = string.Empty;
                 }
                 else if (string.IsNullOrWhiteSpace(GexApiKey))
                 {
-                    _gexStatus = "GEX: NO API KEY (set in indicator properties)";
+                    _gexLastSuccessStatus = "GEX: NO API KEY (set in indicator properties)";
+                    _gexRetryStatus = string.Empty;
                     Print("[DEEP6] GEX disabled — set massive.com API key in indicator properties.");
                 }
                 else
                 {
                     _gexClient = new MassiveGexClient(GexApiKey);
                     _gexCts = new CancellationTokenSource();
-                    _gexStatus = "GEX: initializing — first fetch in progress";
+                    _gexFailCount = 0;
+                    _gexLastSuccessStatus = "GEX: initializing — first fetch in progress";
+                    _gexRetryStatus = string.Empty;
                     Print("[DEEP6] GEX client initialized. Fetching " + GexUnderlying + " chain from massive.com…");
-                    // Force first fetch immediately instead of waiting 2 minutes.
-                    _lastGexFetch = DateTime.MinValue;
+                    // Fire first fetch immediately (dueTime=0), then each tick self-schedules via ScheduleNextGexTick.
+                    _gexTimer = new System.Threading.Timer(GexTimerTick, null, TimeSpan.Zero, System.Threading.Timeout.InfiniteTimeSpan);
                 }
 
                 _ctButtons = new List<TraderButton>
@@ -1099,6 +1120,8 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             }
             else if (State == State.Terminated)
             {
+                // Dispose timer BEFORE cancelling the CTS so no new tick can start after cancellation.
+                if (_gexTimer != null) { try { _gexTimer.Dispose(); } catch { } _gexTimer = null; }
                 if (_gexCts != null) { try { _gexCts.Cancel(); } catch { } }
                 if (_gexClient != null) { _gexClient.Dispose(); _gexClient = null; }
                 // Always attempt detach — null-conditional makes it safe even when ChartControl is gone.
@@ -1251,8 +1274,8 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                 foreach (var k in stale) _bars.Remove(k);
             }
 
-            // Kick GEX fetch if due.
-            MaybeFetchGex();
+            // GEX fetches are driven by a background System.Threading.Timer (see GexTimerTick),
+            // not by OnBarUpdate. This keeps GEX levels live even when tape is frozen.
         }
 
         private void DrawAbsorptionMarker(int barIdx, AbsorptionSignal s)
@@ -1284,45 +1307,84 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                 Draw.Diamond(this, tag, false, barsAgo, s.Price, brush);
         }
 
-        // ---- GEX fetch ----
+        // ---- GEX fetch (background timer driven) ----
 
-        private void MaybeFetchGex()
+        // Timer callback — runs on a ThreadPool thread, NEVER on NT data/chart threads.
+        // Must not touch Draw.*, RenderTarget, or NT collections; only _gexProfile (volatile) and status strings (volatile).
+        private void GexTimerTick(object state)
         {
-            if (_gexClient == null) return;
-            if (DateTime.UtcNow - _lastGexFetch < _gexInterval) return;
-            _lastGexFetch = DateTime.UtcNow;
-
-            var ctsTok = _gexCts == null ? CancellationToken.None : _gexCts.Token;
-            var client = _gexClient;
-            var underlying = GexUnderlying;
-            var indicator = this;
-
-            _gexStatus = "GEX: fetching " + underlying + "…";
-            Print("[DEEP6] GEX fetch start: " + underlying + " @ " + DateTime.Now.ToString("HH:mm:ss"));
-
-            Task.Run(async () =>
+            // Re-entrance guard: if a previous fetch is still in flight, skip this tick.
+            if (!System.Threading.Monitor.TryEnter(_gexTimerLock)) return;
+            try
             {
+                var client = _gexClient;
+                if (client == null) return;
+                var ctsTok = _gexCts == null ? CancellationToken.None : _gexCts.Token;
+                if (ctsTok.IsCancellationRequested) return;
+                var underlying = GexUnderlying;
+
+                _gexRetryStatus = "fetching " + underlying + "…";
+                Print("[DEEP6] GEX fetch start: " + underlying + " @ " + DateTime.Now.ToString("HH:mm:ss"));
+
                 try
                 {
-                    var profile = await client.FetchAsync(underlying, ctsTok).ConfigureAwait(false);
+                    var profile = client.FetchAsync(underlying, ctsTok).GetAwaiter().GetResult();
                     if (profile != null && profile.Levels.Count > 0)
-                    {
-                        indicator._gexProfile = profile;
-                        indicator._gexStatus = "GEX: " + profile.Levels.Count + " levels @ " + DateTime.Now.ToString("HH:mm");
-                        indicator.Print("[DEEP6] GEX OK: " + profile.Levels.Count + " levels, spot " + profile.Spot.ToString("F2") + ", flip " + profile.GammaFlip.ToString("F2"));
-                    }
+                        OnGexFetchSuccess(profile);
                     else
-                    {
-                        indicator._gexStatus = "GEX: empty response (check API key, plan, underlying)";
-                        indicator.Print("[DEEP6] GEX FAIL: empty response. Verify (1) API key valid, (2) plan covers options chain snapshot, (3) underlying '" + underlying + "' exists, (4) auth header is Bearer.");
-                    }
+                        OnGexFetchFailure(new InvalidOperationException("empty response (check API key, plan, underlying)"));
                 }
-                catch (Exception ex)
-                {
-                    indicator._gexStatus = "GEX: ERROR " + ex.GetType().Name;
-                    indicator.Print("[DEEP6] GEX EXCEPTION: " + ex.GetType().Name + " — " + ex.Message);
-                }
-            });
+                catch (OperationCanceledException) { /* shutdown — stay silent */ }
+                catch (Exception ex) { OnGexFetchFailure(ex); }
+            }
+            finally
+            {
+                System.Threading.Monitor.Exit(_gexTimerLock);
+                ScheduleNextGexTick();
+            }
+        }
+
+        private void OnGexFetchSuccess(GexProfile profile)
+        {
+            _gexProfile = profile;
+            _gexLastSuccess = DateTime.UtcNow;
+            _gexFailCount = 0;
+            _gexLastSuccessStatus = "GEX: " + profile.Levels.Count + " levels @ " + DateTime.Now.ToString("HH:mm");
+            _gexRetryStatus = string.Empty;  // clear transient banner
+            Print("[DEEP6] GEX OK: " + profile.Levels.Count + " levels, spot " + profile.Spot.ToString("F2") + ", flip " + profile.GammaFlip.ToString("F2"));
+        }
+
+        private void OnGexFetchFailure(Exception ex)
+        {
+            _gexFailCount++;
+            // DO NOT clear _gexProfile — keep last-good levels drawn.
+            var delay = ComputeGexRetryDelay(_gexFailCount);
+            _gexRetryStatus = "retry in " + ((int)delay.TotalSeconds) + "s after " + ex.GetType().Name;
+            Print("[DEEP6] GEX EXCEPTION (#" + _gexFailCount + "): " + ex.GetType().Name + " — " + ex.Message + ". Retrying in " + (int)delay.TotalSeconds + "s.");
+        }
+
+        // 5s → 15s → 60s → 120s (cap = _gexInterval).
+        private TimeSpan ComputeGexRetryDelay(int failCount)
+        {
+            if (failCount <= 0) return TimeSpan.FromSeconds(60);
+            switch (failCount)
+            {
+                case 1: return TimeSpan.FromSeconds(5);
+                case 2: return TimeSpan.FromSeconds(15);
+                case 3: return TimeSpan.FromSeconds(60);
+                default: return _gexInterval;  // 2 min cap
+            }
+        }
+
+        private void ScheduleNextGexTick()
+        {
+            if (_gexTimer == null) return;
+            try
+            {
+                var next = _gexFailCount == 0 ? TimeSpan.FromSeconds(60) : ComputeGexRetryDelay(_gexFailCount);
+                _gexTimer.Change(next, System.Threading.Timeout.InfiniteTimeSpan);
+            }
+            catch (ObjectDisposedException) { /* shutting down */ }
         }
 
         // ---- Custom render ----
