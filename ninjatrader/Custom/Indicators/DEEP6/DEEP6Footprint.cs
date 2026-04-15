@@ -33,6 +33,8 @@ using NinjaTrader.Gui.Tools;
 using NinjaTrader.NinjaScript.DrawingTools;
 using NinjaTrader.NinjaScript.AddOns.DEEP6;
 using NinjaTrader.NinjaScript.AddOns.DEEP6.Levels;
+using NinjaTrader.NinjaScript.AddOns.DEEP6.Scoring;
+using NinjaTrader.NinjaScript.AddOns.DEEP6.Registry;
 using SharpDX;
 using SharpDX.Direct2D1;
 using SharpDX.DirectWrite;
@@ -737,6 +739,15 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         // session reset tracking
         private DateTime _lastSessionDate = DateTime.MinValue;
 
+        // ---- Phase 18: Confluence Scorer (indicator-side registry + shared state) ----
+        // Registry and session run independently of DEEP6Strategy's registry instance.
+        // DEEP6Strategy reads results via ScorerSharedState.Latest() (Wave 3 wires entry gating).
+        private DetectorRegistry _scorerRegistry;
+        private SessionContext   _scorerSession;
+        // Latches the most recent ScorerResult so OnRender can read it without re-scoring.
+        // Updated once per bar close in OnBarUpdate; read every frame in OnRender.
+        private ScorerResult _lastScorerResult;
+
         // ---- Profile Anchor Levels ----
         private ProfileAnchorLevels _profileAnchors = new ProfileAnchorLevels();
         private DateTime _profileSessionDate = DateTime.MinValue;
@@ -745,6 +756,25 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         private SharpDX.Direct2D1.Brush _bidDx, _askDx, _textDx, _imbalBuyDx, _imbalSellDx,
                                          _pocDx, _vahDx, _valDx, _gridDx,
                                          _wallBidDx, _wallAskDx;
+
+        // Phase 18: Scorer HUD + tier marker brushes (01-COLOR-PALETTE.md tokens)
+        // Allocated in OnRenderTargetChanged, disposed in DisposeDx — matches existing pattern.
+        private SharpDX.Direct2D1.SolidColorBrush _scoreHudTextDx;    // #E8EAED  primary ink (score line)
+        private SharpDX.Direct2D1.SolidColorBrush _scoreHudDimDx;     // #B0B6BE  secondary ink (narrative line)
+        private SharpDX.Direct2D1.SolidColorBrush _scoreHudBgDx;      // #0E1014 @ 78%  HUD backdrop
+        private SharpDX.Direct2D1.SolidColorBrush _scoreHudBorderDx;  // #262633  1px border
+        private SharpDX.Direct2D1.SolidColorBrush _scoreTierALongDx;  // #00E676  TypeA long (saturated green)
+        private SharpDX.Direct2D1.SolidColorBrush _scoreTierAShortDx; // #FF1744  TypeA short (saturated red)
+        private SharpDX.Direct2D1.SolidColorBrush _scoreTierBLongDx;  // #66BB6A  TypeB long (medium green)
+        private SharpDX.Direct2D1.SolidColorBrush _scoreTierBShortDx; // #EF5350  TypeB short (medium red)
+        private SharpDX.Direct2D1.SolidColorBrush _scoreTierCLongDx;  // #7CB387 @ 70%  TypeC long (gray-green)
+        private SharpDX.Direct2D1.SolidColorBrush _scoreTierCShortDx; // #B87C82 @ 70%  TypeC short (gray-red)
+        private SharpDX.Direct2D1.SolidColorBrush _scoreNeutralDx;    // #8A929E  QUIET/DISQUALIFIED dim
+        private SharpDX.Direct2D1.SolidColorBrush _scoreLabelBgDx;    // #0E1014 @ 60%  narrative label bg pill
+        // HUD monospace font (12pt Consolas for score line; must be disposed with other fonts)
+        private TextFormat _hudFont;
+        // HUD label font (9pt Segoe UI for narrative + tier lines)
+        private TextFormat _hudLabelFont;
         // Profile anchor brushes
         private SharpDX.Direct2D1.SolidColorBrush _anchorPocDx;       // #FFD23F  PD POC
         private SharpDX.Direct2D1.SolidColorBrush _anchorVaDx;        // #C8D17A  PD VAH/VAL/PDH/PDL/PDM
@@ -785,6 +815,10 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                 LiquidityMaxPerSide     = 4;
                 ShowChartTrader         = true;
 
+                // Phase 18: Scorer HUD defaults
+                ShowScoreHud        = true;
+                ScoreHudPaddingPx   = 12;
+
                 ShowProfileAnchors     = true;
                 ShowPriorDayLevels     = true;
                 ShowNakedPocs          = true;
@@ -813,6 +847,25 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             {
                 _absCfg.AbsorbWickMin  = AbsorbWickMinPct;
                 _exhCfg.ExhaustWickMin = ExhaustWickMinPct;
+
+                // Phase 18: build indicator-side scorer registry (read-only; no risk gates).
+                // Mirrors the pattern in DEEP6Strategy.OnStateChange but without strategy-specific
+                // detectors that need account context.
+                _scorerRegistry = new DetectorRegistry();
+                _scorerRegistry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Absorption.AbsorptionDetector());
+                _scorerRegistry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Exhaustion.ExhaustionDetector());
+                _scorerRegistry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Imbalance.ImbalanceDetector());
+                _scorerRegistry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Delta.DeltaDetector());
+                _scorerRegistry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Auction.AuctionDetector());
+                _scorerRegistry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.VolPattern.VolPatternDetector());
+                _scorerRegistry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Trap.TrapDetector());
+                _scorerRegistry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Engines.TrespassDetector());
+                _scorerRegistry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Engines.CounterSpoofDetector());
+                _scorerRegistry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Engines.IcebergDetector());
+                _scorerRegistry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Engines.VPContextDetector());
+                _scorerRegistry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Engines.MicroProbDetector());  // LAST
+
+                _scorerSession = new SessionContext { TickSize = TickSize > 0 ? TickSize : 0.25 };
             }
             else if (State == State.DataLoaded)
             {
@@ -964,6 +1017,10 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             {
                 _exhDetector.ResetCooldowns();
                 _lastSessionDate = barDate;
+
+                // Phase 18: reset indicator-side scorer session on new trading day.
+                if (_scorerSession != null) _scorerSession.ResetSession();
+                if (_scorerRegistry != null) _scorerRegistry.ResetAll();
             }
 
             // Feed profile anchor aggregator — session boundary before bar accumulation.
@@ -993,6 +1050,49 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             }
 
             _priorFinalized = prev;
+
+            // ── Phase 18: Confluence Scorer invocation (once per bar close) ──────────────────
+            // Runs after all legacy detectors so their output is fully written to prev.
+            // The scorer uses its own DetectorRegistry instance (not shared with DEEP6Strategy)
+            // to get the full SignalResult[] needed by ConfluenceScorer.Score().
+            //
+            // VPContext zone proximity deferred; when extended in a follow-up, plumb zoneScore +
+            // zoneDistTicks from VPContextDetector output here.
+            // (Open Question from 18-RESEARCH.md: "VPContext zone extension not yet wired")
+            if (_scorerRegistry != null && _scorerSession != null)
+            {
+                // Populate session context fields from current bar state.
+                _scorerSession.Atr20        = _atr;
+                _scorerSession.VolEma20     = _volEma;
+                _scorerSession.TickSize     = TickSize;
+                _scorerSession.Vah          = va.vah;
+                _scorerSession.Val          = va.val;
+                _scorerSession.PriorBar     = _priorFinalized;  // now points to prev after the assignment above
+                _scorerSession.BarsSinceOpen = prevIdx;         // bar index as session-bar counter
+
+                var signals = _scorerRegistry.EvaluateBar(prev, _scorerSession);
+                _scorerSession.PriorBar = prev;  // advance for next bar
+
+                var scored = ConfluenceScorer.Score(
+                    signals,
+                    _scorerSession.BarsSinceOpen,
+                    prev.BarDelta,
+                    prev.Close,
+                    zoneScore:        0.0,               // VPContext zone extension not yet wired; Phase 18 Wave 2 stub
+                    zoneDistTicks:    double.MaxValue,    // no zone → no zone bonus
+                    tickSize:         TickSize,
+                    gexAbsMult:       1.0,
+                    gexMomentumMult:  1.0,
+                    gexNearWallBonus: 0.0,
+                    vpinModifier:     1.0);
+
+                _lastScorerResult = scored;
+                ScorerSharedState.Publish(Instrument.FullName, CurrentBar, scored);
+
+                // Draw tier marker for this bar (uses barsAgo=1 since prevIdx just closed).
+                DrawScorerTierMarker(prevIdx, scored);
+            }
+            // ────────────────────────────────────────────────────────────────────────────────
 
             // Trim history.
             int cutoff = CurrentBar - 500;
@@ -1065,6 +1165,32 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             _ctOffDx      = MakeFrozenBrush(Color.FromArgb(220, 35, 40, 50)).ToDxBrush(RenderTarget);
             _ctBorderDx   = MakeFrozenBrush(Color.FromArgb(255, 90, 100, 115)).ToDxBrush(RenderTarget);
 
+            // Phase 18: Scorer HUD brushes — palette from 01-COLOR-PALETTE.md + FOOTPRINT-VISUAL-SPEC.md
+            _scoreHudTextDx    = MakeFrozenBrush(Color.FromArgb(255, 0xE8, 0xEA, 0xED)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;
+            _scoreHudDimDx     = MakeFrozenBrush(Color.FromArgb(255, 0xB0, 0xB6, 0xBE)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;
+            _scoreHudBgDx      = MakeFrozenBrush(Color.FromArgb(199, 0x0E, 0x10, 0x14)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;  // ~78% alpha
+            _scoreHudBorderDx  = MakeFrozenBrush(Color.FromArgb(255, 0x26, 0x26, 0x33)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;
+            _scoreTierALongDx  = MakeFrozenBrush(Color.FromArgb(255, 0x00, 0xE6, 0x76)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;  // tierA-long #00E676
+            _scoreTierAShortDx = MakeFrozenBrush(Color.FromArgb(255, 0xFF, 0x17, 0x44)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;  // tierA-short #FF1744
+            _scoreTierBLongDx  = MakeFrozenBrush(Color.FromArgb(255, 0x66, 0xBB, 0x6A)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;  // tierB-long #66BB6A
+            _scoreTierBShortDx = MakeFrozenBrush(Color.FromArgb(255, 0xEF, 0x53, 0x50)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;  // tierB-short #EF5350
+            _scoreTierCLongDx  = MakeFrozenBrush(Color.FromArgb(178, 0x7C, 0xB3, 0x87)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;  // tierC-long  #7CB387 @70%
+            _scoreTierCShortDx = MakeFrozenBrush(Color.FromArgb(178, 0xB8, 0x7C, 0x82)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;  // tierC-short #B87C82 @70%
+            _scoreNeutralDx    = MakeFrozenBrush(Color.FromArgb(255, 0x8A, 0x92, 0x9E)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;  // axis.text #8A929E
+            _scoreLabelBgDx    = MakeFrozenBrush(Color.FromArgb(153, 0x0E, 0x10, 0x14)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;  // hud-bg @60%
+
+            // HUD fonts — Consolas 12pt for score (monospace), Segoe UI 9pt for narrative/tier
+            _hudFont = new TextFormat(NinjaTrader.Core.Globals.DirectWriteFactory, "Consolas", 12f)
+            {
+                TextAlignment      = TextAlignment.Leading,
+                ParagraphAlignment = ParagraphAlignment.Center,
+            };
+            _hudLabelFont = new TextFormat(NinjaTrader.Core.Globals.DirectWriteFactory, "Segoe UI", 9f)
+            {
+                TextAlignment      = TextAlignment.Leading,
+                ParagraphAlignment = ParagraphAlignment.Center,
+            };
+
             // Wire mouse handler once a render target exists (ChartControl is non-null here).
             if (!_ctMouseWired && ChartControl != null)
             {
@@ -1106,6 +1232,21 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             if (_cellFont != null) { _cellFont.Dispose(); _cellFont = null; }
             if (_labelFont != null) { _labelFont.Dispose(); _labelFont = null; }
             if (_ctBtnFont != null) { _ctBtnFont.Dispose(); _ctBtnFont = null; }
+            if (_hudFont != null) { _hudFont.Dispose(); _hudFont = null; }
+            if (_hudLabelFont != null) { _hudLabelFont.Dispose(); _hudLabelFont = null; }
+            // Phase 18 scorer HUD brushes
+            DisposeSolidBrush(ref _scoreHudTextDx);
+            DisposeSolidBrush(ref _scoreHudDimDx);
+            DisposeSolidBrush(ref _scoreHudBgDx);
+            DisposeSolidBrush(ref _scoreHudBorderDx);
+            DisposeSolidBrush(ref _scoreTierALongDx);
+            DisposeSolidBrush(ref _scoreTierAShortDx);
+            DisposeSolidBrush(ref _scoreTierBLongDx);
+            DisposeSolidBrush(ref _scoreTierBShortDx);
+            DisposeSolidBrush(ref _scoreTierCLongDx);
+            DisposeSolidBrush(ref _scoreTierCShortDx);
+            DisposeSolidBrush(ref _scoreNeutralDx);
+            DisposeSolidBrush(ref _scoreLabelBgDx);
         }
 
         private static void DisposeBrush(ref SharpDX.Direct2D1.Brush b) { if (b != null) { b.Dispose(); b = null; } }
@@ -1202,6 +1343,10 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                     RenderTarget.DrawLine(new Vector2(xLeft, yVal), new Vector2(xLeft + colW, yVal), _valDx, 1f);
                 }
             }
+
+            // Phase 18: Scoring HUD badge — rendered LAST (highest Z per 03-SPATIAL-LAYOUT.md z-order #20)
+            // Anchored top-right of panel below GEX status badge slot (Y+28).
+            if (ShowScoreHud) RenderScoreHud(panelRight);
         }
 
         private static long GetBid(FootprintBar bar, double price)
@@ -1438,6 +1583,200 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             }
         }
 
+        // ── Phase 18: Scorer HUD + tier marker rendering helpers ─────────────────────────────
+
+        /// <summary>
+        /// Render the 3-line Scoring HUD badge anchored top-right of the chart panel.
+        /// Anchored at: x = panelRight - 200, y = ChartPanel.Y + 28
+        /// (GEX status badge from DEEP6GexLevels occupies y = 4..22; 28 keeps 6px gap per spec.)
+        /// Per FOOTPRINT-VISUAL-SPEC.md section 6 + 03-SPATIAL-LAYOUT.md zone SCORE_HUD.
+        /// </summary>
+        private void RenderScoreHud(float panelRight)
+        {
+            if (_hudFont == null || _hudLabelFont == null) return;
+            if (_scoreHudTextDx == null || _scoreHudBgDx == null) return;
+
+            var r = _lastScorerResult;
+            // Auto-hide when score=0 and tier is QUIET/null (no signal — per typography spec).
+            if (r == null) return;
+            if (r.TotalScore == 0.0 && (r.Tier == SignalTier.QUIET || r.Tier == SignalTier.DISQUALIFIED))
+                return;
+
+            const float hudW   = 200f;
+            const float hudH   = 62f;
+            float topY = (float)ChartPanel.Y + 28f;
+            float leftX = panelRight - hudW;
+
+            // Background rectangle
+            var bgRect = new RectangleF(leftX, topY, hudW, hudH);
+            RenderTarget.FillRectangle(bgRect, _scoreHudBgDx);
+            RenderTarget.DrawRectangle(bgRect, _scoreHudBorderDx, 1f);
+
+            float textX     = leftX + 8f;
+            float lineH     = 18f;
+            float textW     = hudW - 16f;
+
+            // Line 1: "Score: +0.87"  (12pt Consolas, primary ink; red-tinted when negative)
+            string scoreLine = string.Format("Score: {0:+0.00;-0.00;+0.00}", r.TotalScore / 100.0);
+            var scoreInk = (r.TotalScore < 0) ? (SharpDX.Direct2D1.Brush)_scoreTierAShortDx
+                                               : (SharpDX.Direct2D1.Brush)_scoreHudTextDx;
+            using (var layout1 = new TextLayout(NinjaTrader.Core.Globals.DirectWriteFactory,
+                scoreLine, _hudFont, textW, lineH))
+            {
+                RenderTarget.DrawTextLayout(new Vector2(textX, topY + 6f), layout1, scoreInk);
+            }
+
+            // Line 2: "Tier: A" with tier-specific ink
+            string tierLine = "Tier: " + TierChar(r.Tier);
+            var tierInk = TierBrush(r.Tier, r.Direction);
+            using (var layout2 = new TextLayout(NinjaTrader.Core.Globals.DirectWriteFactory,
+                tierLine, _hudLabelFont, textW, lineH))
+            {
+                RenderTarget.DrawTextLayout(new Vector2(textX, topY + 6f + lineH), layout2, tierInk);
+            }
+
+            // Line 3: Narrative (≤40 chars, ellipsis) — TypeA only per CONTEXT.md decision;
+            // TypeB/C show blank line here (narrative goes to strategy log only).
+            string narrative = (r.Tier == SignalTier.TYPE_A && r.Narrative != null)
+                ? TruncateEllipsis(r.Narrative, 40)
+                : string.Empty;
+            if (narrative.Length > 0)
+            {
+                using (var layout3 = new TextLayout(NinjaTrader.Core.Globals.DirectWriteFactory,
+                    narrative, _hudLabelFont, textW, lineH))
+                {
+                    RenderTarget.DrawTextLayout(new Vector2(textX, topY + 6f + lineH * 2f), layout3, _scoreHudDimDx);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Draw a tier-coded entry marker for the given bar via NT8 Draw.* API.
+        /// Called once per bar close in OnBarUpdate (Draw.* must NOT be called from OnRender).
+        ///
+        /// Marker placement (per FOOTPRINT-VISUAL-SPEC.md section 5):
+        ///   Long signals: below bar low (further down than ABS/EXH at -4 ticks → use -8 ticks offset)
+        ///   Short signals: above bar high (+8 ticks offset)
+        ///
+        /// Draw.Dot fallback per 18-RESEARCH.md Open Question 3: if NT8 lacks Draw.Dot, the
+        /// catch handler renders a half-opacity Diamond for TypeC.
+        /// </summary>
+        private void DrawScorerTierMarker(int barIdx, ScorerResult scored)
+        {
+            if (scored == null) return;
+            if (scored.Tier == SignalTier.QUIET || scored.Tier == SignalTier.DISQUALIFIED) return;
+            if (scored.Direction == 0) return;
+
+            int barsAgo = CurrentBar - barIdx;
+            double entry = scored.EntryPrice > 0 ? scored.EntryPrice : Close[barsAgo];
+            bool isLong = scored.Direction > 0;
+
+            // Unique tag per bar per direction — NT8 Draw.* with same tag overwrites (idempotent on repaint).
+            string suffix = (isLong ? "L" : "S") + "_" + barIdx;
+
+            // Marker brushes: WPF brushes for Draw.* API (not SharpDX)
+            Brush longBrush  = MakeFrozenBrush(Color.FromArgb(255, 0x00, 0xE6, 0x76));  // #00E676 TypeA long
+            Brush shortBrush = MakeFrozenBrush(Color.FromArgb(255, 0xFF, 0x17, 0x44));  // #FF1744 TypeA short
+            Brush bLongB     = MakeFrozenBrush(Color.FromArgb(255, 0x66, 0xBB, 0x6A));  // #66BB6A TypeB long
+            Brush bShortB    = MakeFrozenBrush(Color.FromArgb(255, 0xEF, 0x53, 0x50));  // #EF5350 TypeB short
+            Brush cLongB     = MakeFrozenBrush(Color.FromArgb(178, 0x7C, 0xB3, 0x87));  // #7CB387 @70% TypeC long
+            Brush cShortB    = MakeFrozenBrush(Color.FromArgb(178, 0xB8, 0x7C, 0x82));  // #B87C82 @70% TypeC short
+
+            // Offset from bar geometry (ABS/EXH use 4–5 ticks; tier markers use 8 ticks to prevent collision)
+            double offset = 8.0 * TickSize;
+
+            switch (scored.Tier)
+            {
+                case SignalTier.TYPE_A:
+                {
+                    // TypeA: solid Diamond, fully saturated — shape encodes highest conviction.
+                    Brush pick = isLong ? longBrush : shortBrush;
+                    double markerPrice = isLong ? entry - offset : entry + offset;
+                    Draw.Diamond(this, "SCORE_A_" + suffix, false, barsAgo, markerPrice, pick);
+
+                    // TypeA narrative label (≤50 chars, ellipsis) adjacent to marker.
+                    // Position: 4 more ticks beyond the diamond so text doesn't overlap the shape.
+                    double lblPrice = isLong ? markerPrice - 4.0 * TickSize : markerPrice + 4.0 * TickSize;
+                    string narrative = TruncateEllipsis(scored.Narrative ?? string.Empty, 50);
+                    if (narrative.Length > 0)
+                        Draw.Text(this, "SCORE_LBL_" + suffix, narrative, barsAgo, lblPrice, pick);
+                    break;
+                }
+                case SignalTier.TYPE_B:
+                {
+                    // TypeB: hollow triangle pointing in entry direction, medium saturation.
+                    Brush pick = isLong ? bLongB : bShortB;
+                    double markerPrice = isLong ? entry - offset : entry + offset;
+                    if (isLong)
+                        Draw.TriangleUp(this, "SCORE_B_" + suffix, false, barsAgo, markerPrice, pick);
+                    else
+                        Draw.TriangleDown(this, "SCORE_B_" + suffix, false, barsAgo, markerPrice, pick);
+                    break;
+                }
+                case SignalTier.TYPE_C:
+                {
+                    // TypeC: small dot if available, fallback to small Diamond at 70% opacity.
+                    // Draw.Dot fallback per RESEARCH Open Question 3. If NT8 lacks Draw.Dot,
+                    // the catch handler renders a half-opacity Diamond.
+                    Brush pick = isLong ? cLongB : cShortB;
+                    double markerPrice = isLong ? entry - offset : entry + offset;
+                    try
+                    {
+                        Draw.Dot(this, "SCORE_C_" + suffix, false, barsAgo, markerPrice, pick);
+                    }
+                    catch (System.MissingMethodException)
+                    {
+                        Draw.Diamond(this, "SCORE_C_" + suffix, false, barsAgo, markerPrice, pick);
+                    }
+                    break;
+                }
+            }
+        }
+
+        /// <summary>Returns single-char tier label for HUD line 2.</summary>
+        private static string TierChar(SignalTier tier)
+        {
+            switch (tier)
+            {
+                case SignalTier.TYPE_A: return "A";
+                case SignalTier.TYPE_B: return "B";
+                case SignalTier.TYPE_C: return "C";
+                default:               return "-";
+            }
+        }
+
+        /// <summary>
+        /// Returns the appropriate SharpDX brush for the given tier + direction combination.
+        /// Used by RenderScoreHud for tier line ink.
+        /// </summary>
+        private SharpDX.Direct2D1.Brush TierBrush(SignalTier tier, int direction)
+        {
+            switch (tier)
+            {
+                case SignalTier.TYPE_A:
+                    return direction >= 0 ? (SharpDX.Direct2D1.Brush)_scoreTierALongDx
+                                          : (SharpDX.Direct2D1.Brush)_scoreTierAShortDx;
+                case SignalTier.TYPE_B:
+                    return direction >= 0 ? (SharpDX.Direct2D1.Brush)_scoreTierBLongDx
+                                          : (SharpDX.Direct2D1.Brush)_scoreTierBShortDx;
+                case SignalTier.TYPE_C:
+                    return direction >= 0 ? (SharpDX.Direct2D1.Brush)_scoreTierCLongDx
+                                          : (SharpDX.Direct2D1.Brush)_scoreTierCShortDx;
+                default:
+                    return (SharpDX.Direct2D1.Brush)_scoreNeutralDx;
+            }
+        }
+
+        /// <summary>Truncates text to maxLen chars, appending "..." if truncated.</summary>
+        private static string TruncateEllipsis(string text, int maxLen)
+        {
+            if (text == null) return string.Empty;
+            if (text.Length <= maxLen) return text;
+            return text.Substring(0, maxLen - 3) + "...";
+        }
+
+        // ─────────────────────────────────────────────────────────────────────────────────────
+
         #region Properties
 
         [NinjaScriptProperty]
@@ -1559,6 +1898,19 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         [Display(Name = "Show Chart Trader Toolbar", Order = 40, GroupName = "6. Chart Trader",
                  Description = "Top-left clickable on/off buttons for each feature so you can toggle live during trading")]
         public bool ShowChartTrader { get; set; }
+
+        // --- Phase 18: Scorer HUD ---
+
+        [NinjaScriptProperty]
+        [Display(Name = "Show Score HUD", Order = 1, GroupName = "7. DEEP6 Scorer",
+                 Description = "Display the 3-line scoring HUD badge (Score / Tier / Narrative) in the top-right corner")]
+        public bool ShowScoreHud { get; set; }
+
+        [NinjaScriptProperty]
+        [Range(0, 100)]
+        [Display(Name = "Score HUD Padding (px)", Order = 2, GroupName = "7. DEEP6 Scorer",
+                 Description = "Horizontal padding between the right edge of the chart panel and the HUD badge")]
+        public int ScoreHudPaddingPx { get; set; }
 
         // --- Brush properties (require *Serialize string companions for XML serialization) ---
 
