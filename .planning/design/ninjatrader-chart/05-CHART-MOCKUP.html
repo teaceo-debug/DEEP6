@@ -1,0 +1,1150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>DEEP6 Footprint — NT8 Visual Mockup (Scenes 1/2/3)</title>
+<style>
+  :root {
+    --bg: #0B0F14;
+    --panel-bg: #0E1014;
+    --grid: #1A2028;
+    --ink: #E6EDF3;
+    --ink-primary: #E8EAED;
+    --ink-secondary: #B0B6BE;
+    --surface-1: #1E2530;
+    --bid: #FF6B6B;
+    --ask: #4FC3F7;
+    --sep: #6B7280;
+    --poc: #FFD23F;
+    --va: #C8D17A;
+    --abs-teal: #00BFA5;
+    --abs-mag: #FF4081;
+    --exh-yellow: #FFD23F;
+    --exh-orange: #FFA726;
+    --tierA-long: #00E676;
+    --tierA-short: #FF1744;
+    --tierB-long: #66BB6A;
+    --tierB-short: #EF5350;
+    --tierC-long: #7CB387;
+    --tierC-short: #B87C82;
+    --gex-violet: #B388FF;
+    --t3-cyan: #00E5FF;
+    --t3-red: #FF3355;
+    --outline: #0E1014;
+  }
+
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    margin: 0;
+    padding: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  h1 { font-size: 16px; margin: 0 0 4px 0; letter-spacing: 0.5px; }
+  h2 { font-size: 13px; margin: 0 0 8px 0; color: var(--ink-secondary); font-weight: 600; }
+  h3 { font-size: 12px; margin: 0; color: var(--ink-secondary); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+
+  .page {
+    padding: 20px 24px 60px 24px;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+
+  /* ---- Legend ---- */
+  .legend {
+    background: #10161E;
+    border: 1px solid var(--grid);
+    border-radius: 4px;
+    padding: 14px 18px;
+    margin-bottom: 22px;
+  }
+  .legend-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px 22px;
+    margin-top: 10px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--ink-secondary);
+  }
+  .legend-item .swatch {
+    width: 18px; height: 12px; flex: 0 0 18px;
+    border-radius: 2px;
+    background: var(--grid);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .legend-item b { color: var(--ink); font-weight: 600; }
+
+  /* ---- Scenes layout ---- */
+  .scenes {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  @media (min-width: 1400px) {
+    .scenes { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .scene {
+    background: var(--panel-bg);
+    border: 1px solid var(--grid);
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+    min-height: 560px;
+    display: flex;
+    flex-direction: column;
+  }
+  .scene-header {
+    padding: 10px 14px;
+    background: #10161E;
+    border-bottom: 1px solid var(--grid);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .scene-header .label { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ink-secondary); }
+  .scene-header .title { font-weight: 600; }
+
+  /* ---- Chart canvas (the footprint area) ---- */
+  .chart {
+    position: relative;
+    flex: 1;
+    background: var(--panel-bg);
+    /* faint grid */
+    background-image:
+      linear-gradient(to right, var(--grid) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+    background-size: 60px 14px;
+    padding: 44px 170px 28px 54px; /* top-pad for toolbar/HUD, right-pad for level gutter */
+    overflow: hidden;
+  }
+
+  /* ---- Toolbar (top-left) ---- */
+  .toolbar {
+    position: absolute;
+    top: 8px; left: 10px;
+    display: flex;
+    gap: 4px;
+    z-index: 20;
+  }
+  .tbtn {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--ink);
+    background: #182130;
+    border: 1px solid #2A3340;
+    border-radius: 2px;
+    padding: 3px 7px;
+    letter-spacing: 0.3px;
+  }
+  .tbtn.off { color: #556270; background: #111820; }
+  .tbtn.on { background: #1F2B3D; border-color: #3A4A60; }
+  .tbtn.arm { background: #2A1A1A; border-color: #5A2A2A; color: #FF9090; }
+
+  /* ---- GEX status chip (top-right, above HUD) ---- */
+  .gex-chip {
+    position: absolute;
+    top: 8px; right: 210px;
+    z-index: 20;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 10px;
+    color: var(--ink-secondary);
+    background: rgba(14,16,20,0.78);
+    border: 1px solid #2A3340;
+    border-radius: 2px;
+    padding: 3px 8px;
+  }
+  .gex-chip b { color: var(--gex-violet); }
+
+  /* ---- Scoring HUD ---- */
+  .hud {
+    position: absolute;
+    top: 32px; right: 14px;
+    width: 188px;
+    min-height: 62px;
+    background: rgba(14,16,20,0.92);
+    border: 1px solid var(--tierA-long);
+    border-radius: 3px;
+    padding: 6px 8px 6px 8px;
+    z-index: 21;
+    font-family: "Segoe UI", Arial, sans-serif;
+  }
+  .hud.tierB { border-color: var(--tierB-long); }
+  .hud.hidden { display: none; }
+  .hud .score {
+    font-family: Consolas, Menlo, "Cascadia Mono", "Courier New", monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-primary);
+    letter-spacing: 0.5px;
+  }
+  .hud .tier-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 2px;
+    color: var(--ink-primary);
+  }
+  .hud .chip {
+    width: 14px; height: 14px; border-radius: 2px;
+    background: var(--tierA-long);
+  }
+  .hud.tierB .chip { background: var(--tierB-long); }
+  .hud .narr {
+    font-size: 9pt;
+    font-size: 11px;
+    color: var(--ink-secondary);
+    margin-top: 3px;
+    font-weight: 400;
+    letter-spacing: 0.2px;
+  }
+
+  /* ---- Footprint bars ---- */
+  .bars {
+    position: relative;
+    display: flex;
+    height: 100%;
+    align-items: flex-end;
+    gap: 2px;
+  }
+  .bar {
+    position: relative;
+    width: 60px;
+    flex: 0 0 60px;
+    display: flex;
+    flex-direction: column-reverse; /* lowest price at bottom */
+    border-left: 1px solid #12181F;
+    border-right: 1px solid #12181F;
+  }
+  .cell {
+    position: relative;
+    height: 14px;
+    width: 100%;
+    font-family: Consolas, Menlo, "Cascadia Mono", "Courier New", monospace;
+    font-size: 10px;
+    line-height: 14px;
+    color: var(--ink-primary);
+    background: var(--surface-1);
+    display: flex;
+    justify-content: space-between;
+    padding: 0 3px;
+    box-sizing: border-box;
+    white-space: nowrap;
+  }
+  .cell .b { color: var(--bid); }
+  .cell .a { color: var(--ask); }
+  .cell .x { color: rgba(107,114,128,0.55); padding: 0 2px; }
+
+  /* cell fill tints (approx rank-opacity) */
+  .cell.bid-heavy-1 { background: color-mix(in srgb, var(--bid) 10%, var(--surface-1)); }
+  .cell.bid-heavy-2 { background: color-mix(in srgb, var(--bid) 20%, var(--surface-1)); }
+  .cell.bid-heavy-3 { background: color-mix(in srgb, var(--bid) 35%, var(--surface-1)); }
+  .cell.bid-heavy-4 { background: color-mix(in srgb, var(--bid) 50%, var(--surface-1)); }
+  .cell.ask-heavy-1 { background: color-mix(in srgb, var(--ask) 10%, var(--surface-1)); }
+  .cell.ask-heavy-2 { background: color-mix(in srgb, var(--ask) 22%, var(--surface-1)); }
+  .cell.ask-heavy-3 { background: color-mix(in srgb, var(--ask) 38%, var(--surface-1)); }
+  .cell.ask-heavy-4 { background: color-mix(in srgb, var(--ask) 55%, var(--surface-1)); }
+
+  /* POC: yellow fill stripe on top */
+  .cell.poc::before {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; top: 50%;
+    height: 2px;
+    margin-top: -1px;
+    background: rgba(255,210,63,0.85);
+    pointer-events: none;
+  }
+
+  /* Imbalance borders */
+  .cell.imb-ask { box-shadow: inset 0 0 0 1px var(--ask); }
+  .cell.imb-bid { box-shadow: inset 0 0 0 1px var(--bid); }
+  .cell.imb-ask-t2 { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--ask) 90%, white 10%); }
+  .cell.imb-bid-t2 { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--bid) 90%, white 10%); }
+  .cell.imb-ask-t3 { box-shadow: inset 0 0 0 2px var(--t3-cyan); background: color-mix(in srgb, var(--t3-cyan) 18%, var(--surface-1)); }
+  .cell.imb-bid-t3 { box-shadow: inset 0 0 0 2px var(--t3-red); background: color-mix(in srgb, var(--t3-red) 22%, var(--surface-1)); }
+  .cell .glyph {
+    position: absolute; top: 0; right: 2px;
+    font-size: 8px; line-height: 8px;
+    color: inherit;
+  }
+  .cell.imb-ask-t2 .glyph { color: var(--ask); }
+  .cell.imb-bid-t2 .glyph { color: var(--bid); }
+  .cell.imb-ask-t3 .glyph { color: var(--t3-cyan); font-size: 10px; top: 1px; }
+  .cell.imb-bid-t3 .glyph { color: var(--t3-red); font-size: 10px; top: 1px; }
+
+  /* ---- VAH / VAL horizontal lines (drawn as absolutely positioned band) ---- */
+  .va-line {
+    position: absolute;
+    left: 54px; right: 170px;
+    height: 1px;
+    background: var(--va);
+    z-index: 4;
+  }
+  .va-line .lbl {
+    position: absolute; right: -24px; top: -7px;
+    font-size: 9px; color: var(--va);
+    font-family: "Segoe UI", Arial, sans-serif;
+  }
+
+  /* ---- Right gutter: level labels ---- */
+  .gutter {
+    position: absolute;
+    top: 44px; bottom: 28px; right: 6px;
+    width: 158px;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 10px;
+    z-index: 5;
+    pointer-events: none;
+  }
+  .gutter .lbl {
+    position: absolute;
+    right: 0;
+    padding: 1px 4px;
+    border-radius: 2px;
+    background: rgba(14,16,20,0.55);
+    white-space: nowrap;
+  }
+  .lbl.pdh { color: var(--ask); }
+  .lbl.pdl { color: var(--bid); }
+  .lbl.pdm { color: var(--ink-secondary); }
+  .lbl.pdpoc { color: var(--poc); }
+  .lbl.pdvah, .lbl.pdval { color: var(--va); }
+  .lbl.pwpoc { color: var(--poc); opacity: 0.75; }
+  .lbl.vpoc { color: var(--poc); opacity: 0.80; font-style: italic; }
+
+  /* Horizontal level ghost lines */
+  .lvl-line {
+    position: absolute;
+    left: 54px; right: 170px;
+    height: 0;
+    border-top: 1px dashed rgba(255,210,63,0.35);
+    z-index: 3;
+  }
+  .lvl-line.pdh { border-top: 1px solid rgba(79,195,247,0.45); }
+  .lvl-line.pdl { border-top: 1px solid rgba(255,107,107,0.45); }
+  .lvl-line.pdm { border-top: 1px dotted rgba(176,182,190,0.35); }
+  .lvl-line.pdpoc { border-top: 1px solid rgba(255,210,63,0.55); }
+  .lvl-line.pdpoc.highlight { border-top: 2px solid rgba(255,210,63,0.95); }
+  .lvl-line.pdvah, .lvl-line.pdval { border-top: 1px dashed rgba(200,209,122,0.55); }
+  .lvl-line.pwpoc { border-top: 1px dashed rgba(255,210,63,0.30); }
+  .lvl-line.vpoc { border-top: 1px dashed rgba(255,210,63,0.50); }
+
+  /* ---- Markers (triangles, diamonds) ---- */
+  .marker {
+    position: absolute;
+    width: 0; height: 0;
+    z-index: 10;
+    pointer-events: none;
+  }
+  /* ABS bullish (teal filled ▲, below low) */
+  .m-abs-bull {
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 10px solid var(--abs-teal);
+    filter: drop-shadow(0 0 1px #0E1014);
+  }
+  /* ABS bearish (magenta filled ▼) */
+  .m-abs-bear {
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 10px solid var(--abs-mag);
+  }
+  /* EXH bullish outline ▲ (yellow stroke-only via inline SVG) */
+  /* EXH bearish outline ▽ (orange stroke-only) */
+
+  /* TypeA diamond (green/red) */
+  .m-tierA-long, .m-tierA-short {
+    width: 12px; height: 12px;
+    transform: rotate(45deg);
+    border: 1px solid var(--outline);
+  }
+  .m-tierA-long { background: var(--tierA-long); }
+  .m-tierA-short { background: var(--tierA-short); }
+
+  /* TypeB hollow triangle */
+  .m-tierB-long, .m-tierB-short { filter: drop-shadow(0 0 1px #0E1014); }
+
+  /* ABS-07 VA-extreme bonus ring */
+  .ring {
+    position: absolute;
+    width: 14px; height: 14px;
+    border: 1.5px solid var(--poc);
+    border-radius: 50%;
+    z-index: 11;
+  }
+
+  /* TypeA narrative callout */
+  .narr-call {
+    position: absolute;
+    background: rgba(14,16,20,0.70);
+    border: 1px solid rgba(0,230,118,0.40);
+    color: var(--ink-primary);
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 10px;
+    padding: 2px 5px;
+    border-radius: 2px;
+    z-index: 12;
+    white-space: nowrap;
+  }
+  .narr-call .tag { color: var(--tierA-long); font-weight: 600; margin-right: 4px; }
+
+  /* bar labels (time ticks) */
+  .timeline {
+    position: absolute;
+    bottom: 4px; left: 54px; right: 170px;
+    height: 16px;
+    display: flex;
+    gap: 2px;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 9px;
+    color: var(--ink-secondary);
+  }
+  .timeline span {
+    width: 60px; flex: 0 0 60px;
+    text-align: center;
+  }
+
+  /* price axis (left) */
+  .yaxis {
+    position: absolute;
+    left: 4px; top: 44px; bottom: 28px;
+    width: 48px;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 9px;
+    color: var(--ink-secondary);
+  }
+  .yaxis .tick {
+    position: absolute;
+    right: 4px;
+    padding: 0;
+    height: 14px;
+    line-height: 14px;
+  }
+
+  /* tiny badge for a naked POC label stacking */
+  .vpoc-badge { background: rgba(14,16,20,0.75); }
+
+  /* toolbar caption */
+  .toolbar-caption {
+    position: absolute; top: 30px; left: 12px;
+    font-size: 9px; color: #3F4D5E; letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>DEEP6 Footprint — NT8 Visual Mockup</h1>
+  <h2>Three scenes (quiet tape / TypeB fire / TypeA fire) against the Phase 18 visual spec + Phase 17 detector set + Quick-task 260415-o94 profile anchors.</h2>
+
+  <div class="legend">
+    <h3>Legend — visual element to code mapping</h3>
+    <div class="legend-grid">
+      <div class="legend-item"><span class="swatch" style="background:#1E2530;"></span><div><b>Cell fill</b> (surface-1 #1E2530, vol-rank tinted toward bid/ask)</div></div>
+      <div class="legend-item"><span class="swatch" style="background:#FF6B6B;"></span><div><b>Bid ink</b> #FF6B6B — cell left number + sell imbalance border</div></div>
+      <div class="legend-item"><span class="swatch" style="background:#4FC3F7;"></span><div><b>Ask ink</b> #4FC3F7 — cell right number + buy imbalance border</div></div>
+      <div class="legend-item"><span class="swatch" style="background:#FFD23F;"></span><div><b>POC stripe</b> #FFD23F @85%, 2px tall, full column width</div></div>
+      <div class="legend-item"><span class="swatch" style="background:#C8D17A;"></span><div><b>VAH / VAL</b> #C8D17A, 1px solid horizontal lines</div></div>
+      <div class="legend-item"><span class="swatch" style="background:#00BFA5;"></span><div><b>ABS bullish ▲</b> #00BFA5 teal filled, below bar low</div></div>
+      <div class="legend-item"><span class="swatch" style="background:#FFA726;"></span><div><b>EXH bearish ▽</b> #FFA726 orange outline, above bar high</div></div>
+      <div class="legend-item"><span class="swatch" style="background:#00E676;"></span><div><b>TypeA long ◆</b> #00E676 diamond (saturated green)</div></div>
+      <div class="legend-item"><span class="swatch" style="background:#FF1744;"></span><div><b>TypeA short ◆</b> #FF1744 diamond</div></div>
+      <div class="legend-item"><span class="swatch" style="background:transparent;border:1px solid #66BB6A;"></span><div><b>TypeB long △</b> #66BB6A hollow triangle</div></div>
+      <div class="legend-item"><span class="swatch" style="background:#00E5FF;"></span><div><b>T3 stacked imbalance</b> #00E5FF (buy) / #FF3355 (sell) + caret glyph</div></div>
+      <div class="legend-item"><span class="swatch" style="background:#B388FF;"></span><div><b>GEX HVL</b> #B388FF violet (status chip)</div></div>
+      <div class="legend-item"><span class="swatch" style="background:rgba(255,210,63,0.60);"></span><div><b>Naked vPOC</b> dashed 4-on/3-off, right-gutter italic label</div></div>
+      <div class="legend-item"><span class="swatch" style="background:#0E1014;border:1px solid #00E676;"></span><div><b>HUD badge</b> top-right, tier-colored border, 3 lines (Score/Tier/Narrative)</div></div>
+      <div class="legend-item"><span class="swatch" style="background:#182130;border:1px solid #3A4A60;"></span><div><b>Chart Trader toolbar</b> 10 buttons, on/off states</div></div>
+      <div class="legend-item"><span class="swatch" style="background:rgba(255,210,63,0.95);"></span><div><b>Profile anchors</b> PDH/PDL/PDM/PD POC/PD VAH/PD VAL/PW POC in right gutter</div></div>
+    </div>
+  </div>
+
+  <div class="scenes">
+
+    <!-- ============================================================ -->
+    <!-- SCENE 1 — Quiet tape -->
+    <!-- ============================================================ -->
+    <section class="scene">
+      <div class="scene-header">
+        <div><span class="label">Scene 1</span> &nbsp; <span class="title">Quiet tape — no recent signals</span></div>
+        <div style="font-size:10px;color:#556270;">NQ 06-26 · 1min · 09:34 ET</div>
+      </div>
+
+      <div class="chart">
+        <!-- Toolbar -->
+        <div class="toolbar">
+          <span class="tbtn on">FLAT</span>
+          <span class="tbtn on">BUY MKT</span>
+          <span class="tbtn on">SELL MKT</span>
+          <span class="tbtn on">BUY LMT</span>
+          <span class="tbtn on">SELL LMT</span>
+          <span class="tbtn on">RVRSE</span>
+          <span class="tbtn on">CXL ALL</span>
+          <span class="tbtn on">ATM: D6-default</span>
+          <span class="tbtn off">AUTO</span>
+          <span class="tbtn arm">ARM</span>
+        </div>
+        <div class="gex-chip">GEX <b>LIVE</b> · HVL 20037.00 · CW 20125 · PW 19960</div>
+
+        <!-- HUD hidden -->
+        <div class="hud hidden"></div>
+
+        <!-- Y axis -->
+        <div class="yaxis">
+          <div class="tick" style="top:28px;">20095.00</div>
+          <div class="tick" style="top:84px;">20080.00</div>
+          <div class="tick" style="top:140px;">20065.00</div>
+          <div class="tick" style="top:196px;">20050.00</div>
+          <div class="tick" style="top:252px;">20035.00</div>
+          <div class="tick" style="top:308px;">20020.00</div>
+          <div class="tick" style="top:364px;">20005.00</div>
+        </div>
+
+        <!-- Level dashed lines + gutter labels -->
+        <div class="lvl-line pdh"  style="top:56px;"></div>
+        <div class="lvl-line pdvah" style="top:112px;"></div>
+        <div class="lvl-line pdpoc" style="top:182px;"></div>
+        <div class="lvl-line pdm"  style="top:238px;"></div>
+        <div class="lvl-line pdval" style="top:294px;"></div>
+        <div class="lvl-line pwpoc" style="top:336px;"></div>
+        <div class="lvl-line pdl"  style="top:378px;"></div>
+        <div class="lvl-line vpoc" style="top:154px;"></div>
+
+        <div class="gutter">
+          <div class="lbl pdh"   style="top:50px;">PDH 20092.25</div>
+          <div class="lbl pdvah" style="top:106px;">PD VAH 20078.50</div>
+          <div class="lbl vpoc"  style="top:148px; top:148px;">vPOC 20068.00 (2 sess ago)</div>
+          <div class="lbl pdpoc" style="top:176px;">PD POC 20056.75</div>
+          <div class="lbl pdm"   style="top:232px;">PDM 20042.50</div>
+          <div class="lbl pdval" style="top:288px;">PD VAL 20028.25</div>
+          <div class="lbl pwpoc" style="top:330px;">PW POC 20015.50</div>
+          <div class="lbl pdl"   style="top:372px;">PDL 20003.75</div>
+        </div>
+
+        <!-- VAH/VAL lines (current session) -->
+        <div class="va-line" style="top:84px;"><span class="lbl">VAH</span></div>
+        <div class="va-line" style="top:252px;"><span class="lbl">VAL</span></div>
+
+        <!-- Footprint bars -->
+        <div class="bars" style="margin-left:50px;margin-right:170px;height:420px;">
+          <!-- 13 bars, 8 rows each -->
+          <!-- Bar generator: each bar is column-reverse flex => first .cell in HTML is BOTTOM price. -->
+          <!-- Bar 1 -->
+          <div class="bar">
+            <div class="cell bid-heavy-2"><span class="b">312</span><span class="x">x</span><span class="a">188</span></div>
+            <div class="cell ask-heavy-1"><span class="b">220</span><span class="x">x</span><span class="a">264</span></div>
+            <div class="cell bid-heavy-1"><span class="b">284</span><span class="x">x</span><span class="a">240</span></div>
+            <div class="cell poc ask-heavy-3"><span class="b">310</span><span class="x">x</span><span class="a">520</span></div>
+            <div class="cell ask-heavy-2"><span class="b">198</span><span class="x">x</span><span class="a">312</span></div>
+            <div class="cell bid-heavy-1"><span class="b">240</span><span class="x">x</span><span class="a">190</span></div>
+            <div class="cell ask-heavy-1"><span class="b">150</span><span class="x">x</span><span class="a">212</span></div>
+            <div class="cell bid-heavy-1"><span class="b">188</span><span class="x">x</span><span class="a">142</span></div>
+          </div>
+          <!-- Bar 2 -->
+          <div class="bar">
+            <div class="cell bid-heavy-1"><span class="b">180</span><span class="x">x</span><span class="a">150</span></div>
+            <div class="cell ask-heavy-2"><span class="b">210</span><span class="x">x</span><span class="a">320</span></div>
+            <div class="cell poc bid-heavy-3"><span class="b">540</span><span class="x">x</span><span class="a">288</span></div>
+            <div class="cell ask-heavy-1"><span class="b">260</span><span class="x">x</span><span class="a">310</span></div>
+            <div class="cell bid-heavy-1"><span class="b">230</span><span class="x">x</span><span class="a">188</span></div>
+            <div class="cell ask-heavy-1"><span class="b">170</span><span class="x">x</span><span class="a">224</span></div>
+            <div class="cell bid-heavy-1"><span class="b">198</span><span class="x">x</span><span class="a">152</span></div>
+            <div class="cell ask-heavy-1"><span class="b">120</span><span class="x">x</span><span class="a">172</span></div>
+          </div>
+          <!-- Bar 3 -->
+          <div class="bar">
+            <div class="cell ask-heavy-1"><span class="b">160</span><span class="x">x</span><span class="a">210</span></div>
+            <div class="cell bid-heavy-2"><span class="b">352</span><span class="x">x</span><span class="a">218</span></div>
+            <div class="cell ask-heavy-1"><span class="b">240</span><span class="x">x</span><span class="a">298</span></div>
+            <div class="cell poc ask-heavy-3"><span class="b">290</span><span class="x">x</span><span class="a">488</span></div>
+            <div class="cell ask-heavy-2"><span class="b">218</span><span class="x">x</span><span class="a">340</span></div>
+            <div class="cell bid-heavy-1"><span class="b">200</span><span class="x">x</span><span class="a">172</span></div>
+            <div class="cell ask-heavy-1"><span class="b">140</span><span class="x">x</span><span class="a">198</span></div>
+            <div class="cell bid-heavy-1"><span class="b">172</span><span class="x">x</span><span class="a">128</span></div>
+          </div>
+          <!-- Bar 4 -->
+          <div class="bar">
+            <div class="cell bid-heavy-1"><span class="b">140</span><span class="x">x</span><span class="a">112</span></div>
+            <div class="cell ask-heavy-1"><span class="b">168</span><span class="x">x</span><span class="a">212</span></div>
+            <div class="cell bid-heavy-2"><span class="b">332</span><span class="x">x</span><span class="a">210</span></div>
+            <div class="cell poc bid-heavy-3"><span class="b">510</span><span class="x">x</span><span class="a">280</span></div>
+            <div class="cell ask-heavy-1"><span class="b">240</span><span class="x">x</span><span class="a">298</span></div>
+            <div class="cell ask-heavy-1"><span class="b">180</span><span class="x">x</span><span class="a">230</span></div>
+            <div class="cell bid-heavy-1"><span class="b">160</span><span class="x">x</span><span class="a">128</span></div>
+            <div class="cell ask-heavy-1"><span class="b">112</span><span class="x">x</span><span class="a">148</span></div>
+          </div>
+          <!-- Bar 5 -->
+          <div class="bar">
+            <div class="cell ask-heavy-1"><span class="b">130</span><span class="x">x</span><span class="a">172</span></div>
+            <div class="cell bid-heavy-1"><span class="b">218</span><span class="x">x</span><span class="a">184</span></div>
+            <div class="cell poc ask-heavy-3"><span class="b">312</span><span class="x">x</span><span class="a">488</span></div>
+            <div class="cell ask-heavy-2"><span class="b">240</span><span class="x">x</span><span class="a">362</span></div>
+            <div class="cell bid-heavy-1"><span class="b">220</span><span class="x">x</span><span class="a">188</span></div>
+            <div class="cell bid-heavy-1"><span class="b">190</span><span class="x">x</span><span class="a">152</span></div>
+            <div class="cell ask-heavy-1"><span class="b">150</span><span class="x">x</span><span class="a">200</span></div>
+            <div class="cell bid-heavy-1"><span class="b">170</span><span class="x">x</span><span class="a">132</span></div>
+          </div>
+          <!-- Bar 6 -->
+          <div class="bar">
+            <div class="cell bid-heavy-1"><span class="b">180</span><span class="x">x</span><span class="a">148</span></div>
+            <div class="cell ask-heavy-1"><span class="b">160</span><span class="x">x</span><span class="a">210</span></div>
+            <div class="cell poc bid-heavy-3"><span class="b">472</span><span class="x">x</span><span class="a">260</span></div>
+            <div class="cell bid-heavy-2"><span class="b">338</span><span class="x">x</span><span class="a">212</span></div>
+            <div class="cell ask-heavy-1"><span class="b">220</span><span class="x">x</span><span class="a">272</span></div>
+            <div class="cell bid-heavy-1"><span class="b">170</span><span class="x">x</span><span class="a">138</span></div>
+            <div class="cell ask-heavy-1"><span class="b">130</span><span class="x">x</span><span class="a">180</span></div>
+            <div class="cell bid-heavy-1"><span class="b">142</span><span class="x">x</span><span class="a">110</span></div>
+          </div>
+          <!-- Bar 7 -->
+          <div class="bar">
+            <div class="cell ask-heavy-1"><span class="b">120</span><span class="x">x</span><span class="a">168</span></div>
+            <div class="cell bid-heavy-1"><span class="b">210</span><span class="x">x</span><span class="a">180</span></div>
+            <div class="cell ask-heavy-2"><span class="b">230</span><span class="x">x</span><span class="a">352</span></div>
+            <div class="cell poc ask-heavy-3"><span class="b">290</span><span class="x">x</span><span class="a">512</span></div>
+            <div class="cell ask-heavy-2"><span class="b">218</span><span class="x">x</span><span class="a">330</span></div>
+            <div class="cell bid-heavy-1"><span class="b">188</span><span class="x">x</span><span class="a">150</span></div>
+            <div class="cell ask-heavy-1"><span class="b">140</span><span class="x">x</span><span class="a">188</span></div>
+            <div class="cell bid-heavy-1"><span class="b">172</span><span class="x">x</span><span class="a">138</span></div>
+          </div>
+          <!-- Bar 8 -->
+          <div class="bar">
+            <div class="cell bid-heavy-1"><span class="b">168</span><span class="x">x</span><span class="a">132</span></div>
+            <div class="cell bid-heavy-2"><span class="b">300</span><span class="x">x</span><span class="a">190</span></div>
+            <div class="cell poc bid-heavy-3"><span class="b">520</span><span class="x">x</span><span class="a">288</span></div>
+            <div class="cell ask-heavy-1"><span class="b">240</span><span class="x">x</span><span class="a">298</span></div>
+            <div class="cell bid-heavy-1"><span class="b">218</span><span class="x">x</span><span class="a">182</span></div>
+            <div class="cell ask-heavy-1"><span class="b">170</span><span class="x">x</span><span class="a">220</span></div>
+            <div class="cell bid-heavy-1"><span class="b">180</span><span class="x">x</span><span class="a">148</span></div>
+            <div class="cell ask-heavy-1"><span class="b">110</span><span class="x">x</span><span class="a">158</span></div>
+          </div>
+          <!-- Bar 9 -->
+          <div class="bar">
+            <div class="cell ask-heavy-1"><span class="b">130</span><span class="x">x</span><span class="a">180</span></div>
+            <div class="cell bid-heavy-1"><span class="b">220</span><span class="x">x</span><span class="a">188</span></div>
+            <div class="cell ask-heavy-2"><span class="b">238</span><span class="x">x</span><span class="a">352</span></div>
+            <div class="cell poc ask-heavy-3"><span class="b">280</span><span class="x">x</span><span class="a">498</span></div>
+            <div class="cell bid-heavy-1"><span class="b">230</span><span class="x">x</span><span class="a">198</span></div>
+            <div class="cell ask-heavy-1"><span class="b">200</span><span class="x">x</span><span class="a">248</span></div>
+            <div class="cell bid-heavy-1"><span class="b">150</span><span class="x">x</span><span class="a">122</span></div>
+            <div class="cell ask-heavy-1"><span class="b">118</span><span class="x">x</span><span class="a">172</span></div>
+          </div>
+          <!-- Bar 10 -->
+          <div class="bar">
+            <div class="cell bid-heavy-1"><span class="b">180</span><span class="x">x</span><span class="a">148</span></div>
+            <div class="cell ask-heavy-1"><span class="b">190</span><span class="x">x</span><span class="a">240</span></div>
+            <div class="cell poc bid-heavy-3"><span class="b">490</span><span class="x">x</span><span class="a">278</span></div>
+            <div class="cell bid-heavy-2"><span class="b">320</span><span class="x">x</span><span class="a">198</span></div>
+            <div class="cell ask-heavy-1"><span class="b">230</span><span class="x">x</span><span class="a">282</span></div>
+            <div class="cell bid-heavy-1"><span class="b">170</span><span class="x">x</span><span class="a">142</span></div>
+            <div class="cell ask-heavy-1"><span class="b">132</span><span class="x">x</span><span class="a">180</span></div>
+            <div class="cell bid-heavy-1"><span class="b">158</span><span class="x">x</span><span class="a">120</span></div>
+          </div>
+          <!-- Bar 11 -->
+          <div class="bar">
+            <div class="cell ask-heavy-1"><span class="b">128</span><span class="x">x</span><span class="a">172</span></div>
+            <div class="cell bid-heavy-1"><span class="b">212</span><span class="x">x</span><span class="a">180</span></div>
+            <div class="cell ask-heavy-2"><span class="b">228</span><span class="x">x</span><span class="a">340</span></div>
+            <div class="cell poc ask-heavy-3"><span class="b">278</span><span class="x">x</span><span class="a">472</span></div>
+            <div class="cell ask-heavy-1"><span class="b">210</span><span class="x">x</span><span class="a">268</span></div>
+            <div class="cell bid-heavy-1"><span class="b">178</span><span class="x">x</span><span class="a">148</span></div>
+            <div class="cell ask-heavy-1"><span class="b">138</span><span class="x">x</span><span class="a">188</span></div>
+            <div class="cell bid-heavy-1"><span class="b">172</span><span class="x">x</span><span class="a">140</span></div>
+          </div>
+          <!-- Bar 12 -->
+          <div class="bar">
+            <div class="cell bid-heavy-1"><span class="b">168</span><span class="x">x</span><span class="a">130</span></div>
+            <div class="cell bid-heavy-2"><span class="b">298</span><span class="x">x</span><span class="a">188</span></div>
+            <div class="cell poc bid-heavy-3"><span class="b">502</span><span class="x">x</span><span class="a">288</span></div>
+            <div class="cell ask-heavy-1"><span class="b">248</span><span class="x">x</span><span class="a">300</span></div>
+            <div class="cell bid-heavy-1"><span class="b">220</span><span class="x">x</span><span class="a">190</span></div>
+            <div class="cell ask-heavy-1"><span class="b">180</span><span class="x">x</span><span class="a">228</span></div>
+            <div class="cell bid-heavy-1"><span class="b">170</span><span class="x">x</span><span class="a">138</span></div>
+            <div class="cell ask-heavy-1"><span class="b">118</span><span class="x">x</span><span class="a">168</span></div>
+          </div>
+          <!-- Bar 13 (current, no signal) -->
+          <div class="bar">
+            <div class="cell ask-heavy-1"><span class="b">122</span><span class="x">x</span><span class="a">168</span></div>
+            <div class="cell bid-heavy-1"><span class="b">210</span><span class="x">x</span><span class="a">178</span></div>
+            <div class="cell ask-heavy-2"><span class="b">222</span><span class="x">x</span><span class="a">340</span></div>
+            <div class="cell poc ask-heavy-2"><span class="b">260</span><span class="x">x</span><span class="a">388</span></div>
+            <div class="cell bid-heavy-1"><span class="b">198</span><span class="x">x</span><span class="a">158</span></div>
+            <div class="cell ask-heavy-1"><span class="b">150</span><span class="x">x</span><span class="a">198</span></div>
+            <div class="cell bid-heavy-1"><span class="b">128</span><span class="x">x</span><span class="a">108</span></div>
+            <div class="cell ask-heavy-1"><span class="b">90</span><span class="x">x</span><span class="a">120</span></div>
+          </div>
+        </div>
+
+        <div class="timeline">
+          <span>34</span><span>35</span><span>36</span><span>37</span><span>38</span><span>39</span>
+          <span>40</span><span>41</span><span>42</span><span>43</span><span>44</span><span>45</span><span>46</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SCENE 2 — TypeB firing -->
+    <!-- ============================================================ -->
+    <section class="scene">
+      <div class="scene-header">
+        <div><span class="label">Scene 2</span> &nbsp; <span class="title">TypeB bear — Exhaustion + stacked T2 ask imbalance</span></div>
+        <div style="font-size:10px;color:#556270;">NQ 06-26 · 1min · 10:12 ET</div>
+      </div>
+
+      <div class="chart">
+        <div class="toolbar">
+          <span class="tbtn on">FLAT</span>
+          <span class="tbtn on">BUY MKT</span>
+          <span class="tbtn on">SELL MKT</span>
+          <span class="tbtn on">BUY LMT</span>
+          <span class="tbtn on">SELL LMT</span>
+          <span class="tbtn on">RVRSE</span>
+          <span class="tbtn on">CXL ALL</span>
+          <span class="tbtn on">ATM: D6-default</span>
+          <span class="tbtn on">AUTO</span>
+          <span class="tbtn arm">ARM</span>
+        </div>
+        <div class="gex-chip">GEX <b>LIVE</b> · HVL 20037.00 · CW 20125 · PW 19960</div>
+
+        <!-- HUD: TypeB (no narrative) -->
+        <div class="hud tierB">
+          <div class="score" style="color:var(--bid);">Score: -0.54</div>
+          <div class="tier-row">Tier: B <span class="chip" style="background:var(--tierB-short);"></span></div>
+          <div class="narr" style="color:#4A5160;font-style:italic;">— no narrative (TypeB) —</div>
+        </div>
+
+        <div class="yaxis">
+          <div class="tick" style="top:28px;">20095.00</div>
+          <div class="tick" style="top:84px;">20080.00</div>
+          <div class="tick" style="top:140px;">20065.00</div>
+          <div class="tick" style="top:196px;">20050.00</div>
+          <div class="tick" style="top:252px;">20035.00</div>
+          <div class="tick" style="top:308px;">20020.00</div>
+          <div class="tick" style="top:364px;">20005.00</div>
+        </div>
+
+        <div class="lvl-line pdh"  style="top:56px;"></div>
+        <div class="lvl-line pdvah" style="top:112px;"></div>
+        <div class="lvl-line pdpoc" style="top:182px;"></div>
+        <div class="lvl-line pdm"  style="top:238px;"></div>
+        <div class="lvl-line pdval" style="top:294px;"></div>
+        <div class="lvl-line pwpoc" style="top:336px;"></div>
+        <div class="lvl-line pdl"  style="top:378px;"></div>
+        <div class="lvl-line vpoc" style="top:154px;"></div>
+
+        <div class="gutter">
+          <div class="lbl pdh"   style="top:50px;">PDH 20092.25</div>
+          <div class="lbl pdvah" style="top:106px;">PD VAH 20078.50</div>
+          <div class="lbl vpoc"  style="top:148px;">vPOC 20068.00</div>
+          <div class="lbl pdpoc" style="top:176px;">PD POC 20056.75</div>
+          <div class="lbl pdm"   style="top:232px;">PDM 20042.50</div>
+          <div class="lbl pdval" style="top:288px;">PD VAL 20028.25</div>
+          <div class="lbl pwpoc" style="top:330px;">PW POC 20015.50</div>
+          <div class="lbl pdl"   style="top:372px;">PDL 20003.75</div>
+        </div>
+
+        <div class="va-line" style="top:84px;"><span class="lbl">VAH</span></div>
+        <div class="va-line" style="top:252px;"><span class="lbl">VAL</span></div>
+
+        <div class="bars" style="margin-left:50px;margin-right:170px;height:420px;">
+          <!-- Reuse quiet layout for bars 1-12 -->
+          <!-- (abbreviated structurally to keep file compact — same cells as scene 1) -->
+          <!-- Bar 1..12 duplicated (cells) -->
+          <div class="bar">
+            <div class="cell bid-heavy-2"><span class="b">312</span><span class="x">x</span><span class="a">188</span></div>
+            <div class="cell ask-heavy-1"><span class="b">220</span><span class="x">x</span><span class="a">264</span></div>
+            <div class="cell bid-heavy-1"><span class="b">284</span><span class="x">x</span><span class="a">240</span></div>
+            <div class="cell poc ask-heavy-3"><span class="b">310</span><span class="x">x</span><span class="a">520</span></div>
+            <div class="cell ask-heavy-2"><span class="b">198</span><span class="x">x</span><span class="a">312</span></div>
+            <div class="cell bid-heavy-1"><span class="b">240</span><span class="x">x</span><span class="a">190</span></div>
+            <div class="cell ask-heavy-1"><span class="b">150</span><span class="x">x</span><span class="a">212</span></div>
+            <div class="cell bid-heavy-1"><span class="b">188</span><span class="x">x</span><span class="a">142</span></div>
+          </div>
+          <div class="bar">
+            <div class="cell bid-heavy-1"><span class="b">180</span><span class="x">x</span><span class="a">150</span></div>
+            <div class="cell ask-heavy-2"><span class="b">210</span><span class="x">x</span><span class="a">320</span></div>
+            <div class="cell poc bid-heavy-3"><span class="b">540</span><span class="x">x</span><span class="a">288</span></div>
+            <div class="cell ask-heavy-1"><span class="b">260</span><span class="x">x</span><span class="a">310</span></div>
+            <div class="cell bid-heavy-1"><span class="b">230</span><span class="x">x</span><span class="a">188</span></div>
+            <div class="cell ask-heavy-1"><span class="b">170</span><span class="x">x</span><span class="a">224</span></div>
+            <div class="cell bid-heavy-1"><span class="b">198</span><span class="x">x</span><span class="a">152</span></div>
+            <div class="cell ask-heavy-1"><span class="b">120</span><span class="x">x</span><span class="a">172</span></div>
+          </div>
+          <div class="bar">
+            <div class="cell ask-heavy-1"><span class="b">160</span><span class="x">x</span><span class="a">210</span></div>
+            <div class="cell bid-heavy-2"><span class="b">352</span><span class="x">x</span><span class="a">218</span></div>
+            <div class="cell ask-heavy-1"><span class="b">240</span><span class="x">x</span><span class="a">298</span></div>
+            <div class="cell poc ask-heavy-3"><span class="b">290</span><span class="x">x</span><span class="a">488</span></div>
+            <div class="cell ask-heavy-2"><span class="b">218</span><span class="x">x</span><span class="a">340</span></div>
+            <div class="cell bid-heavy-1"><span class="b">200</span><span class="x">x</span><span class="a">172</span></div>
+            <div class="cell ask-heavy-1"><span class="b">140</span><span class="x">x</span><span class="a">198</span></div>
+            <div class="cell bid-heavy-1"><span class="b">172</span><span class="x">x</span><span class="a">128</span></div>
+          </div>
+          <div class="bar">
+            <div class="cell bid-heavy-1"><span class="b">140</span><span class="x">x</span><span class="a">112</span></div>
+            <div class="cell ask-heavy-1"><span class="b">168</span><span class="x">x</span><span class="a">212</span></div>
+            <div class="cell bid-heavy-2"><span class="b">332</span><span class="x">x</span><span class="a">210</span></div>
+            <div class="cell poc bid-heavy-3"><span class="b">510</span><span class="x">x</span><span class="a">280</span></div>
+            <div class="cell ask-heavy-1"><span class="b">240</span><span class="x">x</span><span class="a">298</span></div>
+            <div class="cell ask-heavy-1"><span class="b">180</span><span class="x">x</span><span class="a">230</span></div>
+            <div class="cell bid-heavy-1"><span class="b">160</span><span class="x">x</span><span class="a">128</span></div>
+            <div class="cell ask-heavy-1"><span class="b">112</span><span class="x">x</span><span class="a">148</span></div>
+          </div>
+          <div class="bar">
+            <div class="cell ask-heavy-1"><span class="b">130</span><span class="x">x</span><span class="a">172</span></div>
+            <div class="cell bid-heavy-1"><span class="b">218</span><span class="x">x</span><span class="a">184</span></div>
+            <div class="cell poc ask-heavy-3"><span class="b">312</span><span class="x">x</span><span class="a">488</span></div>
+            <div class="cell ask-heavy-2"><span class="b">240</span><span class="x">x</span><span class="a">362</span></div>
+            <div class="cell bid-heavy-1"><span class="b">220</span><span class="x">x</span><span class="a">188</span></div>
+            <div class="cell bid-heavy-1"><span class="b">190</span><span class="x">x</span><span class="a">152</span></div>
+            <div class="cell ask-heavy-1"><span class="b">150</span><span class="x">x</span><span class="a">200</span></div>
+            <div class="cell bid-heavy-1"><span class="b">170</span><span class="x">x</span><span class="a">132</span></div>
+          </div>
+          <div class="bar">
+            <div class="cell bid-heavy-1"><span class="b">180</span><span class="x">x</span><span class="a">148</span></div>
+            <div class="cell ask-heavy-1"><span class="b">160</span><span class="x">x</span><span class="a">210</span></div>
+            <div class="cell poc bid-heavy-3"><span class="b">472</span><span class="x">x</span><span class="a">260</span></div>
+            <div class="cell bid-heavy-2"><span class="b">338</span><span class="x">x</span><span class="a">212</span></div>
+            <div class="cell ask-heavy-1"><span class="b">220</span><span class="x">x</span><span class="a">272</span></div>
+            <div class="cell bid-heavy-1"><span class="b">170</span><span class="x">x</span><span class="a">138</span></div>
+            <div class="cell ask-heavy-1"><span class="b">130</span><span class="x">x</span><span class="a">180</span></div>
+            <div class="cell bid-heavy-1"><span class="b">142</span><span class="x">x</span><span class="a">110</span></div>
+          </div>
+          <div class="bar">
+            <div class="cell ask-heavy-1"><span class="b">120</span><span class="x">x</span><span class="a">168</span></div>
+            <div class="cell bid-heavy-1"><span class="b">210</span><span class="x">x</span><span class="a">180</span></div>
+            <div class="cell ask-heavy-2"><span class="b">230</span><span class="x">x</span><span class="a">352</span></div>
+            <div class="cell poc ask-heavy-3"><span class="b">290</span><span class="x">x</span><span class="a">512</span></div>
+            <div class="cell ask-heavy-2"><span class="b">218</span><span class="x">x</span><span class="a">330</span></div>
+            <div class="cell bid-heavy-1"><span class="b">188</span><span class="x">x</span><span class="a">150</span></div>
+            <div class="cell ask-heavy-1"><span class="b">140</span><span class="x">x</span><span class="a">188</span></div>
+            <div class="cell bid-heavy-1"><span class="b">172</span><span class="x">x</span><span class="a">138</span></div>
+          </div>
+          <div class="bar">
+            <div class="cell bid-heavy-1"><span class="b">168</span><span class="x">x</span><span class="a">132</span></div>
+            <div class="cell bid-heavy-2"><span class="b">300</span><span class="x">x</span><span class="a">190</span></div>
+            <div class="cell poc bid-heavy-3"><span class="b">520</span><span class="x">x</span><span class="a">288</span></div>
+            <div class="cell ask-heavy-1"><span class="b">240</span><span class="x">x</span><span class="a">298</span></div>
+            <div class="cell bid-heavy-1"><span class="b">218</span><span class="x">x</span><span class="a">182</span></div>
+            <div class="cell ask-heavy-1"><span class="b">170</span><span class="x">x</span><span class="a">220</span></div>
+            <div class="cell bid-heavy-1"><span class="b">180</span><span class="x">x</span><span class="a">148</span></div>
+            <div class="cell ask-heavy-1"><span class="b">110</span><span class="x">x</span><span class="a">158</span></div>
+          </div>
+          <div class="bar">
+            <div class="cell ask-heavy-1"><span class="b">130</span><span class="x">x</span><span class="a">180</span></div>
+            <div class="cell bid-heavy-1"><span class="b">220</span><span class="x">x</span><span class="a">188</span></div>
+            <div class="cell ask-heavy-2"><span class="b">238</span><span class="x">x</span><span class="a">352</span></div>
+            <div class="cell poc ask-heavy-3"><span class="b">280</span><span class="x">x</span><span class="a">498</span></div>
+            <div class="cell bid-heavy-1"><span class="b">230</span><span class="x">x</span><span class="a">198</span></div>
+            <div class="cell ask-heavy-1"><span class="b">200</span><span class="x">x</span><span class="a">248</span></div>
+            <div class="cell bid-heavy-1"><span class="b">150</span><span class="x">x</span><span class="a">122</span></div>
+            <div class="cell ask-heavy-1"><span class="b">118</span><span class="x">x</span><span class="a">172</span></div>
+          </div>
+          <div class="bar">
+            <div class="cell bid-heavy-1"><span class="b">180</span><span class="x">x</span><span class="a">148</span></div>
+            <div class="cell ask-heavy-1"><span class="b">190</span><span class="x">x</span><span class="a">240</span></div>
+            <div class="cell poc bid-heavy-3"><span class="b">490</span><span class="x">x</span><span class="a">278</span></div>
+            <div class="cell bid-heavy-2"><span class="b">320</span><span class="x">x</span><span class="a">198</span></div>
+            <div class="cell ask-heavy-1"><span class="b">230</span><span class="x">x</span><span class="a">282</span></div>
+            <div class="cell bid-heavy-1"><span class="b">170</span><span class="x">x</span><span class="a">142</span></div>
+            <div class="cell ask-heavy-1"><span class="b">132</span><span class="x">x</span><span class="a">180</span></div>
+            <div class="cell bid-heavy-1"><span class="b">158</span><span class="x">x</span><span class="a">120</span></div>
+          </div>
+          <div class="bar">
+            <div class="cell ask-heavy-1"><span class="b">128</span><span class="x">x</span><span class="a">172</span></div>
+            <div class="cell bid-heavy-1"><span class="b">212</span><span class="x">x</span><span class="a">180</span></div>
+            <div class="cell ask-heavy-2"><span class="b">228</span><span class="x">x</span><span class="a">340</span></div>
+            <div class="cell poc ask-heavy-3"><span class="b">278</span><span class="x">x</span><span class="a">472</span></div>
+            <div class="cell ask-heavy-1"><span class="b">210</span><span class="x">x</span><span class="a">268</span></div>
+            <div class="cell bid-heavy-1"><span class="b">178</span><span class="x">x</span><span class="a">148</span></div>
+            <div class="cell ask-heavy-1"><span class="b">138</span><span class="x">x</span><span class="a">188</span></div>
+            <div class="cell bid-heavy-1"><span class="b">172</span><span class="x">x</span><span class="a">140</span></div>
+          </div>
+          <div class="bar">
+            <div class="cell bid-heavy-1"><span class="b">168</span><span class="x">x</span><span class="a">130</span></div>
+            <div class="cell bid-heavy-2"><span class="b">298</span><span class="x">x</span><span class="a">188</span></div>
+            <div class="cell poc bid-heavy-3"><span class="b">502</span><span class="x">x</span><span class="a">288</span></div>
+            <div class="cell ask-heavy-1"><span class="b">248</span><span class="x">x</span><span class="a">300</span></div>
+            <div class="cell bid-heavy-1"><span class="b">220</span><span class="x">x</span><span class="a">190</span></div>
+            <div class="cell ask-heavy-1"><span class="b">180</span><span class="x">x</span><span class="a">228</span></div>
+            <div class="cell bid-heavy-1"><span class="b">170</span><span class="x">x</span><span class="a">138</span></div>
+            <div class="cell ask-heavy-1"><span class="b">118</span><span class="x">x</span><span class="a">168</span></div>
+          </div>
+
+          <!-- Bar 13 = TypeB signal bar: bearish EXH on top, T2 stacked ask-side imbalance on upper 3 cells -->
+          <div class="bar" style="position:relative;">
+            <!-- bottom -> top -->
+            <div class="cell ask-heavy-1"><span class="b">122</span><span class="x">x</span><span class="a">168</span></div>
+            <div class="cell bid-heavy-1"><span class="b">210</span><span class="x">x</span><span class="a">178</span></div>
+            <div class="cell ask-heavy-2"><span class="b">222</span><span class="x">x</span><span class="a">340</span></div>
+            <div class="cell poc ask-heavy-3"><span class="b">260</span><span class="x">x</span><span class="a">488</span></div>
+            <div class="cell ask-heavy-2"><span class="b">198</span><span class="x">x</span><span class="a">320</span></div>
+            <!-- stacked T2 ask imbalance across these 3 cells -->
+            <div class="cell ask-heavy-3 imb-ask"><span class="b">90</span><span class="x">x</span><span class="a">322</span><span class="glyph">•</span></div>
+            <div class="cell ask-heavy-3 imb-ask-t2"><span class="b">62</span><span class="x">x</span><span class="a">358</span><span class="glyph">••</span></div>
+            <div class="cell ask-heavy-3 imb-ask-t2"><span class="b">28</span><span class="x">x</span><span class="a">412</span><span class="glyph">••</span></div>
+
+            <!-- EXH bearish outline triangle above bar high -->
+            <svg width="18" height="14" style="position:absolute;top:-18px;left:50%;transform:translateX(-50%);" viewBox="0 0 18 14">
+              <polygon points="9,13 1,1 17,1" fill="none" stroke="#FFA726" stroke-width="1.5"/>
+            </svg>
+
+            <!-- TypeB hollow triangle at entry price (on right edge of bar, mid) -->
+            <svg width="12" height="12" style="position:absolute;top:44px;right:-14px;" viewBox="0 0 12 12">
+              <polygon points="6,11 1,1 11,1" fill="none" stroke="#EF5350" stroke-width="1.5"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="timeline">
+          <span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span>
+          <span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SCENE 3 — TypeA firing (highest conviction) -->
+    <!-- ============================================================ -->
+    <section class="scene">
+      <div class="scene-header">
+        <div><span class="label">Scene 3</span> &nbsp; <span class="title">TypeA long — ABS @VAL + T3 stacked bid imbalance + narrative</span></div>
+        <div style="font-size:10px;color:#556270;">NQ 06-26 · 1min · 11:48 ET</div>
+      </div>
+
+      <div class="chart">
+        <div class="toolbar">
+          <span class="tbtn on">FLAT</span>
+          <span class="tbtn on">BUY MKT</span>
+          <span class="tbtn on">SELL MKT</span>
+          <span class="tbtn on">BUY LMT</span>
+          <span class="tbtn on">SELL LMT</span>
+          <span class="tbtn on">RVRSE</span>
+          <span class="tbtn on">CXL ALL</span>
+          <span class="tbtn on">ATM: D6-default</span>
+          <span class="tbtn on">AUTO</span>
+          <span class="tbtn arm">ARM</span>
+        </div>
+        <div class="gex-chip">GEX <b>LIVE</b> · HVL 20037.00 · CW 20125 · PW 19960</div>
+
+        <div class="hud">
+          <div class="score">Score: +0.92</div>
+          <div class="tier-row">Tier: A <span class="chip"></span></div>
+          <div class="narr">ABSORBED @VAL + DELTA DIVERGENCE</div>
+        </div>
+
+        <div class="yaxis">
+          <div class="tick" style="top:28px;">20095.00</div>
+          <div class="tick" style="top:84px;">20080.00</div>
+          <div class="tick" style="top:140px;">20065.00</div>
+          <div class="tick" style="top:196px;">20050.00</div>
+          <div class="tick" style="top:252px;">20035.00</div>
+          <div class="tick" style="top:308px;">20020.00</div>
+          <div class="tick" style="top:364px;">20005.00</div>
+        </div>
+
+        <div class="lvl-line pdh"   style="top:56px;"></div>
+        <div class="lvl-line pdvah"  style="top:112px;"></div>
+        <!-- PD POC highlighted (just broken through) -->
+        <div class="lvl-line pdpoc highlight" style="top:182px;"></div>
+        <div class="lvl-line pdm"   style="top:238px;"></div>
+        <div class="lvl-line pdval"  style="top:294px;"></div>
+        <div class="lvl-line pwpoc"  style="top:336px;"></div>
+        <div class="lvl-line pdl"   style="top:378px;"></div>
+        <div class="lvl-line vpoc"  style="top:154px;"></div>
+
+        <div class="gutter">
+          <div class="lbl pdh"   style="top:50px;">PDH 20092.25</div>
+          <div class="lbl pdvah" style="top:106px;">PD VAH 20078.50</div>
+          <div class="lbl vpoc"  style="top:148px;">vPOC 20068.00</div>
+          <div class="lbl pdpoc" style="top:176px;background:rgba(255,210,63,0.18);border:1px solid rgba(255,210,63,0.6);font-weight:600;">PD POC 20056.75 ←</div>
+          <div class="lbl pdm"   style="top:232px;">PDM 20042.50</div>
+          <div class="lbl pdval" style="top:288px;">PD VAL 20028.25</div>
+          <div class="lbl pwpoc" style="top:330px;">PW POC 20015.50</div>
+          <div class="lbl pdl"   style="top:372px;">PDL 20003.75</div>
+        </div>
+
+        <div class="va-line" style="top:84px;"><span class="lbl">VAH</span></div>
+        <div class="va-line" style="top:294px;"><span class="lbl">VAL</span></div>
+
+        <div class="bars" style="margin-left:50px;margin-right:170px;height:420px;">
+          <!-- Same preceding 12 bars -->
+          <div class="bar">
+            <div class="cell bid-heavy-2"><span class="b">312</span><span class="x">x</span><span class="a">188</span></div>
+            <div class="cell ask-heavy-1"><span class="b">220</span><span class="x">x</span><span class="a">264</span></div>
+            <div class="cell bid-heavy-1"><span class="b">284</span><span class="x">x</span><span class="a">240</span></div>
+            <div class="cell poc ask-heavy-3"><span class="b">310</span><span class="x">x</span><span class="a">520</span></div>
+            <div class="cell ask-heavy-2"><span class="b">198</span><span class="x">x</span><span class="a">312</span></div>
+            <div class="cell bid-heavy-1"><span class="b">240</span><span class="x">x</span><span class="a">190</span></div>
+            <div class="cell ask-heavy-1"><span class="b">150</span><span class="x">x</span><span class="a">212</span></div>
+            <div class="cell bid-heavy-1"><span class="b">188</span><span class="x">x</span><span class="a">142</span></div>
+          </div>
+          <div class="bar">
+            <div class="cell bid-heavy-1"><span class="b">180</span><span class="x">x</span><span class="a">150</span></div>
+            <div class="cell ask-heavy-2"><span class="b">210</span><span class="x">x</span><span class="a">320</span></div>
+            <div class="cell poc bid-heavy-3"><span class="b">540</span><span class="x">x</span><span class="a">288</span></div>
+            <div class="cell ask-heavy-1"><span class="b">260</span><span class="x">x</span><span class="a">310</span></div>
+            <div class="cell bid-heavy-1"><span class="b">230</span><span class="x">x</span><span class="a">188</span></div>
+            <div class="cell ask-heavy-1"><span class="b">170</span><span class="x">x</span><span class="a">224</span></div>
+            <div class="cell bid-heavy-1"><span class="b">198</span><span class="x">x</span><span class="a">152</span></div>
+            <div class="cell ask-heavy-1"><span class="b">120</span><span class="x">x</span><span class="a">172</span></div>
+          </div>
+          <div class="bar">
+            <div class="cell ask-heavy-1"><span class="b">160</span><span class="x">x</span><span class="a">210</span></div>
+            <div class="cell bid-heavy-2"><span class="b">352</span><span class="x">x</span><span class="a">218</span></div>
+            <div class="cell ask-heavy-1"><span class="b">240</span><span class="x">x</span><span class="a">298</span></div>
+            <div class="cell poc ask-heavy-3"><span class="b">290</span><span class="x">x</span><span class="a">488</span></div>
+            <div class="cell ask-heavy-2"><span class="b">218</span><span class="x">x</span><span class="a">340</span></div>
+            <div class="cell bid-heavy-1"><span class="b">200</span><span class="x">x</span><span class="a">172</span></div>
+            <div class="cell ask-heavy-1"><span class="b">140</span><span class="x">x</span><span class="a">198</span></div>
+            <div class="cell bid-heavy-1"><span class="b">172</span><span class="x">x</span><span class="a">128</span></div>
+          </div>
+          <div class="bar">
+            <div class="cell bid-heavy-1"><span class="b">140</span><span class="x">x</span><span class="a">112</span></div>
+            <div class="cell ask-heavy-1"><span class="b">168</span><span class="x">x</span><span class="a">212</span></div>
+            <div class="cell bid-heavy-2"><span class="b">332</span><span class="x">x</span><span class="a">210</span></div>
+            <div class="cell poc bid-heavy-3"><span class="b">510</span><span class="x">x</span><span class="a">280</span></div>
+            <div class="cell ask-heavy-1"><span class="b">240</span><span class="x">x</span><span class="a">298</span></div>
+            <div class="cell ask-heavy-1"><span class="b">180</span><span class="x">x</span><span class="a">230</span></div>
+            <div class="cell bid-heavy-1"><span class="b">160</span><span class="x">x</span><span class="a">128</span></div>
+            <div class="cell ask-heavy-1"><span class="b">112</span><span class="x">x</span><span class="a">148</span></div>
+          </div>
+          <div class="bar">
+            <div class="cell ask-heavy-1"><span class="b">130</span><span class="x">x</span><span class="a">172</span></div>
+            <div class="cell bid-heavy-1"><span class="b">218</span><span class="x">x</span><span class="a">184</span></div>
+            <div class="cell poc ask-heavy-3"><span class="b">312</span><span class="x">x</span><span class="a">488</span></div>
+            <div class="cell ask-heavy-2"><span class="b">240</span><span class="x">x</span><span class="a">362</span></div>
+            <div class="cell bid-heavy-1"><span class="b">220</span><span class="x">x</span><span class="a">188</span></div>
+            <div class="cell bid-heavy-1"><span class="b">190</span><span class="x">x</span><span class="a">152</span></div>
+            <div class="cell ask-heavy-1"><span class="b">150</span><span class="x">x</span><span class="a">200</span></div>
+            <div class="cell bid-heavy-1"><span class="b">170</span><span class="x">x</span><span class="a">132</span></div>
+          </div>
+          <div class="bar">
+            <div class="cell bid-heavy-1"><span class="b">180</span><span class="x">x</span><span class="a">148</span></div>
+            <div class="cell ask-heavy-1"><span class="b">160</span><span class="x">x</span><span class="a">210</span></div>
+            <div class="cell poc bid-heavy-3"><span class="b">472</span><span class="x">x</span><span class="a">260</span></div>
+            <div class="cell bid-heavy-2"><span class="b">338</span><span class="x">x</span><span class="a">212</span></div>
+            <div class="cell ask-heavy-1"><span class="b">220</span><span class="x">x</span><span class="a">272</span></div>
+            <div class="cell bid-heavy-1"><span class="b">170</span><span class="x">x</span><span class="a">138</span></div>
+            <div class="cell ask-heavy-1"><span class="b">130</span><span class="x">x</span><span class="a">180</span></div>
+            <div class="cell bid-heavy-1"><span class="b">142</span><span class="x">x</span><span class="a">110</span></div>
+          </div>
+          <div class="bar">
+            <div class="cell ask-heavy-1"><span class="b">120</span><span class="x">x</span><span class="a">168</span></div>
+            <div class="cell bid-heavy-1"><span class="b">210</span><span class="x">x</span><span class="a">180</span></div>
+            <div class="cell ask-heavy-2"><span class="b">230</span><span class="x">x</span><span class="a">352</span></div>
+            <div class="cell poc ask-heavy-3"><span class="b">290</span><span class="x">x</span><span class="a">512</span></div>
+            <div class="cell ask-heavy-2"><span class="b">218</span><span class="x">x</span><span class="a">330</span></div>
+            <div class="cell bid-heavy-1"><span class="b">188</span><span class="x">x</span><span class="a">150</span></div>
+            <div class="cell ask-heavy-1"><span class="b">140</span><span class="x">x</span><span class="a">188</span></div>
+            <div class="cell bid-heavy-1"><span class="b">172</span><span class="x">x</span><span class="a">138</span></div>
+          </div>
+          <div class="bar">
+            <div class="cell bid-heavy-1"><span class="b">168</span><span class="x">x</span><span class="a">132</span></div>
+            <div class="cell bid-heavy-2"><span class="b">300</span><span class="x">x</span><span class="a">190</span></div>
+            <div class="cell poc bid-heavy-3"><span class="b">520</span><span class="x">x</span><span class="a">288</span></div>
+            <div class="cell ask-heavy-1"><span class="b">240</span><span class="x">x</span><span class="a">298</span></div>
+            <div class="cell bid-heavy-1"><span class="b">218</span><span class="x">x</span><span class="a">182</span></div>
+            <div class="cell ask-heavy-1"><span class="b">170</span><span class="x">x</span><span class="a">220</span></div>
+            <div class="cell bid-heavy-1"><span class="b">180</span><span class="x">x</span><span class="a">148</span></div>
+            <div class="cell ask-heavy-1"><span class="b">110</span><span class="x">x</span><span class="a">158</span></div>
+          </div>
+          <div class="bar">
+            <div class="cell ask-heavy-1"><span class="b">130</span><span class="x">x</span><span class="a">180</span></div>
+            <div class="cell bid-heavy-1"><span class="b">220</span><span class="x">x</span><span class="a">188</span></div>
+            <div class="cell ask-heavy-2"><span class="b">238</span><span class="x">x</span><span class="a">352</span></div>
+            <div class="cell poc ask-heavy-3"><span class="b">280</span><span class="x">x</span><span class="a">498</span></div>
+            <div class="cell bid-heavy-1"><span class="b">230</span><span class="x">x</span><span class="a">198</span></div>
+            <div class="cell ask-heavy-1"><span class="b">200</span><span class="x">x</span><span class="a">248</span></div>
+            <div class="cell bid-heavy-1"><span class="b">150</span><span class="x">x</span><span class="a">122</span></div>
+            <div class="cell ask-heavy-1"><span class="b">118</span><span class="x">x</span><span class="a">172</span></div>
+          </div>
+          <div class="bar">
+            <div class="cell bid-heavy-1"><span class="b">180</span><span class="x">x</span><span class="a">148</span></div>
+            <div class="cell ask-heavy-1"><span class="b">190</span><span class="x">x</span><span class="a">240</span></div>
+            <div class="cell poc bid-heavy-3"><span class="b">490</span><span class="x">x</span><span class="a">278</span></div>
+            <div class="cell bid-heavy-2"><span class="b">320</span><span class="x">x</span><span class="a">198</span></div>
+            <div class="cell ask-heavy-1"><span class="b">230</span><span class="x">x</span><span class="a">282</span></div>
+            <div class="cell bid-heavy-1"><span class="b">170</span><span class="x">x</span><span class="a">142</span></div>
+            <div class="cell ask-heavy-1"><span class="b">132</span><span class="x">x</span><span class="a">180</span></div>
+            <div class="cell bid-heavy-1"><span class="b">158</span><span class="x">x</span><span class="a">120</span></div>
+          </div>
+          <div class="bar">
+            <div class="cell ask-heavy-1"><span class="b">128</span><span class="x">x</span><span class="a">172</span></div>
+            <div class="cell bid-heavy-1"><span class="b">212</span><span class="x">x</span><span class="a">180</span></div>
+            <div class="cell ask-heavy-2"><span class="b">228</span><span class="x">x</span><span class="a">340</span></div>
+            <div class="cell poc ask-heavy-3"><span class="b">278</span><span class="x">x</span><span class="a">472</span></div>
+            <div class="cell ask-heavy-1"><span class="b">210</span><span class="x">x</span><span class="a">268</span></div>
+            <div class="cell bid-heavy-1"><span class="b">178</span><span class="x">x</span><span class="a">148</span></div>
+            <div class="cell ask-heavy-1"><span class="b">138</span><span class="x">x</span><span class="a">188</span></div>
+            <div class="cell bid-heavy-1"><span class="b">172</span><span class="x">x</span><span class="a">140</span></div>
+          </div>
+          <div class="bar">
+            <div class="cell bid-heavy-1"><span class="b">168</span><span class="x">x</span><span class="a">130</span></div>
+            <div class="cell bid-heavy-2"><span class="b">298</span><span class="x">x</span><span class="a">188</span></div>
+            <div class="cell poc bid-heavy-3"><span class="b">502</span><span class="x">x</span><span class="a">288</span></div>
+            <div class="cell ask-heavy-1"><span class="b">248</span><span class="x">x</span><span class="a">300</span></div>
+            <div class="cell bid-heavy-1"><span class="b">220</span><span class="x">x</span><span class="a">190</span></div>
+            <div class="cell ask-heavy-1"><span class="b">180</span><span class="x">x</span><span class="a">228</span></div>
+            <div class="cell bid-heavy-1"><span class="b">170</span><span class="x">x</span><span class="a">138</span></div>
+            <div class="cell ask-heavy-1"><span class="b">118</span><span class="x">x</span><span class="a">168</span></div>
+          </div>
+
+          <!-- Bar 13 = TypeA signal bar: BULLISH ABS below low + T3 stacked bid imbalance across 5 lower cells -->
+          <div class="bar" style="position:relative;">
+            <!-- Bottom of bar: absorbing heavy selling with T3 stacked bid imbalance across 5 cells -->
+            <div class="cell imb-bid-t3"><span class="b">740</span><span class="x">x</span><span class="a">62</span><span class="glyph">◀</span></div>
+            <div class="cell imb-bid-t3"><span class="b">692</span><span class="x">x</span><span class="a">88</span><span class="glyph">◀</span></div>
+            <div class="cell imb-bid-t3"><span class="b">640</span><span class="x">x</span><span class="a">120</span><span class="glyph">◀</span></div>
+            <div class="cell imb-bid-t3"><span class="b">588</span><span class="x">x</span><span class="a">148</span><span class="glyph">◀</span></div>
+            <div class="cell imb-bid-t3"><span class="b">520</span><span class="x">x</span><span class="a">180</span><span class="glyph">◀</span></div>
+
+            <!-- upper cells (recovery) -->
+            <div class="cell poc bid-heavy-2"><span class="b">330</span><span class="x">x</span><span class="a">252</span></div>
+            <div class="cell bid-heavy-1"><span class="b">210</span><span class="x">x</span><span class="a">172</span></div>
+            <div class="cell ask-heavy-1"><span class="b">140</span><span class="x">x</span><span class="a">178</span></div>
+
+            <!-- ABS bullish teal filled triangle BELOW low, + ABS-07 ring bonus -->
+            <div class="marker m-abs-bull" style="bottom:-14px;left:50%;transform:translateX(-50%);"></div>
+            <div class="ring" style="bottom:-16px;left:50%;transform:translateX(-50%);"></div>
+
+            <!-- TypeA solid diamond at entry price (upper-middle zone), saturated green -->
+            <div class="marker m-tierA-long" style="top:50px;right:-16px;"></div>
+
+            <!-- TypeA narrative callout -->
+            <div class="narr-call" style="top:44px;right:-196px;">
+              <span class="tag">TypeA ▲</span>ABS @VAL + Δ-DIV · +0.92
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline">
+          <span>48</span><span>49</span><span>50</span><span>51</span><span>52</span><span>53</span>
+          <span>54</span><span>55</span><span>56</span><span>57</span><span>58</span><span>59</span><span>00</span>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <p style="margin-top:24px;font-size:11px;color:#4A5160;">
+    Visual spec source: <code>.planning/phases/18-nt8-scoring-backtest-validation/FOOTPRINT-VISUAL-SPEC.md</code>
+    · Code ref: <code>ninjatrader/Custom/Indicators/DEEP6/DEEP6Footprint.cs</code>
+    · Phase 17 detector families: ABS / EXH / IMB / DELT / AUCT / TRAP / VOLP / ENG
+    · Profile anchors: quick-task 260415-o94
+  </p>
+</div>
+</body>
+</html>
