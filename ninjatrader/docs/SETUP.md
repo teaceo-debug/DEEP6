@@ -72,9 +72,11 @@ To ship the indicator to another NT8 user:
 
 **"GEX levels don't appear"**
 - Verify API key is populated and `ShowGexLevels` is true.
-- Fetch happens every 2 minutes; first render may take up to 2 min.
-- Check the NT8 Output window (New → Output Window) for "GEX fetch failed" messages.
+- First fetch runs immediately at chart load. Subsequent fetches run every **60s on a background timer** — independent of tape activity. If tape is frozen, GEX still updates.
+- On transient network failure, levels **stay drawn** (last-good profile). Retry schedule: 5s → 15s → 60s → 2 min cap.
+- Check the NT8 Output window (New → Output Window) for `[DEEP6] GEX EXCEPTION (#N)` messages — N is the consecutive failure count.
 - Confirm massive.com plan covers real-time (or delayed, acceptable for GEX) options chain snapshots.
+- Auth: the indicator uses **query-param** auth (`?apiKey=<key>`), matching massive.com's Polygon.io-compatible API. If your plan requires Bearer-header auth instead, see the `MassiveGexClient` ctor comment in DEEP6Footprint.cs for the one-line switch.
 
 **"NQ levels look wrong"**
 - GEX strikes are in QQQ price space; the indicator maps them onto NQ by `spot_ratio = NQ_close / QQQ_close`. This is a rough visual mapping — confirm with your own GEX tool before treating a level as tradeable.
