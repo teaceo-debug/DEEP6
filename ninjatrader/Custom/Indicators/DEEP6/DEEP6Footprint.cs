@@ -1943,9 +1943,7 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         #endregion
     }
 }
-
 #region NinjaScript generated code. Neither change nor remove.
-
 namespace NinjaTrader.NinjaScript.Indicators
 {
     public partial class Indicator : NinjaTrader.Gui.NinjaScript.IndicatorRenderBase

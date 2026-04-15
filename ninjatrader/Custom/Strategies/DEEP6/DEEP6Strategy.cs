@@ -132,7 +132,8 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                 IsInstantiatedOnEachOptimizationIteration = false;
 
                 // SAFETY DEFAULTS
-                UseNewRegistry               = false;
+                // UseNewRegistry default is true (Phase 17 Wave 5 parity PASS); override per-instance in NT8 if needed
+                UseNewRegistry               = true;
                 EnableLiveTrading            = false;
                 ApprovedAccountName          = "Sim101";
                 MaxContractsPerTrade         = 1;
@@ -334,6 +335,14 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                 var regResults = _registry.EvaluateBar(prev, _session);
                 _session.PriorBar = prev;   // advance prior bar for next bar
 
+                // Log non-ABS/EXH signals once (ABS/EXH drive confluence below; others are observational)
+                foreach (var sr in regResults)
+                {
+                    if (!sr.SignalId.StartsWith("ABS") && !sr.SignalId.StartsWith("EXH"))
+                        Print(string.Format("[DEEP6 Registry] {0} dir={1:+#;-#;0} str={2:F2} | {3}",
+                            sr.SignalId, sr.Direction, sr.Strength, sr.Detail));
+                }
+
                 // Convert SignalResult[] → legacy list types so EvaluateEntry + CheckOpposingExit
                 // can consume them without modification (risk gates are in those methods, untouched).
                 abs = new List<AbsorptionSignal>();
@@ -371,24 +380,6 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                 // Legacy path (UseNewRegistry=false, default) — unchanged behavior
                 abs = AbsorptionDetector.Detect(prev, _atr, _volEma, _absCfg, va.vah, va.val, TickSize);
                 exh = _exhDetector.Detect(prev, priorBeforePrev, prevIdx, _atr, _exhCfg);
-            }
-
-            // Wave 3/4 registry detectors (passive — logged but do not gate orders yet)
-            if (_registry != null && _session != null)
-            {
-                _session.Atr20   = _atr;
-                _session.VolEma20 = _volEma;
-                _session.PriorBar = priorBeforePrev;
-                if (va.vah.HasValue) _session.Vah = va.vah;
-                if (va.val.HasValue) _session.Val = va.val;
-                var registryResults = _registry.EvaluateBar(prev, _session);
-                _session.PriorBar = prev;  // advance prior bar reference
-                if (registryResults != null && registryResults.Length > 0)
-                {
-                    foreach (var sr in registryResults)
-                        Print(string.Format("[DEEP6 Registry] {0} dir={1:+#;-#;0} str={2:F2} | {3}",
-                            sr.SignalId, sr.Direction, sr.Strength, sr.Detail));
-                }
             }
 
             // Cleanup history
@@ -691,11 +682,6 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
         }
 
         #region Properties
-
-        [NinjaScriptProperty]
-        [Display(Name = "Use New Registry (Wave 3/4)", Order = 0, GroupName = "1. Safety",
-                 Description = "Enable Wave 3/4 ISignalDetector registry (IMB/AUCT/DELT/VOLP/TRAP). Results logged only — does not gate orders until Wave 5.")]
-        public bool UseNewRegistry { get; set; }
 
         [NinjaScriptProperty]
         [Display(Name = "Enable Live Trading", Order = 1, GroupName = "1. Safety",
