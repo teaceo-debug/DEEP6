@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: completed
-stopped_at: "Completed 17-04-PLAN.md: 21 MODERATE-tier signals ported; 119/119 tests green"
-last_updated: "2026-04-15T19:32:49.317Z"
+stopped_at: Completed 17-05-PLAN.md
+last_updated: "2026-04-15T20:01:38.578Z"
 last_activity: 2026-04-14
 progress:
-  total_phases: 18
-  completed_phases: 14
-  total_plans: 58
-  completed_plans: 54
-  percent: 93
+  total_phases: 21
+  completed_phases: 15
+  total_plans: 63
+  completed_plans: 59
+  percent: 94
 ---
 
 # Project State
@@ -153,6 +153,10 @@ Recent decisions affecting current work:
 - [Phase 15]: 15-04: 7-state TradeDecisionMachine + 11 transitions + 17 ET-XX + EventStore fsm_transitions persistence; ExecutionEngine evaluate() preserved as delegate with DeprecationWarning
 - [Phase 15]: Phase 15 complete: 5 plans delivered (Level/LevelBus, narrative persistence, ConfluenceRules+scorer, FSM+EventStore, integration gate). 757 tests green; p95 evaluate 0.85ms; Phase 13 replay harness missing → synthetic fixtures used (D-36 fallback).
 - [Phase 17]: TRAP-01 requires stacked (>=3) inverse imbalances; IMB-05 fires on any. UseNewRegistry=false until Wave 5 confluencer wiring. DELT-04 uses 3-bar slope, not polyfit.
+- [Phase 17]: UseNewRegistry=true default after 180/180 parity PASS — Wave 5 complete 2026-04-15
+- [Phase 17]: IAbsorptionZoneReceiver interface in DetectorRegistry avoids forward type ref to IcebergDetector
+- [Phase 17]: MicroProbDetector registers LAST to read ENG-02/04 session fields populated in same bar cycle
+- [Phase 17]: VPContextDetector Phase 17 scope: POC proximity only; LVN/GEX deferred to Phase 18
 
 ### Roadmap Evolution
 
@@ -175,6 +179,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-15T19:32:49.315Z
-Stopped at: Completed 17-04-PLAN.md: 21 MODERATE-tier signals ported; 119/119 tests green
+Last session: 2026-04-15T20:01:28.878Z
+Stopped at: Completed 17-05-PLAN.md
 Resume file: None

@@ -32,7 +32,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **[REFERENCE-ONLY — signal logic source for NT8 port, not live runtime] Phase 14: Databento Live Feed**
 - [x] **[REFERENCE-ONLY — signal logic source for NT8 port, not live runtime] Phase 15: LevelBus + Confluence Rules + Trade Decision FSM** - Unified Level primitive, ConfluenceRules, TradeDecisionMachine 7-state FSM (completed 2026-04-14)
 - [ ] **Phase 16: NinjaTrader 8 Footprint Indicator** - NT8 NinjaScript C# footprint indicator, native Rithmic L2, absorption/exhaustion, massive.com GEX overlay (built)
-- [ ] **Phase 17: NT8 Detector Refactor + Remaining Signals Port** - ISignalDetector registry; IMB/DELT/AUCT/TRAP/VOLP/ENG signals ported from Python reference; live NT8 parity
+- [x] **Phase 17: NT8 Detector Refactor + Remaining Signals Port** - ISignalDetector registry; IMB/DELT/AUCT/TRAP/VOLP/ENG signals ported from Python reference; live NT8 parity (completed 2026-04-15)
 - [ ] **Phase 18: NT8 Scoring + Backtest Validation** - Two-layer confluence scorer in NinjaScript; replay harness; C#↔Python parity on ≥5 recorded sessions
 - [ ] **Phase 19: Apex/Lucid Paper-Trade Gate** - 30-day paper run on APEX-262674 and LT-45N3KIV8; risk-gate validation; go/no-go decision
 
@@ -362,8 +362,8 @@ Plans:
 - [x] 17-01-PLAN.md — ISignalDetector + DetectorRegistry + SessionContext + SignalFlagBits (64-bit) + LeastSquares + Wasserstein + migrate ABS/EXH + net8.0 NUnit harness + UseNewRegistry=false flag
 - [x] 17-02-PLAN.md — Legacy-vs-registry parity gate: 10 legacy fixtures + parity test suite + DEEP6Strategy UseNewRegistry branch + 17-02-PARITY-REPORT.md (BLOCKS Waves 3-5)
 - [x] 17-03-PLAN.md — TRIVIAL tier: IMB-01/06/08, DELT-01/02/03/05/09, AUCT-02, VOLP-02/03/06 (12 signals)
-- [ ] 17-04-PLAN.md — MODERATE tier: IMB-02/03/04/05/07/09, DELT-04/06/07/11, AUCT-01/03/04/05, TRAP-01/02/03/04, VOLP-01/04/05 (21 signals)
-- [ ] 17-05-PLAN.md — HARD tier: DELT-08, DELT-10, TRAP-05, ENG-02/03/04/05/06/07 + NDJSON capture harness + 5-session replay parity + flip UseNewRegistry=true + mark legacy [Obsolete]
+- [x] 17-04-PLAN.md — MODERATE tier: IMB-02/03/04/05/07/09, DELT-04/06/07/11, AUCT-01/03/04/05, TRAP-01/02/03/04, VOLP-01/04/05 (21 signals)
+- [x] 17-05-PLAN.md — HARD tier: DELT-08, DELT-10, TRAP-05, ENG-02/03/04/05/06/07 + NDJSON capture harness + 5-session replay parity + flip UseNewRegistry=true + mark legacy [Obsolete]
 
 ### Phase 18: NT8 Scoring + Backtest Validation
 **Goal**: Two-layer confluence scorer ported from Python into NinjaScript with matching weights and thresholds; chart-side per-bar scoring display; manual replay harness validates signal parity and scoring output against the Python reference on ≥5 recorded NQ sessions.
