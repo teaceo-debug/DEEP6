@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
-status: executing
-stopped_at: Phase 15 COMPLETE — all 5 plans + integration verification
-last_updated: "2026-04-14T16:51:44.009Z"
+status: completed
+stopped_at: "Completed 17-04-PLAN.md: 21 MODERATE-tier signals ported; 119/119 tests green"
+last_updated: "2026-04-15T19:32:49.317Z"
 last_activity: 2026-04-14
 progress:
-  total_phases: 17
-  completed_phases: 13
-  total_plans: 56
-  completed_plans: 53
-  percent: 95
+  total_phases: 18
+  completed_phases: 14
+  total_plans: 58
+  completed_plans: 54
+  percent: 93
 ---
 
 # Project State
@@ -81,6 +81,7 @@ Progress: [█████████░] 95%
 | Phase 15 P03 | 35 | 3 tasks | 7 files |
 | Phase 15 P04 | 40 | 3 tasks | 9 files |
 | Phase 15 P05 | 48 | 3 tasks | 8 files |
+| Phase 17 P04 | 210 | 3 tasks | 38 files |
 
 ## Quick Tasks Completed
 
@@ -151,6 +152,7 @@ Recent decisions affecting current work:
 - [Phase 15]: 15-03: 38 CR-XX rules encoded with priority-based regime merge; meta-flags at bits 45/46/47; SignalTier.DISQUALIFIED=-1 added; scorer zone-bonus duck-typed for VolumeZone/Level migration
 - [Phase 15]: 15-04: 7-state TradeDecisionMachine + 11 transitions + 17 ET-XX + EventStore fsm_transitions persistence; ExecutionEngine evaluate() preserved as delegate with DeprecationWarning
 - [Phase 15]: Phase 15 complete: 5 plans delivered (Level/LevelBus, narrative persistence, ConfluenceRules+scorer, FSM+EventStore, integration gate). 757 tests green; p95 evaluate 0.85ms; Phase 13 replay harness missing → synthetic fixtures used (D-36 fallback).
+- [Phase 17]: TRAP-01 requires stacked (>=3) inverse imbalances; IMB-05 fires on any. UseNewRegistry=false until Wave 5 confluencer wiring. DELT-04 uses 3-bar slope, not polyfit.
 
 ### Roadmap Evolution
 
@@ -173,6 +175,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-14T16:51:37.923Z
-Stopped at: Phase 15 COMPLETE — all 5 plans + integration verification
+Last session: 2026-04-15T19:32:49.315Z
+Stopped at: Completed 17-04-PLAN.md: 21 MODERATE-tier signals ported; 119/119 tests green
 Resume file: None
