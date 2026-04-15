@@ -44,6 +44,7 @@ using NinjaTrader.Gui.Tools;
 using NinjaTrader.NinjaScript;
 using NinjaTrader.NinjaScript.AddOns.DEEP6;   // Cell, FootprintBar, AbsorptionDetector, ExhaustionDetector, signal types
 using NinjaTrader.NinjaScript.AddOns.DEEP6.Registry;
+using NinjaTrader.NinjaScript.AddOns.DEEP6.Scoring;
 using NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Imbalance;
 using NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Auction;
 using NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Delta;
@@ -73,16 +74,10 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
         private readonly ExhaustionConfig _exhCfg = new ExhaustionConfig();
         private readonly ExhaustionDetector _exhDetector = new ExhaustionDetector();
 
-        // ---- New ISignalDetector registry (UseNewRegistry=true activates Wave 3/4 detectors) ----
-        private DetectorRegistry _registry;
-        private SessionContext   _session;
-
-        private DateTime _lastSessionDate = DateTime.MinValue;
-
         // ---- Phase 17 detector registry (UseNewRegistry feature flag) ----
-        // When UseNewRegistry = false (default), strategy uses legacy ABS/EXH code path above.
-        // When UseNewRegistry = true (after Wave 5 session-replay parity passes), uses registry.
-        // CONTEXT.md D-06: default false protects live trading path during migration.
+        // When UseNewRegistry = false, strategy uses legacy ABS/EXH code path.
+        // When UseNewRegistry = true (default since Phase 17 Wave 5 parity PASS), uses registry.
+        // Phase 18-03: scorer-gated EvaluateEntry reads ScorerSharedState published by DEEP6Footprint.
         private NinjaTrader.NinjaScript.AddOns.DEEP6.Registry.DetectorRegistry _registry;
         private NinjaTrader.NinjaScript.AddOns.DEEP6.Registry.SessionContext    _session;
 
@@ -156,6 +151,10 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                 AtmTemplateExhaustion        = "DEEP6_Exhaustion";
                 AtmTemplateConfluence        = "DEEP6_Confluence";
                 AtmTemplateDefault           = "DEEP6_Practice";
+
+                // Phase 18-03: scorer entry gate defaults (verbatim Python TYPE_A_MIN / signal_config.py)
+                ScoreEntryThreshold          = 80.0;
+                MinTierForEntry              = SignalTier.TYPE_A;
             }
             else if (State == State.Configure)
             {
@@ -397,72 +396,42 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                 return;
             }
 
-            EvaluateEntry(prevIdx, abs, exh, va);
+            // Phase 18-03: scorer-gated entry — read latest result published by DEEP6Footprint indicator.
+            ScorerResult _scored = ScorerSharedState.Latest(Instrument.FullName);
+            int _latestBarIdx    = ScorerSharedState.LatestBarIndex(Instrument.FullName);
+
+            // SC5 per-bar log — fires every scored bar regardless of whether entry triggers.
+            // Format matches ScorerEntryGate.BuildLogLine pattern (bar / score / tier / narrative).
+            if (_scored != null && _latestBarIdx == CurrentBar)
+            {
+                Print(string.Format(
+                    "[DEEP6 Scorer] bar={0} score={1:+0.00;-0.00;+0.00} tier={2} narrative={3}",
+                    CurrentBar, _scored.TotalScore, _scored.Tier, _scored.Narrative ?? string.Empty));
+            }
+
+            EvaluateEntry(CurrentBar, _scored);
         }
 
         // ---- Confluence / entry decision ----
 
-        private void EvaluateEntry(int barIdx, List<AbsorptionSignal> abs, List<ExhaustionSignal> exh, (double vah, double val) va)
+        /// <summary>
+        /// Phase 18-03: Scorer-gated entry. Hardcoded STACKED / VA-EXTREME / WALL-ANCHORED
+        /// Tier-3 rules from Phase 16 have been removed. Entry fires only when:
+        ///   ScorerEntryGate.Evaluate() == Passed (score >= threshold, tier >= min, direction != 0)
+        ///   AND RiskGatesPass() approves the order.
+        /// Risk gates remain evaluated AFTER gate check but BEFORE EnterWithAtm — order unchanged.
+        /// </summary>
+        private void EvaluateEntry(int barIdx, ScorerResult scored)
         {
-            // Direction-bucket the signals
-            int absDir = 0; double absStr = 0; AbsorptionSignal absSig = null;
-            foreach (var s in abs)
-            {
-                if (s.Direction == 0) continue;
-                if (Math.Abs(s.Strength) > absStr) { absStr = Math.Abs(s.Strength); absDir = s.Direction; absSig = s; }
-            }
-            int exhDir = 0; double exhStr = 0; ExhaustionSignal exhSig = null;
-            foreach (var s in exh)
-            {
-                if (s.Direction == 0) continue;
-                if (Math.Abs(s.Strength) > exhStr) { exhStr = Math.Abs(s.Strength); exhDir = s.Direction; exhSig = s; }
-            }
+            if (ScorerEntryGate.Evaluate(scored, ScoreEntryThreshold, MinTierForEntry) != ScorerEntryGate.GateOutcome.Passed)
+                return;
 
-            // Confluence triggers
-            string trigger = null;
-            int direction = 0;
-            string atmTemplate = AtmTemplateDefault;
-            double signalPrice = 0;
+            double entryPrice = scored.EntryPrice > 0 ? scored.EntryPrice : Close[0];
+            string trigger    = string.Format("SCORER_{0}_{1:F0}", scored.Tier, scored.TotalScore);
 
-            // (a) STACKED: ABS + EXH same direction
-            if (absDir != 0 && absDir == exhDir && absStr >= 0.5 && exhStr >= 0.5)
-            {
-                trigger = "STACKED";
-                direction = absDir;
-                signalPrice = absSig.Price;
-                atmTemplate = AtmTemplateConfluence;
-            }
-            // (b) VA-EXTREME: absorption at VAH/VAL with strength >= threshold
-            else if (absSig != null && absSig.AtVaExtreme && absStr >= ConfluenceVaExtremeStrength)
-            {
-                trigger = absSig.Wick == "lower" ? "VA-EXTREME-VAL" : "VA-EXTREME-VAH";
-                direction = absDir;
-                signalPrice = absSig.Price;
-                atmTemplate = AtmTemplateAbsorption;
-            }
-            // (c) WALL-ANCHORED: signal within N ticks of supportive wall
-            else if (absSig != null || exhSig != null)
-            {
-                var sig = absSig != null ? (object)absSig : exhSig;
-                int dir = absSig != null ? absSig.Direction : exhSig.Direction;
-                double price = absSig != null ? absSig.Price : exhSig.Price;
-                double str   = absSig != null ? absSig.Strength : exhSig.Strength;
-                if (str >= 0.55 && IsWallAnchored(price, dir))
-                {
-                    trigger = "WALL-ANCHORED-" + (absSig != null ? "ABS" : "EXH");
-                    direction = dir;
-                    signalPrice = price;
-                    atmTemplate = absSig != null ? AtmTemplateAbsorption : AtmTemplateExhaustion;
-                }
-            }
-
-            if (trigger == null || direction == 0) return;
-
-            // Risk gates
-            if (!RiskGatesPass(direction, signalPrice, trigger, barIdx)) return;
-
-            // Take the trade (or dry-run log)
-            EnterWithAtm(direction, atmTemplate, trigger, signalPrice);
+            // RISK GATES — still evaluated before any order submission (unchanged behavior).
+            if (!RiskGatesPass(scored.Direction, entryPrice, trigger, barIdx)) return;
+            EnterWithAtm(scored.Direction, AtmTemplateDefault, trigger, entryPrice);
         }
 
         private bool IsWallAnchored(double signalPrice, int signalDir)
@@ -752,17 +721,32 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
         [NinjaScriptProperty]
         [Range(0.5, 1.0)]
         [Display(Name = "VA-Extreme Strength Threshold", Order = 22, GroupName = "3. Detection")]
+        [System.Obsolete("Phase 18-03: scorer-driven entry replaces hardcoded VA-EXTREME rule. Retained to avoid breaking saved strategy configs.")]
         public double ConfluenceVaExtremeStrength { get; set; }
 
         [NinjaScriptProperty]
         [Range(1, 10)]
         [Display(Name = "Wall Proximity (ticks)", Order = 23, GroupName = "3. Detection")]
+        [System.Obsolete("Phase 18-03: scorer-driven entry replaces hardcoded WALL-ANCHORED rule. Retained to avoid breaking saved strategy configs.")]
         public int ConfluenceWallProximityTicks { get; set; }
 
         [NinjaScriptProperty]
         [Range(10, 5000)]
         [Display(Name = "Liquidity Wall Min Size", Order = 24, GroupName = "3. Detection")]
         public int LiquidityWallMin { get; set; }
+
+        // ---- Phase 18-03: Scorer entry gate ----
+
+        [NinjaScriptProperty]
+        [Range(0.0, 100.0)]
+        [Display(Name = "Score Entry Threshold", Order = 1, GroupName = "5. Score",
+                 Description = "Minimum TotalScore required to fire an entry. Default 80.0 = Python TYPE_A_MIN (signal_config.py).")]
+        public double ScoreEntryThreshold { get; set; } = 80.0;
+
+        [NinjaScriptProperty]
+        [Display(Name = "Min Tier For Entry", Order = 2, GroupName = "5. Score",
+                 Description = "Minimum SignalTier required to fire an entry. Default TYPE_A = highest conviction only.")]
+        public SignalTier MinTierForEntry { get; set; } = SignalTier.TYPE_A;
 
         [NinjaScriptProperty]
         [Display(Name = "ATM Template — Absorption", Order = 30, GroupName = "4. ATM Templates")]
