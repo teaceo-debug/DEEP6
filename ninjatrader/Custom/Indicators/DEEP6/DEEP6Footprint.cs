@@ -797,12 +797,13 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                 AnchorPwPocBrush     = MakeFrozenBrush(Color.FromRgb(0xE5, 0xC2, 0x4A));
                 AnchorCompositeBrush = MakeFrozenBrush(Color.FromArgb(30, 0xC8, 0xD1, 0x7A));  // ~12% alpha
 
-                BidCellBrush      = Brushes.IndianRed;
-                AskCellBrush      = Brushes.LimeGreen;
-                CellTextBrush     = Brushes.WhiteSmoke;
-                PocBrush          = Brushes.Gold;
-                VahBrush          = MakeFrozenBrush(Color.FromRgb(160, 200, 255));
-                ValBrush          = MakeFrozenBrush(Color.FromRgb(160, 200, 255));
+                // Palette per .planning/design/ninjatrader-chart/01-COLOR-PALETTE.md
+                BidCellBrush      = MakeFrozenBrush(Color.FromRgb(0xFF, 0x6B, 0x6B));    // bid dominance
+                AskCellBrush      = MakeFrozenBrush(Color.FromRgb(0x4F, 0xC3, 0xF7));    // ask dominance
+                CellTextBrush     = MakeFrozenBrush(Color.FromRgb(0xE6, 0xED, 0xF3));    // primary ink
+                PocBrush          = MakeFrozenBrush(Color.FromRgb(0xFF, 0xD2, 0x3F));    // POC yellow
+                VahBrush          = MakeFrozenBrush(Color.FromRgb(0xC8, 0xD1, 0x7A));    // olive VA (distinct hue vs POC)
+                ValBrush          = MakeFrozenBrush(Color.FromRgb(0xC8, 0xD1, 0x7A));
                 ImbalanceBuyBrush = MakeFrozenBrush(Color.FromArgb(110, 0, 200, 80));
                 ImbalanceSellBrush= MakeFrozenBrush(Color.FromArgb(110, 220, 40, 40));
                 WallBidBrush      = MakeFrozenBrush(Color.FromArgb(220, 43, 140, 255));   // bright blue
