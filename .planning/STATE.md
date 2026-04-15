@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: NT8 detector refactor + 34 signals ported; 180/180 NUnit tests green; UseNewRegistry=true default; live Rithmic session-replay parity deferred to Phase 18
-stopped_at: Completed 18-02-PLAN.md
-last_updated: "2026-04-15T23:13:52.155Z"
+stopped_at: Completed 18-03-PLAN.md
+last_updated: "2026-04-15T23:20:53.207Z"
 last_activity: 2026-04-15 — resolved verifier gaps (dup UseNewRegistry property, double EvaluateBar, LOC cap)
 progress:
   total_phases: 21
   completed_phases: 15
   total_plans: 67
-  completed_plans: 61
-  percent: 91
+  completed_plans: 62
+  percent: 93
 ---
 
 # Project State
@@ -83,6 +83,7 @@ Progress: [██████████] 100% of planned milestone phases; Pha
 | Phase 15 P05 | 48 | 3 tasks | 8 files |
 | Phase 17 P04 | 210 | 3 tasks | 38 files |
 | Phase 18 P02 | 65 | 2 tasks | 3 files |
+| Phase 18 P03 | 45 | 2 tasks | 3 files |
 
 ## Quick Tasks Completed
 
@@ -164,6 +165,8 @@ Recent decisions affecting current work:
 - [Phase 18]: Indicator-side DetectorRegistry: mirrors DEEP6Strategy pattern; indicator builds own registry so scorer runs independently of strategy
 - [Phase 18]: Draw.Dot fallback: catch(MissingMethodException) per RESEARCH Open Question 3; Diamond at 70% opacity if NT8 lacks Draw.Dot
 - [Phase 18]: zoneScore=0.0 stub: VPContext zone proximity deferred; TypeA gate requires zone_bonus>0 so TypeA signals cannot fire until wired in follow-up wave
+- [Phase 18]: ScorerEntryGate extracted as NT8-API-free static class (Approach A); DEEP6Strategy.EvaluateEntry delegates to gate then RiskGatesPass
+- [Phase 18]: ScoreEntryThreshold default 80.0 = Python TYPE_A_MIN; MinTierForEntry default SignalTier.TYPE_A
 
 ### Roadmap Evolution
 
@@ -186,6 +189,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-15T23:13:45.281Z
-Stopped at: Completed 18-02-PLAN.md
+Last session: 2026-04-15T23:20:53.204Z
+Stopped at: Completed 18-03-PLAN.md
 Resume file: None
