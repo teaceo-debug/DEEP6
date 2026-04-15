@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
-status: executing
-stopped_at: Phase 16 COMPLETE — NT8 indicator + strategy shell; next Phase 17 detector refactor
-last_updated: "2026-04-15T00:00:00Z"
-last_activity: 2026-04-15
+status: "2026-04-15 NT8 pivot: Phases 1–15 reclassified REFERENCE-ONLY (Python reference engine); Phase 16 built; Phase 17/18/19 appended to roadmap."
+stopped_at: Completed quick-260415-hpe-PLAN.md
+last_updated: "2026-04-15T16:58:20.707Z"
+last_activity: "2026-04-15 - Completed quick task 260415-fdu: Fix GEX level disconnects"
 progress:
   total_phases: 19
   completed_phases: 13
@@ -180,6 +180,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-14T16:51:37.923Z
-Stopped at: Phase 15 COMPLETE — all 5 plans + integration verification
+Last session: 2026-04-15T16:58:20.699Z
+Stopped at: Completed quick-260415-hpe-PLAN.md
 Resume file: None
