@@ -36,6 +36,7 @@
     <Compile Include="..\Custom\AddOns\DEEP6\Detectors\VolPattern\**\*.cs" />
     <Compile Include="..\Custom\AddOns\DEEP6\Detectors\Trap\**\*.cs" />
     <Compile Include="..\Custom\AddOns\DEEP6\Detectors\Engines\**\*.cs" />
+    <Compile Include="..\Custom\AddOns\DEEP6\Scoring\*.cs" />
   </ItemGroup>
 
   <ItemGroup>
