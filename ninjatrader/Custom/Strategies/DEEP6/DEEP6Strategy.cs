@@ -460,9 +460,10 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                 var orderId = Guid.NewGuid().ToString();
                 OrderAction action = direction > 0 ? OrderAction.Buy : OrderAction.SellShort;
 
-                // Use the explicit-quantity overload so the strategy's MaxContractsPerTrade wins
-                // over whatever quantity the ATM template was saved with.
-                AtmStrategyCreate(action, OrderType.Market, MaxContractsPerTrade, 0, 0, TimeInForce.Day,
+                // NT8 8.1 AtmStrategyCreate: 9-arg signature (no quantity param).
+                // Quantity is inherited from the ATM template's saved Qty field.
+                // User MUST set the ATM template qty to match MaxContractsPerTrade in NT8 UI.
+                AtmStrategyCreate(action, OrderType.Market, 0, 0, TimeInForce.Day,
                     orderId, atmTemplate, atmGuid,
                     (atmCallbackErrorCode, atmCallbackId) =>
                     {
@@ -471,8 +472,8 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                             _activeAtmGuid = atmGuid;
                             _lastEntryBar = CurrentBar;
                             _tradesThisSession++;
-                            Print(string.Format("[DEEP6 Strategy] LIVE entry CONFIRMED: {0} qty={1} ATM='{2}' trigger={3} @ {4:F2} atmGuid={5}",
-                                side, MaxContractsPerTrade, atmTemplate, trigger, signalPrice, atmGuid));
+                            Print(string.Format("[DEEP6 Strategy] LIVE entry CONFIRMED: {0} ATM='{1}' trigger={2} @ {3:F2} atmGuid={4}",
+                                side, atmTemplate, trigger, signalPrice, atmGuid));
                         }
                         else
                         {
@@ -480,8 +481,8 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                                 atmTemplate, atmCallbackErrorCode, atmCallbackId));
                         }
                     });
-                Print(string.Format("[DEEP6 Strategy] LIVE entry submitted: {0} qty={1} ATM='{2}' trigger={3} @ {4:F2} (awaiting callback)",
-                    side, MaxContractsPerTrade, atmTemplate, trigger, signalPrice));
+                Print(string.Format("[DEEP6 Strategy] LIVE entry submitted: {0} ATM='{1}' trigger={2} @ {3:F2} (qty from template; awaiting callback)",
+                    side, atmTemplate, trigger, signalPrice));
             }
             catch (Exception ex)
             {

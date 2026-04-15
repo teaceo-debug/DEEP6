@@ -117,6 +117,8 @@ MNQ futures: $0.50 per tick.
 
 **Always** trade MNQ (or sim) until you've taken 50+ DEEP6 signals and have a positive expectancy log. The visual signals are auditable; the per-trigger expectancy is not — yet.
 
+> **Important:** NT8 8.1's `AtmStrategyCreate` inherits quantity from the **ATM template's saved Qty field**, not from the strategy's `MaxContractsPerTrade` property. That means whatever you set as Qty when you save each template IS the size that trades. Set Qty in the NT8 ATM dialog to match the table above (e.g., 2 for `DEEP6_Absorption`, 4 for `DEEP6_Confluence`). The strategy's `MaxContractsPerTrade` property is now an upper-bound guide only — it does not override the template.
+
 ## Failure modes to know
 
 - **ATM template not found** → strategy logs "ATM template DEEP6_X not found, using flat order" and submits a market entry with no bracket. **Set up all 4 templates before enabling live trading.**

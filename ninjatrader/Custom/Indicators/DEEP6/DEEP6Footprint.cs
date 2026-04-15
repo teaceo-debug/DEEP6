@@ -1645,11 +1645,12 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                         LastUpdate = kv.Value.LastUpdate,   RefillCount = kv.Value.RefillCount }));
             }
 
-            DrawWallsForSide(bidSnap, _wallBidDx, "BID", true,  fresh, minVis, maxVis, panelRight);
-            DrawWallsForSide(askSnap, _wallAskDx, "ASK", false, fresh, minVis, maxVis, panelRight);
+            DrawWallsForSide(cs, bidSnap, _wallBidDx, "BID", true,  fresh, minVis, maxVis, panelRight);
+            DrawWallsForSide(cs, askSnap, _wallAskDx, "ASK", false, fresh, minVis, maxVis, panelRight);
         }
 
         private void DrawWallsForSide(
+            ChartScale cs,
             List<KeyValuePair<double, L2LevelState>> snap,
             SharpDX.Direct2D1.Brush brush,
             string side,
