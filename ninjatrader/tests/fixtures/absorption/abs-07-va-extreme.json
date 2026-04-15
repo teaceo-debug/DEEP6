@@ -1,0 +1,42 @@
+{
+  "signalId": "ABS-07",
+  "description": "VA EXTREME bonus. ABS-01 classic fires at upper wick. bar.High=20002.75 is within VaExtremeTicks=2*tickSize=0.5 of vah=20003.00 (|20002.75-20003.00|=0.25 <= 0.5). ABS-07 diagnostic emitted + ABS-01 Detail gets '@VAH' suffix. Config: VaExtremeTicks=2.0, VaExtremeStrengthBonus=0.15.",
+  "bar": {
+    "barIndex": 50,
+    "open": 20001.00,
+    "high": 20002.75,
+    "low": 19999.75,
+    "close": 20001.25,
+    "levels": [
+      {"price": 20002.75, "askVol": 200, "bidVol": 180},
+      {"price": 20002.50, "askVol": 0,   "bidVol": 0},
+      {"price": 20001.25, "askVol": 100, "bidVol": 80},
+      {"price": 20001.00, "askVol": 80,  "bidVol": 70},
+      {"price": 19999.75, "askVol": 10,  "bidVol": 10}
+    ],
+    "notes": "bodyTop=max(20001,20001.25)=20001.25. upperWick: 20002.75(380)+20002.50(0)=380 of 730 total=52%>30%. upperDelta=20002.75(200-180)+20002.50(0)=20/380=0.053<0.12. barDelta=(200-180)+(100-80)+(80-70)+(10-10)=20+20+10+0=50, barDeltaRatio=50/730=0.068<0.18. ABS-01 fires dir=-1. sigPrice=bar.High=20002.75, |20002.75-20003.0|=0.25<=0.5 → ABS-07 bonus applied. ABS-07 diagnostic also emitted."
+  },
+  "session": {
+    "atr20": 4.0,
+    "volEma20": 300.0,
+    "tickSize": 0.25,
+    "vah": 20003.00,
+    "val": 19998.00
+  },
+  "expected": [
+    {
+      "signalId": "ABS-01",
+      "direction": -1,
+      "strengthMin": 0.50,
+      "strengthMax": 1.00,
+      "detail_contains": "@VAH"
+    },
+    {
+      "signalId": "ABS-07",
+      "direction": -1,
+      "strengthMin": 0.50,
+      "strengthMax": 1.00,
+      "detail_contains": "ABS-07 VA extreme"
+    }
+  ]
+}

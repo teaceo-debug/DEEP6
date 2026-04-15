@@ -1,0 +1,49 @@
+{
+  "signalId": "EXH-06",
+  "description": "BID/ASK FADE. currHighAsk=30 < priorHighAsk=200 * FadeThreshold=0.60 (=120). Condition met → EXH-06 direction=-1. Delta gate passes (bearish bar, barDelta>0). Schema extension: top-level 'priorBar' field with same shape as 'bar'. Config: FadeThreshold=0.60.",
+  "bar": {
+    "barIndex": 60,
+    "open": 20004.50,
+    "high": 20005.00,
+    "low": 20002.00,
+    "close": 20002.25,
+    "levels": [
+      {"price": 20005.00, "askVol": 30,  "bidVol": 10},
+      {"price": 20004.00, "askVol": 80,  "bidVol": 60},
+      {"price": 20003.00, "askVol": 60,  "bidVol": 40},
+      {"price": 20002.25, "askVol": 20,  "bidVol": 15},
+      {"price": 20002.00, "askVol": 10,  "bidVol": 10}
+    ],
+    "notes": "totalVol=30+10+80+60+60+40+20+15+10+10=335. barDelta=(30-10)+(80-60)+(60-40)+(20-15)+(10-10)=20+20+20+5+0=65>0. bar bearish (close=20002.25<open=20004.50) → gate: barDelta>0 → true. currHiPx=sorted.Last()=20005. currHiAsk=30. priorHiPx=sorted.Last()=20005. priorHiAsk=200. 30 < 200*0.60=120 → EXH-06 fires dir=-1. str=1-(30/200)=0.85."
+  },
+  "priorBar": {
+    "barIndex": 59,
+    "open": 20003.00,
+    "high": 20005.00,
+    "low": 20001.00,
+    "close": 20004.50,
+    "levels": [
+      {"price": 20005.00, "askVol": 200, "bidVol": 50},
+      {"price": 20004.50, "askVol": 100, "bidVol": 80},
+      {"price": 20003.00, "askVol": 60,  "bidVol": 40},
+      {"price": 20002.00, "askVol": 30,  "bidVol": 20},
+      {"price": 20001.00, "askVol": 10,  "bidVol": 10}
+    ]
+  },
+  "session": {
+    "atr20": 4.0,
+    "volEma20": 300.0,
+    "tickSize": 0.25,
+    "vah": 20006.0,
+    "val": 20000.0
+  },
+  "expected": [
+    {
+      "signalId": "EXH-06",
+      "direction": -1,
+      "strengthMin": 0.83,
+      "strengthMax": 0.87,
+      "detail_contains": "ASK FADE at high"
+    }
+  ]
+}

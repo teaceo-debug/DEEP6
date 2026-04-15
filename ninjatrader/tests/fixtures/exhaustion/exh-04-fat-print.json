@@ -1,0 +1,34 @@
+{
+  "signalId": "EXH-04",
+  "description": "FAT PRINT. First level (sorted ascending) where vol > avgLevelVol*FatMult=2.0 fires. Direction=0 per PORT-SPEC. Delta gate passes (bearish bar, barDelta>0). Config: FatMult=2.0.",
+  "bar": {
+    "barIndex": 40,
+    "open": 20004.00,
+    "high": 20005.00,
+    "low": 20002.00,
+    "close": 20002.50,
+    "levels": [
+      {"price": 20002.00, "askVol": 500, "bidVol": 400},
+      {"price": 20003.00, "askVol": 40,  "bidVol": 30},
+      {"price": 20004.00, "askVol": 30,  "bidVol": 20},
+      {"price": 20005.00, "askVol": 10,  "bidVol": 10}
+    ],
+    "notes": "totalVol=500+400+40+30+30+20+10+10=1040. levels.Count=4. avgLevelVol=1040/4=260. FatMult*avgLevelVol=520. sorted[0]=20002.00 vol=900>520 → EXH-04 fires dir=0. strength=min(900/(260*2*2),1)=min(900/1040,1)=0.865. barDelta=(500-400)+(40-30)+(30-20)+(10-10)=100+10+10+0=120>0. bar bearish (close=20002.50<open=20004) → gate: barDelta>0 → true."
+  },
+  "session": {
+    "atr20": 4.0,
+    "volEma20": 300.0,
+    "tickSize": 0.25,
+    "vah": 20006.0,
+    "val": 20001.0
+  },
+  "expected": [
+    {
+      "signalId": "EXH-04",
+      "direction": 0,
+      "strengthMin": 0.84,
+      "strengthMax": 0.90,
+      "detail_contains": "FAT PRINT"
+    }
+  ]
+}

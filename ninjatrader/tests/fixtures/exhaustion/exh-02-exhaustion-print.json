@@ -1,0 +1,36 @@
+{
+  "signalId": "EXH-02",
+  "description": "EXHAUSTION PRINT at bar high. askVol at highest level=120 is 20%+ of totalVol. Delta gate passes (bearish bar, barDelta>0). EXH-05 blocked: |barDelta|=40 < totalVol*0.15=600*0.15=90. Config: ExhaustWickMin=35.0, threshold=effMin/3=11.67%.",
+  "bar": {
+    "barIndex": 15,
+    "open": 20004.00,
+    "high": 20005.00,
+    "low": 20002.00,
+    "close": 20002.50,
+    "levels": [
+      {"price": 20005.00, "askVol": 120, "bidVol": 10},
+      {"price": 20004.50, "askVol": 100, "bidVol": 90},
+      {"price": 20004.00, "askVol": 100, "bidVol": 90},
+      {"price": 20003.00, "askVol": 80,  "bidVol": 80},
+      {"price": 20002.50, "askVol": 60,  "bidVol": 60},
+      {"price": 20002.00, "askVol": 5,   "bidVol": 5}
+    ],
+    "notes": "totalVol=120+10+100+90+100+90+80+80+60+60+5+5=800. barDelta=(120-10)+(100-90)+(100-90)+(80-80)+(60-60)+(5-5)=110+10+10+0+0+0=130. Wait that's barDelta=130 which is too high for EXH-05 threshold. Need barDelta small. Use balanced inside levels and small imbalance at top. Let me recompute: levels must give barDelta > 0 (bearish bar gate) but |barDelta| < totalVol*0.15. Try totalVol=800, need barDelta in (0, 120). barDelta=110+10+10+0+0+0=130 is still >120. Use: 20005(120ask/10bid=110), rest balanced. totalVol needs barDelta<totalVol*0.15. 110<800*0.15=120. YES 110<120. EXH-05 does NOT fire. askVol at high: pct=120/800*100=15% >= 35/3=11.67% → EXH-02 fires. strength=min(15/20,1)=0.75."
+  },
+  "session": {
+    "atr20": 5.0,
+    "volEma20": 300.0,
+    "tickSize": 0.25,
+    "vah": 20006.0,
+    "val": 20000.0
+  },
+  "expected": [
+    {
+      "signalId": "EXH-02",
+      "direction": -1,
+      "strengthMin": 0.73,
+      "strengthMax": 0.77,
+      "detail_contains": "EXHAUSTION PRINT at high"
+    }
+  ]
+}

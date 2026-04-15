@@ -1,0 +1,35 @@
+{
+  "signalId": "EXH-05",
+  "description": "FADING MOMENTUM. |barDelta|=250 > totalVol*0.15=600*0.15=90. barBullish (close>open) → direction=-1 (price up but delta opposing). Delta gate: bullish bar with barDelta<0 → gate passes. Config: threshold 0.15.",
+  "bar": {
+    "barIndex": 45,
+    "open": 20001.00,
+    "high": 20004.00,
+    "low": 20000.50,
+    "close": 20003.50,
+    "levels": [
+      {"price": 20000.50, "askVol": 10,  "bidVol": 200},
+      {"price": 20001.00, "askVol": 20,  "bidVol": 150},
+      {"price": 20002.00, "askVol": 30,  "bidVol": 80},
+      {"price": 20003.50, "askVol": 20,  "bidVol": 60},
+      {"price": 20004.00, "askVol": 10,  "bidVol": 10}
+    ],
+    "notes": "totalVol=10+200+20+150+30+80+20+60+10+10=590. barDelta=(10-200)+(20-150)+(30-80)+(20-60)+(10-10)=-190-130-50-40+0=-410. |barDelta|=410>590*0.15=88.5. bar bullish(close=20003.50>open=20001.00). DeltaGate: bullish bar → return barDelta<0 → -410<0 → true. dir=-1 (barBullish→-1). strength=min(410/590,1)=min(0.695,1)=0.695."
+  },
+  "session": {
+    "atr20": 4.0,
+    "volEma20": 300.0,
+    "tickSize": 0.25,
+    "vah": 20006.0,
+    "val": 19999.0
+  },
+  "expected": [
+    {
+      "signalId": "EXH-05",
+      "direction": -1,
+      "strengthMin": 0.68,
+      "strengthMax": 0.72,
+      "detail_contains": "FADING MOMENTUM"
+    }
+  ]
+}

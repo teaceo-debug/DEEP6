@@ -1,0 +1,38 @@
+{
+  "signalId": "ABS-02",
+  "description": "PASSIVE absorption at upper zone. Top 20% of bar range holds >=60% of totalVol; close below that zone. ABS-01 blocked by strong directional delta in upper wick (deltaRatio=0.50>=0.12). ABS-03/04 blocked by totalVol < volEma*2 and barRange > atr*0.30.",
+  "bar": {
+    "barIndex": 20,
+    "open": 20004.00,
+    "high": 20005.00,
+    "low": 20000.00,
+    "close": 20001.00,
+    "levels": [
+      {"price": 20005.00, "askVol": 300, "bidVol": 0},
+      {"price": 20004.75, "askVol": 0,   "bidVol": 0},
+      {"price": 20004.50, "askVol": 0,   "bidVol": 0},
+      {"price": 20004.25, "askVol": 0,   "bidVol": 0},
+      {"price": 20004.00, "askVol": 50,  "bidVol": 50},
+      {"price": 20003.00, "askVol": 20,  "bidVol": 20},
+      {"price": 20002.00, "askVol": 10,  "bidVol": 10},
+      {"price": 20001.00, "askVol": 5,   "bidVol": 5}
+    ],
+    "notes": "barRange=5.0, extremeRange=5.0*0.20=1.0. totalVol=300+50+50+20+20+10+10+5+5=470. upperZone px>=high-1.0=20004: 20005(300)+20004.75(0)+20004.50(0)+20004.25(0)+20004.00(100)=400. 400/470=0.851>=0.60. close=20001<20004 → ABS-02 fires dir=-1. strength=min(0.851,1.0)=0.851. ABS-01 blocked: upperVol=300 wickPct=300/470*100=63.8>=30 but upperDelta=300-0=300 deltaRatio=300/300=1.0>=0.12 → ABS-01 does NOT fire. ABS-03: 470<300*2=600 → no. ABS-04: barRange=5.0>atr*0.30=1.2 → no."
+  },
+  "session": {
+    "atr20": 4.0,
+    "volEma20": 300.0,
+    "tickSize": 0.25,
+    "vah": 20003.5,
+    "val": 19999.5
+  },
+  "expected": [
+    {
+      "signalId": "ABS-02",
+      "direction": -1,
+      "strengthMin": 0.83,
+      "strengthMax": 0.87,
+      "detail_contains": "PASSIVE upper"
+    }
+  ]
+}

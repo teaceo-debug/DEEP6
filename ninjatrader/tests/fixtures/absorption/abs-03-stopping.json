@@ -1,0 +1,35 @@
+{
+  "signalId": "ABS-03",
+  "description": "STOPPING VOLUME. totalVol=1200 > volEma20=400 * StopVolMult=2.0 (=800). POC at 20006 above bodyTop=20001 → bearish direction=-1. ABS-01 blocked: upper wick has strong directional delta (deltaRatio=0.80>0.12). ABS-04 blocked: barRange=7.0 > atr*0.30=1.5.",
+  "bar": {
+    "barIndex": 30,
+    "open": 20001.00,
+    "high": 20006.00,
+    "low": 19999.00,
+    "close": 20000.50,
+    "levels": [
+      {"price": 20006.00, "askVol": 800, "bidVol": 50},
+      {"price": 20005.00, "askVol": 200, "bidVol": 50},
+      {"price": 20001.00, "askVol": 30,  "bidVol": 30},
+      {"price": 20000.50, "askVol": 10,  "bidVol": 10},
+      {"price": 19999.00, "askVol": 10,  "bidVol": 10}
+    ],
+    "notes": "totalVol=800+50+200+50+30+30+10+10+10+10=1200. bodyTop=max(20001,20000.50)=20001. bodyBot=min(20001,20000.50)=20000.50. PocPrice=20006(850 vol) > bodyTop=20001 → ABS-03 fires dir=-1. strength=min(1200/(400*2.0*2.0),1)=min(1200/1600,1)=0.75. ABS-01: upperVol=850+250=1100 wickPct=91.7%>=30 but upperDelta=(800-50)+(200-50)=750+150=900 deltaRatio=900/1100=0.818>=0.12 → ABS-01 blocked. ABS-04: barRange=7.0>5.0*0.30=1.5 → blocked."
+  },
+  "session": {
+    "atr20": 5.0,
+    "volEma20": 400.0,
+    "tickSize": 0.25,
+    "vah": 20004.0,
+    "val": 19999.0
+  },
+  "expected": [
+    {
+      "signalId": "ABS-03",
+      "direction": -1,
+      "strengthMin": 0.73,
+      "strengthMax": 0.77,
+      "detail_contains": "STOPPING VOL upper"
+    }
+  ]
+}

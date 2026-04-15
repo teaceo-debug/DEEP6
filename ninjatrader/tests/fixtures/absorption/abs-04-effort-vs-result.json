@@ -1,0 +1,34 @@
+{
+  "signalId": "ABS-04",
+  "description": "EFFORT VS RESULT. totalVol=900 > volEma20=500*EvrVolMult=1.5 (=750). barRange=0.75 < atr=5.0*EvrRangeCap=0.30 (=1.5). barDelta>0 → direction=-1. ABS-01 blocked: upper wick strongly directional (deltaRatio=0.5>=0.12). ABS-03 blocked: PocPrice inside body (at 20002.00, bodyBot=20001.75, bodyTop=20002.00).",
+  "bar": {
+    "barIndex": 35,
+    "open": 20002.00,
+    "high": 20002.50,
+    "low": 20001.75,
+    "close": 20001.75,
+    "levels": [
+      {"price": 20002.50, "askVol": 300, "bidVol": 100},
+      {"price": 20002.25, "askVol": 200, "bidVol": 100},
+      {"price": 20002.00, "askVol": 120, "bidVol": 60},
+      {"price": 20001.75, "askVol": 10,  "bidVol": 10}
+    ],
+    "notes": "totalVol=300+100+200+100+120+60+10+10=900. bodyTop=max(20002,20001.75)=20002. bodyBot=min(20002,20001.75)=20001.75. barRange=20002.50-20001.75=0.75 < atr*0.30=5.0*0.30=1.5. 900>500*1.5=750 → ABS-04 fires. barDelta=(300-100)+(200-100)+(120-60)+(10-10)=200+100+60+0=360>0 → dir=-1. strength=min(900/(500*1.5*2),1)=min(900/1500,1)=0.60. ABS-03: PocPrice=20002.50(400vol). bodyTop=20002. 20002.50>20002 → ABS-03 WOULD fire too (totalVol=900>volEma*2=1000? 900<1000 → ABS-03 blocked!) volEma=500, volEma*2=1000. 900<1000 → ABS-03 does NOT fire."
+  },
+  "session": {
+    "atr20": 5.0,
+    "volEma20": 500.0,
+    "tickSize": 0.25,
+    "vah": 20005.0,
+    "val": 19999.0
+  },
+  "expected": [
+    {
+      "signalId": "ABS-04",
+      "direction": -1,
+      "strengthMin": 0.58,
+      "strengthMax": 0.62,
+      "detail_contains": "EFFORT vs RESULT"
+    }
+  ]
+}

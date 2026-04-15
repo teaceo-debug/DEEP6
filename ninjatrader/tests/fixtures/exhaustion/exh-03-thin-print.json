@@ -1,0 +1,38 @@
+{
+  "signalId": "EXH-03",
+  "description": "THIN PRINT. 4 body levels have vol < maxLevelVol*ThinPct=0.05. Delta gate passes (bearish bar, barDelta>0). Config: ThinPct=0.05, need >=3 thin body levels.",
+  "bar": {
+    "barIndex": 25,
+    "open": 20005.00,
+    "high": 20006.00,
+    "low": 20002.00,
+    "close": 20002.50,
+    "levels": [
+      {"price": 20006.00, "askVol": 5,   "bidVol": 5},
+      {"price": 20005.00, "askVol": 400, "bidVol": 200},
+      {"price": 20004.75, "askVol": 8,   "bidVol": 4},
+      {"price": 20004.50, "askVol": 6,   "bidVol": 3},
+      {"price": 20004.25, "askVol": 5,   "bidVol": 2},
+      {"price": 20003.50, "askVol": 7,   "bidVol": 4},
+      {"price": 20002.50, "askVol": 50,  "bidVol": 40},
+      {"price": 20002.00, "askVol": 10,  "bidVol": 10}
+    ],
+    "notes": "bodyTop=max(20005,20002.50)=20005. bodyBot=min(20005,20002.50)=20002.50. maxLevelVol=max(10,600,12,9,7,11,90,20)=600 (at 20005). ThinPct*maxLevelVol=30. Body levels (bodyBot<=px<=bodyTop): 20005(600), 20004.75(12<30 thin), 20004.50(9<30 thin), 20004.25(7<30 thin), 20003.50(11<30 thin), 20002.50(90). thinCount=4>=3 → EXH-03 fires. barDelta=0+200+4+3+3+3+10+0=223>0. bar bearish (close<open=false for bool barBullish) → gate: bearish+barDelta>0 → true. EXH-03 code: dir = bar.Close>bar.Open?+1:-1; close=20002.50<open=20005.00 → dir=-1. strength=min(4/7,1)=0.5714."
+  },
+  "session": {
+    "atr20": 4.0,
+    "volEma20": 300.0,
+    "tickSize": 0.25,
+    "vah": 20007.0,
+    "val": 20001.0
+  },
+  "expected": [
+    {
+      "signalId": "EXH-03",
+      "direction": -1,
+      "strengthMin": 0.55,
+      "strengthMax": 0.60,
+      "detail_contains": "THIN PRINT"
+    }
+  ]
+}
