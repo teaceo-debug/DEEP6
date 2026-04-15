@@ -69,6 +69,12 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
 
         private DateTime _lastSessionDate = DateTime.MinValue;
 
+        // ---- Phase 17 detector registry (UseNewRegistry feature flag) ----
+        // When UseNewRegistry = false (default), strategy uses legacy ABS/EXH code path above.
+        // When UseNewRegistry = true (after Wave 2 parity passes), strategy uses the registry.
+        // CONTEXT.md D-06: default false protects live trading path during migration.
+        private NinjaTrader.NinjaScript.AddOns.DEEP6.Registry.DetectorRegistry _registry;
+
         // ---- L2 wall state for wall-anchored confluence ----
         private sealed class L2State { public long CurrentSize, MaxSize; public DateTime LastUpdate; }
         private readonly Dictionary<double, L2State> _l2Bids = new Dictionary<double, L2State>();
@@ -142,6 +148,20 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
             {
                 _absCfg.AbsorbWickMin  = AbsorbWickMinPct;
                 _exhCfg.ExhaustWickMin = ExhaustWickMinPct;
+
+                // Phase 17 Wave 1: Initialize registry when feature flag is on.
+                // Default is false — live ABS/EXH path stays active until Wave 2 parity passes.
+                if (UseNewRegistry)
+                {
+                    _registry = new NinjaTrader.NinjaScript.AddOns.DEEP6.Registry.DetectorRegistry();
+                    // TODO(Phase17 Wave2+): Register migrated detectors when UseNewRegistry=true
+                    // _registry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Absorption.AbsorptionDetector());
+                    // _registry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Exhaustion.ExhaustionDetector());
+                }
+                else
+                {
+                    _registry = null;
+                }
             }
             else if (State == State.DataLoaded)
             {
@@ -660,6 +680,15 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
         [NinjaScriptProperty]
         [Display(Name = "ATM Template — Default", Order = 33, GroupName = "4. ATM Templates")]
         public string AtmTemplateDefault { get; set; }
+
+        // ---- Phase 17 migration flag ----
+        // Default false: strategy runs legacy ABS/EXH path (Phase 16 behavior).
+        // Set true ONLY after Wave 2 parity passes; see CONTEXT.md D-06 and Phase 17 RESEARCH.md.
+        [NinjaScriptProperty]
+        [Display(Name = "UseNewRegistry", Order = 100, GroupName = "DEEP6 Migration",
+                 Description = "Phase 17 migration flag. Default false = legacy ABS/EXH path. " +
+                               "Set true only after Wave 2 parity passes. Do NOT enable in live trading until Phase 17 Wave 5.")]
+        public bool UseNewRegistry { get; set; } = false;
 
         #endregion
     }
