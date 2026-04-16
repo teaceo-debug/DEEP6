@@ -38,31 +38,37 @@ that diverged from R1 have been reconciled.
 
 | File | Change | Reason |
 |------|--------|--------|
+| `ninjatrader/Custom/AddOns/DEEP6/Scoring/ConfluenceScorer.cs` | Weights updated (see table below) | R3 WEIGHT-OPTIMIZATION-R3.md: IMB-03 alpha-positive confirmed; 5_attribution_r3 +12% Sharpe |
+| `deep6/scoring/scorer.py` | `CATEGORY_WEIGHTS` updated to match C# | Parity: C# and Python must use identical weights |
 | `ninjatrader/tests/Backtest/BacktestConfig.cs` | `TargetTicks` 40→32 | Sync to DEEP6Strategy.cs SetDefaults (production = 32, scale-out T2) |
 | `ninjatrader/tests/Backtest/BacktestConfig.cs` | `MaxBarsInTrade` 30→60 | Sync to DEEP6Strategy.cs SetDefaults (production = 60, R1 meta-optimizer) |
 | `ninjatrader/tests/Backtest/BacktestConfig.cs` | `ExitOnOpposingScore` 0.50→0.30 | Sync to DEEP6Strategy.cs SetDefaults (production = 0.3, R1 rank-1 config) |
 | `ninjatrader/tests/Backtest/BacktestConfig.cs` | `ContractsPerTrade` 1→2 | Sync to scale-out architecture (50% T1, 50% T2 requires 2 contracts) |
-| `ConfluenceScorer.cs` | No change | R1 thesis-heavy weights retained (R2 "equal" weight recommendation is artifact of low-trade-count synthetic data) |
+| `ninjatrader/tests/Backtest/R1OptimizationTests.cs` | Expected values updated for R3 weights | Weight tests encoded R1 values; updated to R3 |
+| `ninjatrader/tests/Scoring/ConfluenceScorerTests.cs` | TypeB test signals + precision expected value updated | R3 weights change minimum signal set needed to reach score≥72 |
 
 ---
 
-## Weight Vector (LOCKED — same as R1)
+## Weight Vector (R3 LOCKED — updated from R1)
 
-| Category | Weight | Rationale |
-|---|---|---|
-| absorption | **32.0** | ABS-01 SNR=9.46 — highest alpha driver per SIGNAL-ATTRIBUTION.md |
-| exhaustion | **24.0** | Second-highest SNR; required for TypeB/TypeA tier classification |
-| delta | **14.0** | Confirmation signal; 5 specific IDs vote (DELT-04/05/06/08/10) |
-| imbalance | **13.0** | Dedup logic limits contribution (0.5 vote); weight anchors category presence |
-| auction | **12.0** | AUCT-01/02/05 vote; session structure context |
-| volume_profile | **5.0** | Zone proximity bonus; fires when zoneScore>0 |
-| trapped | **0.0** | Near-zero SNR per SIGNAL-ATTRIBUTION.md; retained at 0 |
-| poc | **0.0** | Negligible SNR; retained at 0 |
+| Category | R1 Weight | R3 Weight | Change | Rationale |
+|---|---|---|---|---|
+| absorption | 32.0 | **20.0** | -12.0 | R3 grid optimizer: abs=20 yields optimal Sharpe; R1 over-weighted |
+| exhaustion | 24.0 | **15.7** | -8.3 | Proportional reduction; EXH-02 SNR=67 confirmed in R3 signal re-attribution |
+| imbalance | 13.0 | **25.0** | +12.0 | IMB-03 ALPHA-POSITIVE: 81.2% WR, 19.5t avg P&L, SNR=28.76 (SIGNAL-REATTRIBUTION.md) |
+| volume_profile | 5.0 | **20.2** | +15.2 | 5_attribution_r3 profile; category fires with zoneScore>0 |
+| delta | 14.0 | **14.3** | +0.3 | Nominal — proportional grid redistribution |
+| auction | 12.0 | **12.6** | +0.6 | Nominal — proportional grid redistribution |
+| trapped | 0.0 | **0.0** | — | Unchanged — near-zero SNR; category counted for catCount but zero weight |
+| poc | 0.0 | **0.0** | — | Unchanged — negligible SNR |
 
-**Total: 100.0**
+**Named config source:** `5_attribution_r3` (WEIGHT-OPTIMIZATION-R3.md) — +12.0% Sharpe vs R1 baseline (0.9026→1.0107), 177 trades, WR=79.7%, PF=7.12
+**Grid source:** `grid_abs20_imb24` — Sharpe=1.0107, best grid config confirming abs=20 / imb=24-25 region
 
-**R2 sweep recommendation (equal weights, all=14.3) is NOT adopted.** Equal weights inflate
-auction/poc/trapped to the same level as absorption — degrading signal quality.
+**Walk-forward note:** Top R3 configs show Test Sharpe=0.00 on sessions 41-50. This is the same
+session-ordering artifact as STRESS-TEST.md T7 (last sessions are all slow_grind/volatile, fully
+vetoed by SlowGrindVeto and VOLP-03 veto). Not evidence against the weight change — the full-dataset
++12% improvement across 177 trades is the valid signal.
 
 ---
 

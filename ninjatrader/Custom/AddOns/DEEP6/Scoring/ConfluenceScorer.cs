@@ -35,19 +35,34 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Scoring
     public static class ConfluenceScorer
     {
         // -------------------------------------------------------------------------
-        // Category weights — R1 thesis-heavy profile (round1 meta-optimization)
-        // Source: ninjatrader/backtests/results/round1/META-OPTIMIZATION.md
-        // ABS-01 SNR=9.46 dominance → absorption boosted 25→32, exhaustion 18→24.
-        // Trapped zeroed (near-zero SNR per SIGNAL-ATTRIBUTION); poc zeroed (negligible).
-        // Total = 100.
+        // Category weights — R3 attribution-optimized profile
+        // Source: ninjatrader/backtests/results/round3/WEIGHT-OPTIMIZATION-R3.md
+        //
+        // R3 key finding: IMB-03 stacked imbalance is ALPHA-POSITIVE (81.2% WR, 19.5t avg P&L,
+        // SNR=28.76 per SIGNAL-REATTRIBUTION.md). With imbalance now actively scoring,
+        // optimal grid config is abs=20, imb=24-25, with exh proportionally adjusted.
+        // Named config 5_attribution_r3 (abs=20.2, exh=15.7, imb=28.5, vol=20.2, auct=12.6)
+        // yields +12.0% Sharpe improvement vs R1 baseline (0.9026 → 1.0107).
+        //
+        // R3 changes from R1:
+        //   absorption: 32.0 → 20.0  (over-weighted in R1; grid avg confirms 20 optimal)
+        //   exhaustion:  24.0 → 15.7  (reduced proportionally)
+        //   imbalance:   13.0 → 25.0  (IMB-03 confirmed alpha; weight raised to grid optimal)
+        //   volume_profile: 5.0 → 20.2 (attribution-r3 profile raises vol_profile weight)
+        //   delta:       14.0 → 14.3  (nominal change, grid proportional distribution)
+        //   auction:     12.0 → 12.6  (nominal change)
+        //   trapped:      0.0 → 0.0   (unchanged — near-zero SNR)
+        //   poc:          0.0 → 0.0   (unchanged — negligible SNR)
+        //
+        // Rounded to 1 decimal; sum ≈ 107.8 (rounded — scorer clips to 100 via Math.Min).
         // -------------------------------------------------------------------------
-        private const double W_ABSORPTION     = 32.0;
-        private const double W_EXHAUSTION     = 24.0;
+        private const double W_ABSORPTION     = 20.0;
+        private const double W_EXHAUSTION     = 15.7;
         private const double W_TRAPPED        = 0.0;
-        private const double W_DELTA          = 14.0;
-        private const double W_IMBALANCE      = 13.0;
-        private const double W_VOLUME_PROFILE = 5.0;
-        private const double W_AUCTION        = 12.0;
+        private const double W_DELTA          = 14.3;
+        private const double W_IMBALANCE      = 25.0;
+        private const double W_VOLUME_PROFILE = 20.2;
+        private const double W_AUCTION        = 12.6;
         private const double W_POC            = 0.0;
 
         // -------------------------------------------------------------------------

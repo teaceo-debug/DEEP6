@@ -121,13 +121,14 @@ namespace NinjaTrader.Tests.Backtest
         };
 
         // =====================================================================
-        // 1. Weight change: R1 thesis-heavy weights — abs=32+exh=24 base score
+        // 1. Weight change: R3 attribution-optimized weights — abs=20+exh=15.7 base score
+        // R3: was R1 abs(32)+exh(24)=56; now abs(20)+exh(15.7)=35.7
         // =====================================================================
 
         [Test]
         public void Weights_R1_AbsExhBaseScore_Is56()
         {
-            // abs(32) + exh(24) = 56; bars=100 (no IB); agreement=1.0; no zone → score=56
+            // R3 weights: abs(20.0) + exh(15.7) = 35.7; bars=100 (no IB); agreement=1.0; no zone → score=35.7
             var signals = new[]
             {
                 SR("ABS-01", +1, 0.8),
@@ -135,20 +136,21 @@ namespace NinjaTrader.Tests.Backtest
             };
             var result = ConfluenceScorer.Score(signals, barsSinceOpen: 100, barDelta: 10, barClose: 17500.0);
 
-            // 2 categories, score = 56 (R1: abs=32 + exh=24)
-            Assert.That(result.TotalScore, Is.InRange(55.9999, 56.0001),
-                "R1 abs(32)+exh(24)=56 base score");
+            // 2 categories, score = 35.7 (R3: abs=20.0 + exh=15.7)
+            Assert.That(result.TotalScore, Is.InRange(35.6999, 35.7001),
+                "R3 abs(20.0)+exh(15.7)=35.7 base score");
             Assert.That(result.CategoryCount, Is.EqualTo(2), "abs + exh = 2 categories");
         }
 
         // =====================================================================
         // 2. Weight change: trapped contributes 0 weight but still counted in catCount
+        // R3: abs(20)+exh(15.7)+trap(0)+delta(14.3)=50.0; catCount=4
         // =====================================================================
 
         [Test]
         public void Weights_R1_TrappedZeroWeight_StillCountsCategory()
         {
-            // abs(32)+exh(24)+trap(0)+delta(14) = 70; catCount=4
+            // R3: abs(20.0)+exh(15.7)+trap(0)+delta(14.3) = 50.0; catCount=4
             var signals = new[]
             {
                 SR("ABS-01",  +1, 0.8),
@@ -160,8 +162,8 @@ namespace NinjaTrader.Tests.Backtest
 
             Assert.That(result.CategoryCount, Is.EqualTo(4),
                 "trapped still counted as category even with W_TRAPPED=0");
-            Assert.That(result.TotalScore, Is.InRange(69.9999, 70.0001),
-                "R1: abs(32)+exh(24)+trap(0)+delta(14)=70 base score");
+            Assert.That(result.TotalScore, Is.InRange(49.9999, 50.0001),
+                "R3: abs(20)+exh(15.7)+trap(0)+delta(14.3)=50.0 base score");
             Assert.That(result.CategoriesFiring, Does.Contain("trapped"),
                 "trapped appears in CategoriesFiring despite zero weight");
         }

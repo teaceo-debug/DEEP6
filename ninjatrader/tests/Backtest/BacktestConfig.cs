@@ -17,14 +17,17 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Backtest
         /// <summary>Stop-loss distance in ticks from entry price.</summary>
         public int StopLossTicks = 20;
 
-        /// <summary>Profit target distance in ticks from entry price.</summary>
-        public int TargetTicks = 40;
+        /// <summary>Profit target distance in ticks from entry price.
+        /// R3: aligned to DEEP6Strategy SetDefaults (was 40 from R2 sweep suggestion; production uses 32 per R1 scale-out architecture).</summary>
+        public int TargetTicks = 32;
 
-        /// <summary>Maximum bars to hold a position before forced exit.</summary>
-        public int MaxBarsInTrade = 30;
+        /// <summary>Maximum bars to hold a position before forced exit.
+        /// R3: aligned to DEEP6Strategy SetDefaults (was 30; production uses 60 per R1 meta-optimizer).</summary>
+        public int MaxBarsInTrade = 60;
 
-        /// <summary>Opposing-direction score threshold that triggers an early exit.</summary>
-        public double ExitOnOpposingScore = 0.50;
+        /// <summary>Opposing-direction score threshold that triggers an early exit.
+        /// R3: aligned to DEEP6Strategy SetDefaults (was 0.50; production uses 0.3 per OPTIMIZATION-REPORT rank-1).</summary>
+        public double ExitOnOpposingScore = 0.30;
 
         /// <summary>Minimum TotalScore required to enter a trade. R1: raised to 70 (round1 meta-optimization walk-forward optimum).</summary>
         public double ScoreEntryThreshold = 70.0;
@@ -41,8 +44,9 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Backtest
         /// <summary>Starting capital for equity curve calculation.</summary>
         public double InitialCapital = 50000.0;
 
-        /// <summary>Number of contracts per trade.</summary>
-        public int ContractsPerTrade = 1;
+        /// <summary>Number of contracts per trade.
+        /// R3: aligned to production scale-out architecture (was 1; scale-out requires 2 — 50% T1, 50% T2).</summary>
+        public int ContractsPerTrade = 2;
 
         // ---- R1: Breakeven stop ----
 

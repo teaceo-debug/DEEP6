@@ -90,20 +90,29 @@ class ScorerResult:
     meta_flags: int = 0
 
 
-# Category weights — R1 thesis-heavy profile (round1 meta-optimization, 2026-04-15)
-# Source: ninjatrader/backtests/results/round1/META-OPTIMIZATION.md
-# ABS-01 SNR=9.46 dominance → absorption boosted 25→32, exhaustion 18→24.
-# Trapped zeroed (near-zero SNR per signal attribution); poc zeroed (negligible).
-# Total = 100.
+# Category weights — R3 attribution-optimized profile (2026-04-15)
+# Source: ninjatrader/backtests/results/round3/WEIGHT-OPTIMIZATION-R3.md
+#
+# R3 key finding: IMB-03 stacked imbalance is ALPHA-POSITIVE (81.2% WR, 19.5t avg P&L,
+# SNR=28.76 per SIGNAL-REATTRIBUTION.md). Optimal grid config: abs=20, imb=24-25,
+# named config 5_attribution_r3 yields +12.0% Sharpe vs R1 (0.9026 → 1.0107).
+#
+# R3 changes from R1:
+#   absorption: 32.0 → 20.0  (R1 over-weighted; grid avg confirms 20 optimal)
+#   exhaustion: 24.0 → 15.7  (reduced proportionally)
+#   imbalance:  13.0 → 25.0  (IMB-03 confirmed alpha; raised to grid optimal)
+#   volume_profile: 5.0 → 20.2 (5_attribution_r3 profile)
+#   delta:      14.0 → 14.3  (proportional; nominal change)
+#   auction:    12.0 → 12.6  (proportional; nominal change)
 CATEGORY_WEIGHTS = {
-    "absorption": 32.0,    # R1: was 25 — ABS-01 SNR=9.46 dominant signal
-    "exhaustion": 24.0,    # R1: was 18
-    "trapped": 0.0,        # R1: was 14 — zero SNR per attribution; category still counted for cat_count
-    "delta": 14.0,         # R1: was 13
-    "imbalance": 13.0,     # R1: was 12
-    "volume_profile": 5.0, # R1: was 10 — reduced (VOLP-03 is noise)
-    "auction": 12.0,       # R1: was 8
-    "poc": 0.0,            # R1: was 1 — negligible contribution; category still counted for cat_count
+    "absorption": 20.0,    # R3: was 32 — reduced per grid optimizer (abs=20 optimal)
+    "exhaustion": 15.7,    # R3: was 24
+    "trapped": 0.0,        # unchanged — zero SNR per attribution
+    "delta": 14.3,         # R3: was 14 — proportional adjustment
+    "imbalance": 25.0,     # R3: was 13 — IMB-03 confirmed alpha-positive
+    "volume_profile": 20.2, # R3: was 5 — 5_attribution_r3 profile raises vol_profile
+    "auction": 12.6,       # R3: was 12 — proportional adjustment
+    "poc": 0.0,            # unchanged — negligible contribution
 }
 
 

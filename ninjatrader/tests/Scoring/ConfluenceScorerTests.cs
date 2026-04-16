@@ -80,18 +80,19 @@ namespace NinjaTrader.Tests.Scoring
 
         // -----------------------------------------------------------------------
         // Test 3 (SCOR-04): TypeB path — score>=72, cat>=4, delta agrees, strength>=0.3
-        // R1 weights: abs(32)+exh(24)+trap(0)+delta(14)=70; ibMult=1.15; score=80.5; no zone -> TypeA blocked
-        // trap category still counted (catCount=4) but contributes 0 weight.
+        // R3 weights: abs(20)+exh(15.7)+imb(25)+delta(14.3)=75.0; ibMult=1.15 (bars<60); score=86.25
+        // R3 change: TRAP-01 replaced with IMB-03-T1 because abs+exh+trap+delta=50*1.15=57.5 (TYPE_C,
+        // below 72 threshold). IMB has weight=25 in R3, pushing base to 75*1.15=86.25 → TYPE_B.
         // -----------------------------------------------------------------------
         [Test]
         public void Score_TypeBPath_FourCategoriesNoZone_ReturnsTypeB()
         {
             var signals = new[]
             {
-                SR("ABS-01",  +1, 0.8, 17500.0, "ABSORBED @LOW"),
-                SR("EXH-03",  +1, 0.6),
-                SR("TRAP-01", +1, 0.5),
-                SR("DELT-04", +1, 0.5),
+                SR("ABS-01",    +1, 0.8, 17500.0, "ABSORBED @LOW"),
+                SR("EXH-03",    +1, 0.6),
+                SR("IMB-03-T1", +1, 0.5, 0.0, "STACKED_T1"),   // R3: IMB replaces TRAP (weight=25 vs 0)
+                SR("DELT-04",   +1, 0.5),
             };
 
             var result = ConfluenceScorer.Score(
@@ -252,13 +253,14 @@ namespace NinjaTrader.Tests.Scoring
             Assert.That(rA.Tier, Is.EqualTo(SignalTier.TYPE_A));
             Assert.That(rA.Narrative, Does.StartWith("TYPE A \u2014 TRIPLE CONFLUENCE LONG"), "TypeA label format");
 
-            // TypeB (use same IB trick as test 3)
+            // TypeB: R3 requires IMB (weight=25) to push 4-cat score above 72 threshold.
+            // abs(20)+exh(15.7)+imb(25)+delta(14.3)=75 * ibMult(1.15) = 86.25 → TYPE_B
             var sigsB = new[]
             {
-                SR("ABS-01",  +1, 0.8),
-                SR("EXH-03",  +1, 0.6),
-                SR("TRAP-01", +1, 0.5),
-                SR("DELT-04", +1, 0.5),
+                SR("ABS-01",    +1, 0.8),
+                SR("EXH-03",    +1, 0.6),
+                SR("IMB-03-T1", +1, 0.5, 0.0, "STACKED_T1"),
+                SR("DELT-04",   +1, 0.5),
             };
             var rB = ConfluenceScorer.Score(sigsB, 20, 10, 17500.0, zoneScore: 0.0);
             Assert.That(rB.Tier, Is.EqualTo(SignalTier.TYPE_B));
@@ -608,9 +610,10 @@ namespace NinjaTrader.Tests.Scoring
                 signals, barsSinceOpen: 20, barDelta: 10, barClose: 17500.0,
                 zoneScore: 0.0, zoneDistTicks: 999.0);
 
-            // R1: abs(32)+exh(24)+trap(0)+delta(14)=70; mult=1.0; zone=0; agreement=1.0; ibMult=1.15
-            // total = min(70 * 1.0 * 1.0 * 1.15, 100) = 80.5
-            const double expected = 80.5;
+            // R3: abs(20.0)+exh(15.7)+trap(0)+delta(14.3)=50.0; confluenceMult=1.0 (cat=4<5);
+            // zone=0; agreement=1.0; ibMult=1.15 (bars=20 < 60)
+            // total = min(50.0 * 1.0 * 1.0 * 1.15, 100) = 57.5
+            const double expected = 57.5;
             Assert.That(result.TotalScore, Is.InRange(expected - 0.0001, expected + 0.0001),
                 $"Hand-computed score must match {expected} within 0.0001");
         }
