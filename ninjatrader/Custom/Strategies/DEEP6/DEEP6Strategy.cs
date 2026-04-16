@@ -152,8 +152,8 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                 AtmTemplateConfluence        = "DEEP6_Confluence";
                 AtmTemplateDefault           = "DEEP6_Practice";
 
-                // P0-4: scorer entry gate defaults — TYPE_B + threshold=60 (walk-forward optimum)
-                ScoreEntryThreshold          = 60.0;
+                // R1: scorer entry gate defaults — TYPE_B + threshold=70 (round1 meta-optimization walk-forward optimum)
+                ScoreEntryThreshold          = 70.0;
                 MinTierForEntry              = SignalTier.TYPE_B;
             }
             else if (State == State.Configure)
@@ -740,8 +740,8 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
         [NinjaScriptProperty]
         [Range(0.0, 100.0)]
         [Display(Name = "Score Entry Threshold", Order = 1, GroupName = "5. Score",
-                 Description = "Minimum TotalScore required to fire an entry. P0-4: 60.0 (walk-forward optimum, was 80.0).")]
-        public double ScoreEntryThreshold { get; set; } = 60.0;
+                 Description = "Minimum TotalScore required to fire an entry. R1: 70.0 (round1 meta-optimization walk-forward optimum, was 60.0).")]
+        public double ScoreEntryThreshold { get; set; } = 70.0;
 
         [NinjaScriptProperty]
         [Display(Name = "Min Tier For Entry", Order = 2, GroupName = "5. Score",

@@ -26,8 +26,8 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Backtest
         /// <summary>Opposing-direction score threshold that triggers an early exit.</summary>
         public double ExitOnOpposingScore = 0.50;
 
-        /// <summary>Minimum TotalScore required to enter a trade. P0-4: lowered to 60 (optimizer walk-forward optimum).</summary>
-        public double ScoreEntryThreshold = 60.0;
+        /// <summary>Minimum TotalScore required to enter a trade. R1: raised to 70 (round1 meta-optimization walk-forward optimum).</summary>
+        public double ScoreEntryThreshold = 70.0;
 
         /// <summary>Minimum signal tier required to enter a trade. P0-4: TYPE_B default (was TYPE_A).</summary>
         public SignalTier MinTierForEntry = SignalTier.TYPE_B;
