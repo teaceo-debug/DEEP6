@@ -60,7 +60,8 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
     {
         // ---- Detection state (mirrors indicator) ----
         private readonly Dictionary<int, FootprintBar> _bars = new Dictionary<int, FootprintBar>();
-        private double _bestBid = double.NaN, _bestAsk = double.NaN;
+        private volatile double _bestBid = double.NaN, _bestAsk = double.NaN;
+        private readonly object _barsLock = new object();
         private long _priorCvd;
         private FootprintBar _priorFinalized;
 
@@ -113,7 +114,7 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
             {
                 Description                  = "DEEP6 Auto-Trader — fires Tier 3 confluence setups via ATM bracket templates.";
                 Name                         = "DEEP6 Strategy";
-                Calculate                    = Calculate.OnEachTick;
+                Calculate                    = Calculate.OnBarClose;
                 EntriesPerDirection          = 1;
                 EntryHandling                = EntryHandling.AllEntries;
                 IsExitOnSessionCloseStrategy = true;
@@ -211,7 +212,7 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                     _registry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Engines.IcebergDetector());
                     _registry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Engines.VPContextDetector());
                     _registry.Register(new NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Engines.MicroProbDetector());  // LAST
-                    _session  = new NinjaTrader.NinjaScript.AddOns.DEEP6.Registry.SessionContext { TickSize = TickSize > 0 ? TickSize : 0.25 };
+                    // Fix 11: _session initialized in DataLoaded (after TickSize is valid), not here.
                     Print("[DEEP6 Strategy] UseNewRegistry=true: Waves 1-5 detectors registered (ABS/EXH/IMB/DELT/AUCT/VOLP/TRAP + ENG-02..07).");
                 }
                 else
@@ -222,7 +223,7 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
             }
             else if (State == State.DataLoaded)
             {
-                _bars.Clear();
+                lock (_barsLock) { _bars.Clear(); }
                 _exhDetector.ResetCooldowns();
                 _atrWindow.Clear();
                 _volEma = 0.0;
@@ -232,9 +233,22 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                 _tradesThisSession = 0;
                 _sessionDate = DateTime.MinValue;
 
+                // Fix 11: initialize _session here (DataLoaded) so TickSize is valid.
+                if (UseNewRegistry && _registry != null)
+                    _session = new NinjaTrader.NinjaScript.AddOns.DEEP6.Registry.SessionContext { TickSize = TickSize > 0 ? TickSize : 0.25 };
+
                 Print(string.Format("[DEEP6 Strategy] Initialized. EnableLiveTrading={0}, Account={1}, ApprovedAccount={2}",
                     EnableLiveTrading, Account != null ? Account.Name : "?", ApprovedAccountName));
                 if (!EnableLiveTrading) Print("[DEEP6 Strategy] DRY RUN — no orders will be submitted. Set EnableLiveTrading=true to go live.");
+            }
+            else if (State == State.Terminated)
+            {
+                // Fix 10: clean up all state on termination to avoid memory leaks.
+                lock (_barsLock) { _bars.Clear(); }
+                lock (_l2Lock) { _l2Bids.Clear(); _l2Asks.Clear(); }
+                _atrWindow.Clear();
+                _registry = null;
+                _session  = null;
             }
         }
 
@@ -254,13 +268,16 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
             else if (!double.IsNaN(_bestBid) && e.Price <= _bestBid) aggressor = 2;
             else aggressor = 0;
 
-            FootprintBar bar;
-            if (!_bars.TryGetValue(CurrentBar, out bar))
+            lock (_barsLock)
             {
-                bar = new FootprintBar { BarIndex = CurrentBar };
-                _bars[CurrentBar] = bar;
+                FootprintBar bar;
+                if (!_bars.TryGetValue(CurrentBar, out bar))
+                {
+                    bar = new FootprintBar { BarIndex = CurrentBar };
+                    _bars[CurrentBar] = bar;
+                }
+                bar.AddTrade(e.Price, (long)e.Volume, aggressor);
             }
-            bar.AddTrade(e.Price, (long)e.Volume, aggressor);
         }
 
         protected override void OnMarketDepth(MarketDepthEventArgs e)
@@ -288,11 +305,14 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
         {
             if (BarsInProgress != 0) return;
             if (CurrentBar < BarsRequiredToTrade) return;
-            if (!IsFirstTickOfBar) return;
 
             int prevIdx = CurrentBar - 1;
             FootprintBar prev;
-            if (!_bars.TryGetValue(prevIdx, out prev)) return;
+            lock (_barsLock)
+            {
+                _bars.TryGetValue(prevIdx, out prev);
+            }
+            if (prev == null) return;
 
             // Reconcile + finalize
             prev.Open = Bars.GetOpen(prevIdx);
@@ -414,8 +434,11 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
             int cutoff = CurrentBar - 500;
             if (cutoff > 0)
             {
-                var stale = _bars.Keys.Where(k => k < cutoff).ToList();
-                foreach (var k in stale) _bars.Remove(k);
+                lock (_barsLock)
+                {
+                    var stale = _bars.Keys.Where(k => k < cutoff).ToList();
+                    foreach (var k in stale) _bars.Remove(k);
+                }
             }
 
             if (_killSwitch) return;
@@ -718,10 +741,15 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                     // AtmStrategyClose tears down the entire bracket cleanly (cancels stop+target,
                     // submits a market exit). ExitLong/Short would race the bracket's own protective
                     // orders and can leave orphaned stops or double-exit.
-                    if (!string.IsNullOrEmpty(_activeAtmGuid))
+                    string atmGuidToClose;
+                    lock (_l2Lock)
                     {
-                        AtmStrategyClose(_activeAtmGuid);
-                        _activeAtmGuid = null;
+                        atmGuidToClose = _activeAtmGuid;
+                        if (!string.IsNullOrEmpty(atmGuidToClose)) _activeAtmGuid = null;
+                    }
+                    if (!string.IsNullOrEmpty(atmGuidToClose))
+                    {
+                        AtmStrategyClose(atmGuidToClose);
                     }
                     else
                     {

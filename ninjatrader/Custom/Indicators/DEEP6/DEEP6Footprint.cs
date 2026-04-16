@@ -689,6 +689,7 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
     {
         // ---- State ----
         private readonly Dictionary<int, FootprintBar> _bars = new Dictionary<int, FootprintBar>();
+        private readonly object _barsLock = new object();
         private double _bestBid = double.NaN;
         private double _bestAsk = double.NaN;
         private long _priorCvd;
@@ -869,7 +870,7 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             }
             else if (State == State.DataLoaded)
             {
-                _bars.Clear();
+                lock (_barsLock) { _bars.Clear(); }
                 _exhDetector.ResetCooldowns();
                 _atrWindow.Clear();
                 _volEma = 0.0;
@@ -917,13 +918,16 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             else if (!double.IsNaN(_bestBid) && e.Price <= _bestBid) aggressor = 2;
             else aggressor = 0;
 
-            FootprintBar bar;
-            if (!_bars.TryGetValue(CurrentBar, out bar))
+            lock (_barsLock)
             {
-                bar = new FootprintBar { BarIndex = CurrentBar };
-                _bars[CurrentBar] = bar;
+                FootprintBar bar;
+                if (!_bars.TryGetValue(CurrentBar, out bar))
+                {
+                    bar = new FootprintBar { BarIndex = CurrentBar };
+                    _bars[CurrentBar] = bar;
+                }
+                bar.AddTrade(e.Price, (long)e.Volume, aggressor);
             }
-            bar.AddTrade(e.Price, (long)e.Volume, aggressor);
         }
 
         // ---- L2 depth intake — populates _l2Bids / _l2Asks for Liquidity Wall detection ----
@@ -994,7 +998,11 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
 
             int prevIdx = CurrentBar - 1;
             FootprintBar prev;
-            if (!_bars.TryGetValue(prevIdx, out prev)) return;
+            lock (_barsLock)
+            {
+                _bars.TryGetValue(prevIdx, out prev);
+            }
+            if (prev == null) return;
 
             // Reconcile OHLC with NT8's authoritative bar (handles silent-tick edge case).
             prev.Open = Bars.GetOpen(prevIdx);
@@ -1118,8 +1126,11 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             int cutoff = CurrentBar - 500;
             if (cutoff > 0)
             {
-                var stale = _bars.Keys.Where(k => k < cutoff).ToList();
-                foreach (var k in stale) _bars.Remove(k);
+                lock (_barsLock)
+                {
+                    var stale = _bars.Keys.Where(k => k < cutoff).ToList();
+                    foreach (var k in stale) _bars.Remove(k);
+                }
             }
 
         }
@@ -1274,6 +1285,7 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
 
         protected override void OnRender(ChartControl chartControl, ChartScale chartScale)
         {
+            if (IsInHitTest) return;
             if (RenderTarget == null || ChartBars == null) return;
             if (chartControl.Instrument == null) return;
             if (_cellFont == null) return;
@@ -1303,10 +1315,13 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             int fromIdx = ChartBars.FromIndex;
             int toIdx = ChartBars.ToIndex;
 
+            Dictionary<int, FootprintBar> snap;
+            lock (_barsLock) { snap = new Dictionary<int, FootprintBar>(_bars); }
+
             for (int barIdx = fromIdx; barIdx <= toIdx; barIdx++)
             {
                 FootprintBar fbar;
-                if (!_bars.TryGetValue(barIdx, out fbar)) continue;
+                if (!snap.TryGetValue(barIdx, out fbar)) continue;
                 if (fbar.Levels.Count == 0) continue;
 
                 int xCenter = chartControl.GetXByBarIndex(ChartBars, barIdx);
