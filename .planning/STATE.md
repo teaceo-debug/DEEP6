@@ -96,6 +96,7 @@ Progress: [██████████] 100% of planned milestone phases; Pha
 | 260416-161 | 2026-04-16 | feat: Databento adapter + NT8 data bridge for NinjaScript simulator | ninjatrader/simulator/Adapters/, Bridge/, DataBridgeIndicator (7 files, 1463 LOC) |
 | 260416-1ns | 2026-04-16 | feat: Analytics suite — optimizer, parity, signals, walk-forward, Monte Carlo, classifier | ninjatrader/simulator/Analytics/ (6 files, 1673 LOC) |
 | 260416-23a | 2026-04-16 | feat: Chart visualization — candle HTML, footprint HTML, dashboard JSON server | ninjatrader/simulator/Chart/ (1 file, 808 LOC) |
+| 260416-2r8 | 2026-04-16 | feat: Order Fill Simulator + Chart Design Studio | ninjatrader/simulator/FillEngine/ + Chart/DesignStudio (2 files, 1037 LOC) |
 
 ## Accumulated Context
 
