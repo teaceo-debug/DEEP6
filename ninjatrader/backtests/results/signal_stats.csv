@@ -1,0 +1,12 @@
+signal_id,category,fire_count,fire_rate_pct,primary_trades,primary_win_rate,primary_avg_pnl_ticks,primary_avg_win_ticks,primary_avg_loss_ticks,primary_snr,cooccur_trades,cooccur_win_rate,cooccur_avg_pnl_ticks
+ABS-01,absorption,1929,9.89,27,77.8,13.43,19.3,7.14,9.457,60,65.0,0.16
+AUCT-01,auction,193,0.99,0,0.0,0.0,0.0,0.0,0.0,0,0.0,0.0
+DELT-01,informational,1288,6.61,0,0.0,0.0,0.0,0.0,0.0,78,65.4,2.18
+DELT-03,informational,154,0.79,0,0.0,0.0,0.0,0.0,0.0,0,0.0,0.0
+DELT-04,delta,280,1.44,0,0.0,0.0,0.0,0.0,0.0,24,50.0,-12.24
+EXH-01,exhaustion,217,1.11,0,0.0,0.0,0.0,0.0,0.0,18,66.7,8.9
+EXH-02,exhaustion,422,2.16,60,65.0,0.16,16.75,30.64,1.015,0,0.0,0.0
+IMB-01,informational,3140,16.1,0,0.0,0.0,0.0,0.0,0.0,46,73.9,10.5
+IMB-03,informational,2259,11.58,0,0.0,0.0,0.0,0.0,0.0,87,69.0,4.28
+VOLP-03,informational,408,2.09,0,0.0,0.0,0.0,0.0,0.0,10,0.0,-53.71
+MIXED,informational,0,0.0,0,0.0,0.0,0.0,0.0,0.0,0,0.0,0.0
