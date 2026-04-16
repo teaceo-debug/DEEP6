@@ -90,23 +90,20 @@ class ScorerResult:
     meta_flags: int = 0
 
 
-# Category weights — how much each category contributes to the base score
-# Optimized from backtest analysis (Apr 7-11, 4590 bars):
-#   - POC reduced from 7→3: combos with POC systematically underperform
-#     (35% win with POC vs 73% without in absorption+trapped combos)
-#   - Trapped raised from 10→14: trapped+absorption combo is highest alpha
-#   - Delta raised from 10→13: delta agreement is critical quality filter
+# Category weights — R1 thesis-heavy profile (round1 meta-optimization, 2026-04-15)
+# Source: ninjatrader/backtests/results/round1/META-OPTIMIZATION.md
+# ABS-01 SNR=9.46 dominance → absorption boosted 25→32, exhaustion 18→24.
+# Trapped zeroed (near-zero SNR per signal attribution); poc zeroed (negligible).
+# Total = 100.
 CATEGORY_WEIGHTS = {
-    "absorption": 25.0,    # Highest weight — core alpha
-    "exhaustion": 18.0,
-    "trapped": 14.0,       # Was 10 — trapped+absorption is highest alpha combo
-    "delta": 13.0,         # Was 10 — delta agreement is critical for signal quality
-    "imbalance": 12.0,
-    "volume_profile": 10.0,
-    "auction": 8.0,
-    "poc": 1.0,            # TIER-1 FIX 2: forensic shows POC combos lose money.
-                           # Reduced 3.0→1.0 (sweepable via ScorerConfig.poc_weight).
-                           # Category still counted toward cat_count for confluence.
+    "absorption": 32.0,    # R1: was 25 — ABS-01 SNR=9.46 dominant signal
+    "exhaustion": 24.0,    # R1: was 18
+    "trapped": 0.0,        # R1: was 14 — zero SNR per attribution; category still counted for cat_count
+    "delta": 14.0,         # R1: was 13
+    "imbalance": 13.0,     # R1: was 12
+    "volume_profile": 5.0, # R1: was 10 — reduced (VOLP-03 is noise)
+    "auction": 12.0,       # R1: was 8
+    "poc": 0.0,            # R1: was 1 — negligible contribution; category still counted for cat_count
 }
 
 

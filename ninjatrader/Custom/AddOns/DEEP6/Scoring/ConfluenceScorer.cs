@@ -35,17 +35,20 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Scoring
     public static class ConfluenceScorer
     {
         // -------------------------------------------------------------------------
-        // Category weights — verbatim from Python scorer.py lines 99–110
-        // DO NOT rename, renormalize, or tune. Phase 19+ for sweep-based tuning.
+        // Category weights — R1 thesis-heavy profile (round1 meta-optimization)
+        // Source: ninjatrader/backtests/results/round1/META-OPTIMIZATION.md
+        // ABS-01 SNR=9.46 dominance → absorption boosted 25→32, exhaustion 18→24.
+        // Trapped zeroed (near-zero SNR per SIGNAL-ATTRIBUTION); poc zeroed (negligible).
+        // Total = 100.
         // -------------------------------------------------------------------------
-        private const double W_ABSORPTION     = 25.0;
-        private const double W_EXHAUSTION     = 18.0;
-        private const double W_TRAPPED        = 14.0;
-        private const double W_DELTA          = 13.0;
-        private const double W_IMBALANCE      = 12.0;
-        private const double W_VOLUME_PROFILE = 10.0;
-        private const double W_AUCTION        = 8.0;
-        private const double W_POC            = 1.0;
+        private const double W_ABSORPTION     = 32.0;
+        private const double W_EXHAUSTION     = 24.0;
+        private const double W_TRAPPED        = 0.0;
+        private const double W_DELTA          = 14.0;
+        private const double W_IMBALANCE      = 13.0;
+        private const double W_VOLUME_PROFILE = 5.0;
+        private const double W_AUCTION        = 12.0;
+        private const double W_POC            = 0.0;
 
         // -------------------------------------------------------------------------
         // Tier thresholds — verbatim from Python signal_config.py ScorerConfig lines 195–198

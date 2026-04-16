@@ -30,9 +30,9 @@ namespace NinjaTrader.Tests.Scoring
 
         // -----------------------------------------------------------------------
         // Test 1 (SCOR-01/02/03): All 8 categories fire bullish → score capped at 100, TYPE_A
-        // base = abs(25)+exh(18)+trap(14)+delta(13)+imb(12)+vp(10)+auct(8)+poc(1)=101
+        // R1 weights: abs(32)+exh(24)+trap(0)+delta(14)+imb(13)+vp(5)+auct(12)+poc(0)=100
         // zone near edge + high score → zoneBonus=4; catCount=8>=5 → mult=1.25
-        // IB: bars=30; agreement=1.0; score=min((101*1.25+4)*1.0*1.15,100)=100
+        // IB: bars=30; agreement=1.0; score=min((100*1.25+4)*1.0*1.15,100)=100
         // -----------------------------------------------------------------------
         [Test]
         public void Score_AllEightCategories_ReturnsTypeA()
@@ -80,7 +80,8 @@ namespace NinjaTrader.Tests.Scoring
 
         // -----------------------------------------------------------------------
         // Test 3 (SCOR-04): TypeB path — score>=72, cat>=4, delta agrees, strength>=0.3
-        // abs(25)+exh(18)+trap(14)+delta(13)=70; ibMult=1.15; score=80.5; no zone -> TypeA blocked
+        // R1 weights: abs(32)+exh(24)+trap(0)+delta(14)=70; ibMult=1.15; score=80.5; no zone -> TypeA blocked
+        // trap category still counted (catCount=4) but contributes 0 weight.
         // -----------------------------------------------------------------------
         [Test]
         public void Score_TypeBPath_FourCategoriesNoZone_ReturnsTypeB()
@@ -361,7 +362,8 @@ namespace NinjaTrader.Tests.Scoring
                 SR("IMB-03-T3", +1, 0.7, 0.0, "STACKED_T3"),
             };
 
-            // With IB + 5 categories: base=25+18+14+13+12=82; mult=1.25; score=min(82*1.25*1.0*1.15,100)=min(117.875,100)=100
+            // R1 weights + IB + 5 categories: base=abs(32)+exh(24)+trap(0)+delta(14)+imb(13)=83
+            // mult=1.25; score=min(83*1.25*1.0*1.15,100)=min(119.3125,100)=100
             // But no zone → has_zone=false → TypeA blocked
             var result = ConfluenceScorer.Score(
                 signals, barsSinceOpen: 30, barDelta: 20, barClose: 17500.0,
@@ -477,27 +479,29 @@ namespace NinjaTrader.Tests.Scoring
         }
 
         // -----------------------------------------------------------------------
-        // Test 17: TypeC path — 4 categories at score>=50, no delta disagree → TYPE_C
+        // Test 17: TypeC path — 4 categories at score>=50 but <72, no delta disagree → TYPE_C
+        // R1 weights: abs(32)+delta(14)+imbalance(13)+auction(12)=71; catCount=4; confluenceMult=1.0
+        // ibMult=1.0 (bars=100); agreement=1.0; score=71
+        // TypeA fails (no zone); TypeB fails (71<72); TypeC: 71>=50 + catCount=4>=4 + minStrength → TYPE_C
         // -----------------------------------------------------------------------
         [Test]
         public void Score_FourCategoriesScoreAbove50_ReturnsTypeC()
         {
-            // abs(25)+exh(18)+delta(13)+auction(8)=64; catCount=4; confluenceMult=1.0
-            // ibMult=1.0 (bars=100); agreement=1.0; score=64
-            // TypeA fails (no zone); TypeB fails (64<72); TypeC: 64>=50 + catCount=4>=4 + minStrength → TYPE_C
+            // Use abs+delta+imbalance+auction to get base=71 (just below TypeB threshold of 72).
+            // Exhaustion excluded so abs(32)+delta(14)+imbalance(13)+auction(12)=71.
             var signals = new[]
             {
-                SR("ABS-01",  +1, 0.5),
-                SR("EXH-03",  +1, 0.4),
-                SR("DELT-04", +1, 0.4),
-                SR("AUCT-02", +1, 0.3),
+                SR("ABS-01",      +1, 0.5),
+                SR("DELT-04",     +1, 0.4),
+                SR("IMB-03-T2",   +1, 0.4, 0.0, "STACKED_T2"),
+                SR("AUCT-02",     +1, 0.3),
             };
 
             var result = ConfluenceScorer.Score(
                 signals, barsSinceOpen: 100, barDelta: 10, barClose: 17500.0,
                 zoneScore: 0.0, zoneDistTicks: 999.0);
 
-            Assert.That(result.Tier, Is.EqualTo(SignalTier.TYPE_C), "4 cats + score>=50 must be TYPE_C");
+            Assert.That(result.Tier, Is.EqualTo(SignalTier.TYPE_C), "4 cats + score>=50 but <72 must be TYPE_C");
             Assert.That(result.TotalScore, Is.InRange(50.0, 71.9999), "Score in TypeC band");
         }
 
@@ -585,7 +589,8 @@ namespace NinjaTrader.Tests.Scoring
 
         // -----------------------------------------------------------------------
         // Test 25: Score formula precision — hand-computed fixture matches to 0.0001
-        // Fixture: type-b-no-zone: base=70, ibMult=1.15, confluenceMult=1.0, agreement=1.0
+        // R1 weights: abs(32)+exh(24)+trap(0)+delta(14)=70; ibMult=1.15; confluenceMult=1.0; agreement=1.0
+        // trap category still counted (catCount=4) but W_TRAPPED=0 contributes nothing to base.
         // Expected: 70 * 1.0 * 1.0 * 1.15 = 80.5
         // -----------------------------------------------------------------------
         [Test]
@@ -603,7 +608,7 @@ namespace NinjaTrader.Tests.Scoring
                 signals, barsSinceOpen: 20, barDelta: 10, barClose: 17500.0,
                 zoneScore: 0.0, zoneDistTicks: 999.0);
 
-            // abs(25)+exh(18)+trap(14)+delta(13)=70; mult=1.0; zone=0; agreement=1.0; ibMult=1.15
+            // R1: abs(32)+exh(24)+trap(0)+delta(14)=70; mult=1.0; zone=0; agreement=1.0; ibMult=1.15
             // total = min(70 * 1.0 * 1.0 * 1.15, 100) = 80.5
             const double expected = 80.5;
             Assert.That(result.TotalScore, Is.InRange(expected - 0.0001, expected + 0.0001),
