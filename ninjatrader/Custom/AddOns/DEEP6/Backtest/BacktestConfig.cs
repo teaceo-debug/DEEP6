@@ -84,6 +84,14 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Backtest
         /// <summary>ATR multiplier after tightening (applied when MFE >= TrailingTightenAtTicks).</summary>
         public double TrailingTightenMult = 1.0;
 
+        // ---- R1: Strict directional agreement filter ----
+
+        /// <summary>
+        /// R1: When true, any signal on the entry bar that opposes the dominant direction vetoes the entry.
+        /// Source: SIGNAL-FILTER.md section 5 — delta Sharpe +19.601 for strict mode.
+        /// </summary>
+        public bool StrictDirectionEnabled = true;
+
         // ---- P0-3: VOLP-03 volume-surge regime veto ----
 
         /// <summary>When true, block all entries in any session where VOLP-03 has fired on any bar so far.</summary>

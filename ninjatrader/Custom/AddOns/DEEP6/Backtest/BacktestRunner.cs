@@ -272,7 +272,15 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Backtest
                         && barAtr < config.SlowGrindAtrRatio * sessionAvgAtr)
                         continue;
 
-                    var gate = ScorerEntryGate.Evaluate(scored, config.ScoreEntryThreshold, config.MinTierForEntry);
+                    var gate = ScorerEntryGate.EvaluateWithContext(
+                        scored,
+                        config.ScoreEntryThreshold,
+                        config.MinTierForEntry,
+                        gateState:              null,
+                        volSurgeVetoEnabled:    false,  // already handled inline above
+                        slowGrindVetoEnabled:   false,  // already handled inline above
+                        strictDirectionEnabled: config.StrictDirectionEnabled,
+                        signals:                rec.Signals);
                     if (gate == ScorerEntryGate.GateOutcome.Passed)
                     {
                         // Apply entry slippage (buys higher, shorts sell lower)

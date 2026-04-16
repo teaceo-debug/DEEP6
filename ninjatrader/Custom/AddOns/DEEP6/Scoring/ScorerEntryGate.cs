@@ -51,6 +51,9 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Scoring
             /// <summary>P0-5: Current ATR is below SlowGrindAtrRatio × session average ATR — slow-grind regime, block entry.</summary>
             SlowGrindVeto,
 
+            /// <summary>R1: At least one signal opposes the dominant direction — strict directional agreement failed.</summary>
+            DirectionalDisagreementVeto,
+
             /// <summary>All gates passed — caller may proceed to risk gates.</summary>
             Passed
         }
@@ -108,7 +111,7 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Scoring
         }
 
         /// <summary>
-        /// Full evaluate with regime vetos (P0-3 VOLP-03, P0-5 slow-grind).
+        /// Full evaluate with regime vetos (P0-3 VOLP-03, P0-5 slow-grind) and R1 directional filter.
         /// </summary>
         /// <param name="scored">Latest scorer result. Null → NoScore.</param>
         /// <param name="scoreThreshold">Minimum TotalScore required.</param>
@@ -119,16 +122,20 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Scoring
         /// <param name="slowGrindAtrRatio">P0-5 ratio threshold (default 0.5).</param>
         /// <param name="currentAtr">Current bar ATR (0 = not available → veto skipped).</param>
         /// <param name="sessionAvgAtr">Session rolling average ATR (0 = not available → veto skipped).</param>
+        /// <param name="strictDirectionEnabled">R1: when true, any signal opposing the dominant direction vetoes entry.</param>
+        /// <param name="signals">Signal array for the bar — required when strictDirectionEnabled=true.</param>
         public static GateOutcome EvaluateWithContext(
-            ScorerResult    scored,
-            double          scoreThreshold,
-            SignalTier      minTier,
+            ScorerResult     scored,
+            double           scoreThreshold,
+            SignalTier       minTier,
             SessionGateState gateState,
-            bool            volSurgeVetoEnabled  = true,
-            bool            slowGrindVetoEnabled = true,
-            double          slowGrindAtrRatio    = 0.5,
-            double          currentAtr           = 0.0,
-            double          sessionAvgAtr        = 0.0)
+            bool             volSurgeVetoEnabled     = true,
+            bool             slowGrindVetoEnabled    = true,
+            double           slowGrindAtrRatio       = 0.5,
+            double           currentAtr              = 0.0,
+            double           sessionAvgAtr           = 0.0,
+            bool             strictDirectionEnabled  = true,
+            SignalResult[]   signals                 = null)
         {
             if (scored == null)
                 return GateOutcome.NoScore;
@@ -149,6 +156,21 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Scoring
                 && sessionAvgAtr > 0.0
                 && currentAtr < slowGrindAtrRatio * sessionAvgAtr)
                 return GateOutcome.SlowGrindVeto;
+
+            // R1: Strict directional agreement — any signal opposing dominant direction vetoes entry.
+            // Source: SIGNAL-FILTER.md section 5 — delta Sharpe +19.601 for strict mode.
+            if (strictDirectionEnabled && signals != null && scored.Direction != 0)
+            {
+                int dominant = scored.Direction;
+                foreach (var sig in signals)
+                {
+                    if (sig == null) continue;
+                    int sigDir = sig.Direction;
+                    // Only veto if signal has an explicit opposing direction (not neutral/0)
+                    if (sigDir != 0 && sigDir != dominant)
+                        return GateOutcome.DirectionalDisagreementVeto;
+                }
+            }
 
             return GateOutcome.Passed;
         }
