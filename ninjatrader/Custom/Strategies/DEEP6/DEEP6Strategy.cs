@@ -95,6 +95,10 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
         private int _lastEntryBar = -1;
         private string _activeAtmGuid;   // tracks live ATM bracket so we can AtmStrategyClose() instead of racing ExitLong/Short
 
+        // ---- R1: EvaluateWithContext session gate state ----
+        // Owns VolSurgeFiredThisSession flag; reset at session boundary (when _sessionDate changes).
+        private ScorerEntryGate.SessionGateState _gateState = new ScorerEntryGate.SessionGateState();
+
         // News blackout windows (NY time) — hard-coded major releases; user can extend
         private static readonly (int hour, int min, int durationMin)[] NewsBlackouts = new[]
         {
@@ -131,9 +135,9 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                 UseNewRegistry               = true;
                 EnableLiveTrading            = false;
                 ApprovedAccountName          = "Sim101";
-                MaxContractsPerTrade         = 1;
+                MaxContractsPerTrade         = 2;      // R1: scale-out requires 2 contracts (50% T1, 50% T2)
                 MaxTradesPerSession          = 5;
-                DailyLossCapDollars          = 250.0;
+                DailyLossCapDollars          = 500.0;  // R1: updated from 250 → 500 per PRODUCTION-CONFIG.md
                 RthStartHour                 = 9;
                 RthStartMinute               = 35;
                 RthEndHour                   = 15;
@@ -155,11 +159,34 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                 // R1: scorer entry gate defaults — TYPE_B + threshold=70 (round1 meta-optimization walk-forward optimum)
                 ScoreEntryThreshold          = 70.0;
                 MinTierForEntry              = SignalTier.TYPE_B;
+
+                // R1/R2: new entry filter properties per PRODUCTION-CONFIG.md
+                StrictDirectionEnabled       = true;
+                BlackoutWindowStart          = 1530;
+                BlackoutWindowEnd            = 1600;
+
+                // R1/R2: exit management properties per PRODUCTION-CONFIG.md
+                StopLossTicks                = 20;
+                ScaleOutEnabled              = true;
+                ScaleOutPercent              = 0.5;
+                ScaleOutTargetTicks          = 16;
+                TargetTicks                  = 32;
+                BreakevenEnabled             = true;
+                BreakevenActivationTicks     = 10;
+                BreakevenOffsetTicks         = 2;
+                MaxBarsInTrade               = 60;
+                ExitOnOpposingScore          = 0.3;
+
+                // R1/R2: regime veto properties per PRODUCTION-CONFIG.md
+                VolSurgeVetoEnabled          = true;
+                SlowGrindVetoEnabled         = true;
+                SlowGrindAtrRatio            = 0.5;
             }
             else if (State == State.Configure)
             {
                 _absCfg.AbsorbWickMin  = AbsorbWickMinPct;
                 _exhCfg.ExhaustWickMin = ExhaustWickMinPct;
+                _gateState = new ScorerEntryGate.SessionGateState();
 
                 // Phase 17 Waves 1-4: Initialize registry when feature flag is on.
                 // Default is false — live ABS/EXH path stays active until Wave 5 full-session parity passes.
@@ -290,6 +317,8 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                 _killSwitch = false;
                 _sessionStartBalance = double.NaN;   // re-capture below once Account/balance are valid
                 _exhDetector.ResetCooldowns();
+                // R1: reset session gate state (clears VolSurgeFiredThisSession and other session flags)
+                _gateState.ResetSession();
                 // Phase 17: reset registry + session at RTH open boundary
                 if (UseNewRegistry && _registry != null)
                 {
@@ -400,6 +429,17 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
             ScorerResult _scored = ScorerSharedState.Latest(Instrument.FullName);
             int _latestBarIdx    = ScorerSharedState.LatestBarIndex(Instrument.FullName);
 
+            // R1: Observe signals into session gate state for VOLP-03 tracking (each bar, before Evaluate).
+            // Also read sessionAvgAtr from ScorerSharedState for slow-grind veto.
+            SignalResult[] _barSignals = null;
+            double _sessionAvgAtr = 0.0;
+            if (_scored != null)
+            {
+                _barSignals   = _scored.Signals;
+                _sessionAvgAtr = ScorerSharedState.LatestSessionAvgAtr(Instrument.FullName);
+                _gateState.ObserveSignals(_barSignals);
+            }
+
             // SC5 per-bar log — fires every scored bar regardless of whether entry triggers.
             // Format matches ScorerEntryGate.BuildLogLine pattern (bar / score / tier / narrative).
             if (_scored != null && _latestBarIdx == CurrentBar)
@@ -409,29 +449,83 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                     CurrentBar, _scored.TotalScore, _scored.Tier, _scored.Narrative ?? string.Empty));
             }
 
-            EvaluateEntry(CurrentBar, _scored);
+            // R1: Derive barTimeHHMM from the bar's timestamp for time-of-day blackout gate.
+            DateTime barTs = Bars.GetTime(prevIdx);
+            int barTimeHHMM = barTs.Hour * 100 + barTs.Minute;
+
+            EvaluateEntry(CurrentBar, _scored, _barSignals, _sessionAvgAtr, barTimeHHMM);
         }
 
         // ---- Confluence / entry decision ----
 
         /// <summary>
-        /// Phase 18-03: Scorer-gated entry. Hardcoded STACKED / VA-EXTREME / WALL-ANCHORED
-        /// Tier-3 rules from Phase 16 have been removed. Entry fires only when:
-        ///   ScorerEntryGate.Evaluate() == Passed (score >= threshold, tier >= min, direction != 0)
-        ///   AND RiskGatesPass() approves the order.
-        /// Risk gates remain evaluated AFTER gate check but BEFORE EnterWithAtm — order unchanged.
+        /// R1: Scorer-gated entry with full R1/R2 context vetos.
+        /// Entry fires only when EvaluateWithContext() == Passed AND RiskGatesPass() approves.
+        /// Risk gates (account whitelist, RTH, news, cooldown, max trades, daily loss cap) remain
+        /// evaluated AFTER the scorer gate but BEFORE EnterWithAtm — order unchanged.
+        ///
+        /// R1 gates added:
+        ///   - VOLP-03 session veto (via _gateState.VolSurgeFiredThisSession)
+        ///   - Slow-grind ATR veto (current ATR vs session average ATR)
+        ///   - Strict directional agreement filter
+        ///   - Time-of-day blackout (BlackoutWindowStart–BlackoutWindowEnd ET)
         /// </summary>
-        private void EvaluateEntry(int barIdx, ScorerResult scored)
+        private void EvaluateEntry(int barIdx, ScorerResult scored, SignalResult[] signals = null,
+                                   double sessionAvgAtr = 0.0, int barTimeHHMM = 0)
         {
-            if (ScorerEntryGate.Evaluate(scored, ScoreEntryThreshold, MinTierForEntry) != ScorerEntryGate.GateOutcome.Passed)
+            var outcome = ScorerEntryGate.EvaluateWithContext(
+                scored,
+                ScoreEntryThreshold,
+                MinTierForEntry,
+                _gateState,
+                volSurgeVetoEnabled:    VolSurgeVetoEnabled,
+                slowGrindVetoEnabled:   SlowGrindVetoEnabled,
+                slowGrindAtrRatio:      SlowGrindAtrRatio,
+                currentAtr:             _atr,
+                sessionAvgAtr:          sessionAvgAtr,
+                strictDirectionEnabled: StrictDirectionEnabled,
+                signals:                signals,
+                blackoutWindowStart:    BlackoutWindowStart,
+                blackoutWindowEnd:      BlackoutWindowEnd,
+                barTimeHHMM:            barTimeHHMM);
+
+            if (outcome != ScorerEntryGate.GateOutcome.Passed)
+            {
+                // Log non-trivial veto outcomes for session-level diagnostics.
+                if (outcome == ScorerEntryGate.GateOutcome.VolSurgeVeto)
+                    Print(string.Format("[DEEP6 Strategy] bar={0} VOLP-03 veto active — no new entries this session.", barIdx));
+                else if (outcome == ScorerEntryGate.GateOutcome.SlowGrindVeto)
+                    Print(string.Format("[DEEP6 Strategy] bar={0} slow-grind veto — ATR {1:F4} < {2:F2}×sessionAvg {3:F4}.",
+                        barIdx, _atr, SlowGrindAtrRatio, sessionAvgAtr));
+                else if (outcome == ScorerEntryGate.GateOutcome.BlackoutVeto)
+                    Print(string.Format("[DEEP6 Strategy] bar={0} blackout veto — time {1:D4} in [{2},{3}].",
+                        barIdx, barTimeHHMM, BlackoutWindowStart, BlackoutWindowEnd));
                 return;
+            }
 
             double entryPrice = scored.EntryPrice > 0 ? scored.EntryPrice : Close[0];
             string trigger    = string.Format("SCORER_{0}_{1:F0}", scored.Tier, scored.TotalScore);
 
             // RISK GATES — still evaluated before any order submission (unchanged behavior).
             if (!RiskGatesPass(scored.Direction, entryPrice, trigger, barIdx)) return;
-            EnterWithAtm(scored.Direction, AtmTemplateDefault, trigger, entryPrice);
+
+            // R1: Select ATM template based on scale-out configuration.
+            string atmTemplate = SelectAtmTemplate(scored);
+            EnterWithAtm(scored.Direction, atmTemplate, trigger, entryPrice);
+        }
+
+        /// <summary>
+        /// R1: Select ATM template based on scale-out configuration.
+        /// If ScaleOutEnabled, use AtmTemplateConfluence (DEEP6_Confluence — dual-target with T1+T2).
+        /// Otherwise, fall back to AtmTemplateDefault (single-target).
+        ///
+        /// NOTE: The DEEP6_Confluence ATM template MUST be created in NT8 ATM Strategy editor with:
+        ///   Quantity=2, Profit Target 1=16 ticks (50% = 1 contract), Profit Target 2=32 ticks,
+        ///   Stop Loss=20 ticks. See PRE-LIVE-CHECKLIST.md item 9 and EXECUTION-SIM.md Section 6.
+        /// </summary>
+        private string SelectAtmTemplate(ScorerResult scored)
+        {
+            return ScaleOutEnabled ? AtmTemplateConfluence : AtmTemplateDefault;
         }
 
         private bool IsWallAnchored(double signalPrice, int signalDir)
@@ -532,6 +626,26 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
         {
             string side = direction > 0 ? "LONG" : "SHORT";
             string label = string.Format("DEEP6_{0}_{1}_{2}", trigger, side, CurrentBar);
+
+            // R1: ATM bracket configuration log.
+            // Format: [DEEP6 Strategy] ATM created: stop={S}t, T1={T1}t@{P}%, T2={T2}t, BE@MFE{BE}t
+            // If ScaleOutEnabled: dual-target DEEP6_Confluence template (T1=ScaleOutTargetTicks, T2=TargetTicks).
+            // If not: single-target AtmTemplateDefault (stop=StopLossTicks, target=TargetTicks).
+            // NOTE: ATM template MUST be configured in NT8 ATM Strategy editor to match these values.
+            //   DEEP6_Confluence: Qty=2, T1=16t@50%, T2=32t, SL=20t (per PRE-LIVE-CHECKLIST.md item 9).
+            if (ScaleOutEnabled)
+            {
+                Print(string.Format(
+                    "[DEEP6 Strategy] ATM created: stop={0}t, T1={1}t@{2:P0}, T2={3}t, BE@MFE{4}t (template={5})",
+                    StopLossTicks, ScaleOutTargetTicks, ScaleOutPercent, TargetTicks,
+                    BreakevenEnabled ? BreakevenActivationTicks : 0, atmTemplate));
+            }
+            else
+            {
+                Print(string.Format(
+                    "[DEEP6 Strategy] ATM created: stop={0}t, T1={1}t (single-target, scale-out disabled, template={2})",
+                    StopLossTicks, TargetTicks, atmTemplate));
+            }
 
             if (!EnableLiveTrading)
             {
@@ -747,6 +861,103 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
         [Display(Name = "Min Tier For Entry", Order = 2, GroupName = "5. Score",
                  Description = "Minimum SignalTier required to fire an entry. P0-4: TYPE_B default (was TYPE_A).")]
         public SignalTier MinTierForEntry { get; set; } = SignalTier.TYPE_B;
+
+        // ---- R1/R2: Entry filters (Group "2. Entry" per PRODUCTION-CONFIG.md) ----
+
+        [NinjaScriptProperty]
+        [Display(Name = "Strict Direction Enabled", Order = 5, GroupName = "2. Entry",
+                 Description = "R1: when true, any signal opposing the dominant direction vetoes entry. Delta Sharpe +19.601. Source: SIGNAL-FILTER.md section 5.")]
+        public bool StrictDirectionEnabled { get; set; } = true;
+
+        [NinjaScriptProperty]
+        [Range(0, 2359)]
+        [Display(Name = "Blackout Window Start (HHMM)", Order = 6, GroupName = "2. Entry",
+                 Description = "R1: start of time-of-day blackout window as HHMM int (e.g. 1530 = 15:30 ET). Source: ENTRY-TIMING.md.")]
+        public int BlackoutWindowStart { get; set; } = 1530;
+
+        [NinjaScriptProperty]
+        [Range(0, 2359)]
+        [Display(Name = "Blackout Window End (HHMM)", Order = 7, GroupName = "2. Entry",
+                 Description = "R1: end of time-of-day blackout window as HHMM int inclusive (e.g. 1600 = 16:00 ET).")]
+        public int BlackoutWindowEnd { get; set; } = 1600;
+
+        // ---- R1/R2: Exit management (Group "3. Exit" per PRODUCTION-CONFIG.md) ----
+
+        [NinjaScriptProperty]
+        [Range(1, 200)]
+        [Display(Name = "Stop Loss (ticks)", Order = 1, GroupName = "3. Exit",
+                 Description = "R1: fixed stop-loss distance in ticks. Default 20 (=$100/contract). Source: EXIT-STRATEGY.md stop analysis.")]
+        public int StopLossTicks { get; set; } = 20;
+
+        [NinjaScriptProperty]
+        [Display(Name = "Scale Out Enabled", Order = 2, GroupName = "3. Exit",
+                 Description = "R1: exit ScaleOutPercent of position at ScaleOutTargetTicks; hold remainder to TargetTicks. Requires DEEP6_Confluence ATM template with 2-target setup.")]
+        public bool ScaleOutEnabled { get; set; } = true;
+
+        [NinjaScriptProperty]
+        [Range(0.1, 0.9)]
+        [Display(Name = "Scale Out Percent", Order = 3, GroupName = "3. Exit",
+                 Description = "R1: fraction of position to exit at T1 partial target. Default 0.5 (50%).")]
+        public double ScaleOutPercent { get; set; } = 0.5;
+
+        [NinjaScriptProperty]
+        [Range(1, 200)]
+        [Display(Name = "Scale Out Target (ticks, T1)", Order = 4, GroupName = "3. Exit",
+                 Description = "R1: first target in ticks for partial exit (T1). Default 16. Source: EXIT-STRATEGY.md Experiment 4 winner.")]
+        public int ScaleOutTargetTicks { get; set; } = 16;
+
+        [NinjaScriptProperty]
+        [Range(1, 400)]
+        [Display(Name = "Target Ticks (T2 final)", Order = 5, GroupName = "3. Exit",
+                 Description = "R1: final target in ticks for the held position (T2). Default 32. Source: EXIT-STRATEGY.md scale-out winner.")]
+        public int TargetTicks { get; set; } = 32;
+
+        [NinjaScriptProperty]
+        [Display(Name = "Breakeven Enabled", Order = 6, GroupName = "3. Exit",
+                 Description = "R1: when MFE reaches BreakevenActivationTicks, move stop to entry + BreakevenOffsetTicks. Source: EXIT-STRATEGY.md Experiment 3 winner.")]
+        public bool BreakevenEnabled { get; set; } = true;
+
+        [NinjaScriptProperty]
+        [Range(1, 100)]
+        [Display(Name = "Breakeven Activation (ticks MFE)", Order = 7, GroupName = "3. Exit",
+                 Description = "R1: MFE in ticks at which breakeven stop is armed. Default 10. Source: EXIT-STRATEGY.md.")]
+        public int BreakevenActivationTicks { get; set; } = 10;
+
+        [NinjaScriptProperty]
+        [Range(0, 20)]
+        [Display(Name = "Breakeven Offset (ticks above entry)", Order = 8, GroupName = "3. Exit",
+                 Description = "R1: ticks above entry for the breakeven stop (absorbs 1-tick slippage). Default 2. Source: EXIT-STRATEGY.md lock+2t result.")]
+        public int BreakevenOffsetTicks { get; set; } = 2;
+
+        [NinjaScriptProperty]
+        [Range(1, 500)]
+        [Display(Name = "Max Bars In Trade", Order = 9, GroupName = "3. Exit",
+                 Description = "R1: maximum bars to hold a position before forced flat exit. Default 60. Source: OPTIMIZATION-REPORT.md rank-1 config.")]
+        public int MaxBarsInTrade { get; set; } = 60;
+
+        [NinjaScriptProperty]
+        [Range(0.0, 1.0)]
+        [Display(Name = "Exit On Opposing Score", Order = 10, GroupName = "3. Exit",
+                 Description = "Opposing-direction score threshold that triggers an early exit. Default 0.3. Source: OPTIMIZATION-REPORT.md rank-1 config.")]
+        public double ExitOnOpposingScore { get; set; } = 0.3;
+
+        // ---- R1/R2: Regime filters (Group "4. Filters" per PRODUCTION-CONFIG.md) ----
+
+        [NinjaScriptProperty]
+        [Display(Name = "Vol Surge Veto Enabled", Order = 1, GroupName = "4. Filters",
+                 Description = "R1: P0-3 VOLP-03 session-level veto. Blocks all entries in any session where VOLP-03 fires. Source: SIGNAL-ATTRIBUTION.md 0% win rate, SIGNAL-FILTER.md +18.921 delta Sharpe.")]
+        public bool VolSurgeVetoEnabled { get; set; } = true;
+
+        [NinjaScriptProperty]
+        [Display(Name = "Slow Grind Veto Enabled", Order = 2, GroupName = "4. Filters",
+                 Description = "R1: P0-5 slow-grind ATR veto. Blocks entry when current ATR < SlowGrindAtrRatio × session average ATR. Source: REGIME-ANALYSIS.md.")]
+        public bool SlowGrindVetoEnabled { get; set; } = true;
+
+        [NinjaScriptProperty]
+        [Range(0.1, 1.0)]
+        [Display(Name = "Slow Grind ATR Ratio", Order = 3, GroupName = "4. Filters",
+                 Description = "R1: block entry when bar ATR < this ratio × session avg ATR. Default 0.5. Source: BacktestConfig default validated across 50 sessions.")]
+        public double SlowGrindAtrRatio { get; set; } = 0.5;
 
         [NinjaScriptProperty]
         [Display(Name = "ATM Template — Absorption", Order = 30, GroupName = "4. ATM Templates")]

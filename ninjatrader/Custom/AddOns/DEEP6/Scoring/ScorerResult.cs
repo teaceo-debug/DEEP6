@@ -5,6 +5,8 @@
 //
 // Mutable by design (Phase 17 convention) — in-process only, no cross-boundary serialization.
 
+using NinjaTrader.NinjaScript.AddOns.DEEP6.Registry;
+
 namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Scoring
 {
     /// <summary>
@@ -54,5 +56,12 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Scoring
         /// One of: "absorption", "exhaustion", "trapped", "imbalance", "delta", "volume_profile", "auction", "poc".
         /// </summary>
         public string[] CategoriesFiring;
+
+        /// <summary>
+        /// Raw signal array from the bar — attached by the indicator before publishing to ScorerSharedState.
+        /// Used by DEEP6Strategy.EvaluateWithContext for strict directional agreement filter and VOLP-03 observation.
+        /// Null when not populated (e.g., legacy code paths).
+        /// </summary>
+        public SignalResult[] Signals;
     }
 }
