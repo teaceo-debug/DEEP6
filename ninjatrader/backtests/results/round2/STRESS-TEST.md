@@ -1,0 +1,169 @@
+# DEEP6 Round 2 — Edge Durability Stress Test
+
+**Date:** 2026-04-15 23:00 ET
+**Sessions:** 50 NDJSON sessions (trend_up×10, trend_down×10, ranging×10, volatile×10, slow_grind×10)
+**Config:** R1 walk-forward optimum (score_threshold=70, SL=20t, TP=32t, breakeven+scale-out active)
+
+---
+
+## Summary
+
+| Test | Result | Verdict |
+|------|--------|---------|
+| T1 Noise Injection (±2t, 100 iters) | Mean WR=100.0%, 100% iters ≥60% | **PASS** |
+| T2 Signal Degradation (20% drop) | 72% iters profitable, 72% PnL retained | **FAIL** |
+| T3 Slippage Stress (0–5t) | Breakeven at >5 ticks | **PASS** |
+| T4 Commission Stress ($4.50/RT) | Net PnL $58 after commissions | **PASS** |
+| T5 Regime Shift (50-bar ranging inject) | 100% PnL retained | **PASS** |
+| T6 Drawdown Marathon (all 50 sessions) | MaxDD=$0, curve=↑ | **PASS** |
+| T7 Overfit Detector (25/25 split) | Test/Train Sharpe=0.00 | **FAIL (OVERFIT WARNING)** |
+
+**Passed: 5/7**
+
+## Overall Robustness Verdict: **MARGINAL**
+
+**Slippage breakeven point: >5 ticks**
+
+---
+
+## T1 — Noise Injection (±2 ticks, 100 iterations)
+
+Adds random ±2 tick noise to every entry and exit price. Tests whether the edge survives price uncertainty.
+
+| Metric | Value |
+|--------|-------|
+| Mean win rate | 100.00% |
+| Min win rate | 100.00% |
+| Max win rate | 100.00% |
+| % iterations ≥ 60% WR | 100% |
+| Mean net PnL | $65 |
+| % iterations profitable | 100% |
+| **Verdict** | **PASS** |
+
+> Mean WR=100.0% | Min=100.0% | Max=100.0% | 100% iters ≥60% WR | 100% profitable
+
+---
+
+## T2 — Signal Degradation (20% detector miss rate)
+
+Randomly drops 20% of unique signal IDs per session, simulating systematic detector misses.
+
+| Metric | Value |
+|--------|-------|
+| Baseline net PnL | $62 |
+| Degraded mean PnL | $45 |
+| PnL retention | 72% |
+| Mean WR (degraded) | 72.00% |
+| % iterations profitable | 72% |
+| **Verdict** | **FAIL** |
+
+> Baseline PnL=$62 | Degraded=$45 (72% retained) | 72% profitable
+
+---
+
+## T3 — Slippage Stress (0 to 5 ticks)
+
+Tests the system at increasing slippage. Slippage breakeven = first tick level where net PnL turns ≤ 0.
+
+| Slippage | Net PnL | Win Rate | Sharpe | Profit Factor |
+|----------|---------|----------|--------|---------------|
+| 0t | $+72 | 100.0% | 40.69 | ∞ |
+| 1t | $+62 | 100.0% | 35.07 | ∞ |
+| 2t | $+52 | 100.0% | 29.46 | ∞ |
+| 3t | $+52 | 100.0% | 19.64 | ∞ |
+| 4t | $+42 | 100.0% | 15.90 | ∞ |
+| 5t | $+32 | 100.0% | 12.16 | ∞ |
+
+**Breakeven slippage: >5 ticks**
+
+| **Verdict** | **PASS** |
+
+---
+
+## T4 — Commission Stress ($4.50/RT per contract)
+
+Applies realistic prop-firm commission ($2.25/side, $4.50/RT) to every trade.
+
+| Metric | Value |
+|--------|-------|
+| Baseline net PnL | $62 |
+| After commission | $58 |
+| Commission drag | $4 |
+| Total trades | 2 |
+| Total commissions paid | $9 |
+| Win rate (post-comm) | 100.00% |
+| **Verdict** | **PASS** |
+
+> Base=$62 → After comm=$58 (drag=$4) Trades=2
+
+---
+
+## T5 — Regime Shift (50-bar ranging injection in top-5 trending sessions)
+
+Injects 50 bars of zero-signal ranging into the middle of the top-5 trending sessions by absolute move.
+
+| Metric | Value |
+|--------|-------|
+| Modified sessions | session-08-trend_up-08.ndjson, session-09-trend_up-09.ndjson, session-15-trend_down-05.ndjson, session-03-trend_up-03.ndjson, session-04-trend_up-04.ndjson |
+| Baseline net PnL | $62 |
+| Modified net PnL | $62 |
+| PnL retention | 100% |
+| Baseline WR | 100.00% |
+| Modified WR | 100.00% |
+| **Verdict** | **PASS** |
+
+> Orig=$62 | Modified=$62 (100% retained) | WR: 100.0%→100.0%
+
+---
+
+## T6 — Drawdown Marathon (all 50 sessions, ~19,500 bars)
+
+Concatenates all 50 sessions into one continuous run to test long-run equity curve behavior.
+
+| Metric | Value |
+|--------|-------|
+| Total bars | 19,500 |
+| Total trades | 2 |
+| Net PnL | $62 |
+| Max drawdown | $0 |
+| Win rate | 100.00% |
+| Sharpe | 35.07 |
+| Recovery (trades from trough→new high) | 0 |
+| Equity curve direction | Trending UP |
+| **Verdict** | **PASS** |
+
+> Total bars=19500 | Trades=2 | PnL=$62 | MaxDD=$0 | Trend=UP
+
+---
+
+## T7 — Overfit Detector (first 25 vs last 25 sessions)
+
+Trains config on first 25 sessions (sessions 01–25), tests on last 25 (sessions 26–50).
+FAIL if test Sharpe < 50% of train Sharpe.
+
+| Metric | Value |
+|--------|-------|
+| Train sessions | 25 |
+| Test sessions | 25 |
+| Train net PnL | $62 |
+| Test net PnL | $0 |
+| Train Sharpe | 35.07 |
+| Test Sharpe | 0.00 |
+| Test/Train Sharpe ratio | 0.00 |
+| Overfit warning | YES |
+| **Verdict** | **FAIL (OVERFIT WARNING)** |
+
+> Train Sharpe=35.07 | Test Sharpe=0.00 | Ratio=0.00 (OVERFIT <50%)
+
+---
+
+## Interpretation
+
+**MARGINAL** — 
+The DEEP6 R1 edge survives most stress tests but has weak spots. Review failed tests above and address before live deployment. The core signal (absorption/exhaustion + confluence) remains viable.
+
+**Slippage margin:** The edge survives up to >5 ticks of slippage. At 1 tick (realistic NQ fill), the system remains profitable.
+
+---
+
+_Generated by deep6/backtest/round2_stress_test.py_
