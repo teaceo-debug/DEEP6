@@ -152,9 +152,9 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                 AtmTemplateConfluence        = "DEEP6_Confluence";
                 AtmTemplateDefault           = "DEEP6_Practice";
 
-                // Phase 18-03: scorer entry gate defaults (verbatim Python TYPE_A_MIN / signal_config.py)
-                ScoreEntryThreshold          = 80.0;
-                MinTierForEntry              = SignalTier.TYPE_A;
+                // P0-4: scorer entry gate defaults — TYPE_B + threshold=60 (walk-forward optimum)
+                ScoreEntryThreshold          = 60.0;
+                MinTierForEntry              = SignalTier.TYPE_B;
             }
             else if (State == State.Configure)
             {
@@ -740,13 +740,13 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
         [NinjaScriptProperty]
         [Range(0.0, 100.0)]
         [Display(Name = "Score Entry Threshold", Order = 1, GroupName = "5. Score",
-                 Description = "Minimum TotalScore required to fire an entry. Default 80.0 = Python TYPE_A_MIN (signal_config.py).")]
-        public double ScoreEntryThreshold { get; set; } = 80.0;
+                 Description = "Minimum TotalScore required to fire an entry. P0-4: 60.0 (walk-forward optimum, was 80.0).")]
+        public double ScoreEntryThreshold { get; set; } = 60.0;
 
         [NinjaScriptProperty]
         [Display(Name = "Min Tier For Entry", Order = 2, GroupName = "5. Score",
-                 Description = "Minimum SignalTier required to fire an entry. Default TYPE_A = highest conviction only.")]
-        public SignalTier MinTierForEntry { get; set; } = SignalTier.TYPE_A;
+                 Description = "Minimum SignalTier required to fire an entry. P0-4: TYPE_B default (was TYPE_A).")]
+        public SignalTier MinTierForEntry { get; set; } = SignalTier.TYPE_B;
 
         [NinjaScriptProperty]
         [Display(Name = "ATM Template — Absorption", Order = 30, GroupName = "4. ATM Templates")]
