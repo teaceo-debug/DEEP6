@@ -223,6 +223,7 @@ namespace NinjaTrader.Tests.SessionReplay
                     BarClose       = ExtractDouble(line, "barClose"),
                     ZoneScore      = ExtractDouble(line, "zoneScore"),
                     ZoneDistTicks  = HasKey(line, "zoneDistTicks") ? ExtractDouble(line, "zoneDistTicks") : double.MaxValue,
+                    Atr            = HasKey(line, "atr") ? ExtractDouble(line, "atr") : 0.0,
                     Signals        = ParseSignalsArray(line),
                 };
                 yield return rec;
@@ -299,6 +300,7 @@ namespace NinjaTrader.Tests.SessionReplay
         public double BarClose;
         public double ZoneScore;
         public double ZoneDistTicks;
+        public double Atr;   // P0-2: ATR value for this bar (0.0 if not present in NDJSON)
         public NinjaTrader.NinjaScript.AddOns.DEEP6.Registry.SignalResult[] Signals;
     }
 }
