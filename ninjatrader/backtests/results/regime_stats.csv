@@ -1,0 +1,11 @@
+config,regime,n_trades,win_rate,profit_factor,avg_pnl,total_pnl,max_drawdown,sharpe,avg_bars_between,max_consec_wins,max_consec_losses,best_trade,worst_trade
+Conservative,trend_up,99,0.8384,28.954,104.24,10319.97,70.27,18.779,39.4,13,2,229.69,-70.27
+Conservative,trend_down,121,0.8099,9.374,71.25,8620.93,167.57,13.596,32.2,20,3,218.84,-112.7
+Conservative,ranging,116,0.9828,385.956,207.48,24068.16,36.94,70.104,33.6,58,1,252.81,-36.94
+Conservative,volatile,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0,0,0.0,0.0
+Conservative,slow_grind,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0,0,0.0,0.0
+Aggressive,trend_up,127,0.8661,28.639,108.41,13767.99,116.32,19.43,30.7,26,2,229.69,-107.93
+Aggressive,trend_down,121,0.8182,9.537,71.7,8675.86,167.57,13.721,32.2,20,3,218.84,-112.7
+Aggressive,ranging,116,0.9828,385.829,207.42,24060.22,36.94,68.933,33.6,58,1,252.81,-36.94
+Aggressive,volatile,63,0.6667,1.887,78.37,4937.46,308.6,5.074,61.9,2,1,409.69,-308.6
+Aggressive,slow_grind,87,0.3678,0.39,-14.34,-1247.89,1344.93,-5.95,44.8,4,9,75.88,-108.61
