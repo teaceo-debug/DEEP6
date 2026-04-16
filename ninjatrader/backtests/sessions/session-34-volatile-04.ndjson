@@ -1,0 +1,390 @@
+{"type":"scored_bar","barIdx":0,"barsSinceOpen":0,"barDelta":63,"barClose":20038.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":1,"barsSinceOpen":1,"barDelta":-34,"barClose":20038.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":2,"barsSinceOpen":2,"barDelta":-27,"barClose":20040.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":3,"barsSinceOpen":3,"barDelta":43,"barClose":20040.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":4,"barsSinceOpen":4,"barDelta":80,"barClose":20039.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":5,"barsSinceOpen":5,"barDelta":42,"barClose":20039.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":6,"barsSinceOpen":6,"barDelta":24,"barClose":20038.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":7,"barsSinceOpen":7,"barDelta":-61,"barClose":20038.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":8,"barsSinceOpen":8,"barDelta":32,"barClose":20038.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":1,"strength":0.78,"price":20038.49122039046,"detail":"SINGLE BUY IMB at 20038.49: 7.8x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":9,"barsSinceOpen":9,"barDelta":44,"barClose":20037.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":1,"strength":0.78,"price":20037.20744173783,"detail":"SINGLE BUY IMB at 20037.21: 7.8x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":10,"barsSinceOpen":10,"barDelta":58,"barClose":20038.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":11,"barsSinceOpen":11,"barDelta":32,"barClose":20039.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":12,"barsSinceOpen":12,"barDelta":-36,"barClose":20038.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":13,"barsSinceOpen":13,"barDelta":3,"barClose":20039.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":14,"barsSinceOpen":14,"barDelta":-36,"barClose":20038.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":15,"barsSinceOpen":15,"barDelta":-13,"barClose":20038.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":16,"barsSinceOpen":16,"barDelta":23,"barClose":20036.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":17,"barsSinceOpen":17,"barDelta":-59,"barClose":20036.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":18,"barsSinceOpen":18,"barDelta":-21,"barClose":20037.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":19,"barsSinceOpen":19,"barDelta":48,"barClose":20038.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":20,"barsSinceOpen":20,"barDelta":56,"barClose":20038.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":21,"barsSinceOpen":21,"barDelta":50,"barClose":20038.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":22,"barsSinceOpen":22,"barDelta":-16,"barClose":20036.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":23,"barsSinceOpen":23,"barDelta":-54,"barClose":20037.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":24,"barsSinceOpen":24,"barDelta":9,"barClose":20039.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":25,"barsSinceOpen":25,"barDelta":-71,"barClose":20038.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.71,"price":20038.574622427983,"detail":"SINGLE SELL IMB at 20038.57: 7.1x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":26,"barsSinceOpen":26,"barDelta":-38,"barClose":20038.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":27,"barsSinceOpen":27,"barDelta":-46,"barClose":20036.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.78,"price":20036.225104042678,"detail":"SINGLE SELL IMB at 20036.23: 7.8x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":28,"barsSinceOpen":28,"barDelta":-41,"barClose":20035.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":29,"barsSinceOpen":29,"barDelta":12,"barClose":20036.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":30,"barsSinceOpen":30,"barDelta":-30,"barClose":20036.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":31,"barsSinceOpen":31,"barDelta":-45,"barClose":20036.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.41,"price":20036.644923074047,"detail":"SINGLE SELL IMB at 20036.64: 4.1x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":32,"barsSinceOpen":32,"barDelta":38,"barClose":20037.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":33,"barsSinceOpen":33,"barDelta":-60,"barClose":20036.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":34,"barsSinceOpen":34,"barDelta":-9,"barClose":20035.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":35,"barsSinceOpen":35,"barDelta":56,"barClose":20033.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":36,"barsSinceOpen":36,"barDelta":5,"barClose":20034.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":37,"barsSinceOpen":37,"barDelta":-6,"barClose":20034.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":38,"barsSinceOpen":38,"barDelta":-34,"barClose":20032.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.35,"price":20032.679973420312,"detail":"SINGLE SELL IMB at 20032.68: 3.5x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":39,"barsSinceOpen":39,"barDelta":-64,"barClose":20031.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":40,"barsSinceOpen":40,"barDelta":26,"barClose":20031.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":41,"barsSinceOpen":41,"barDelta":-13,"barClose":20032.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":42,"barsSinceOpen":42,"barDelta":51,"barClose":20032.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":43,"barsSinceOpen":43,"barDelta":73,"barClose":20031.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":44,"barsSinceOpen":44,"barDelta":-45,"barClose":20031.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.54,"price":20031.14194021539,"detail":"SINGLE SELL IMB at 20031.14: 5.4x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":45,"barsSinceOpen":45,"barDelta":-11,"barClose":20030.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":46,"barsSinceOpen":46,"barDelta":-53,"barClose":20029.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":47,"barsSinceOpen":47,"barDelta":-44,"barClose":20027.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.51,"price":20027.184528467515,"detail":"SINGLE SELL IMB at 20027.18: 5.1x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":48,"barsSinceOpen":48,"barDelta":-10,"barClose":20027.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":49,"barsSinceOpen":49,"barDelta":-73,"barClose":20029.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":50,"barsSinceOpen":50,"barDelta":-73,"barClose":20029.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":51,"barsSinceOpen":51,"barDelta":-67,"barClose":20029.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":52,"barsSinceOpen":52,"barDelta":-6,"barClose":20030.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":53,"barsSinceOpen":53,"barDelta":56,"barClose":20030.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":54,"barsSinceOpen":54,"barDelta":-12,"barClose":20030.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":55,"barsSinceOpen":55,"barDelta":-18,"barClose":20029.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":56,"barsSinceOpen":56,"barDelta":-9,"barClose":20029.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":57,"barsSinceOpen":57,"barDelta":-36,"barClose":20027.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":58,"barsSinceOpen":58,"barDelta":65,"barClose":20026.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":59,"barsSinceOpen":59,"barDelta":-60,"barClose":20025.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":60,"barsSinceOpen":60,"barDelta":-62,"barClose":20023.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":61,"barsSinceOpen":61,"barDelta":49,"barClose":20025.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":62,"barsSinceOpen":62,"barDelta":-9,"barClose":20025.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":63,"barsSinceOpen":63,"barDelta":19,"barClose":20026.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":64,"barsSinceOpen":64,"barDelta":45,"barClose":20028.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":65,"barsSinceOpen":65,"barDelta":35,"barClose":20028.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":66,"barsSinceOpen":66,"barDelta":-67,"barClose":20027.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":67,"barsSinceOpen":67,"barDelta":30,"barClose":20025.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":68,"barsSinceOpen":68,"barDelta":38,"barClose":20025.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":69,"barsSinceOpen":69,"barDelta":29,"barClose":20024.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":1,"strength":0.74,"price":20023.956778416883,"detail":"SINGLE BUY IMB at 20023.96: 7.4x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":70,"barsSinceOpen":70,"barDelta":-11,"barClose":20023.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":71,"barsSinceOpen":71,"barDelta":-27,"barClose":20024.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":72,"barsSinceOpen":72,"barDelta":10,"barClose":20023.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":73,"barsSinceOpen":73,"barDelta":43,"barClose":20024.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":74,"barsSinceOpen":74,"barDelta":7,"barClose":20023.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":75,"barsSinceOpen":75,"barDelta":-9,"barClose":20024.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":76,"barsSinceOpen":76,"barDelta":27,"barClose":20025.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":77,"barsSinceOpen":77,"barDelta":-57,"barClose":20025.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":78,"barsSinceOpen":78,"barDelta":-42,"barClose":20026.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.5,"price":20026.437507976938,"detail":"SINGLE SELL IMB at 20026.44: 5.0x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":79,"barsSinceOpen":79,"barDelta":77,"barClose":20026.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":80,"barsSinceOpen":80,"barDelta":-28,"barClose":20027.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":81,"barsSinceOpen":81,"barDelta":-52,"barClose":20025.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.69,"price":20025.38809101579,"detail":"SINGLE SELL IMB at 20025.39: 6.9x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":82,"barsSinceOpen":82,"barDelta":25,"barClose":20025.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":1,"strength":0.54,"price":20025.257563549872,"detail":"SINGLE BUY IMB at 20025.26: 5.4x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":83,"barsSinceOpen":83,"barDelta":-33,"barClose":20026.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":84,"barsSinceOpen":84,"barDelta":7,"barClose":20027.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":85,"barsSinceOpen":85,"barDelta":3,"barClose":20029.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":86,"barsSinceOpen":86,"barDelta":-54,"barClose":20029.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":87,"barsSinceOpen":87,"barDelta":26,"barClose":20028.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":88,"barsSinceOpen":88,"barDelta":-70,"barClose":20027.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":89,"barsSinceOpen":89,"barDelta":-5,"barClose":20026.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":90,"barsSinceOpen":90,"barDelta":-21,"barClose":20028.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.78,"price":20028.083461068716,"detail":"SINGLE SELL IMB at 20028.08: 7.8x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":91,"barsSinceOpen":91,"barDelta":15,"barClose":20028.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":92,"barsSinceOpen":92,"barDelta":-77,"barClose":20026.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":93,"barsSinceOpen":93,"barDelta":62,"barClose":20028.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":94,"barsSinceOpen":94,"barDelta":-46,"barClose":20028.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":95,"barsSinceOpen":95,"barDelta":41,"barClose":20027.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":96,"barsSinceOpen":96,"barDelta":-62,"barClose":20026.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":97,"barsSinceOpen":97,"barDelta":-52,"barClose":20025.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":98,"barsSinceOpen":98,"barDelta":32,"barClose":20024.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":1,"strength":0.57,"price":20024.533706682665,"detail":"SINGLE BUY IMB at 20024.53: 5.7x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":99,"barsSinceOpen":99,"barDelta":-73,"barClose":20026.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":100,"barsSinceOpen":100,"barDelta":-2,"barClose":20027.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.34,"price":20027.803950385838,"detail":"SINGLE SELL IMB at 20027.80: 3.4x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":101,"barsSinceOpen":101,"barDelta":0,"barClose":20028.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":102,"barsSinceOpen":102,"barDelta":-51,"barClose":20026.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":103,"barsSinceOpen":103,"barDelta":-12,"barClose":20027.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":104,"barsSinceOpen":104,"barDelta":-19,"barClose":20029.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":105,"barsSinceOpen":105,"barDelta":5,"barClose":20027.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":106,"barsSinceOpen":106,"barDelta":-50,"barClose":20029.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":107,"barsSinceOpen":107,"barDelta":-79,"barClose":20030.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":108,"barsSinceOpen":108,"barDelta":-48,"barClose":20028.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":109,"barsSinceOpen":109,"barDelta":-38,"barClose":20027.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":110,"barsSinceOpen":110,"barDelta":11,"barClose":20026.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":1,"strength":0.34,"price":20026.126919759958,"detail":"SINGLE BUY IMB at 20026.13: 3.4x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":111,"barsSinceOpen":111,"barDelta":-73,"barClose":20026.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":112,"barsSinceOpen":112,"barDelta":34,"barClose":20024.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":113,"barsSinceOpen":113,"barDelta":-57,"barClose":20022.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":114,"barsSinceOpen":114,"barDelta":-13,"barClose":20023.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":115,"barsSinceOpen":115,"barDelta":77,"barClose":20024.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":116,"barsSinceOpen":116,"barDelta":44,"barClose":20023.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":117,"barsSinceOpen":117,"barDelta":27,"barClose":20024.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":118,"barsSinceOpen":118,"barDelta":55,"barClose":20023.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":119,"barsSinceOpen":119,"barDelta":29,"barClose":20023.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":120,"barsSinceOpen":120,"barDelta":-30,"barClose":20023.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":121,"barsSinceOpen":121,"barDelta":9,"barClose":20022.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":122,"barsSinceOpen":122,"barDelta":7,"barClose":20021.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":123,"barsSinceOpen":123,"barDelta":-29,"barClose":20023.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":124,"barsSinceOpen":124,"barDelta":-65,"barClose":20024.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":125,"barsSinceOpen":125,"barDelta":-10,"barClose":20023.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":126,"barsSinceOpen":126,"barDelta":75,"barClose":20025.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":127,"barsSinceOpen":127,"barDelta":0,"barClose":20026.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.5,"price":20025.97089593133,"detail":"SINGLE SELL IMB at 20025.97: 5.0x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":128,"barsSinceOpen":128,"barDelta":39,"barClose":20025.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":129,"barsSinceOpen":129,"barDelta":-15,"barClose":20027.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":130,"barsSinceOpen":130,"barDelta":-9,"barClose":20029.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":131,"barsSinceOpen":131,"barDelta":-76,"barClose":20028.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.72,"price":20028.334832509587,"detail":"SINGLE SELL IMB at 20028.33: 7.2x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":132,"barsSinceOpen":132,"barDelta":-52,"barClose":20029.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":133,"barsSinceOpen":133,"barDelta":-13,"barClose":20031.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":134,"barsSinceOpen":134,"barDelta":-56,"barClose":20030.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":135,"barsSinceOpen":135,"barDelta":-35,"barClose":20029.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.39,"price":20029.581230545413,"detail":"SINGLE SELL IMB at 20029.58: 3.9x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":136,"barsSinceOpen":136,"barDelta":58,"barClose":20031.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":137,"barsSinceOpen":137,"barDelta":-38,"barClose":20031.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":138,"barsSinceOpen":138,"barDelta":-27,"barClose":20032.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":139,"barsSinceOpen":139,"barDelta":-51,"barClose":20031.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":140,"barsSinceOpen":140,"barDelta":23,"barClose":20031.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":141,"barsSinceOpen":141,"barDelta":31,"barClose":20033.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":142,"barsSinceOpen":142,"barDelta":-71,"barClose":20034.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.61,"price":20034.180466680824,"detail":"SINGLE SELL IMB at 20034.18: 6.1x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":143,"barsSinceOpen":143,"barDelta":-49,"barClose":20035.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.4,"price":20035.590271382247,"detail":"SINGLE SELL IMB at 20035.59: 4.0x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":144,"barsSinceOpen":144,"barDelta":47,"barClose":20036.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":145,"barsSinceOpen":145,"barDelta":80,"barClose":20037.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":1,"strength":0.56,"price":20037.009792251603,"detail":"SINGLE BUY IMB at 20037.01: 5.6x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":146,"barsSinceOpen":146,"barDelta":-7,"barClose":20037.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":147,"barsSinceOpen":147,"barDelta":19,"barClose":20039.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":148,"barsSinceOpen":148,"barDelta":8,"barClose":20038.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":149,"barsSinceOpen":149,"barDelta":-76,"barClose":20038.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":150,"barsSinceOpen":150,"barDelta":6,"barClose":20038.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":151,"barsSinceOpen":151,"barDelta":-26,"barClose":20040.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":152,"barsSinceOpen":152,"barDelta":61,"barClose":20041.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":1,"strength":0.56,"price":20041.41651620918,"detail":"SINGLE BUY IMB at 20041.42: 5.6x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":153,"barsSinceOpen":153,"barDelta":57,"barClose":20042.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":154,"barsSinceOpen":154,"barDelta":1,"barClose":20041.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":155,"barsSinceOpen":155,"barDelta":58,"barClose":20040.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":156,"barsSinceOpen":156,"barDelta":-4,"barClose":20040.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":157,"barsSinceOpen":157,"barDelta":77,"barClose":20039.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":158,"barsSinceOpen":158,"barDelta":-9,"barClose":20038.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":159,"barsSinceOpen":159,"barDelta":34,"barClose":20037.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":160,"barsSinceOpen":160,"barDelta":-71,"barClose":20038.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":161,"barsSinceOpen":161,"barDelta":22,"barClose":20038.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":162,"barsSinceOpen":162,"barDelta":64,"barClose":20039.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":163,"barsSinceOpen":163,"barDelta":-21,"barClose":20039.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":164,"barsSinceOpen":164,"barDelta":19,"barClose":20039.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":165,"barsSinceOpen":165,"barDelta":0,"barClose":20039.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":166,"barsSinceOpen":166,"barDelta":73,"barClose":20040.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":167,"barsSinceOpen":167,"barDelta":31,"barClose":20041.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":168,"barsSinceOpen":168,"barDelta":31,"barClose":20040.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":169,"barsSinceOpen":169,"barDelta":12,"barClose":20038.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":170,"barsSinceOpen":170,"barDelta":-59,"barClose":20039.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.41,"price":20039.60062087709,"detail":"SINGLE SELL IMB at 20039.60: 4.1x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":171,"barsSinceOpen":171,"barDelta":-58,"barClose":20040.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":172,"barsSinceOpen":172,"barDelta":48,"barClose":20039.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":173,"barsSinceOpen":173,"barDelta":-20,"barClose":20039.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":174,"barsSinceOpen":174,"barDelta":-30,"barClose":20038.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":175,"barsSinceOpen":175,"barDelta":-13,"barClose":20037.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.77,"price":20037.015515642288,"detail":"SINGLE SELL IMB at 20037.02: 7.7x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":176,"barsSinceOpen":176,"barDelta":71,"barClose":20037.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":1,"strength":0.37,"price":20037.02189848404,"detail":"SINGLE BUY IMB at 20037.02: 3.7x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":177,"barsSinceOpen":177,"barDelta":-50,"barClose":20037.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":178,"barsSinceOpen":178,"barDelta":59,"barClose":20038.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":179,"barsSinceOpen":179,"barDelta":-10,"barClose":20040.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.77,"price":20039.958732196978,"detail":"SINGLE SELL IMB at 20039.96: 7.7x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":180,"barsSinceOpen":180,"barDelta":-37,"barClose":20040.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":181,"barsSinceOpen":181,"barDelta":65,"barClose":20041.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":182,"barsSinceOpen":182,"barDelta":7,"barClose":20040.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":183,"barsSinceOpen":183,"barDelta":-30,"barClose":20038.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":184,"barsSinceOpen":184,"barDelta":61,"barClose":20039.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":185,"barsSinceOpen":185,"barDelta":-18,"barClose":20039.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":186,"barsSinceOpen":186,"barDelta":-70,"barClose":20039.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":187,"barsSinceOpen":187,"barDelta":-6,"barClose":20040.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.44,"price":20040.814169997844,"detail":"SINGLE SELL IMB at 20040.81: 4.4x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":188,"barsSinceOpen":188,"barDelta":75,"barClose":20039.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":1,"strength":0.53,"price":20039.155941031062,"detail":"SINGLE BUY IMB at 20039.16: 5.3x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":189,"barsSinceOpen":189,"barDelta":35,"barClose":20041.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":190,"barsSinceOpen":190,"barDelta":-68,"barClose":20040.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":191,"barsSinceOpen":191,"barDelta":-32,"barClose":20040.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.56,"price":20040.691265070476,"detail":"SINGLE SELL IMB at 20040.69: 5.6x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":192,"barsSinceOpen":192,"barDelta":-58,"barClose":20042.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":193,"barsSinceOpen":193,"barDelta":45,"barClose":20040.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":194,"barsSinceOpen":194,"barDelta":-23,"barClose":20039.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":195,"barsSinceOpen":195,"barDelta":45,"barClose":20037.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":196,"barsSinceOpen":196,"barDelta":1,"barClose":20037.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":197,"barsSinceOpen":197,"barDelta":41,"barClose":20036.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":198,"barsSinceOpen":198,"barDelta":55,"barClose":20036.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":199,"barsSinceOpen":199,"barDelta":-77,"barClose":20034.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":200,"barsSinceOpen":200,"barDelta":-37,"barClose":20033.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":201,"barsSinceOpen":201,"barDelta":70,"barClose":20034.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":202,"barsSinceOpen":202,"barDelta":-57,"barClose":20032.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":203,"barsSinceOpen":203,"barDelta":66,"barClose":20031.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":204,"barsSinceOpen":204,"barDelta":62,"barClose":20032.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":1,"strength":0.6,"price":20031.973754849318,"detail":"SINGLE BUY IMB at 20031.97: 6.0x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":205,"barsSinceOpen":205,"barDelta":45,"barClose":20031.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":206,"barsSinceOpen":206,"barDelta":34,"barClose":20030.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":207,"barsSinceOpen":207,"barDelta":16,"barClose":20030.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":208,"barsSinceOpen":208,"barDelta":-1,"barClose":20031.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":209,"barsSinceOpen":209,"barDelta":15,"barClose":20033.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":210,"barsSinceOpen":210,"barDelta":-30,"barClose":20034.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.77,"price":20034.20745173932,"detail":"SINGLE SELL IMB at 20034.21: 7.7x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":211,"barsSinceOpen":211,"barDelta":33,"barClose":20034.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":212,"barsSinceOpen":212,"barDelta":71,"barClose":20032.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":213,"barsSinceOpen":213,"barDelta":-50,"barClose":20032.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":214,"barsSinceOpen":214,"barDelta":-77,"barClose":20033.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":215,"barsSinceOpen":215,"barDelta":53,"barClose":20032.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":216,"barsSinceOpen":216,"barDelta":28,"barClose":20031.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":217,"barsSinceOpen":217,"barDelta":68,"barClose":20032.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":218,"barsSinceOpen":218,"barDelta":16,"barClose":20030.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":219,"barsSinceOpen":219,"barDelta":-50,"barClose":20030.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":220,"barsSinceOpen":220,"barDelta":65,"barClose":20031.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":221,"barsSinceOpen":221,"barDelta":35,"barClose":20033.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":222,"barsSinceOpen":222,"barDelta":28,"barClose":20034.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":223,"barsSinceOpen":223,"barDelta":-5,"barClose":20033.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":224,"barsSinceOpen":224,"barDelta":72,"barClose":20033.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":225,"barsSinceOpen":225,"barDelta":73,"barClose":20035.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":226,"barsSinceOpen":226,"barDelta":80,"barClose":20035.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":227,"barsSinceOpen":227,"barDelta":1,"barClose":20036.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":228,"barsSinceOpen":228,"barDelta":-46,"barClose":20036.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":229,"barsSinceOpen":229,"barDelta":41,"barClose":20035.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":230,"barsSinceOpen":230,"barDelta":-19,"barClose":20034.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":231,"barsSinceOpen":231,"barDelta":-57,"barClose":20033.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":232,"barsSinceOpen":232,"barDelta":63,"barClose":20033.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":233,"barsSinceOpen":233,"barDelta":-67,"barClose":20032.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":234,"barsSinceOpen":234,"barDelta":14,"barClose":20033.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":235,"barsSinceOpen":235,"barDelta":12,"barClose":20031.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":236,"barsSinceOpen":236,"barDelta":-27,"barClose":20031.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":237,"barsSinceOpen":237,"barDelta":5,"barClose":20030.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":238,"barsSinceOpen":238,"barDelta":69,"barClose":20031.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":239,"barsSinceOpen":239,"barDelta":-77,"barClose":20031.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.69,"price":20031.017843751346,"detail":"SINGLE SELL IMB at 20031.02: 6.9x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":240,"barsSinceOpen":240,"barDelta":70,"barClose":20032.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":241,"barsSinceOpen":241,"barDelta":47,"barClose":20032.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":242,"barsSinceOpen":242,"barDelta":51,"barClose":20031.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":243,"barsSinceOpen":243,"barDelta":-72,"barClose":20031.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":244,"barsSinceOpen":244,"barDelta":-63,"barClose":20031.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":245,"barsSinceOpen":245,"barDelta":-78,"barClose":20032.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":246,"barsSinceOpen":246,"barDelta":-59,"barClose":20033.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":247,"barsSinceOpen":247,"barDelta":-2,"barClose":20032.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":248,"barsSinceOpen":248,"barDelta":45,"barClose":20032.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":1,"strength":0.54,"price":20032.341314091023,"detail":"SINGLE BUY IMB at 20032.34: 5.4x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":249,"barsSinceOpen":249,"barDelta":-7,"barClose":20033.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":250,"barsSinceOpen":250,"barDelta":-52,"barClose":20032.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":251,"barsSinceOpen":251,"barDelta":-5,"barClose":20034.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":252,"barsSinceOpen":252,"barDelta":69,"barClose":20033.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":253,"barsSinceOpen":253,"barDelta":15,"barClose":20032.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":1,"strength":0.79,"price":20032.004034743826,"detail":"SINGLE BUY IMB at 20032.00: 7.9x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":254,"barsSinceOpen":254,"barDelta":26,"barClose":20031.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":255,"barsSinceOpen":255,"barDelta":20,"barClose":20032.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":256,"barsSinceOpen":256,"barDelta":75,"barClose":20030.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":257,"barsSinceOpen":257,"barDelta":-66,"barClose":20030.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.44,"price":20030.82614962261,"detail":"SINGLE SELL IMB at 20030.83: 4.4x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":258,"barsSinceOpen":258,"barDelta":15,"barClose":20032.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":259,"barsSinceOpen":259,"barDelta":-646,"barClose":20018.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"VOLP-03","direction":-1,"strength":0.867,"price":20018.36958384637,"detail":"VOL SURGE: 4.1x avg"},{"signalId":"IMB-03","direction":-1,"strength":0.622,"price":20018.36958384637,"detail":"STACKED_T2 SELL"},{"signalId":"DELT-01","direction":-1,"strength":0.175,"price":20018.36958384637,"detail":"DELTA DROP: -646"},{"signalId":"EXH-01","direction":-1,"strength":0.633,"price":20018.36958384637,"detail":"ZERO_PRINT body gap"}]}
+{"type":"scored_bar","barIdx":260,"barsSinceOpen":260,"barDelta":-470,"barClose":20004.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"VOLP-03","direction":-1,"strength":0.864,"price":20004.730228873446,"detail":"VOL SURGE: 4.6x avg"},{"signalId":"IMB-03","direction":-1,"strength":0.626,"price":20004.730228873446,"detail":"STACKED_T2 SELL"},{"signalId":"DELT-01","direction":-1,"strength":0.139,"price":20004.730228873446,"detail":"DELTA DROP: -470"},{"signalId":"EXH-01","direction":-1,"strength":0.867,"price":20004.730228873446,"detail":"ZERO_PRINT body gap"}]}
+{"type":"scored_bar","barIdx":261,"barsSinceOpen":261,"barDelta":-340,"barClose":19991.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"VOLP-03","direction":-1,"strength":0.831,"price":19991.299436505786,"detail":"VOL SURGE: 4.3x avg"},{"signalId":"IMB-03","direction":-1,"strength":0.703,"price":19991.299436505786,"detail":"STACKED_T2 SELL"},{"signalId":"DELT-01","direction":-1,"strength":0.09,"price":19991.299436505786,"detail":"DELTA DROP: -340"},{"signalId":"EXH-01","direction":-1,"strength":0.893,"price":19991.299436505786,"detail":"ZERO_PRINT body gap"}]}
+{"type":"scored_bar","barIdx":262,"barsSinceOpen":262,"barDelta":-340,"barClose":19977.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"VOLP-03","direction":-1,"strength":0.687,"price":19977.542167350814,"detail":"VOL SURGE: 4.2x avg"},{"signalId":"IMB-03","direction":-1,"strength":0.675,"price":19977.542167350814,"detail":"STACKED_T2 SELL"},{"signalId":"DELT-01","direction":-1,"strength":0.141,"price":19977.542167350814,"detail":"DELTA DROP: -340"}]}
+{"type":"scored_bar","barIdx":263,"barsSinceOpen":263,"barDelta":-317,"barClose":19963.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"VOLP-03","direction":-1,"strength":0.972,"price":19963.667404455675,"detail":"VOL SURGE: 3.9x avg"},{"signalId":"IMB-03","direction":-1,"strength":0.367,"price":19963.667404455675,"detail":"STACKED_T1 SELL"},{"signalId":"DELT-01","direction":-1,"strength":0.137,"price":19963.667404455675,"detail":"DELTA DROP: -317"}]}
+{"type":"scored_bar","barIdx":264,"barsSinceOpen":264,"barDelta":-542,"barClose":19950.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"VOLP-03","direction":-1,"strength":0.753,"price":19950.39427769296,"detail":"VOL SURGE: 4.9x avg"},{"signalId":"IMB-03","direction":-1,"strength":0.328,"price":19950.39427769296,"detail":"STACKED_T1 SELL"},{"signalId":"DELT-01","direction":-1,"strength":0.225,"price":19950.39427769296,"detail":"DELTA DROP: -542"}]}
+{"type":"scored_bar","barIdx":265,"barsSinceOpen":265,"barDelta":-766,"barClose":19937.25,"zoneScore":83.75,"zoneDistTicks":2.65,"signals":[{"signalId":"VOLP-03","direction":-1,"strength":0.748,"price":19937.19389902629,"detail":"VOL SURGE: 4.7x avg"},{"signalId":"IMB-03","direction":-1,"strength":0.315,"price":19937.19389902629,"detail":"STACKED_T1 SELL"},{"signalId":"DELT-01","direction":-1,"strength":0.364,"price":19937.19389902629,"detail":"DELTA DROP: -766"},{"signalId":"EXH-02","direction":1,"strength":0.64,"price":19937.19389902629,"detail":"EXH"},{"signalId":"ABS-01","direction":1,"strength":0.582,"price":19937.19389902629,"detail":"CLASSIC lower: wick=42.3% delta_ratio=0.08"},{"signalId":"DELT-04","direction":1,"strength":0.847,"price":19937.19389902629,"detail":"BULLISH DIVERGENCE: price down but CVD holding"}]}
+{"type":"scored_bar","barIdx":266,"barsSinceOpen":266,"barDelta":-474,"barClose":19924.25,"zoneScore":67.32,"zoneDistTicks":0.98,"signals":[{"signalId":"VOLP-03","direction":-1,"strength":0.855,"price":19924.220385537425,"detail":"VOL SURGE: 3.9x avg"},{"signalId":"IMB-03","direction":-1,"strength":0.379,"price":19924.220385537425,"detail":"STACKED_T1 SELL"},{"signalId":"DELT-01","direction":-1,"strength":0.178,"price":19924.220385537425,"detail":"DELTA DROP: -474"},{"signalId":"EXH-02","direction":1,"strength":0.641,"price":19924.220385537425,"detail":"EXH"},{"signalId":"ABS-01","direction":1,"strength":0.779,"price":19924.220385537425,"detail":"CLASSIC lower: wick=42.3% delta_ratio=0.08"},{"signalId":"DELT-04","direction":1,"strength":0.687,"price":19924.220385537425,"detail":"BULLISH DIVERGENCE: price down but CVD holding"}]}
+{"type":"scored_bar","barIdx":267,"barsSinceOpen":267,"barDelta":17,"barClose":19925.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":268,"barsSinceOpen":268,"barDelta":-2,"barClose":19924.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":269,"barsSinceOpen":269,"barDelta":34,"barClose":19922.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":270,"barsSinceOpen":270,"barDelta":1,"barClose":19922.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":271,"barsSinceOpen":271,"barDelta":-58,"barClose":19924.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":272,"barsSinceOpen":272,"barDelta":38,"barClose":19923.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":273,"barsSinceOpen":273,"barDelta":77,"barClose":19924.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":274,"barsSinceOpen":274,"barDelta":42,"barClose":19924.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":275,"barsSinceOpen":275,"barDelta":-27,"barClose":19923.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":276,"barsSinceOpen":276,"barDelta":-42,"barClose":19924.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.45,"price":19924.21900328637,"detail":"SINGLE SELL IMB at 19924.22: 4.5x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":277,"barsSinceOpen":277,"barDelta":-10,"barClose":19926.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":278,"barsSinceOpen":278,"barDelta":0,"barClose":19926.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":279,"barsSinceOpen":279,"barDelta":-76,"barClose":19924.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":280,"barsSinceOpen":280,"barDelta":-61,"barClose":19926.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":281,"barsSinceOpen":281,"barDelta":16,"barClose":19928.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":282,"barsSinceOpen":282,"barDelta":-15,"barClose":19928.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":283,"barsSinceOpen":283,"barDelta":-28,"barClose":19928.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.36,"price":19928.30742894866,"detail":"SINGLE SELL IMB at 19928.31: 3.6x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":284,"barsSinceOpen":284,"barDelta":78,"barClose":19926.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":285,"barsSinceOpen":285,"barDelta":29,"barClose":19928.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":1,"strength":0.75,"price":19927.908079958703,"detail":"SINGLE BUY IMB at 19927.91: 7.5x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":286,"barsSinceOpen":286,"barDelta":-20,"barClose":19927.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":287,"barsSinceOpen":287,"barDelta":-74,"barClose":19927.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":288,"barsSinceOpen":288,"barDelta":-40,"barClose":19925.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":289,"barsSinceOpen":289,"barDelta":75,"barClose":19923.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":1,"strength":0.73,"price":19923.50417245689,"detail":"SINGLE BUY IMB at 19923.50: 7.3x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":290,"barsSinceOpen":290,"barDelta":-42,"barClose":19922.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":291,"barsSinceOpen":291,"barDelta":20,"barClose":19924.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":292,"barsSinceOpen":292,"barDelta":-46,"barClose":19926.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":293,"barsSinceOpen":293,"barDelta":-50,"barClose":19926.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.73,"price":19926.207323156446,"detail":"SINGLE SELL IMB at 19926.21: 7.3x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":294,"barsSinceOpen":294,"barDelta":-5,"barClose":19926.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":295,"barsSinceOpen":295,"barDelta":-26,"barClose":19925.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.53,"price":19925.197439415297,"detail":"SINGLE SELL IMB at 19925.20: 5.3x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":296,"barsSinceOpen":296,"barDelta":56,"barClose":19926.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":297,"barsSinceOpen":297,"barDelta":79,"barClose":19928.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":298,"barsSinceOpen":298,"barDelta":46,"barClose":19926.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":299,"barsSinceOpen":299,"barDelta":-49,"barClose":19926.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":300,"barsSinceOpen":300,"barDelta":45,"barClose":19926.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":301,"barsSinceOpen":301,"barDelta":-44,"barClose":19924.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.74,"price":19924.717725780363,"detail":"SINGLE SELL IMB at 19924.72: 7.4x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":302,"barsSinceOpen":302,"barDelta":3,"barClose":19923.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":303,"barsSinceOpen":303,"barDelta":12,"barClose":19924.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":304,"barsSinceOpen":304,"barDelta":10,"barClose":19924.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":305,"barsSinceOpen":305,"barDelta":37,"barClose":19925.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":306,"barsSinceOpen":306,"barDelta":10,"barClose":19924.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":307,"barsSinceOpen":307,"barDelta":-11,"barClose":19922.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.76,"price":19922.43614503364,"detail":"SINGLE SELL IMB at 19922.44: 7.6x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":308,"barsSinceOpen":308,"barDelta":-16,"barClose":19920.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":309,"barsSinceOpen":309,"barDelta":47,"barClose":19920.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":310,"barsSinceOpen":310,"barDelta":-38,"barClose":19920.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":311,"barsSinceOpen":311,"barDelta":-61,"barClose":19920.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":312,"barsSinceOpen":312,"barDelta":18,"barClose":19919.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":313,"barsSinceOpen":313,"barDelta":22,"barClose":19921.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":314,"barsSinceOpen":314,"barDelta":-79,"barClose":19921.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":315,"barsSinceOpen":315,"barDelta":-8,"barClose":19922.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.78,"price":19922.838214765485,"detail":"SINGLE SELL IMB at 19922.84: 7.8x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":316,"barsSinceOpen":316,"barDelta":32,"barClose":19924.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":317,"barsSinceOpen":317,"barDelta":-25,"barClose":19925.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.44,"price":19925.270881985783,"detail":"SINGLE SELL IMB at 19925.27: 4.4x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":318,"barsSinceOpen":318,"barDelta":-29,"barClose":19926.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.59,"price":19926.69519327893,"detail":"SINGLE SELL IMB at 19926.70: 5.9x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":319,"barsSinceOpen":319,"barDelta":51,"barClose":19925.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":320,"barsSinceOpen":320,"barDelta":-353,"barClose":19911.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"VOLP-03","direction":-1,"strength":0.77,"price":19911.157647706408,"detail":"VOL SURGE: 3.4x avg"},{"signalId":"IMB-03","direction":-1,"strength":0.662,"price":19911.157647706408,"detail":"STACKED_T2 SELL"},{"signalId":"DELT-01","direction":-1,"strength":0.14,"price":19911.157647706408,"detail":"DELTA DROP: -353"},{"signalId":"EXH-01","direction":-1,"strength":0.746,"price":19911.157647706408,"detail":"ZERO_PRINT body gap"}]}
+{"type":"scored_bar","barIdx":321,"barsSinceOpen":321,"barDelta":-443,"barClose":19897.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"VOLP-03","direction":-1,"strength":0.772,"price":19897.23369811667,"detail":"VOL SURGE: 3.2x avg"},{"signalId":"IMB-03","direction":-1,"strength":0.636,"price":19897.23369811667,"detail":"STACKED_T2 SELL"},{"signalId":"DELT-01","direction":-1,"strength":0.153,"price":19897.23369811667,"detail":"DELTA DROP: -443"},{"signalId":"EXH-01","direction":-1,"strength":0.685,"price":19897.23369811667,"detail":"ZERO_PRINT body gap"}]}
+{"type":"scored_bar","barIdx":322,"barsSinceOpen":322,"barDelta":-517,"barClose":19882.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"VOLP-03","direction":-1,"strength":0.725,"price":19882.58667179523,"detail":"VOL SURGE: 3.7x avg"},{"signalId":"IMB-03","direction":-1,"strength":0.61,"price":19882.58667179523,"detail":"STACKED_T2 SELL"},{"signalId":"DELT-01","direction":-1,"strength":0.202,"price":19882.58667179523,"detail":"DELTA DROP: -517"},{"signalId":"EXH-01","direction":-1,"strength":0.737,"price":19882.58667179523,"detail":"ZERO_PRINT body gap"}]}
+{"type":"scored_bar","barIdx":323,"barsSinceOpen":323,"barDelta":-674,"barClose":19868.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"VOLP-03","direction":-1,"strength":0.785,"price":19868.14891435834,"detail":"VOL SURGE: 3.8x avg"},{"signalId":"IMB-03","direction":-1,"strength":0.686,"price":19868.14891435834,"detail":"STACKED_T2 SELL"},{"signalId":"DELT-01","direction":-1,"strength":0.339,"price":19868.14891435834,"detail":"DELTA DROP: -674"}]}
+{"type":"scored_bar","barIdx":324,"barsSinceOpen":324,"barDelta":-596,"barClose":19853.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"VOLP-03","direction":-1,"strength":0.871,"price":19853.628536721742,"detail":"VOL SURGE: 3.7x avg"},{"signalId":"IMB-03","direction":-1,"strength":0.364,"price":19853.628536721742,"detail":"STACKED_T1 SELL"},{"signalId":"DELT-01","direction":-1,"strength":0.245,"price":19853.628536721742,"detail":"DELTA DROP: -596"}]}
+{"type":"scored_bar","barIdx":325,"barsSinceOpen":325,"barDelta":-686,"barClose":19839.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"VOLP-03","direction":-1,"strength":0.747,"price":19839.553989731012,"detail":"VOL SURGE: 3.9x avg"},{"signalId":"IMB-03","direction":-1,"strength":0.338,"price":19839.553989731012,"detail":"STACKED_T1 SELL"},{"signalId":"DELT-01","direction":-1,"strength":0.286,"price":19839.553989731012,"detail":"DELTA DROP: -686"}]}
+{"type":"scored_bar","barIdx":326,"barsSinceOpen":326,"barDelta":-463,"barClose":19825.5,"zoneScore":69.82,"zoneDistTicks":2.29,"signals":[{"signalId":"VOLP-03","direction":-1,"strength":0.652,"price":19825.40391303702,"detail":"VOL SURGE: 4.2x avg"},{"signalId":"IMB-03","direction":-1,"strength":0.35,"price":19825.40391303702,"detail":"STACKED_T1 SELL"},{"signalId":"DELT-01","direction":-1,"strength":0.122,"price":19825.40391303702,"detail":"DELTA DROP: -463"},{"signalId":"EXH-02","direction":1,"strength":0.685,"price":19825.40391303702,"detail":"EXH"},{"signalId":"ABS-01","direction":1,"strength":0.668,"price":19825.40391303702,"detail":"CLASSIC lower: wick=42.3% delta_ratio=0.08"},{"signalId":"DELT-04","direction":1,"strength":0.802,"price":19825.40391303702,"detail":"BULLISH DIVERGENCE: price down but CVD holding"}]}
+{"type":"scored_bar","barIdx":327,"barsSinceOpen":327,"barDelta":-680,"barClose":19811.5,"zoneScore":76.18,"zoneDistTicks":2.85,"signals":[{"signalId":"VOLP-03","direction":-1,"strength":0.884,"price":19811.450791396175,"detail":"VOL SURGE: 3.2x avg"},{"signalId":"IMB-03","direction":-1,"strength":0.323,"price":19811.450791396175,"detail":"STACKED_T1 SELL"},{"signalId":"DELT-01","direction":-1,"strength":0.263,"price":19811.450791396175,"detail":"DELTA DROP: -680"},{"signalId":"EXH-02","direction":1,"strength":0.603,"price":19811.450791396175,"detail":"EXH"},{"signalId":"ABS-01","direction":1,"strength":0.843,"price":19811.450791396175,"detail":"CLASSIC lower: wick=42.3% delta_ratio=0.08"},{"signalId":"DELT-04","direction":1,"strength":0.6,"price":19811.450791396175,"detail":"BULLISH DIVERGENCE: price down but CVD holding"}]}
+{"type":"scored_bar","barIdx":328,"barsSinceOpen":328,"barDelta":-4,"barClose":19810.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":329,"barsSinceOpen":329,"barDelta":-49,"barClose":19810.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":330,"barsSinceOpen":330,"barDelta":41,"barClose":19809.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":331,"barsSinceOpen":331,"barDelta":-47,"barClose":19808.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":332,"barsSinceOpen":332,"barDelta":52,"barClose":19806.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":333,"barsSinceOpen":333,"barDelta":-79,"barClose":19807.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":334,"barsSinceOpen":334,"barDelta":-67,"barClose":19807.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.56,"price":19807.735607151637,"detail":"SINGLE SELL IMB at 19807.74: 5.6x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":335,"barsSinceOpen":335,"barDelta":41,"barClose":19805.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":336,"barsSinceOpen":336,"barDelta":48,"barClose":19803.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":1,"strength":0.4,"price":19803.838182284442,"detail":"SINGLE BUY IMB at 19803.84: 4.0x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":337,"barsSinceOpen":337,"barDelta":-47,"barClose":19802.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":338,"barsSinceOpen":338,"barDelta":71,"barClose":19800.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":339,"barsSinceOpen":339,"barDelta":8,"barClose":19799.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":340,"barsSinceOpen":340,"barDelta":-26,"barClose":19799.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":341,"barsSinceOpen":341,"barDelta":68,"barClose":19799.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":342,"barsSinceOpen":342,"barDelta":-78,"barClose":19801.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":343,"barsSinceOpen":343,"barDelta":-38,"barClose":19799.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":344,"barsSinceOpen":344,"barDelta":-46,"barClose":19799.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":345,"barsSinceOpen":345,"barDelta":66,"barClose":19800.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":1,"strength":0.44,"price":19799.90631342321,"detail":"SINGLE BUY IMB at 19799.91: 4.4x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":346,"barsSinceOpen":346,"barDelta":-16,"barClose":19801.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":347,"barsSinceOpen":347,"barDelta":-21,"barClose":19802.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":348,"barsSinceOpen":348,"barDelta":61,"barClose":19801.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":1,"strength":0.54,"price":19801.41970538572,"detail":"SINGLE BUY IMB at 19801.42: 5.4x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":349,"barsSinceOpen":349,"barDelta":-77,"barClose":19802.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":350,"barsSinceOpen":350,"barDelta":45,"barClose":19802.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":351,"barsSinceOpen":351,"barDelta":17,"barClose":19800.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":352,"barsSinceOpen":352,"barDelta":-77,"barClose":19799.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":353,"barsSinceOpen":353,"barDelta":69,"barClose":19801.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":354,"barsSinceOpen":354,"barDelta":-68,"barClose":19800.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":355,"barsSinceOpen":355,"barDelta":-59,"barClose":19802.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":356,"barsSinceOpen":356,"barDelta":50,"barClose":19802.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":1,"strength":0.78,"price":19802.505589871842,"detail":"SINGLE BUY IMB at 19802.51: 7.8x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":357,"barsSinceOpen":357,"barDelta":66,"barClose":19800.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":358,"barsSinceOpen":358,"barDelta":-6,"barClose":19800.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":359,"barsSinceOpen":359,"barDelta":33,"barClose":19798.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":360,"barsSinceOpen":360,"barDelta":-65,"barClose":19799.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":361,"barsSinceOpen":361,"barDelta":48,"barClose":19800.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":362,"barsSinceOpen":362,"barDelta":8,"barClose":19800.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":363,"barsSinceOpen":363,"barDelta":-75,"barClose":19801.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":364,"barsSinceOpen":364,"barDelta":67,"barClose":19800.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":365,"barsSinceOpen":365,"barDelta":-28,"barClose":19800.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":366,"barsSinceOpen":366,"barDelta":64,"barClose":19801.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":367,"barsSinceOpen":367,"barDelta":29,"barClose":19801.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":368,"barsSinceOpen":368,"barDelta":-33,"barClose":19800.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":369,"barsSinceOpen":369,"barDelta":6,"barClose":19801.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":370,"barsSinceOpen":370,"barDelta":2,"barClose":19803.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":371,"barsSinceOpen":371,"barDelta":32,"barClose":19803.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":1,"strength":0.56,"price":19803.340235473217,"detail":"SINGLE BUY IMB at 19803.34: 5.6x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":372,"barsSinceOpen":372,"barDelta":-58,"barClose":19801.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":373,"barsSinceOpen":373,"barDelta":-68,"barClose":19802.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":374,"barsSinceOpen":374,"barDelta":-23,"barClose":19801.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":375,"barsSinceOpen":375,"barDelta":40,"barClose":19799.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":376,"barsSinceOpen":376,"barDelta":6,"barClose":19797.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":377,"barsSinceOpen":377,"barDelta":56,"barClose":19797.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":1,"strength":0.63,"price":19797.353789820292,"detail":"SINGLE BUY IMB at 19797.35: 6.3x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":378,"barsSinceOpen":378,"barDelta":-17,"barClose":19797.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":-1,"strength":0.63,"price":19797.089349236718,"detail":"SINGLE SELL IMB at 19797.09: 6.3x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":379,"barsSinceOpen":379,"barDelta":58,"barClose":19797.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":380,"barsSinceOpen":380,"barDelta":7,"barClose":19796.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":381,"barsSinceOpen":381,"barDelta":-51,"barClose":19797.75,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":382,"barsSinceOpen":382,"barDelta":48,"barClose":19798.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":383,"barsSinceOpen":383,"barDelta":72,"barClose":19799.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[{"signalId":"IMB-01","direction":1,"strength":0.62,"price":19799.036661712835,"detail":"SINGLE BUY IMB at 19799.04: 6.2x ratio [P-tick diag]"}]}
+{"type":"scored_bar","barIdx":384,"barsSinceOpen":384,"barDelta":18,"barClose":19800.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":385,"barsSinceOpen":385,"barDelta":41,"barClose":19799.25,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":386,"barsSinceOpen":386,"barDelta":28,"barClose":19800.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":387,"barsSinceOpen":387,"barDelta":-58,"barClose":19799.0,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":388,"barsSinceOpen":388,"barDelta":-75,"barClose":19800.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
+{"type":"scored_bar","barIdx":389,"barsSinceOpen":389,"barDelta":65,"barClose":19801.5,"zoneScore":0.0,"zoneDistTicks":999.0,"signals":[]}
