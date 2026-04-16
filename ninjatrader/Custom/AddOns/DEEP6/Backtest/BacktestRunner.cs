@@ -272,6 +272,14 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Backtest
                         && barAtr < config.SlowGrindAtrRatio * sessionAvgAtr)
                         continue;
 
+                    // R1: Derive bar time as HHMM from BarsSinceOpen.
+                    // Session opens at 09:30 ET; each bar = 1 minute.
+                    // barsSinceOpen=0 → 09:30, barsSinceOpen=30 → 10:00, etc.
+                    int totalMinutes  = 9 * 60 + 30 + rec.BarsSinceOpen;
+                    int barHour       = totalMinutes / 60;
+                    int barMinute     = totalMinutes % 60;
+                    int barTimeHHMM   = barHour * 100 + barMinute;
+
                     var gate = ScorerEntryGate.EvaluateWithContext(
                         scored,
                         config.ScoreEntryThreshold,
@@ -280,7 +288,10 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Backtest
                         volSurgeVetoEnabled:    false,  // already handled inline above
                         slowGrindVetoEnabled:   false,  // already handled inline above
                         strictDirectionEnabled: config.StrictDirectionEnabled,
-                        signals:                rec.Signals);
+                        signals:                rec.Signals,
+                        blackoutWindowStart:    config.BlackoutWindowStart,
+                        blackoutWindowEnd:      config.BlackoutWindowEnd,
+                        barTimeHHMM:            barTimeHHMM);
                     if (gate == ScorerEntryGate.GateOutcome.Passed)
                     {
                         // Apply entry slippage (buys higher, shorts sell lower)

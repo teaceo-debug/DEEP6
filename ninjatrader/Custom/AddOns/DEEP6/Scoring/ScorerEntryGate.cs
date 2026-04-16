@@ -54,6 +54,9 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Scoring
             /// <summary>R1: At least one signal opposes the dominant direction — strict directional agreement failed.</summary>
             DirectionalDisagreementVeto,
 
+            /// <summary>R1: Bar timestamp falls within the time-of-day blackout window (e.g. 1530–1600 ET).</summary>
+            BlackoutVeto,
+
             /// <summary>All gates passed — caller may proceed to risk gates.</summary>
             Passed
         }
@@ -124,6 +127,9 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Scoring
         /// <param name="sessionAvgAtr">Session rolling average ATR (0 = not available → veto skipped).</param>
         /// <param name="strictDirectionEnabled">R1: when true, any signal opposing the dominant direction vetoes entry.</param>
         /// <param name="signals">Signal array for the bar — required when strictDirectionEnabled=true.</param>
+        /// <param name="blackoutWindowStart">R1: start of time-of-day blackout as HHMM int (e.g. 1530). 0 = disabled.</param>
+        /// <param name="blackoutWindowEnd">R1: end of time-of-day blackout as HHMM int (e.g. 1600). Inclusive.</param>
+        /// <param name="barTimeHHMM">R1: current bar time as HHMM int derived from session open + barsSinceOpen. 0 = skip check.</param>
         public static GateOutcome EvaluateWithContext(
             ScorerResult     scored,
             double           scoreThreshold,
@@ -135,7 +141,10 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Scoring
             double           currentAtr              = 0.0,
             double           sessionAvgAtr           = 0.0,
             bool             strictDirectionEnabled  = true,
-            SignalResult[]   signals                 = null)
+            SignalResult[]   signals                 = null,
+            int              blackoutWindowStart     = 0,
+            int              blackoutWindowEnd       = 0,
+            int              barTimeHHMM             = 0)
         {
             if (scored == null)
                 return GateOutcome.NoScore;
@@ -170,6 +179,14 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Scoring
                     if (sigDir != 0 && sigDir != dominant)
                         return GateOutcome.DirectionalDisagreementVeto;
                 }
+            }
+
+            // R1: Time-of-day blackout window — block entries during low-quality time bands.
+            // Source: ENTRY-TIMING.md — 1530-1600 is worst window (25.31t avg, delta -13.9t vs peak).
+            if (blackoutWindowStart > 0 && blackoutWindowEnd >= blackoutWindowStart && barTimeHHMM > 0)
+            {
+                if (barTimeHHMM >= blackoutWindowStart && barTimeHHMM <= blackoutWindowEnd)
+                    return GateOutcome.BlackoutVeto;
             }
 
             return GateOutcome.Passed;

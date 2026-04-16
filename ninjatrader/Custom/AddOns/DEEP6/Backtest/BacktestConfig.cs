@@ -84,6 +84,22 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Backtest
         /// <summary>ATR multiplier after tightening (applied when MFE >= TrailingTightenAtTicks).</summary>
         public double TrailingTightenMult = 1.0;
 
+        // ---- R1: Time-of-day blackout window ----
+
+        /// <summary>
+        /// R1: Start of the time-of-day blackout window expressed as HHMM integer (e.g. 1530 = 15:30 ET).
+        /// Entries whose bar timestamp falls within [BlackoutWindowStart, BlackoutWindowEnd] are vetoed.
+        /// Default 1530. Set BlackoutWindowEnd &lt; BlackoutWindowStart to disable.
+        /// Source: ENTRY-TIMING.md — 1530-1600 is worst 30-min window (25.31t avg vs 39.17t peak).
+        /// </summary>
+        public int BlackoutWindowStart = 1530;
+
+        /// <summary>
+        /// R1: End of the time-of-day blackout window expressed as HHMM integer (e.g. 1600 = 16:00 ET).
+        /// Inclusive. Default 1600.
+        /// </summary>
+        public int BlackoutWindowEnd = 1600;
+
         // ---- R1: Strict directional agreement filter ----
 
         /// <summary>
