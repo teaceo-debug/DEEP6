@@ -1073,13 +1073,17 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                 var signals = _scorerRegistry.EvaluateBar(prev, _scorerSession);
                 _scorerSession.PriorBar = prev;  // advance for next bar
 
+                // P0-1: Compute zoneScore from ProfileAnchorLevels snapshot.
+                var _zoneSnap = _profileAnchors.BuildSnapshot();
+                double _zoneScore = ZoneScoreCalculator.Compute(prev.Close, _zoneSnap, TickSize);
+
                 var scored = ConfluenceScorer.Score(
                     signals,
                     _scorerSession.BarsSinceOpen,
                     prev.BarDelta,
                     prev.Close,
-                    zoneScore:        0.0,               // VPContext zone extension not yet wired; Phase 18 Wave 2 stub
-                    zoneDistTicks:    double.MaxValue,    // no zone → no zone bonus
+                    zoneScore:        _zoneScore,
+                    zoneDistTicks:    double.MaxValue,    // scorer uses zoneScore tier; dist not needed
                     tickSize:         TickSize,
                     gexAbsMult:       1.0,
                     gexMomentumMult:  1.0,
