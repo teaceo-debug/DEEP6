@@ -1,0 +1,19 @@
+config_label,param,perturbation,orig_value,perturbed_value,baseline_sharpe,perturbed_sharpe,sharpe_pct_change,fragile
+"wp=equal, thr=40, sl=20, tp=40, trail=False, v03=False, sg=False",entry_threshold,plus_10pct,40,44,42.484,34.085,-19.8,False
+"wp=equal, thr=40, sl=20, tp=40, trail=False, v03=False, sg=False",entry_threshold,minus_10pct,40,36,42.484,42.47,-0.0,False
+"wp=equal, thr=40, sl=20, tp=40, trail=False, v03=False, sg=False",stop_ticks,plus_10pct,20,22,42.484,42.064,-1.0,False
+"wp=equal, thr=40, sl=20, tp=40, trail=False, v03=False, sg=False",stop_ticks,minus_10pct,20,18,42.484,37.928,-10.7,False
+"wp=equal, thr=40, sl=20, tp=40, trail=False, v03=False, sg=False",target_ticks,plus_10pct,40,44,42.484,44.277,4.2,False
+"wp=equal, thr=40, sl=20, tp=40, trail=False, v03=False, sg=False",target_ticks,minus_10pct,40,36,42.484,41.182,-3.1,False
+"wp=thesis_heavy, thr=50, sl=20, tp=40, trail=False, v03=False, sg=False",entry_threshold,plus_10pct,50,55,42.06,34.078,-19.0,False
+"wp=thesis_heavy, thr=50, sl=20, tp=40, trail=False, v03=False, sg=False",entry_threshold,minus_10pct,50,45,42.06,42.22,0.4,False
+"wp=thesis_heavy, thr=50, sl=20, tp=40, trail=False, v03=False, sg=False",stop_ticks,plus_10pct,20,22,42.06,41.642,-1.0,False
+"wp=thesis_heavy, thr=50, sl=20, tp=40, trail=False, v03=False, sg=False",stop_ticks,minus_10pct,20,18,42.06,37.532,-10.8,False
+"wp=thesis_heavy, thr=50, sl=20, tp=40, trail=False, v03=False, sg=False",target_ticks,plus_10pct,40,44,42.06,43.782,4.1,False
+"wp=thesis_heavy, thr=50, sl=20, tp=40, trail=False, v03=False, sg=False",target_ticks,minus_10pct,40,36,42.06,40.836,-2.9,False
+"wp=current, thr=40, sl=20, tp=40, trail=False, v03=False, sg=False",entry_threshold,plus_10pct,40,44,42.22,42.06,-0.4,False
+"wp=current, thr=40, sl=20, tp=40, trail=False, v03=False, sg=False",entry_threshold,minus_10pct,40,36,42.22,42.223,0.0,False
+"wp=current, thr=40, sl=20, tp=40, trail=False, v03=False, sg=False",stop_ticks,plus_10pct,20,22,42.22,41.802,-1.0,False
+"wp=current, thr=40, sl=20, tp=40, trail=False, v03=False, sg=False",stop_ticks,minus_10pct,20,18,42.22,37.682,-10.7,False
+"wp=current, thr=40, sl=20, tp=40, trail=False, v03=False, sg=False",target_ticks,plus_10pct,40,44,42.22,43.994,4.2,False
+"wp=current, thr=40, sl=20, tp=40, trail=False, v03=False, sg=False",target_ticks,minus_10pct,40,36,42.22,40.996,-2.9,False
