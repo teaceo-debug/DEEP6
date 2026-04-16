@@ -13,6 +13,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -42,6 +43,12 @@ namespace NinjaScriptSim.Cli
                 "databento" => RunDatabento(rest, mbo: false),
                 "databento-mbo" => RunDatabento(rest, mbo: true),
                 "bridge" => RunBridge(rest),
+                "optimize" => RunOptimize(rest),
+                "parity" => RunParity(rest),
+                "signals" => RunSignals(rest),
+                "walkforward" => RunWalkForward(rest),
+                "montecarlo" => RunMonteCarlo(rest),
+                "classify" => RunClassify(rest),
                 "help" or "--help" or "-h" => PrintUsageOk(),
                 _ => PrintUnknownCommand(command),
             };
@@ -472,42 +479,382 @@ namespace NinjaScriptSim.Cli
             return bars;
         }
 
+        // ══════════════════════════════════════════════════════════════════
+        //  OPTIMIZE — parallel parameter sweep
+        // ══════════════════════════════════════════════════════════════════
+
+        static int RunOptimize(string[] args)
+        {
+            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Console.WriteLine(" NinjaScript Simulator — Strategy Optimizer");
+            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Console.WriteLine();
+
+            // Parse: optimize --data <files> --sweep Param=from:step:to [--output file.csv]
+            var dataFiles = new List<string>();
+            var optimizer = new StrategyOptimizer();
+            string outputCsv = "optimization-results.csv";
+
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i] == "--data" && i + 1 < args.Length) { dataFiles.Add(args[++i]); }
+                else if (args[i] == "--dir" && i + 1 < args.Length)
+                {
+                    dataFiles.AddRange(Directory.GetFiles(args[++i], "*.ndjson").OrderBy(f => f));
+                }
+                else if (args[i] == "--sweep" && i + 1 < args.Length)
+                {
+                    var parts = args[++i].Split('=');
+                    if (parts.Length == 2)
+                    {
+                        var range = parts[1].Split(':');
+                        if (range.Length == 3 &&
+                            double.TryParse(range[0], NumberStyles.Float, CultureInfo.InvariantCulture, out double from) &&
+                            double.TryParse(range[1], NumberStyles.Float, CultureInfo.InvariantCulture, out double step) &&
+                            double.TryParse(range[2], NumberStyles.Float, CultureInfo.InvariantCulture, out double to))
+                        {
+                            optimizer.AddSweep(parts[0], from, to, step);
+                        }
+                    }
+                }
+                else if (args[i] == "--output" && i + 1 < args.Length) { outputCsv = args[++i]; }
+                else if (File.Exists(args[i])) { dataFiles.Add(args[i]); }
+            }
+
+            if (dataFiles.Count == 0)
+            {
+                Console.WriteLine("Usage: optimize --data <session.ndjson> --sweep ScoreEntryThreshold=50:5:90 [--output results.csv]");
+                return 1;
+            }
+
+            var session = NdjsonSessionLoader.LoadMultiple(dataFiles.ToArray());
+            Console.WriteLine($"  Data: {session.Bars.Count} bars from {dataFiles.Count} file(s)");
+            Console.WriteLine($"  Combinations: {optimizer.TotalCombinations}");
+            Console.WriteLine($"  Parallelism: {optimizer.MaxParallelism} cores");
+            Console.WriteLine();
+
+            var sw = Stopwatch.StartNew();
+            var results = optimizer.Run(session);
+            sw.Stop();
+
+            Console.WriteLine($"  Completed {results.Count} runs in {sw.ElapsedMilliseconds}ms");
+            Console.WriteLine();
+
+            // Show top 10
+            Console.WriteLine("  ── Top 10 by Sharpe ──");
+            Console.WriteLine("  {0,5} {1,8} {2,8} {3,10} {4,10} {5,10}",
+                "Rank", "Trades", "WinRate", "NetPnl", "PF", "Sharpe");
+            foreach (var (r, idx) in results.Take(10).Select((r, i) => (r, i)))
+            {
+                string paramStr = string.Join(" ", r.Parameters.Select(kv => $"{kv.Key}={kv.Value}"));
+                Console.WriteLine("  {0,5} {1,8} {2,7:F1}% {3,10:F2} {4,10:F2} {5,10:F3}  {6}",
+                    idx + 1, r.TotalTrades, r.WinRate, r.NetPnl, r.ProfitFactor, r.SharpeRatio, paramStr);
+            }
+
+            StrategyOptimizer.ExportCsv(results, outputCsv);
+            Console.WriteLine();
+            Console.WriteLine($"  Full results: {outputCsv} ({results.Count} rows)");
+            return 0;
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        //  PARITY — compare simulator vs NT8 output
+        // ══════════════════════════════════════════════════════════════════
+
+        static int RunParity(string[] args)
+        {
+            if (args.Length < 2)
+            {
+                Console.WriteLine("Usage: parity <session.ndjson> <nt8-output.txt>");
+                return 1;
+            }
+
+            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Console.WriteLine(" NinjaScript Simulator — Parity Check");
+            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Console.WriteLine();
+
+            string sessionPath = args[0];
+            string nt8Path = args[1];
+
+            // Run session through simulator
+            var session = NdjsonSessionLoader.Load(sessionPath);
+            var runner = new NinjaScriptRunner();
+            runner.LoadBars(session.Bars);
+            runner.LoadDepthUpdates(session.DepthUpdates);
+            var script = runner.Run<NinjaTrader.NinjaScript.Strategies.DEEP6.DEEP6Strategy>();
+
+            // Load NT8 output
+            var nt8Lines = ParityChecker.LoadNt8Output(nt8Path);
+
+            Console.WriteLine($"  Simulator: {script.PrintLog.Count} lines");
+            Console.WriteLine($"  NT8:       {nt8Lines.Length} lines");
+            Console.WriteLine();
+
+            var report = ParityChecker.Compare(script.PrintLog, nt8Lines);
+            ParityChecker.PrintReport(report);
+
+            Console.WriteLine();
+            Console.WriteLine(report.Passed
+                ? "[PASS] Simulator output matches NT8."
+                : $"[DIFF] {report.Differences} difference(s) found.");
+
+            return report.Passed ? 0 : 1;
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        //  SIGNALS — signal attribution analysis
+        // ══════════════════════════════════════════════════════════════════
+
+        static int RunSignals(string[] args)
+        {
+            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Console.WriteLine(" NinjaScript Simulator — Signal Attribution");
+            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Console.WriteLine();
+
+            var files = CollectFiles(args);
+            if (files.Count == 0) { Console.WriteLine("Usage: signals <session.ndjson> [--output signals.csv]"); return 1; }
+
+            string outputCsv = args.FirstOrDefault(a => a.EndsWith(".csv")) ??
+                (args.Contains("--output") ? args[Array.IndexOf(args, "--output") + 1] : null);
+
+            var session = NdjsonSessionLoader.LoadMultiple(files.ToArray());
+            var runner = new NinjaScriptRunner();
+            runner.LoadBars(session.Bars);
+            runner.LoadDepthUpdates(session.DepthUpdates);
+            var script = runner.Run<NinjaTrader.NinjaScript.Strategies.DEEP6.DEEP6Strategy>();
+
+            var report = SignalAttribution.Analyze(script.PrintLog);
+            SignalAttribution.PrintReport(report);
+
+            if (outputCsv != null)
+            {
+                SignalAttribution.ExportCsv(report, outputCsv);
+                Console.WriteLine($"\n  Exported: {outputCsv}");
+            }
+
+            return 0;
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        //  WALKFORWARD — rolling in-sample / out-of-sample
+        // ══════════════════════════════════════════════════════════════════
+
+        static int RunWalkForward(string[] args)
+        {
+            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Console.WriteLine(" NinjaScript Simulator — Walk-Forward Analysis");
+            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Console.WriteLine();
+
+            int isBars = 200, oosBars = 50;
+            string outputCsv = null;
+            var files = new List<string>();
+
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i] == "--is" && i + 1 < args.Length) int.TryParse(args[++i], out isBars);
+                else if (args[i] == "--oos" && i + 1 < args.Length) int.TryParse(args[++i], out oosBars);
+                else if (args[i] == "--output" && i + 1 < args.Length) outputCsv = args[++i];
+                else if (args[i] == "--dir" && i + 1 < args.Length)
+                    files.AddRange(Directory.GetFiles(args[++i], "*.ndjson").OrderBy(f => f));
+                else if (File.Exists(args[i])) files.Add(args[i]);
+            }
+
+            if (files.Count == 0) { Console.WriteLine("Usage: walkforward <session.ndjson> [--is 200] [--oos 50]"); return 1; }
+
+            var session = NdjsonSessionLoader.LoadMultiple(files.ToArray());
+            Console.WriteLine($"  Data: {session.Bars.Count} bars, IS={isBars}, OOS={oosBars}");
+            Console.WriteLine();
+
+            var wf = new WalkForwardAnalyzer(isBars, oosBars);
+            wf.AddSweep("ScoreEntryThreshold", 50, 90, 10);
+
+            var sw = Stopwatch.StartNew();
+            var report = wf.Run(session);
+            sw.Stop();
+
+            Console.WriteLine($"  Completed in {sw.ElapsedMilliseconds}ms");
+            Console.WriteLine();
+            WalkForwardAnalyzer.PrintReport(report);
+
+            if (outputCsv != null)
+            {
+                WalkForwardAnalyzer.ExportCsv(report, outputCsv);
+                Console.WriteLine($"\n  Exported: {outputCsv}");
+            }
+
+            return 0;
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        //  MONTECARLO — trade resampling for drawdown distributions
+        // ══════════════════════════════════════════════════════════════════
+
+        static int RunMonteCarlo(string[] args)
+        {
+            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Console.WriteLine(" NinjaScript Simulator — Monte Carlo Analysis");
+            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Console.WriteLine();
+
+            int iterations = 10000;
+            string outputCsv = null;
+            var files = new List<string>();
+
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i] == "--iterations" && i + 1 < args.Length) int.TryParse(args[++i], out iterations);
+                else if (args[i] == "--output" && i + 1 < args.Length) outputCsv = args[++i];
+                else if (args[i] == "--dir" && i + 1 < args.Length)
+                    files.AddRange(Directory.GetFiles(args[++i], "*.ndjson").OrderBy(f => f));
+                else if (File.Exists(args[i])) files.Add(args[i]);
+            }
+
+            if (files.Count == 0) { Console.WriteLine("Usage: montecarlo <session.ndjson> [--iterations 10000]"); return 1; }
+
+            // Run strategy to get trades
+            var session = NdjsonSessionLoader.LoadMultiple(files.ToArray());
+            var runner = new NinjaScriptRunner();
+            runner.LoadBars(session.Bars);
+            runner.LoadDepthUpdates(session.DepthUpdates);
+            var script = runner.Run<NinjaTrader.NinjaScript.Strategies.DEEP6.DEEP6Strategy>();
+
+            var trades = MonteCarlo.ExtractTradesFromLog(script.PrintLog);
+            Console.WriteLine($"  Extracted {trades.Count} trades from {session.Bars.Count} bars");
+            Console.WriteLine($"  Running {iterations} iterations...");
+
+            var sw = Stopwatch.StartNew();
+            var mc = MonteCarlo.Run(trades, iterations);
+            sw.Stop();
+
+            Console.WriteLine($"  Completed in {sw.ElapsedMilliseconds}ms");
+            Console.WriteLine();
+            MonteCarlo.PrintReport(mc);
+
+            if (outputCsv != null)
+            {
+                MonteCarlo.ExportCsv(mc, outputCsv);
+                Console.WriteLine($"\n  Exported: {outputCsv} ({iterations} rows)");
+            }
+
+            return 0;
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        //  CLASSIFY — session regime classification
+        // ══════════════════════════════════════════════════════════════════
+
+        static int RunClassify(string[] args)
+        {
+            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Console.WriteLine(" NinjaScript Simulator — Session Classifier");
+            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Console.WriteLine();
+
+            string outputCsv = null;
+            var files = new List<string>();
+
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i] == "--output" && i + 1 < args.Length) outputCsv = args[++i];
+                else if (args[i] == "--dir" && i + 1 < args.Length)
+                    files.AddRange(Directory.GetFiles(args[++i], "*.ndjson").OrderBy(f => f));
+                else if (File.Exists(args[i])) files.Add(args[i]);
+            }
+
+            if (files.Count == 0) { Console.WriteLine("Usage: classify <session1.ndjson> <session2.ndjson> ... [--output classify.csv]"); return 1; }
+
+            Console.WriteLine($"  Analyzing {files.Count} sessions...");
+            Console.WriteLine();
+
+            var sw = Stopwatch.StartNew();
+            var report = SessionClassifier.Classify(files.ToArray());
+            sw.Stop();
+
+            Console.WriteLine($"  Completed in {sw.ElapsedMilliseconds}ms");
+            Console.WriteLine();
+            SessionClassifier.PrintReport(report);
+
+            if (outputCsv != null)
+            {
+                SessionClassifier.ExportCsv(report, outputCsv);
+                Console.WriteLine($"\n  Exported: {outputCsv}");
+            }
+
+            return 0;
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        //  Helpers
+        // ══════════════════════════════════════════════════════════════════
+
+        static List<string> CollectFiles(string[] args)
+        {
+            var files = new List<string>();
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i] == "--dir" && i + 1 < args.Length)
+                    files.AddRange(Directory.GetFiles(args[++i], "*.ndjson").OrderBy(f => f));
+                else if (args[i] == "--output" || args[i] == "--csv") i++; // skip value
+                else if (File.Exists(args[i])) files.Add(args[i]);
+            }
+            return files;
+        }
+
         static void PrintUsage()
         {
             Console.WriteLine(@"
-NinjaScript Simulator — validate, backtest, and forward-test without NinjaTrader
+NinjaScript Simulator — validate, backtest, analyze, and forward-test without NinjaTrader
 
 USAGE:
   dotnet run --project ninjatrader/simulator -- <command> [args]
 
-COMMANDS:
+DATA COMMANDS:
   validate [all|indicator|strategy]     Compile-check + state machine validation
   run [all|indicator|strategy]          Lifecycle replay with synthetic bars
   replay <session.ndjson> [...]         Replay captured NDJSON session(s) through strategy
   replay --dir <directory>              Replay all .ndjson files in directory
-  databento <ohlcv.csv>                 Replay Databento OHLCV-1m CSV through strategy
-  databento-mbo <trades.csv>            Convert Databento MBO trades → NDJSON → strategy replay
-  bridge [host:port]                    Connect to NT8 DataBridge for live data (default 127.0.0.1:9200)
-  bridge --record <output.ndjson>       Bridge + record session to file for later replay
+  databento <ohlcv.csv>                 Replay Databento OHLCV-1m CSV
+  databento-mbo <trades.csv>            Convert Databento MBO trades → replay
+  bridge [host:port]                    Connect to NT8 DataBridge for live data
+  bridge --record <output.ndjson>       Bridge + record for later replay
 
-DATA FLOW:
-  Databento CSV ─┐
-  NT8 Bridge ────┤── NDJSON ──→ NinjaScriptRunner ──→ DEEP6Strategy
-  Captured .ndjson─┘                                   (full lifecycle)
+ANALYTICS COMMANDS:
+  optimize --data <files> --sweep P=f:s:t   Parallel parameter sweep (CSV output)
+  parity <session.ndjson> <nt8-output.txt>  Compare simulator vs NT8 output
+  signals <session.ndjson> [--output .csv]  Signal attribution (per-detector stats)
+  walkforward <files> [--is 200] [--oos 50] Walk-forward overfit detection
+  montecarlo <files> [--iterations 10000]   Monte Carlo drawdown distribution
+  classify <session1> <session2> ...        Classify sessions by regime/outcome
 
 EXAMPLES:
-  # Replay your 5 captured NT8 sessions:
-  dotnet run --project ninjatrader/simulator -- replay ninjatrader/tests/fixtures/sessions/*.ndjson
+  # Replay captured sessions:
+  dotnet run --project ninjatrader/simulator -- replay --dir ninjatrader/tests/fixtures/sessions/
 
-  # Load Databento OHLCV and run strategy:
-  dotnet run --project ninjatrader/simulator -- databento NQ_ohlcv_1m.csv
+  # Parameter optimization:
+  dotnet run --project ninjatrader/simulator -- optimize \
+    --dir ninjatrader/tests/fixtures/sessions/ \
+    --sweep ScoreEntryThreshold=50:5:90 --sweep StopLossTicks=12:2:30
 
-  # Connect to NT8 running on Windows (same machine or via SSH tunnel):
+  # Signal attribution (which detectors make money?):
+  dotnet run --project ninjatrader/simulator -- signals --dir ninjatrader/tests/fixtures/sessions/
+
+  # Parity check (simulator vs NT8):
+  dotnet run --project ninjatrader/simulator -- parity session.ndjson nt8-output.txt
+
+  # Monte Carlo drawdown analysis:
+  dotnet run --project ninjatrader/simulator -- montecarlo --dir sessions/ --iterations 10000
+
+  # Walk-forward (overfit detection):
+  dotnet run --project ninjatrader/simulator -- walkforward --dir sessions/ --is 200 --oos 50
+
+  # Session regime classification:
+  dotnet run --project ninjatrader/simulator -- classify --dir ninjatrader/tests/fixtures/sessions/
+
+  # Connect to NT8 bridge:
   dotnet run --project ninjatrader/simulator -- bridge 192.168.1.100:9200
-
-  # Record a live session from NT8, then replay it later:
-  dotnet run --project ninjatrader/simulator -- bridge --record today.ndjson
-  dotnet run --project ninjatrader/simulator -- replay today.ndjson
 ");
         }
 

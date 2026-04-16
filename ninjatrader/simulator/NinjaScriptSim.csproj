@@ -30,6 +30,7 @@
   <ItemGroup>
     <Compile Include="Lifecycle/**/*.cs" />
     <Compile Include="Adapters/**/*.cs" />
+    <Compile Include="Analytics/**/*.cs" />
     <Compile Include="Cli/**/*.cs" />
   </ItemGroup>
 
