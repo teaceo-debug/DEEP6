@@ -5,7 +5,7 @@ milestone_name: milestone
 status: NT8 detector refactor + 34 signals ported; 180/180 NUnit tests green; UseNewRegistry=true default; live Rithmic session-replay parity deferred to Phase 18
 stopped_at: Completed 18-03-PLAN.md
 last_updated: "2026-04-15T23:20:53.207Z"
-last_activity: 2026-04-15 — resolved verifier gaps (dup UseNewRegistry property, double EvaluateBar, LOC cap)
+last_activity: 2026-04-16 — NinjaScript editor simulator (compile + lifecycle validation without NT8)
 progress:
   total_phases: 21
   completed_phases: 15
@@ -92,6 +92,7 @@ Progress: [██████████] 100% of planned milestone phases; Pha
 | 260413-s1d | 2026-04-14 | Fix databento_feed.py attribute bugs (total_vol, tick_size kwarg, open_time/close_time, CVD chain) | deep6/data/databento_feed.py |
 | 260414-gzv | 2026-04-13 | perf(r5): rAF audit + Zustand scoped selectors + ringBuffer toArray single-pass + animations.ts perf notes | store/ringBuffer.ts, store/tradingStore.ts, lib/animations.ts, store/tradingStore.test.ts |
 | 260413-r8t | 2026-04-13 | feat(11.3-r8): unified chart toolbar — consolidate ChartModeSelector + ChartLegend into single top-left ChartToolbar strip | dashboard/components/footprint/ChartToolbar.tsx, FootprintChart.tsx |
+| 260416-0iy | 2026-04-16 | feat: NinjaScript editor simulator — NT8 stub assembly + lifecycle runner + CLI validator | ninjatrader/simulator/ (20 files, 1781 LOC) |
 
 ## Accumulated Context
 
