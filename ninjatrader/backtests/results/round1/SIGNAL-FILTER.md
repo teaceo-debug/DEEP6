@@ -64,7 +64,7 @@ max_age=unlimited is the baseline (no recency filter).
 | 8 | 87 | 69.0% | 4.28t | 4.047 | +0.000 |
 | unlimited | 87 | 69.0% | 4.28t | 4.047 | +0.000 |
 
-**Finding:** Signal recency matters: max_age=1 bars is optimal (Sharpe 4.047).
+**Finding:** Signal recency has no measurable impact — all signals fire on the current entry bar. Recency filter not recommended.
 
 ## 4. Category Diversity Filter
 
