@@ -229,6 +229,8 @@ namespace NinjaTrader.Tests.Backtest
                 TrailingTightenAtTicks = 25,
                 VolSurgeVetoEnabled    = false,
                 SlowGrindVetoEnabled   = false,
+                ScaleOutEnabled        = false,
+                BreakevenEnabled       = false,
             };
 
             var runner = new BacktestRunner();
@@ -277,6 +279,8 @@ namespace NinjaTrader.Tests.Backtest
                 TrailingTightenMult    = 1.0,
                 VolSurgeVetoEnabled    = false,
                 SlowGrindVetoEnabled   = false,
+                ScaleOutEnabled        = false,
+                BreakevenEnabled       = false,
             };
 
             var runner = new BacktestRunner();
@@ -314,6 +318,8 @@ namespace NinjaTrader.Tests.Backtest
                 TrailingStopEnabled    = false,  // disabled
                 VolSurgeVetoEnabled    = false,
                 SlowGrindVetoEnabled   = false,
+                ScaleOutEnabled        = false,
+                BreakevenEnabled       = false,
             };
 
             var runner = new BacktestRunner();
@@ -352,9 +358,11 @@ namespace NinjaTrader.Tests.Backtest
                 MaxBarsInTrade      = 10,
                 TickSize            = 0.25,
                 TickValue           = 5.0,
-                VolSurgeVetoEnabled = true,
+                VolSurgeVetoEnabled  = true,
                 SlowGrindVetoEnabled = false,
-                TrailingStopEnabled = false,
+                TrailingStopEnabled  = false,
+                ScaleOutEnabled      = false,
+                BreakevenEnabled     = false,
             };
 
             var runner = new BacktestRunner();
@@ -388,6 +396,8 @@ namespace NinjaTrader.Tests.Backtest
                 VolSurgeVetoEnabled  = false,  // disabled
                 SlowGrindVetoEnabled = false,
                 TrailingStopEnabled  = false,
+                ScaleOutEnabled      = false,
+                BreakevenEnabled     = false,
             };
 
             var runner = new BacktestRunner();
@@ -427,6 +437,8 @@ namespace NinjaTrader.Tests.Backtest
                 VolSurgeVetoEnabled  = true,
                 SlowGrindVetoEnabled = false,
                 TrailingStopEnabled  = false,
+                ScaleOutEnabled      = false,
+                BreakevenEnabled     = false,
             };
 
             var runner = new BacktestRunner();
@@ -560,6 +572,8 @@ namespace NinjaTrader.Tests.Backtest
                 VolSurgeVetoEnabled    = true,
                 SlowGrindVetoEnabled   = true,
                 SlowGrindAtrRatio      = 0.5,
+                ScaleOutEnabled        = false,
+                BreakevenEnabled       = false,
             };
 
             var runner = new BacktestRunner();
@@ -594,6 +608,8 @@ namespace NinjaTrader.Tests.Backtest
                 VolSurgeVetoEnabled  = true,
                 SlowGrindVetoEnabled = false,
                 TrailingStopEnabled  = false,
+                ScaleOutEnabled      = false,
+                BreakevenEnabled     = false,
             };
             var configVetoOff = new BacktestConfig
             {
@@ -604,6 +620,8 @@ namespace NinjaTrader.Tests.Backtest
                 VolSurgeVetoEnabled  = false,
                 SlowGrindVetoEnabled = false,
                 TrailingStopEnabled  = false,
+                ScaleOutEnabled      = false,
+                BreakevenEnabled     = false,
             };
 
             var runner = new BacktestRunner();

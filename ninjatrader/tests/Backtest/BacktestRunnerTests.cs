@@ -104,6 +104,10 @@ namespace NinjaTrader.Tests.Backtest
             TickValue           = 5.0,
             InitialCapital      = 50000.0,
             ContractsPerTrade   = 1,
+            // Disable R1 features for existing single-trade tests
+            ScaleOutEnabled     = false,
+            BreakevenEnabled    = false,
+            TrailingStopEnabled = false,
         };
 
         // ------------------------------------------------------------------
@@ -347,7 +351,7 @@ namespace NinjaTrader.Tests.Backtest
             foreach (var t in result.Trades)
             {
                 Assert.IsNotEmpty(t.ExitReason, "Trade ExitReason should not be empty.");
-                StringAssert.IsMatch("OPPOSING_SIGNAL|STOP_LOSS|TARGET|MAX_BARS|SESSION_END",
+                StringAssert.IsMatch("OPPOSING_SIGNAL|STOP_LOSS|TARGET|MAX_BARS|SESSION_END|TRAIL|SCALE_OUT_PARTIAL|SCALE_OUT_FINAL",
                     t.ExitReason, $"Unexpected ExitReason: {t.ExitReason}");
             }
         }

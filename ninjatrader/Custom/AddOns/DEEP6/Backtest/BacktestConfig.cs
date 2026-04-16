@@ -44,10 +44,33 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Backtest
         /// <summary>Number of contracts per trade.</summary>
         public int ContractsPerTrade = 1;
 
+        // ---- R1: Breakeven stop ----
+
+        /// <summary>Enable breakeven stop. When MFE reaches BreakevenActivationTicks, stop moves to entry + BreakevenOffsetTicks.</summary>
+        public bool BreakevenEnabled = true;
+
+        /// <summary>MFE (in ticks) at which the stop is moved to breakeven. Default 10.</summary>
+        public int BreakevenActivationTicks = 10;
+
+        /// <summary>Offset in ticks above entry to place the breakeven stop (absorbs 1-tick slippage). Default 2.</summary>
+        public int BreakevenOffsetTicks = 2;
+
+        // ---- R1: Scale-out (partial exit) ----
+
+        /// <summary>Enable scale-out: exit ScaleOutPercent of position at ScaleOutTargetTicks; hold remainder to TargetTicks.</summary>
+        public bool ScaleOutEnabled = true;
+
+        /// <summary>Fraction of position to exit at T1 partial target. Default 0.5 (50%).</summary>
+        public double ScaleOutPercent = 0.5;
+
+        /// <summary>First target in ticks for the partial exit. Default 16.</summary>
+        public int ScaleOutTargetTicks = 16;
+
         // ---- P0-2: ATR-trailing stop ----
 
-        /// <summary>Enable ATR-trailing stop. When true, a trailing stop activates once MFE reaches TrailingActivationTicks.</summary>
-        public bool TrailingStopEnabled = true;
+        /// <summary>Enable ATR-trailing stop. When true, a trailing stop activates once MFE reaches TrailingActivationTicks.
+        /// R1 default: false (trailing hurts per meta-optimizer — trailing_stop=False mean_sharpe=35.382 vs True=23.339).</summary>
+        public bool TrailingStopEnabled = false;
 
         /// <summary>Activate trailing stop when MFE (max favorable excursion) reaches this many ticks.</summary>
         public int TrailingActivationTicks = 15;

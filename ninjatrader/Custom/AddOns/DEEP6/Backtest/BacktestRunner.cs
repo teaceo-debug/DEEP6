@@ -56,6 +56,13 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Backtest
             double trailStop      = 0.0;   // current trailing stop price (0 = not yet active)
             bool   trailActive    = false;
 
+            // R1: Breakeven state
+            bool   breakevenArmed = false;  // true once MFE >= BreakevenActivationTicks
+            double stopPrice      = 0.0;    // current effective stop (entry-based or breakeven)
+
+            // R1: Scale-out state
+            bool   scaleOutDone   = false;  // true once the T1 partial exit has fired
+
             // P0-3: VOLP-03 session-level regime flag — reset at session start
             bool volSurgeFiredThisSession = false;
 
@@ -117,12 +124,25 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Backtest
                         mfe = currentMfe;
 
                     // -----------------------------------------------------------------
+                    // R1: Breakeven stop — arm once MFE >= BreakevenActivationTicks
+                    // Move stop to entry + BreakevenOffsetTicks (ratchet only — never move back)
+                    // -----------------------------------------------------------------
+                    if (config.BreakevenEnabled && !breakevenArmed && mfe >= config.BreakevenActivationTicks)
+                    {
+                        breakevenArmed = true;
+                        double beStop = entryPrice + tradeDir * config.BreakevenOffsetTicks * config.TickSize;
+                        // Only tighten (never loosen) the stop
+                        if (tradeDir == +1 && beStop > stopPrice)
+                            stopPrice = beStop;
+                        else if (tradeDir == -1 && beStop < stopPrice)
+                            stopPrice = beStop;
+                    }
+
+                    // -----------------------------------------------------------------
                     // P0-2: Update trailing stop if enabled and ATR is available
                     // -----------------------------------------------------------------
                     if (config.TrailingStopEnabled && barAtr > 0.0)
                     {
-                        double atrTicks = barAtr / config.TickSize;
-
                         if (mfe >= config.TrailingTightenAtTicks)
                         {
                             // Tightened trail: 1.0 × ATR behind current high-water mark
@@ -152,22 +172,52 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Backtest
                     // -----------------------------------------------------------------
                     string exitReason = null;
 
-                    // 1. Stop loss
+                    // 1. Hard stop loss (original entry-based stop)
                     if (tradeDir == +1 && rec.BarClose <= entryPrice - (config.StopLossTicks * config.TickSize))
                         exitReason = "STOP_LOSS";
                     else if (tradeDir == -1 && rec.BarClose >= entryPrice + (config.StopLossTicks * config.TickSize))
                         exitReason = "STOP_LOSS";
 
-                    // 2. Target
+                    // 1b. Breakeven stop (checked after hard stop — only active once armed)
+                    if (exitReason == null && breakevenArmed)
+                    {
+                        if (tradeDir == +1 && rec.BarClose <= stopPrice)
+                            exitReason = "STOP_LOSS";
+                        else if (tradeDir == -1 && rec.BarClose >= stopPrice)
+                            exitReason = "STOP_LOSS";
+                    }
+
+                    // 2. R1: Scale-out partial exit at T1 (ScaleOutTargetTicks)
+                    if (exitReason == null && config.ScaleOutEnabled && !scaleOutDone)
+                    {
+                        if (tradeDir == +1 && rec.BarClose >= entryPrice + (config.ScaleOutTargetTicks * config.TickSize))
+                        {
+                            // Emit partial exit record (ScaleOutPercent of position)
+                            AddTrade(result, config, entryBarIdx, rec.BarIdx, entryPrice, rec.BarClose,
+                                tradeDir, "SCALE_OUT_PARTIAL", tradeSignalId, tradeTier, tradeScore,
+                                tradeNarrative, tradeCats, config.ScaleOutPercent);
+                            scaleOutDone = true;
+                            // Continue in trade with remaining position — do NOT set exitReason
+                        }
+                        else if (tradeDir == -1 && rec.BarClose <= entryPrice - (config.ScaleOutTargetTicks * config.TickSize))
+                        {
+                            AddTrade(result, config, entryBarIdx, rec.BarIdx, entryPrice, rec.BarClose,
+                                tradeDir, "SCALE_OUT_PARTIAL", tradeSignalId, tradeTier, tradeScore,
+                                tradeNarrative, tradeCats, config.ScaleOutPercent);
+                            scaleOutDone = true;
+                        }
+                    }
+
+                    // 3. Final target (TargetTicks) — applies to remaining position
                     if (exitReason == null)
                     {
                         if (tradeDir == +1 && rec.BarClose >= entryPrice + (config.TargetTicks * config.TickSize))
-                            exitReason = "TARGET";
+                            exitReason = scaleOutDone ? "SCALE_OUT_FINAL" : "TARGET";
                         else if (tradeDir == -1 && rec.BarClose <= entryPrice - (config.TargetTicks * config.TickSize))
-                            exitReason = "TARGET";
+                            exitReason = scaleOutDone ? "SCALE_OUT_FINAL" : "TARGET";
                     }
 
-                    // 3. P0-2: Trailing stop (ADDITIVE — checked after hard stop and target)
+                    // 4. P0-2: Trailing stop (ADDITIVE — checked after hard stop and target)
                     if (exitReason == null && trailActive)
                     {
                         if (tradeDir == +1 && rec.BarClose <= trailStop)
@@ -176,7 +226,7 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Backtest
                             exitReason = "TRAIL";
                     }
 
-                    // 4. Opposing signal
+                    // 5. Opposing signal
                     if (exitReason == null
                         && scored.Direction != 0
                         && scored.Direction != tradeDir
@@ -185,18 +235,26 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Backtest
                         exitReason = "OPPOSING_SIGNAL";
                     }
 
-                    // 5. Max bars
+                    // 6. Max bars
                     if (exitReason == null && (rec.BarIdx - entryBarIdx) >= config.MaxBarsInTrade)
                         exitReason = "MAX_BARS";
 
                     if (exitReason != null)
                     {
+                        // Remaining position fraction: if scale-out fired, only (1 - ScaleOutPercent) remains
+                        double remainFrac = (config.ScaleOutEnabled && scaleOutDone)
+                            ? (1.0 - config.ScaleOutPercent)
+                            : 1.0;
                         AddTrade(result, config, entryBarIdx, rec.BarIdx, entryPrice, rec.BarClose,
-                            tradeDir, exitReason, tradeSignalId, tradeTier, tradeScore, tradeNarrative, tradeCats);
-                        inTrade     = false;
-                        mfe         = 0.0;
-                        trailStop   = 0.0;
-                        trailActive = false;
+                            tradeDir, exitReason, tradeSignalId, tradeTier, tradeScore, tradeNarrative,
+                            tradeCats, remainFrac);
+                        inTrade        = false;
+                        mfe            = 0.0;
+                        trailStop      = 0.0;
+                        trailActive    = false;
+                        breakevenArmed = false;
+                        stopPrice      = 0.0;
+                        scaleOutDone   = false;
                     }
                 }
                 else
@@ -230,6 +288,12 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Backtest
                         mfe           = 0.0;
                         trailStop     = 0.0;
                         trailActive   = false;
+                        // R1: Initialise stop to entry-based hard stop price
+                        stopPrice = tradeDir == +1
+                            ? entryPrice - config.StopLossTicks * config.TickSize
+                            : entryPrice + config.StopLossTicks * config.TickSize;
+                        breakevenArmed = false;
+                        scaleOutDone   = false;
                     }
                 }
             }
@@ -237,8 +301,12 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Backtest
             // Session-end force-exit
             if (inTrade && lastRecord != null)
             {
+                double remainFrac = (config.ScaleOutEnabled && scaleOutDone)
+                    ? (1.0 - config.ScaleOutPercent)
+                    : 1.0;
                 AddTrade(result, config, entryBarIdx, lastRecord.BarIdx, entryPrice, lastRecord.BarClose,
-                    tradeDir, "SESSION_END", tradeSignalId, tradeTier, tradeScore, tradeNarrative, tradeCats);
+                    tradeDir, "SESSION_END", tradeSignalId, tradeTier, tradeScore, tradeNarrative,
+                    tradeCats, remainFrac);
             }
         }
 
@@ -255,13 +323,15 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Backtest
             SignalTier tier,
             double score,
             string narrative,
-            string[] cats)
+            string[] cats,
+            double positionFraction = 1.0)
         {
             // Exit slippage is adverse (against us): longs exit lower, shorts exit higher
             double exitPrice = exitBarClose + (direction * config.SlippageTicks * config.TickSize * -1.0);
 
             double pnlTicks   = (exitPrice - entryPrice) / config.TickSize * direction;
-            double pnlDollars = pnlTicks * config.TickValue * config.ContractsPerTrade;
+            // Scale P&L by position fraction (e.g. 0.5 for scale-out partial)
+            double pnlDollars = pnlTicks * config.TickValue * config.ContractsPerTrade * positionFraction;
             int    duration   = System.Math.Max(exitBarIdx - entryBarIdx, 1);
 
             result.Trades.Add(new Trade
