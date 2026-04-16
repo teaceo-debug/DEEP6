@@ -99,15 +99,15 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
 
             // top 8 absolute GEX nodes as major positive / major negative
             var nodes = sorted
-                .OrderByDescending(kv => Math.Abs(kv.Value))
+                .OrderByDescending(kv => System.Math.Abs(kv.Value))
                 .Take(8)
                 .ToList();
             foreach (var kv in nodes)
             {
                 GexLevelKind kind;
-                if (Math.Abs(kv.Key - flip) < 1e-6) kind = GexLevelKind.GammaFlip;
-                else if (Math.Abs(kv.Key - callWallStrike) < 1e-6) kind = GexLevelKind.CallWall;
-                else if (Math.Abs(kv.Key - putWallStrike) < 1e-6) kind = GexLevelKind.PutWall;
+                if (System.Math.Abs(kv.Key - flip) < 1e-6) kind = GexLevelKind.GammaFlip;
+                else if (System.Math.Abs(kv.Key - callWallStrike) < 1e-6) kind = GexLevelKind.CallWall;
+                else if (System.Math.Abs(kv.Key - putWallStrike) < 1e-6) kind = GexLevelKind.PutWall;
                 else if (kv.Value > 0) kind = GexLevelKind.MajorPositive;
                 else kind = GexLevelKind.MajorNegative;
 

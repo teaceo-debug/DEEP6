@@ -88,7 +88,7 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
         /// <summary>
         /// Write a completed bar event. Call from indicator OnBarUpdate at bar close.
         /// </summary>
-        public void WriteBar(Registry.FootprintBar bar)
+        public void WriteBar(FootprintBar bar)
         {
             if (bar == null) return;
             long tsMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();

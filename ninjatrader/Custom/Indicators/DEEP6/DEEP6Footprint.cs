@@ -48,6 +48,7 @@ using SolidColorBrush = System.Windows.Media.SolidColorBrush;
 
 namespace NinjaTrader.NinjaScript.AddOns.DEEP6
 {
+#if !NINJASCRIPT_SIM  // These types are defined in Registry/*.cs; exclude when compiling via simulator to avoid duplicates.
 
     // ─── from FootprintBar.cs ───
     public sealed class Cell
@@ -163,6 +164,7 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
             return 0.7 + (ratio - 0.35) * (1.15 - 0.7) / (0.95 - 0.35);
         }
     }
+#endif // !NINJASCRIPT_SIM (Cell + FootprintBar duplicates)
 
     // ─── from AbsorptionDetector.cs ───
     public enum AbsorptionType
@@ -221,8 +223,8 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
             if (bar == null || bar.Levels.Count == 0 || bar.TotalVol == 0 || bar.BarRange <= 0)
                 return sigs;
 
-            double bodyTop = Math.Max(bar.Open, bar.Close);
-            double bodyBot = Math.Min(bar.Open, bar.Close);
+            double bodyTop = System.Math.Max(bar.Open, bar.Close);
+            double bodyBot = System.Math.Min(bar.Open, bar.Close);
 
             long upperVol = 0, lowerVol = 0, bodyVol = 0;
             long upperDelta = 0, lowerDelta = 0;
@@ -239,7 +241,7 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
             double effWickMin = cfg.AbsorbWickMin * (bar.BarRange > atr * 1.5 ? 1.2 : 1.0);
             double barDeltaRatio = bar.TotalVol == 0
                 ? 0.0
-                : Math.Abs((double)bar.BarDelta) / bar.TotalVol;
+                : System.Math.Abs((double)bar.BarDelta) / bar.TotalVol;
 
             // ABS-01 CLASSIC
             TryClassic(upperVol, upperDelta, bar.TotalVol, effWickMin, cfg.AbsorbDeltaMax,
@@ -259,7 +261,7 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
             if (upperZoneVol / (double)bar.TotalVol >= cfg.PassiveVolPct &&
                 bar.Close < bar.High - extremeRange)
             {
-                double strength = Math.Min(upperZoneVol / (double)bar.TotalVol, 1.0);
+                double strength = System.Math.Min(upperZoneVol / (double)bar.TotalVol, 1.0);
                 sigs.Add(new AbsorptionSignal
                 {
                     Kind = AbsorptionType.Passive,
@@ -275,7 +277,7 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
             if (lowerZoneVol / (double)bar.TotalVol >= cfg.PassiveVolPct &&
                 bar.Close > bar.Low + extremeRange)
             {
-                double strength = Math.Min(lowerZoneVol / (double)bar.TotalVol, 1.0);
+                double strength = System.Math.Min(lowerZoneVol / (double)bar.TotalVol, 1.0);
                 sigs.Add(new AbsorptionSignal
                 {
                     Kind = AbsorptionType.Passive,
@@ -292,7 +294,7 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
             // ABS-03 STOPPING VOLUME
             if (volEma > 0 && bar.TotalVol > volEma * cfg.StopVolMult)
             {
-                double strength = Math.Min(bar.TotalVol / (volEma * cfg.StopVolMult * 2.0), 1.0);
+                double strength = System.Math.Min(bar.TotalVol / (volEma * cfg.StopVolMult * 2.0), 1.0);
                 if (bar.PocPrice > bodyTop)
                 {
                     sigs.Add(new AbsorptionSignal
@@ -325,10 +327,10 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
                 bar.BarRange < atr * cfg.EvrRangeCap)
             {
                 int dir = bar.BarDelta < 0 ? +1 : -1;
-                double strength = Math.Min(bar.TotalVol / (volEma * cfg.EvrVolMult * 2.0), 1.0);
+                double strength = System.Math.Min(bar.TotalVol / (volEma * cfg.EvrVolMult * 2.0), 1.0);
                 double deltaRatio = bar.TotalVol == 0
                     ? 0
-                    : Math.Abs((double)bar.BarDelta) / bar.TotalVol;
+                    : System.Math.Abs((double)bar.BarDelta) / bar.TotalVol;
                 sigs.Add(new AbsorptionSignal
                 {
                     Kind = AbsorptionType.EffortVsResult,
@@ -346,12 +348,12 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
             for (int i = 0; i < sigs.Count; i++)
             {
                 var s = sigs[i];
-                bool atVah = vah.HasValue && Math.Abs(s.Price - vah.Value) <= prox;
-                bool atVal = val.HasValue && Math.Abs(s.Price - val.Value) <= prox;
+                bool atVah = vah.HasValue && System.Math.Abs(s.Price - vah.Value) <= prox;
+                bool atVal = val.HasValue && System.Math.Abs(s.Price - val.Value) <= prox;
                 if (atVah || atVal)
                 {
                     s.AtVaExtreme = true;
-                    s.Strength = Math.Min(s.Strength + cfg.VaExtremeStrengthBonus, 1.0);
+                    s.Strength = System.Math.Min(s.Strength + cfg.VaExtremeStrengthBonus, 1.0);
                     s.Detail = s.Detail + (atVah ? " @VAH" : " @VAL");
                 }
             }
@@ -367,12 +369,12 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
         {
             if (wickVol == 0 || totalVol == 0) return;
             double wickPct = wickVol * 100.0 / totalVol;
-            double deltaRatio = Math.Abs((double)wickDelta) / wickVol;
+            double deltaRatio = System.Math.Abs((double)wickDelta) / wickVol;
             if (wickPct >= effWickMin &&
                 deltaRatio < deltaMax &&
                 barDeltaRatio < deltaMax * 1.5)
             {
-                double strength = Math.Min(wickPct / 60.0, 1.0) *
+                double strength = System.Math.Min(wickPct / 60.0, 1.0) *
                                   (1.0 - deltaRatio / deltaMax);
                 if (strength < 0) strength = 0;
                 sigs.Add(new AbsorptionSignal
@@ -447,7 +449,7 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
         {
             if (!cfg.DeltaGateEnabled) return true;
             if (bar.TotalVol == 0) return true;
-            double r = Math.Abs((double)bar.BarDelta) / bar.TotalVol;
+            double r = System.Math.Abs((double)bar.BarDelta) / bar.TotalVol;
             if (r < cfg.DeltaGateMinRatio) return true;
             if (bar.Close > bar.Open) return bar.BarDelta < 0;
             if (bar.Close < bar.Open) return bar.BarDelta > 0;
@@ -478,8 +480,8 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
             // EXH-01 ZERO PRINT — gate exempt
             if (CheckCooldown(ExhaustionType.ZeroPrint, barIndex, cfg.CooldownBars))
             {
-                double bodyTop = Math.Max(bar.Open, bar.Close);
-                double bodyBot = Math.Min(bar.Open, bar.Close);
+                double bodyTop = System.Math.Max(bar.Open, bar.Close);
+                double bodyBot = System.Math.Min(bar.Open, bar.Close);
                 foreach (var tick in sortedTicks)
                 {
                     var lv = bar.Levels[tick];
@@ -516,7 +518,7 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
                     double pct = highLv.AskVol * 100.0 / bar.TotalVol;
                     if (pct >= eachLevelThreshold)
                     {
-                        double strength = Math.Min(pct / 20.0, 1.0);
+                        double strength = System.Math.Min(pct / 20.0, 1.0);
                         sigs.Add(new ExhaustionSignal
                         {
                             Kind = ExhaustionType.ExhaustionPrint,
@@ -538,7 +540,7 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
                         double pct = lowLv.BidVol * 100.0 / bar.TotalVol;
                         if (pct >= eachLevelThreshold)
                         {
-                            double strength = Math.Min(pct / 20.0, 1.0);
+                            double strength = System.Math.Min(pct / 20.0, 1.0);
                             sigs.Add(new ExhaustionSignal
                             {
                                 Kind = ExhaustionType.ExhaustionPrint,
@@ -556,8 +558,8 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
             // EXH-03 THIN PRINT — fast move through body
             if (CheckCooldown(ExhaustionType.ThinPrint, barIndex, cfg.CooldownBars))
             {
-                double bodyTop = Math.Max(bar.Open, bar.Close);
-                double bodyBot = Math.Min(bar.Open, bar.Close);
+                double bodyTop = System.Math.Max(bar.Open, bar.Close);
+                double bodyBot = System.Math.Min(bar.Open, bar.Close);
                 int thinCount = 0;
                 foreach (var tick in sortedTicks)
                 {
@@ -569,7 +571,7 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
                 if (thinCount >= 3)
                 {
                     int dir = bar.Close > bar.Open ? +1 : -1;
-                    double strength = Math.Min(thinCount / 7.0, 1.0);
+                    double strength = System.Math.Min(thinCount / 7.0, 1.0);
                     sigs.Add(new ExhaustionSignal
                     {
                         Kind = ExhaustionType.ThinPrint,
@@ -598,7 +600,7 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
                 }
                 if (fattestVol > 0)
                 {
-                    double strength = Math.Min(fattestVol / (avgLevelVol * cfg.FatMult * 2.0), 1.0);
+                    double strength = System.Math.Min(fattestVol / (avgLevelVol * cfg.FatMult * 2.0), 1.0);
                     sigs.Add(new ExhaustionSignal
                     {
                         Kind = ExhaustionType.FatPrint,
@@ -614,11 +616,11 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
             // EXH-05 FADING MOMENTUM — delta diverges from price direction
             if (CheckCooldown(ExhaustionType.FadingMomentum, barIndex, cfg.CooldownBars))
             {
-                if (bar.BarRange > 0 && Math.Abs((double)bar.BarDelta) > bar.TotalVol * 0.15)
+                if (bar.BarRange > 0 && System.Math.Abs((double)bar.BarDelta) > bar.TotalVol * 0.15)
                 {
                     bool bullish = bar.Close > bar.Open;
                     int dir = bullish ? -1 : +1;
-                    double strength = Math.Min(Math.Abs((double)bar.BarDelta) / bar.TotalVol, 1.0);
+                    double strength = System.Math.Min(System.Math.Abs((double)bar.BarDelta) / bar.TotalVol, 1.0);
                     sigs.Add(new ExhaustionSignal
                     {
                         Kind = ExhaustionType.FadingMomentum,

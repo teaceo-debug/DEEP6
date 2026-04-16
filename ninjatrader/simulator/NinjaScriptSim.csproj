@@ -1,0 +1,64 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RollForward>Major</RollForward>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>NinjaScriptSim</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <!-- Suppress warnings common in NinjaScript code compiled against stubs -->
+    <NoWarn>CS0108;CS0414;CS0612;CS0618;CS0114;CS0672</NoWarn>
+    <!-- NINJASCRIPT_SIM: preprocessor symbol that NinjaScript source files can use
+         to exclude NT8-only code paths (duplicate types, volatile double, etc.) -->
+    <DefineConstants>NINJASCRIPT_SIM</DefineConstants>
+  </PropertyGroup>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       Layer 1: NT8 Stub Assembly — mock implementations of NinjaTrader APIs
+       These provide enough API surface for NinjaScript code to COMPILE
+       on macOS without NT8 installed.
+       ═══════════════════════════════════════════════════════════════════ -->
+  <ItemGroup>
+    <Compile Include="NinjaTrader.Stubs/**/*.cs" />
+  </ItemGroup>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       Layer 2: Lifecycle Simulator + CLI
+       ═══════════════════════════════════════════════════════════════════ -->
+  <ItemGroup>
+    <Compile Include="Lifecycle/**/*.cs" />
+    <Compile Include="Cli/**/*.cs" />
+  </ItemGroup>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       DEEP6 NinjaScript Source Files — the actual indicator, strategy,
+       and AddOns code that we're validating.
+       ═══════════════════════════════════════════════════════════════════ -->
+  <ItemGroup>
+    <!-- AddOns (BCL-only detectors, registry, scoring, math, levels) -->
+    <Compile Include="..\Custom\AddOns\DEEP6\Registry\**\*.cs" />
+    <Compile Include="..\Custom\AddOns\DEEP6\Levels\**\*.cs" />
+    <Compile Include="..\Custom\AddOns\DEEP6\Math\**\*.cs" />
+    <Compile Include="..\Custom\AddOns\DEEP6\Detectors\**\*.cs" />
+    <Compile Include="..\Custom\AddOns\DEEP6\Scoring\*.cs" />
+
+    <!-- Indicators — requires NT8 stubs to compile -->
+    <Compile Include="..\Custom\Indicators\DEEP6\DEEP6Footprint.cs" />
+    <Compile Include="..\Custom\Indicators\DEEP6\DEEP6GexLevels.cs" />
+    <Compile Include="..\Custom\Indicators\DEEP6\CaptureHarness.cs" />
+
+    <!-- Strategies — requires NT8 stubs to compile -->
+    <Compile Include="..\Custom\Strategies\DEEP6\DEEP6Strategy.cs" />
+  </ItemGroup>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       Test fixtures (for lifecycle replay)
+       ═══════════════════════════════════════════════════════════════════ -->
+  <ItemGroup>
+    <None Update="..\tests\fixtures\**\*.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="..\tests\fixtures\**\*.ndjson" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
