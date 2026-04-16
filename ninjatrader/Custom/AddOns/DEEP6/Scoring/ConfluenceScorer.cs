@@ -522,9 +522,10 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Scoring
             }
             if (detail != null)
             {
-                if (detail.IndexOf("STACKED_T3", System.StringComparison.OrdinalIgnoreCase) >= 0) return 3;
-                if (detail.IndexOf("STACKED_T2", System.StringComparison.OrdinalIgnoreCase) >= 0) return 2;
-                if (detail.IndexOf("STACKED_T1", System.StringComparison.OrdinalIgnoreCase) >= 0) return 1;
+                // ImbalanceDetector emits: "STACKED BUY x3 (T3) at 19500.00" — match (T3)/(T2)/(T1)
+                if (detail.IndexOf("(T3)", System.StringComparison.OrdinalIgnoreCase) >= 0) return 3;
+                if (detail.IndexOf("(T2)", System.StringComparison.OrdinalIgnoreCase) >= 0) return 2;
+                if (detail.IndexOf("(T1)", System.StringComparison.OrdinalIgnoreCase) >= 0) return 1;
             }
             return 0;
         }
