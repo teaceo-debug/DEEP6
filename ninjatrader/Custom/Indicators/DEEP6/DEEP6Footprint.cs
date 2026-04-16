@@ -1070,6 +1070,16 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                 _scorerSession.PriorBar     = _priorFinalized;  // now points to prev after the assignment above
                 _scorerSession.BarsSinceOpen = prevIdx;         // bar index as session-bar counter
 
+                // Task 4: Accumulate SessionAvgAtr each bar for slow-grind veto.
+                // Running average: SessionAvgAtr = (sum of Atr20 values) / SessionAtrSamples.
+                // Reset at session boundary via _scorerSession.ResetSession() (SessionAvgAtr=0, SessionAtrSamples=0).
+                if (_atr > 0.0)
+                {
+                    _scorerSession.SessionAtrSamples++;
+                    _scorerSession.SessionAvgAtr = _scorerSession.SessionAvgAtr
+                        + (_atr - _scorerSession.SessionAvgAtr) / _scorerSession.SessionAtrSamples;
+                }
+
                 var signals = _scorerRegistry.EvaluateBar(prev, _scorerSession);
                 _scorerSession.PriorBar = prev;  // advance for next bar
 
@@ -1090,8 +1100,14 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                     gexNearWallBonus: 0.0,
                     vpinModifier:     1.0);
 
+                // Task 4: Attach raw signal array to scored result so DEEP6Strategy can access it
+                // for strict directional agreement filter and VOLP-03 observation without a separate
+                // shared-state slot. Null-safe: strategy EvaluateWithContext handles null signals.
+                scored.Signals = signals;
+
                 _lastScorerResult = scored;
-                ScorerSharedState.Publish(Instrument.FullName, CurrentBar, scored);
+                // Task 4: Publish with session average ATR so DEEP6Strategy slow-grind veto works.
+                ScorerSharedState.Publish(Instrument.FullName, CurrentBar, scored, _scorerSession.SessionAvgAtr);
 
                 // Draw tier marker for this bar (uses barsAgo=1 since prevIdx just closed).
                 DrawScorerTierMarker(prevIdx, scored);
