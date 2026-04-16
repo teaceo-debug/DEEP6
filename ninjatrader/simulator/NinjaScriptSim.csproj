@@ -31,6 +31,7 @@
     <Compile Include="Lifecycle/**/*.cs" />
     <Compile Include="Adapters/**/*.cs" />
     <Compile Include="Analytics/**/*.cs" />
+    <Compile Include="Chart/**/*.cs" />
     <Compile Include="Cli/**/*.cs" />
   </ItemGroup>
 

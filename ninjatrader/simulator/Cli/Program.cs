@@ -49,6 +49,9 @@ namespace NinjaScriptSim.Cli
                 "walkforward" => RunWalkForward(rest),
                 "montecarlo" => RunMonteCarlo(rest),
                 "classify" => RunClassify(rest),
+                "chart" => RunChart(rest),
+                "footprint" => RunFootprint(rest),
+                "serve" => RunServe(rest),
                 "help" or "--help" or "-h" => PrintUsageOk(),
                 _ => PrintUnknownCommand(command),
             };
@@ -803,6 +806,127 @@ namespace NinjaScriptSim.Cli
             return files;
         }
 
+        // ══════════════════════════════════════════════════════════════════
+        //  CHART — standalone HTML candle chart
+        // ══════════════════════════════════════════════════════════════════
+
+        static int RunChart(string[] args)
+        {
+            string outputPath = "chart.html";
+            var files = new List<string>();
+
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i] == "--output" && i + 1 < args.Length) outputPath = args[++i];
+                else if (args[i] == "--dir" && i + 1 < args.Length)
+                    files.AddRange(Directory.GetFiles(args[++i], "*.ndjson").OrderBy(f => f));
+                else if (File.Exists(args[i])) files.Add(args[i]);
+            }
+
+            if (files.Count == 0) { Console.WriteLine("Usage: chart <session.ndjson> [--output chart.html]"); return 1; }
+
+            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Console.WriteLine(" NinjaScript Simulator — Chart Export");
+            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Console.WriteLine();
+
+            var session = NdjsonSessionLoader.LoadMultiple(files.ToArray());
+            var runner = new NinjaScriptRunner();
+            runner.LoadBars(session.Bars);
+            runner.LoadDepthUpdates(session.DepthUpdates);
+            var script = runner.Run<NinjaTrader.NinjaScript.Strategies.DEEP6.DEEP6Strategy>();
+
+            ChartExporter.ExportCandleChart(session, script.PrintLog, outputPath);
+            Console.WriteLine($"  Chart exported: {outputPath}");
+            Console.WriteLine($"  Bars: {session.Bars.Count} | Signals: {script.PrintLog.Count(l => l.Contains("[DEEP6 Registry]"))} | Entries: {script.PrintLog.Count(l => l.Contains("entry"))}");
+            Console.WriteLine($"  Open with: open {outputPath}");
+            return 0;
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        //  FOOTPRINT — standalone HTML footprint chart (full cells)
+        // ══════════════════════════════════════════════════════════════════
+
+        static int RunFootprint(string[] args)
+        {
+            string outputPath = "footprint.html";
+            var files = new List<string>();
+
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i] == "--output" && i + 1 < args.Length) outputPath = args[++i];
+                else if (args[i] == "--dir" && i + 1 < args.Length)
+                    files.AddRange(Directory.GetFiles(args[++i], "*.ndjson").OrderBy(f => f));
+                else if (File.Exists(args[i])) files.Add(args[i]);
+            }
+
+            if (files.Count == 0) { Console.WriteLine("Usage: footprint <session.ndjson> [--output footprint.html]"); return 1; }
+
+            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Console.WriteLine(" NinjaScript Simulator — Footprint Chart Export");
+            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Console.WriteLine();
+
+            var session = NdjsonSessionLoader.LoadMultiple(files.ToArray());
+            var runner = new NinjaScriptRunner();
+            runner.LoadBars(session.Bars);
+            runner.LoadDepthUpdates(session.DepthUpdates);
+            var script = runner.Run<NinjaTrader.NinjaScript.Strategies.DEEP6.DEEP6Strategy>();
+
+            ChartExporter.ExportFootprintChart(session, script.PrintLog, outputPath);
+            Console.WriteLine($"  Footprint exported: {outputPath}");
+            Console.WriteLine($"  Bars: {session.Bars.Count} | Levels rendered per bar | Signals overlaid");
+            Console.WriteLine($"  Open with: open {outputPath}");
+            return 0;
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        //  SERVE — JSON server for Next.js dashboard
+        // ══════════════════════════════════════════════════════════════════
+
+        static int RunServe(string[] args)
+        {
+            int port = 8080;
+            var files = new List<string>();
+
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i] == "--port" && i + 1 < args.Length) int.TryParse(args[++i], out port);
+                else if (args[i] == "--dir" && i + 1 < args.Length)
+                    files.AddRange(Directory.GetFiles(args[++i], "*.ndjson").OrderBy(f => f));
+                else if (File.Exists(args[i])) files.Add(args[i]);
+            }
+
+            if (files.Count == 0) { Console.WriteLine("Usage: serve <session.ndjson> [--port 8080]"); return 1; }
+
+            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Console.WriteLine(" NinjaScript Simulator — Dashboard Server");
+            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Console.WriteLine();
+
+            var session = NdjsonSessionLoader.LoadMultiple(files.ToArray());
+            var runner = new NinjaScriptRunner();
+            runner.LoadBars(session.Bars);
+            runner.LoadDepthUpdates(session.DepthUpdates);
+            var script = runner.Run<NinjaTrader.NinjaScript.Strategies.DEEP6.DEEP6Strategy>();
+
+            // Export JSON to temp file, then serve
+            string jsonPath = Path.GetTempFileName() + ".json";
+            ChartExporter.ExportDashboardJson(session, script.PrintLog, jsonPath);
+            Console.WriteLine($"  Session: {session.Bars.Count} bars → dashboard JSON");
+
+            try
+            {
+                ChartExporter.StartServer(jsonPath, port);
+            }
+            finally
+            {
+                try { File.Delete(jsonPath); } catch { }
+            }
+
+            return 0;
+        }
+
         static void PrintUsage()
         {
             Console.WriteLine(@"
@@ -828,6 +952,11 @@ ANALYTICS COMMANDS:
   walkforward <files> [--is 200] [--oos 50] Walk-forward overfit detection
   montecarlo <files> [--iterations 10000]   Monte Carlo drawdown distribution
   classify <session1> <session2> ...        Classify sessions by regime/outcome
+
+CHART COMMANDS:
+  chart <session.ndjson> [--output c.html]  Candle chart (Lightweight Charts) + signals + entries
+  footprint <session.ndjson> [--output f.html]  Footprint chart (bid x ask cells, POC, signals, HUD)
+  serve <session.ndjson> [--port 8080]      JSON server for the Next.js dashboard
 
 EXAMPLES:
   # Replay captured sessions:
