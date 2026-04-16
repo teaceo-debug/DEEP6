@@ -87,6 +87,17 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Registry
         /// <summary>Current session POC price — updated from each bar's PocPrice.</summary>
         public double SessionPocPrice;
 
+        // --- P0-5: Session ATR rolling average (slow-grind veto) ---
+        /// <summary>
+        /// Rolling average of Atr20 across all bars in the current session.
+        /// Updated by the indicator each bar after Atr20 is computed.
+        /// Used by slow-grind veto: if Atr20 &lt; SlowGrindAtrRatio × SessionAvgAtr, block entry.
+        /// </summary>
+        public double SessionAvgAtr;
+
+        /// <summary>Number of ATR samples accumulated this session (denominator for SessionAvgAtr).</summary>
+        public int SessionAtrSamples;
+
         // --- Session delta extremes (DELT-09) ---
         /// <summary>Session maximum bar delta seen so far. Updated AFTER detector evaluation each bar.</summary>
         public long SessionMaxDelta;
@@ -195,8 +206,10 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Registry
             SessionPocPrice = 0;
             BestBid         = 0;
             BestAsk         = 0;
-            SessionMaxDelta = 0;
-            SessionMinDelta = 0;
+            SessionMaxDelta    = 0;
+            SessionMinDelta    = 0;
+            SessionAvgAtr      = 0.0;
+            SessionAtrSamples  = 0;
 
             // ENG-02/04 state
             LastTrespassProbability = 0.5;
