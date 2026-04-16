@@ -124,7 +124,34 @@ R1: ~0.8 trades/session. At $500 cap with 4 max stops, 2 losing sessions (8 cons
 
 ## 8. Realistic Execution Replay (50 Sessions)
 
-*No trades generated. Check session files and scoring threshold.*
+**Trades simulated:** 52  
+**Win rate (net of commission):** 94.2%  
+**Total ideal P&L (1t/side slip):** $4,942.53  
+**Total realistic P&L (sampled slip + commission):** $4,908.53  
+**Average slip per trade (entry+exit):** 0.58 ticks  
+
+### By Regime
+
+| Regime | Trades | Win Rate | Net P&L |
+|--------|--------|----------|---------|
+| ranging | 1 | 100.0% | $115.50 |
+| trend_down | 34 | 97.1% | $3,278.24 |
+| trend_up | 17 | 88.2% | $1,514.79 |
+
+### Exit Reason Distribution
+
+| Exit Reason | Count | % |
+|-------------|-------|---|
+| TARGET | 34 | 65.4% |
+| MAX_BARS | 18 | 34.6% |
+
+### Annualized Projection (252 trading days)
+
+| Scenario | Annual P&L | Notes |
+|----------|------------|-------|
+| Idealized (1t/side, no commission) | $24,910 | BacktestRunner baseline |
+| Realistic (sampled slip + commission) | $24,739 | Round 2 execution model |
+| Slippage + commission drag | $171/yr | $0.68/day |
 
 ---
 
@@ -156,6 +183,7 @@ R1: ~0.8 trades/session. At $500 cap with 4 max stops, 2 losing sessions (8 cons
 | Conservative win rate | 65% | Applies real-world filter vs 100% test-set |
 | **Annual net P&L estimate** | **$7,762** | 65% WR, 1 lot, R1 config |
 | Return on account | 15.5% | $50,000 Apex account |
+| Replay-confirmed annual P&L | $24,739 | 50-session replay, scaled to 252 days |
 
 > **Bottom line:** After realistic fills, latency, and commission, DEEP6 R1 projects $7,762/year net on a $50K Apex account (15.5% annual return) at 1 lot, trading ~202 setups/year. The system's high-selectivity (score≥70) is its primary edge preservation mechanism: fewer trades means less commission drag and fewer latency exposures.
 
