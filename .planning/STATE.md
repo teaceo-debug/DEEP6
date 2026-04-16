@@ -93,6 +93,7 @@ Progress: [██████████] 100% of planned milestone phases; Pha
 | 260414-gzv | 2026-04-13 | perf(r5): rAF audit + Zustand scoped selectors + ringBuffer toArray single-pass + animations.ts perf notes | store/ringBuffer.ts, store/tradingStore.ts, lib/animations.ts, store/tradingStore.test.ts |
 | 260413-r8t | 2026-04-13 | feat(11.3-r8): unified chart toolbar — consolidate ChartModeSelector + ChartLegend into single top-left ChartToolbar strip | dashboard/components/footprint/ChartToolbar.tsx, FootprintChart.tsx |
 | 260416-0iy | 2026-04-16 | feat: NinjaScript editor simulator — NT8 stub assembly + lifecycle runner + CLI validator | ninjatrader/simulator/ (20 files, 1781 LOC) |
+| 260416-161 | 2026-04-16 | feat: Databento adapter + NT8 data bridge for NinjaScript simulator | ninjatrader/simulator/Adapters/, Bridge/, DataBridgeIndicator (7 files, 1463 LOC) |
 
 ## Accumulated Context
 
