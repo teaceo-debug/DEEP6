@@ -690,6 +690,7 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         // ---- State ----
         private readonly Dictionary<int, FootprintBar> _bars = new Dictionary<int, FootprintBar>();
         private readonly object _barsLock = new object();
+        private readonly HashSet<int> _finalizedBars = new HashSet<int>();
         private double _bestBid = double.NaN;
         private double _bestAsk = double.NaN;
         private long _priorCvd;
@@ -871,6 +872,7 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             else if (State == State.DataLoaded)
             {
                 lock (_barsLock) { _bars.Clear(); }
+                _finalizedBars.Clear();
                 _exhDetector.ResetCooldowns();
                 _atrWindow.Clear();
                 _volEma = 0.0;
@@ -1009,7 +1011,12 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             prev.High = Bars.GetHigh(prevIdx);
             prev.Low  = Bars.GetLow(prevIdx);
             prev.Close= Bars.GetClose(prevIdx);
-            prev.Finalize(_priorCvd);
+            // Fix 9: guard against double-Finalize on historical replay (bar can re-enter OnBarUpdate).
+            if (!_finalizedBars.Contains(prevIdx))
+            {
+                prev.Finalize(_priorCvd);
+                _finalizedBars.Add(prevIdx);
+            }
             _priorCvd = prev.Cvd;
 
             // Update rolling ATR / vol EMA
@@ -1936,12 +1943,10 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
 
         // --- Phase 18: Scorer HUD ---
 
-        [NinjaScriptProperty]
         [Display(Name = "Show Score HUD", Order = 1, GroupName = "7. DEEP6 Scorer",
                  Description = "Display the 3-line scoring HUD badge (Score / Tier / Narrative) in the top-right corner")]
         public bool ShowScoreHud { get; set; }
 
-        [NinjaScriptProperty]
         [Range(0, 100)]
         [Display(Name = "Score HUD Padding (px)", Order = 2, GroupName = "7. DEEP6 Scorer",
                  Description = "Horizontal padding between the right edge of the chart panel and the HUD badge")]

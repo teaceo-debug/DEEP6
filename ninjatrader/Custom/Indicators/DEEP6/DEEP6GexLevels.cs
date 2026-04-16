@@ -471,7 +471,7 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             if (_gexTimer == null) return;
             try
             {
-                var next = _gexFailCount == 0 ? TimeSpan.FromSeconds(60) : ComputeGexRetryDelay(_gexFailCount);
+                var next = _gexFailCount == 0 ? _gexInterval : ComputeGexRetryDelay(_gexFailCount);
                 _gexTimer.Change(next, System.Threading.Timeout.InfiniteTimeSpan);
             }
             catch (ObjectDisposedException) { /* shutting down */ }
