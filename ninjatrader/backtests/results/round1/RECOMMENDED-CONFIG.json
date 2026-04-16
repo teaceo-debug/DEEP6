@@ -1,0 +1,17 @@
+{
+  "weight_profile": "thesis_heavy",
+  "entry_threshold": 70,
+  "stop_ticks": 20,
+  "target_ticks": 32,
+  "trailing_stop": false,
+  "volp03_veto": false,
+  "slow_grind_veto": false,
+  "source": "walk_forward_validated",
+  "test_sharpe": 432.652,
+  "test_winrate": 1.0,
+  "test_pf": Infinity,
+  "test_net_pnl": 829.04,
+  "test_maxdd": 0.0,
+  "rr_ratio": 1.6,
+  "stability_verdict": "MIXED"
+}

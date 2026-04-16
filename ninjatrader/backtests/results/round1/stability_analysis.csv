@@ -1,0 +1,19 @@
+rank,config_label,param,perturbation,orig_value,perturbed_value,baseline_sharpe,perturbed_sharpe,sharpe_pct_change,fragile
+1,"R1: wp=thesis_heavy, thr=70, sl=20, tp=24, trail=False, v03=False, sg=False",entry_threshold,plus_10pct,70,77.0,67.325,299.735,345.2,True
+1,"R1: wp=thesis_heavy, thr=70, sl=20, tp=24, trail=False, v03=False, sg=False",entry_threshold,minus_10pct,70,63.0,67.325,29.784,-55.8,True
+1,"R1: wp=thesis_heavy, thr=70, sl=20, tp=24, trail=False, v03=False, sg=False",stop_ticks,plus_10pct,20,22.0,67.325,67.325,0.0,False
+1,"R1: wp=thesis_heavy, thr=70, sl=20, tp=24, trail=False, v03=False, sg=False",stop_ticks,minus_10pct,20,18.0,67.325,67.325,0.0,False
+1,"R1: wp=thesis_heavy, thr=70, sl=20, tp=24, trail=False, v03=False, sg=False",target_ticks,plus_10pct,24,26.0,67.325,90.864,35.0,False
+1,"R1: wp=thesis_heavy, thr=70, sl=20, tp=24, trail=False, v03=False, sg=False",target_ticks,minus_10pct,24,22.0,67.325,69.606,3.4,False
+2,"R2: wp=thesis_heavy, thr=70, sl=20, tp=24, trail=False, v03=False, sg=True",entry_threshold,plus_10pct,70,77.0,67.325,299.735,345.2,True
+2,"R2: wp=thesis_heavy, thr=70, sl=20, tp=24, trail=False, v03=False, sg=True",entry_threshold,minus_10pct,70,63.0,67.325,29.784,-55.8,True
+2,"R2: wp=thesis_heavy, thr=70, sl=20, tp=24, trail=False, v03=False, sg=True",stop_ticks,plus_10pct,20,22.0,67.325,67.325,0.0,False
+2,"R2: wp=thesis_heavy, thr=70, sl=20, tp=24, trail=False, v03=False, sg=True",stop_ticks,minus_10pct,20,18.0,67.325,67.325,0.0,False
+2,"R2: wp=thesis_heavy, thr=70, sl=20, tp=24, trail=False, v03=False, sg=True",target_ticks,plus_10pct,24,26.0,67.325,90.864,35.0,False
+2,"R2: wp=thesis_heavy, thr=70, sl=20, tp=24, trail=False, v03=False, sg=True",target_ticks,minus_10pct,24,22.0,67.325,69.606,3.4,False
+3,"R3: wp=thesis_heavy, thr=70, sl=16, tp=24, trail=False, v03=False, sg=False",entry_threshold,plus_10pct,70,77.0,67.325,299.735,345.2,True
+3,"R3: wp=thesis_heavy, thr=70, sl=16, tp=24, trail=False, v03=False, sg=False",entry_threshold,minus_10pct,70,63.0,67.325,31.148,-53.7,True
+3,"R3: wp=thesis_heavy, thr=70, sl=16, tp=24, trail=False, v03=False, sg=False",stop_ticks,plus_10pct,16,18.0,67.325,67.325,0.0,False
+3,"R3: wp=thesis_heavy, thr=70, sl=16, tp=24, trail=False, v03=False, sg=False",stop_ticks,minus_10pct,16,14.0,67.325,67.325,0.0,False
+3,"R3: wp=thesis_heavy, thr=70, sl=16, tp=24, trail=False, v03=False, sg=False",target_ticks,plus_10pct,24,26.0,67.325,90.864,35.0,False
+3,"R3: wp=thesis_heavy, thr=70, sl=16, tp=24, trail=False, v03=False, sg=False",target_ticks,minus_10pct,24,22.0,67.325,69.606,3.4,False
