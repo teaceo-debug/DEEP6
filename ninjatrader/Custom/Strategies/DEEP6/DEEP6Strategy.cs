@@ -63,7 +63,7 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
 #if NINJASCRIPT_SIM
         private double _bestBid = double.NaN, _bestAsk = double.NaN;  // volatile double not supported in .NET 8+
 #else
-        private volatile double _bestBid = double.NaN, _bestAsk = double.NaN;
+        private double _bestBid = double.NaN, _bestAsk = double.NaN;
 #endif
         private readonly object _barsLock = new object();
         private long _priorCvd;

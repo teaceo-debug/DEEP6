@@ -16,6 +16,7 @@
 using System;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using NinjaTrader.Cbi;
 using NinjaTrader.Data;
 using NinjaTrader.NinjaScript.AddOns.DEEP6.Bridge;
 #endregion
@@ -123,40 +124,58 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
 }
 
 #region NinjaScript generated code. Neither change nor remove.
+
 namespace NinjaTrader.NinjaScript.Indicators
 {
-    public partial class Indicator : NinjaTrader.Gui.NinjaScript.IndicatorRenderBase
-    {
-        private DEEP6.DataBridgeIndicator[] cacheDataBridgeIndicator;
-        public DEEP6.DataBridgeIndicator DataBridgeIndicator(int bridgePort)
-        {
-            return DataBridgeIndicator(Input, bridgePort);
-        }
+	public partial class Indicator : NinjaTrader.Gui.NinjaScript.IndicatorRenderBase
+	{
+		private DEEP6.DataBridgeIndicator[] cacheDataBridgeIndicator;
+		public DEEP6.DataBridgeIndicator DataBridgeIndicator(int bridgePort)
+		{
+			return DataBridgeIndicator(Input, bridgePort);
+		}
 
-        public DEEP6.DataBridgeIndicator DataBridgeIndicator(ISeries<double> input, int bridgePort)
-        {
-            if (cacheDataBridgeIndicator != null)
-                for (int idx = 0; idx < cacheDataBridgeIndicator.Length; idx++)
-                    if (cacheDataBridgeIndicator[idx] != null && cacheDataBridgeIndicator[idx].BridgePort == bridgePort && cacheDataBridgeIndicator[idx].EqualsInput(input))
-                        return cacheDataBridgeIndicator[idx];
-            return CacheIndicator<DEEP6.DataBridgeIndicator>(new DEEP6.DataBridgeIndicator() { BridgePort = bridgePort }, input, ref cacheDataBridgeIndicator);
-        }
-    }
+		public DEEP6.DataBridgeIndicator DataBridgeIndicator(ISeries<double> input, int bridgePort)
+		{
+			if (cacheDataBridgeIndicator != null)
+				for (int idx = 0; idx < cacheDataBridgeIndicator.Length; idx++)
+					if (cacheDataBridgeIndicator[idx] != null && cacheDataBridgeIndicator[idx].BridgePort == bridgePort && cacheDataBridgeIndicator[idx].EqualsInput(input))
+						return cacheDataBridgeIndicator[idx];
+			return CacheIndicator<DEEP6.DataBridgeIndicator>(new DEEP6.DataBridgeIndicator(){ BridgePort = bridgePort }, input, ref cacheDataBridgeIndicator);
+		}
+	}
 }
 
 namespace NinjaTrader.NinjaScript.MarketAnalyzerColumns
 {
-    public partial class MarketAnalyzerColumn : MarketAnalyzerColumnBase
-    {
-        public Indicators.DEEP6.DataBridgeIndicator DataBridgeIndicator(int bridgePort)
-        {
-            return indicator.DataBridgeIndicator(Input, bridgePort);
-        }
+	public partial class MarketAnalyzerColumn : MarketAnalyzerColumnBase
+	{
+		public Indicators.DEEP6.DataBridgeIndicator DataBridgeIndicator(int bridgePort)
+		{
+			return indicator.DataBridgeIndicator(Input, bridgePort);
+		}
 
-        public Indicators.DEEP6.DataBridgeIndicator DataBridgeIndicator(ISeries<double> input, int bridgePort)
-        {
-            return indicator.DataBridgeIndicator(input, bridgePort);
-        }
-    }
+		public Indicators.DEEP6.DataBridgeIndicator DataBridgeIndicator(ISeries<double> input , int bridgePort)
+		{
+			return indicator.DataBridgeIndicator(input, bridgePort);
+		}
+	}
 }
+
+namespace NinjaTrader.NinjaScript.Strategies
+{
+	public partial class Strategy : NinjaTrader.Gui.NinjaScript.StrategyRenderBase
+	{
+		public Indicators.DEEP6.DataBridgeIndicator DataBridgeIndicator(int bridgePort)
+		{
+			return indicator.DataBridgeIndicator(Input, bridgePort);
+		}
+
+		public Indicators.DEEP6.DataBridgeIndicator DataBridgeIndicator(ISeries<double> input , int bridgePort)
+		{
+			return indicator.DataBridgeIndicator(input, bridgePort);
+		}
+	}
+}
+
 #endregion
