@@ -29,6 +29,7 @@
        ═══════════════════════════════════════════════════════════════════ -->
   <ItemGroup>
     <Compile Include="Lifecycle/**/*.cs" />
+    <Compile Include="Adapters/**/*.cs" />
     <Compile Include="Cli/**/*.cs" />
   </ItemGroup>
 
@@ -48,6 +49,10 @@
     <Compile Include="..\Custom\Indicators\DEEP6\DEEP6Footprint.cs" />
     <Compile Include="..\Custom\Indicators\DEEP6\DEEP6GexLevels.cs" />
     <Compile Include="..\Custom\Indicators\DEEP6\CaptureHarness.cs" />
+    <Compile Include="..\Custom\Indicators\DEEP6\DataBridgeIndicator.cs" />
+
+    <!-- AddOns — Bridge server (NT8 side, but validated here too) -->
+    <Compile Include="..\Custom\AddOns\DEEP6\Bridge\**\*.cs" />
 
     <!-- Strategies — requires NT8 stubs to compile -->
     <Compile Include="..\Custom\Strategies\DEEP6\DEEP6Strategy.cs" />
