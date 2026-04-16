@@ -39,12 +39,16 @@ namespace NinjaTrader.NinjaScript
         public Account Account { get; set; } = new Account();
         public Position Position { get; set; } = new Position();
 
+        /// <summary>Fill engine — set by NinjaScriptRunner for realistic P&L tracking.</summary>
+        internal NinjaScriptSim.Lifecycle.FillSimulator FillEngine { get; set; }
+
         // ── Entry methods ──
         public Order EnterLong(string signalName = "")
         {
             Print($"[SIM] EnterLong: {signalName}");
             Position.MarketPosition = MarketPosition.Long;
             Position.Quantity = 1;
+            FillEngine?.QueueEntry(OrderAction.Buy, signalName, "", 1);
             return new Order { Name = signalName, OrderAction = OrderAction.Buy };
         }
 
@@ -102,12 +106,16 @@ namespace NinjaTrader.NinjaScript
             TimeInForce tif, string orderId, string templateName, string atmGuid, AtmStrategyCallback callback)
         {
             Print($"[SIM] AtmStrategyCreate: action={action} template={templateName} guid={atmGuid}");
+            FillEngine?.QueueEntry(action, templateName, templateName, 2);
+            Position.MarketPosition = action == OrderAction.Buy ? MarketPosition.Long : MarketPosition.Short;
+            Position.Quantity = 2;
             callback?.Invoke(ErrorCode.NoError, orderId);
         }
 
         public void AtmStrategyClose(string atmGuid)
         {
             Print($"[SIM] AtmStrategyClose: {atmGuid}");
+            // FillEngine handles the close via ForceExit in the runner
             Position.MarketPosition = MarketPosition.Flat;
             Position.Quantity = 0;
         }

@@ -49,8 +49,10 @@ namespace NinjaScriptSim.Cli
                 "walkforward" => RunWalkForward(rest),
                 "montecarlo" => RunMonteCarlo(rest),
                 "classify" => RunClassify(rest),
+                "backtest" => RunBacktest(rest),
                 "chart" => RunChart(rest),
                 "footprint" => RunFootprint(rest),
+                "design" => RunDesign(rest),
                 "serve" => RunServe(rest),
                 "help" or "--help" or "-h" => PrintUsageOk(),
                 _ => PrintUnknownCommand(command),
@@ -326,6 +328,13 @@ namespace NinjaScriptSim.Cli
                         Console.WriteLine($"    {g.Key}: {g.Count()}");
                 }
 
+                // Show fill engine results (real P&L)
+                if (runner.FillResult != null && runner.FillResult.Trades.Count > 0)
+                {
+                    Console.WriteLine();
+                    FillSimulator.PrintReport(runner.FillResult);
+                }
+
                 return 0;
             }
             catch (Exception ex)
@@ -335,6 +344,66 @@ namespace NinjaScriptSim.Cli
                 Console.WriteLine($"    {ex.GetType().Name}: {ex.Message}");
                 return 1;
             }
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        //  BACKTEST — full backtest with trade journal + equity chart
+        // ══════════════════════════════════════════════════════════════════
+
+        static int RunBacktest(string[] args)
+        {
+            string tradesCsv = null, equityHtml = null;
+            var files = new List<string>();
+
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i] == "--trades" && i + 1 < args.Length) tradesCsv = args[++i];
+                else if (args[i] == "--equity" && i + 1 < args.Length) equityHtml = args[++i];
+                else if (args[i] == "--dir" && i + 1 < args.Length)
+                    files.AddRange(Directory.GetFiles(args[++i], "*.ndjson").OrderBy(f => f));
+                else if (File.Exists(args[i])) files.Add(args[i]);
+            }
+
+            if (files.Count == 0) { Console.WriteLine("Usage: backtest <session.ndjson> [--trades trades.csv] [--equity equity.html]"); return 1; }
+
+            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Console.WriteLine(" NinjaScript Simulator — Full Backtest");
+            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Console.WriteLine();
+
+            var session = NdjsonSessionLoader.LoadMultiple(files.ToArray());
+            var runner = new NinjaScriptRunner();
+            runner.LoadBars(session.Bars);
+            runner.LoadDepthUpdates(session.DepthUpdates);
+
+            var sw = Stopwatch.StartNew();
+            runner.Run<NinjaTrader.NinjaScript.Strategies.DEEP6.DEEP6Strategy>();
+            sw.Stop();
+
+            Console.WriteLine($"  Completed in {sw.ElapsedMilliseconds}ms ({session.Bars.Count} bars)");
+            Console.WriteLine();
+
+            if (runner.FillResult != null)
+            {
+                FillSimulator.PrintReport(runner.FillResult);
+
+                if (tradesCsv != null)
+                {
+                    FillSimulator.ExportCsv(runner.FillResult, tradesCsv);
+                    Console.WriteLine($"\n  Trade journal: {tradesCsv}");
+                }
+                if (equityHtml != null)
+                {
+                    FillSimulator.ExportEquityChart(runner.FillResult, equityHtml);
+                    Console.WriteLine($"  Equity curve:  {equityHtml}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("  No fill results (strategy may not have run).");
+            }
+
+            return 0;
         }
 
         // ══════════════════════════════════════════════════════════════════
@@ -876,6 +945,47 @@ namespace NinjaScriptSim.Cli
             ChartExporter.ExportFootprintChart(session, script.PrintLog, outputPath);
             Console.WriteLine($"  Footprint exported: {outputPath}");
             Console.WriteLine($"  Bars: {session.Bars.Count} | Levels rendered per bar | Signals overlaid");
+            Console.WriteLine($"  Open with: open {outputPath}");
+            return 0;
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        //  DESIGN — Chart Design Studio (live parameter tuning)
+        // ══════════════════════════════════════════════════════════════════
+
+        static int RunDesign(string[] args)
+        {
+            string outputPath = "design-studio.html";
+            var files = new List<string>();
+
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i] == "--output" && i + 1 < args.Length) outputPath = args[++i];
+                else if (args[i] == "--dir" && i + 1 < args.Length)
+                    files.AddRange(Directory.GetFiles(args[++i], "*.ndjson").OrderBy(f => f));
+                else if (File.Exists(args[i])) files.Add(args[i]);
+            }
+
+            if (files.Count == 0) { Console.WriteLine("Usage: design <session.ndjson> [--output design-studio.html]"); return 1; }
+
+            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Console.WriteLine(" NinjaScript Simulator — Design Studio");
+            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Console.WriteLine();
+
+            var session = NdjsonSessionLoader.LoadMultiple(files.ToArray());
+            DesignStudio.Export(session, outputPath);
+            Console.WriteLine($"  Design Studio exported: {outputPath}");
+            Console.WriteLine($"  Bars loaded: {System.Math.Min(session.Bars.Count, 30)} (capped at 30 for responsiveness)");
+            Console.WriteLine();
+            Console.WriteLine("  Features:");
+            Console.WriteLine("    - Live color pickers for all cell/signal/tier colors");
+            Console.WriteLine("    - Sliders for geometry (column width, row height, font size)");
+            Console.WriteLine("    - Opacity curves, imbalance threshold, display toggles");
+            Console.WriteLine("    - Export JSON Theme (for simulator + dashboard)");
+            Console.WriteLine("    - Export NT8 C# Code (Color.FromArgb for DEEP6Footprint.cs)");
+            Console.WriteLine("    - Split-view comparison (before/after)");
+            Console.WriteLine();
             Console.WriteLine($"  Open with: open {outputPath}");
             return 0;
         }

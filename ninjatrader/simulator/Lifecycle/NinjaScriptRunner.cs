@@ -63,6 +63,7 @@ namespace NinjaScriptSim.Lifecycle
         private readonly List<DepthUpdate> _depthUpdates = new();
 
         public NinjaScriptBase Script { get; private set; }
+        public FillSimulatorResult FillResult { get; private set; }
         public List<string> Errors { get; } = new();
         public List<string> Warnings { get; } = new();
         public bool Succeeded { get; private set; }
@@ -114,11 +115,14 @@ namespace NinjaScriptSim.Lifecycle
                 }
             };
 
-            // Set up account (strategies only)
+            // Set up account + fill engine (strategies only)
+            FillSimulator fillEngine = null;
             if (script is StrategyBase strategy)
             {
                 strategy.Account = new Account { Name = AccountName };
                 strategy.Position = new Position();
+                fillEngine = new FillSimulator(new FillConfig { TickSize = TickSize, TickValue = PointValue * TickSize });
+                strategy.FillEngine = fillEngine;
             }
 
             // Build Bars data structure
@@ -258,6 +262,21 @@ namespace NinjaScriptSim.Lifecycle
                     depthIdx++;
                 }
 
+                // Process fill engine BEFORE OnBarUpdate (fills from prior bar's entry)
+                if (fillEngine != null)
+                {
+                    fillEngine.ProcessBar(i, _bars[i].Open, _bars[i].High, _bars[i].Low, _bars[i].Close, _bars[i].Time);
+                    // Sync position state back to strategy
+                    if (script is StrategyBase strat)
+                    {
+                        if (!fillEngine.InTrade)
+                        {
+                            strat.Position.MarketPosition = MarketPosition.Flat;
+                            strat.Position.Quantity = 0;
+                        }
+                    }
+                }
+
                 // Fire OnBarUpdate
                 try
                 {
@@ -268,6 +287,15 @@ namespace NinjaScriptSim.Lifecycle
                     Errors.Add($"[OnBarUpdate bar={i}] {ex.GetType().Name}: {ex.Message}");
                     // Continue processing remaining bars
                 }
+            }
+
+            // Session end — close any open position
+            if (fillEngine != null && _bars.Count > 0)
+            {
+                var lastBar = _bars[_bars.Count - 1];
+                fillEngine.SessionEnd(_bars.Count - 1, lastBar.Close, lastBar.Time);
+                fillEngine.Finalize();
+                FillResult = fillEngine.Result;
             }
 
             // 5. Terminated
