@@ -602,8 +602,11 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         #endregion
 
         // Handles chart click — show GEX detail for hit level.
-        protected override void OnChartPanelMouseDown(ChartControl chartControl, ChartPanel chartPanel,
-                                                        ChartScale chartScale, ChartAnchor dataPoint)
+        // Uses 'new' instead of 'override' for cross-version NT8 compatibility.
+        // NT8 8.0.27+ has this as a virtual method on IndicatorBase; older versions don't.
+        // With 'new', this compiles on all versions. On 8.0.27+ you can change to 'override'.
+        protected new void OnChartPanelMouseDown(ChartControl chartControl, ChartPanel chartPanel,
+                                                    ChartScale chartScale, ChartAnchor dataPoint)
         {
             if (!ShowGexLevels || _gexProfile == null) return;
 

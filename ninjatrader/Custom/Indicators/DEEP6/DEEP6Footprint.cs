@@ -155,9 +155,9 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
         // Port of deep6/state/footprint.py:134-161.
         public double DeltaQualityScalar()
         {
-            long extreme = Math.Max(Math.Max(Math.Abs(MaxDelta), Math.Abs(MinDelta)), 1);
+            long extreme = System.Math.Max(System.Math.Max(System.Math.Abs(MaxDelta), System.Math.Abs(MinDelta)), 1);
             if (RunningDelta == 0 && extreme <= 1) return 1.0;
-            double ratio = Math.Abs((double)RunningDelta) / extreme;
+            double ratio = System.Math.Abs((double)RunningDelta) / extreme;
             if (ratio >= 0.95) return 1.15;
             if (ratio <= 0.35) return 0.7;
             // linear: (0.35, 0.7) → (0.95, 1.15)
@@ -1200,7 +1200,7 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             _anchorCompositeDx = (SharpDX.Direct2D1.SolidColorBrush)AnchorCompositeBrush.ToDxBrush(RenderTarget);
             if (_dashStyle != null) { _dashStyle.Dispose(); _dashStyle = null; }
             _dashStyle = new StrokeStyle(NinjaTrader.Core.Globals.D2DFactory,
-                new StrokeStyleProperties { DashStyle = DashStyle.Dash });
+                new StrokeStyleProperties { DashStyle = SharpDX.Direct2D1.DashStyle.Dash });
             _ctOnDx       = MakeFrozenBrush(Color.FromArgb(220, 50, 130, 75)).ToDxBrush(RenderTarget);
             _ctOffDx      = MakeFrozenBrush(Color.FromArgb(220, 35, 40, 50)).ToDxBrush(RenderTarget);
             _ctBorderDx   = MakeFrozenBrush(Color.FromArgb(255, 90, 100, 115)).ToDxBrush(RenderTarget);

@@ -68,7 +68,8 @@ New-Item -ItemType Directory -Force -Path "$NT8_CUSTOM\AddOns\DEEP6\Detectors\Tr
 New-Item -ItemType Directory -Force -Path "$NT8_CUSTOM\AddOns\DEEP6\Detectors\Engines"
 New-Item -ItemType Directory -Force -Path "$NT8_CUSTOM\AddOns\DEEP6\Detectors\Legacy"
 
-Copy-Item "$REPO\ninjatrader\Custom\AddOns\DEEP6\Registry\*" "$NT8_CUSTOM\AddOns\DEEP6\Registry\" -Force
+# IMPORTANT: Exclude FootprintBar.cs — it's test-only and duplicates types in DEEP6Footprint.cs
+Get-ChildItem "$REPO\ninjatrader\Custom\AddOns\DEEP6\Registry\*.cs" | Where-Object { $_.Name -ne "FootprintBar.cs" } | Copy-Item -Destination "$NT8_CUSTOM\AddOns\DEEP6\Registry\" -Force
 Copy-Item "$REPO\ninjatrader\Custom\AddOns\DEEP6\Levels\*" "$NT8_CUSTOM\AddOns\DEEP6\Levels\" -Force
 Copy-Item "$REPO\ninjatrader\Custom\AddOns\DEEP6\Math\*" "$NT8_CUSTOM\AddOns\DEEP6\Math\" -Force
 Copy-Item "$REPO\ninjatrader\Custom\AddOns\DEEP6\Scoring\*" "$NT8_CUSTOM\AddOns\DEEP6\Scoring\" -Force
