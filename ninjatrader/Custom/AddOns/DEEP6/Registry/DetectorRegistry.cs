@@ -74,7 +74,8 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Registry
 
             // Cache index of absorption detector (identified by Name or ABS SignalId convention).
             // We identify it by its Name property matching "Absorption".
-            if (detector.Name == "Absorption")
+            // Guard against duplicate registration overwriting the first index.
+            if (detector.Name == "Absorption" && _absorptionDetectorIndex == -1)
                 _absorptionDetectorIndex = _detectors.Count;
 
             _detectors.Add(detector);

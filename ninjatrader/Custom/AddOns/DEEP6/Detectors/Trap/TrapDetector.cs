@@ -225,14 +225,6 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Detectors.Trap
                             ? System.Math.Min((bar.TotalVol / volGate - 1.0) / 2.0, 1.0)
                             : 0.5;
                         results.Add(new SignalResult(
-                            "TRAP-04", +1, str,
-                            SignalFlagBits.Mask(SignalFlagBits.TRAP_03),
-                            string.Format("FALSE BREAKOUT TRAP (bull): low {0:F2} < prior {1:F2}, closed {2:F2} > prior low",
-                                bar.Low, priorBar.Low, bar.Close)));
-                        // Fix: TRAP-03 not TRAP-04
-                        // Remove last and re-add with correct SignalId
-                        results.RemoveAt(results.Count - 1);
-                        results.Add(new SignalResult(
                             "TRAP-03", +1, str,
                             SignalFlagBits.Mask(SignalFlagBits.TRAP_03),
                             string.Format("FALSE BREAKOUT TRAP (bull): low {0:F2} < prior {1:F2}, closed {2:F2} > prior low",

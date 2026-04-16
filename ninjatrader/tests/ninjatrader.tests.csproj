@@ -38,7 +38,8 @@
     <Compile Include="..\Custom\AddOns\DEEP6\Detectors\Trap\**\*.cs" />
     <Compile Include="..\Custom\AddOns\DEEP6\Detectors\Engines\**\*.cs" />
     <Compile Include="..\Custom\AddOns\DEEP6\Scoring\*.cs" />
-    <Compile Include="..\Custom\AddOns\DEEP6\Backtest\*.cs" />
+    <!-- Backtest source moved to tests/Backtest/ (Fix 6: CS0246 — NinjaTrader.Tests.SessionReplay
+         types are unavailable under NT8 AddOns path; files must live in test project). -->
   </ItemGroup>
 
   <ItemGroup>
