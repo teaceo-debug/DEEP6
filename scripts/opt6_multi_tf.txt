@@ -1,0 +1,325 @@
+============================================================================
+OPT6: MULTI-TIMEFRAME CONFIRMATION FOR ChNavy6 VWAP BOUNCE
+============================================================================
+Data: 96100 1m bars, 86 trading days
+Base: 30m ChNavy6, SL=160t (40 pts), TP=560t (140 pts)
+Signals generated: 48
+
+----------------------------------------------------------------------------
+Baseline (no filter)
+----------------------------------------------------------------------------
+  Trades:            48
+  Net PnL:           $-8,008.60
+  Win %:             20.8%  (10W / 38L)
+  Profit Factor:     0.74
+  Sharpe (ann.):     -2.04
+  Max Drawdown:      $11,205.10
+  Avg Winner:        $2,241.80
+  Avg Loser:         $-800.70
+
+----------------------------------------------------------------------------
+V1: 10m VWAP slope (lb=3)
+----------------------------------------------------------------------------
+  Trades:            7
+  Net PnL:           $-2,004.90
+  Win %:             14.3%  (1W / 6L)
+  Profit Factor:     0.58
+  Sharpe (ann.):     -3.61
+  Max Drawdown:      $4,003.50
+  Avg Winner:        $2,799.30
+  Avg Loser:         $-800.70
+  Filtered out:      9W + 32L = 41 trades
+  Filter quality:    78% of filtered were losers (higher = better filter)
+
+----------------------------------------------------------------------------
+V1: 10m VWAP slope (lb=4)
+----------------------------------------------------------------------------
+  Trades:            6
+  Net PnL:           $2,395.80
+  Win %:             33.3%  (2W / 4L)
+  Profit Factor:     1.75
+  Sharpe (ann.):     3.74
+  Max Drawdown:      $1,601.40
+  Avg Winner:        $2,799.30
+  Avg Loser:         $-800.70
+  Filtered out:      8W + 34L = 42 trades
+  Filter quality:    81% of filtered were losers (higher = better filter)
+
+----------------------------------------------------------------------------
+V1: 10m VWAP slope (lb=6)
+----------------------------------------------------------------------------
+  Trades:            3
+  Net PnL:           $-2,402.10
+  Win %:             0.0%  (0W / 3L)
+  Profit Factor:     0.00
+  Sharpe (ann.):     -111804661853126176.00
+  Max Drawdown:      $1,601.40
+  Avg Winner:        $0.00
+  Avg Loser:         $-800.70
+  Filtered out:      10W + 35L = 45 trades
+  Filter quality:    78% of filtered were losers (higher = better filter)
+
+----------------------------------------------------------------------------
+V2: 10m momentum (lb=3)
+----------------------------------------------------------------------------
+  Trades:            27
+  Net PnL:           $-5,593.90
+  Win %:             22.2%  (6W / 21L)
+  Profit Factor:     0.67
+  Sharpe (ann.):     -2.74
+  Max Drawdown:      $7,189.00
+  Avg Winner:        $1,870.13
+  Avg Loser:         $-800.70
+  Filtered out:      4W + 17L = 21 trades
+  Filter quality:    81% of filtered were losers (higher = better filter)
+
+----------------------------------------------------------------------------
+V2: 10m momentum (lb=6)
+----------------------------------------------------------------------------
+  Trades:            20
+  Net PnL:           $-5,839.00
+  Win %:             20.0%  (4W / 16L)
+  Profit Factor:     0.54
+  Sharpe (ann.):     -4.13
+  Max Drawdown:      $7,036.90
+  Avg Winner:        $1,743.05
+  Avg Loser:         $-800.70
+  Filtered out:      6W + 22L = 28 trades
+  Filter quality:    79% of filtered were losers (higher = better filter)
+
+----------------------------------------------------------------------------
+V2: 10m momentum (lb=9)
+----------------------------------------------------------------------------
+  Trades:            12
+  Net PnL:           $566.60
+  Win %:             33.3%  (4W / 8L)
+  Profit Factor:     1.09
+  Sharpe (ann.):     0.56
+  Max Drawdown:      $4,231.30
+  Avg Winner:        $1,743.05
+  Avg Loser:         $-800.70
+  Filtered out:      6W + 30L = 36 trades
+  Filter quality:    83% of filtered were losers (higher = better filter)
+
+----------------------------------------------------------------------------
+V3: 15m EMA(20) trend
+----------------------------------------------------------------------------
+  Trades:            26
+  Net PnL:           $-8,393.20
+  Win %:             19.2%  (5W / 21L)
+  Profit Factor:     0.50
+  Sharpe (ann.):     -4.81
+  Max Drawdown:      $7,989.70
+  Avg Winner:        $1,684.30
+  Avg Loser:         $-800.70
+  Filtered out:      5W + 17L = 22 trades
+  Filter quality:    77% of filtered were losers (higher = better filter)
+
+----------------------------------------------------------------------------
+V4: 10m VWAP delayed entry
+----------------------------------------------------------------------------
+  Trades:            30
+  Net PnL:           $14,769.00
+  Win %:             40.0%  (12W / 18L)
+  Profit Factor:     2.08
+  Sharpe (ann.):     4.81
+  Max Drawdown:      $4,804.20
+  Avg Winner:        $2,369.72
+  Avg Loser:         $-759.31
+  Filtered out:      6W + 12L = 18 trades
+  Filter quality:    67% of filtered were losers (higher = better filter)
+
+----------------------------------------------------------------------------
+V5: Dual TF VWAP bounce
+----------------------------------------------------------------------------
+  Trades:            16
+  Net PnL:           $-9,066.20
+  Win %:             12.5%  (2W / 14L)
+  Profit Factor:     0.19
+  Sharpe (ann.):     -14.20
+  Max Drawdown:      $8,265.50
+  Avg Winner:        $1,071.80
+  Avg Loser:         $-800.70
+  Filtered out:      8W + 24L = 32 trades
+  Filter quality:    75% of filtered were losers (higher = better filter)
+
+----------------------------------------------------------------------------
+V6: 10m bar count (N=6, t>=4)
+----------------------------------------------------------------------------
+  Trades:            13
+  Net PnL:           $-3,834.10
+  Win %:             23.1%  (3W / 10L)
+  Profit Factor:     0.52
+  Sharpe (ann.):     -4.50
+  Max Drawdown:      $3,324.20
+  Avg Winner:        $1,390.97
+  Avg Loser:         $-800.70
+  Filtered out:      7W + 28L = 35 trades
+  Filter quality:    80% of filtered were losers (higher = better filter)
+
+----------------------------------------------------------------------------
+V6: 10m bar count (N=6, t>=3)
+----------------------------------------------------------------------------
+  Trades:            21
+  Net PnL:           $-4,389.70
+  Win %:             23.8%  (5W / 16L)
+  Profit Factor:     0.66
+  Sharpe (ann.):     -2.87
+  Max Drawdown:      $5,587.60
+  Avg Winner:        $1,684.30
+  Avg Loser:         $-800.70
+  Filtered out:      5W + 22L = 27 trades
+  Filter quality:    81% of filtered were losers (higher = better filter)
+
+----------------------------------------------------------------------------
+V6: 10m bar count (N=9, t>=6)
+----------------------------------------------------------------------------
+  Trades:            7
+  Net PnL:           $-2,629.90
+  Win %:             28.6%  (2W / 5L)
+  Profit Factor:     0.34
+  Sharpe (ann.):     -8.88
+  Max Drawdown:      $2,402.10
+  Avg Winner:        $686.80
+  Avg Loser:         $-800.70
+  Filtered out:      8W + 33L = 41 trades
+  Filter quality:    80% of filtered were losers (higher = better filter)
+
+----------------------------------------------------------------------------
+V6: 10m bar count (N=9, t>=5)
+----------------------------------------------------------------------------
+  Trades:            12
+  Net PnL:           $-4,383.40
+  Win %:             25.0%  (3W / 9L)
+  Profit Factor:     0.39
+  Sharpe (ann.):     -7.48
+  Max Drawdown:      $3,582.70
+  Avg Winner:        $940.97
+  Avg Loser:         $-800.70
+  Filtered out:      7W + 29L = 36 trades
+  Filter quality:    81% of filtered were losers (higher = better filter)
+
+----------------------------------------------------------------------------
+V6: 10m bar count (N=12, t>=8)
+----------------------------------------------------------------------------
+  Trades:            2
+  Net PnL:           $-121.40
+  Win %:             50.0%  (1W / 1L)
+  Profit Factor:     0.85
+  Sharpe (ann.):     -1.30
+  Max Drawdown:      $800.70
+  Avg Winner:        $679.30
+  Avg Loser:         $-800.70
+  Filtered out:      9W + 37L = 46 trades
+  Filter quality:    80% of filtered were losers (higher = better filter)
+
+============================================================================
+COMPARISON TABLE — ALL VARIANTS vs BASELINE (sorted by Net PnL)
+============================================================================
+Variant                                  #    Net PnL     W%     PF  Sharpe     MaxDD
+-------------------------------------------------------------------------------------
+V4: 10m VWAP delayed entry              30  14,769.00  40.0%   2.08    4.81  4,804.20 +
+V1: 10m VWAP slope (lb=4)                6   2,395.80  33.3%   1.75    3.74  1,601.40 +
+V2: 10m momentum (lb=9)                 12     566.60  33.3%   1.09    0.56  4,231.30 +
+V6: 10m bar count (N=12, t>=8)           2    -121.40  50.0%   0.85   -1.30    800.70 +
+V1: 10m VWAP slope (lb=3)                7  -2,004.90  14.3%   0.58   -3.61  4,003.50 +
+V1: 10m VWAP slope (lb=6)                3  -2,402.10   0.0%   0.00 -111804661853126176.00  1,601.40 +
+V6: 10m bar count (N=9, t>=6)            7  -2,629.90  28.6%   0.34   -8.88  2,402.10 +
+V6: 10m bar count (N=6, t>=4)           13  -3,834.10  23.1%   0.52   -4.50  3,324.20 +
+V6: 10m bar count (N=9, t>=5)           12  -4,383.40  25.0%   0.39   -7.48  3,582.70 +
+V6: 10m bar count (N=6, t>=3)           21  -4,389.70  23.8%   0.66   -2.87  5,587.60 +
+V2: 10m momentum (lb=3)                 27  -5,593.90  22.2%   0.67   -2.74  7,189.00 +
+V2: 10m momentum (lb=6)                 20  -5,839.00  20.0%   0.54   -4.13  7,036.90 +
+Baseline (no filter)                    48  -8,008.60  20.8%   0.74   -2.04 11,205.10 <-- BASE
+V3: 15m EMA(20) trend                   26  -8,393.20  19.2%   0.50   -4.81  7,989.70
+V5: Dual TF VWAP bounce                 16  -9,066.20  12.5%   0.19  -14.20  8,265.50
+
+============================================================================
+FILTER EFFECTIVENESS — How many losers did each filter remove?
+============================================================================
+Variant                                Kept Filt FiltL FiltW    L%
+------------------------------------------------------------------
+V1: 10m VWAP slope (lb=3)                 7   41    32     9   78%
+V1: 10m VWAP slope (lb=4)                 6   42    34     8   81%
+V1: 10m VWAP slope (lb=6)                 3   45    35    10   78%
+V2: 10m momentum (lb=3)                  27   21    17     4   81%
+V2: 10m momentum (lb=6)                  20   28    22     6   79%
+V2: 10m momentum (lb=9)                  12   36    30     6   83%
+V3: 15m EMA(20) trend                    26   22    17     5   77%
+V4: 10m VWAP delayed entry               30   18    12     6   67%
+V5: Dual TF VWAP bounce                  16   32    24     8   75%
+V6: 10m bar count (N=6, t>=4)            13   35    28     7   80%
+V6: 10m bar count (N=6, t>=3)            21   27    22     5   81%
+V6: 10m bar count (N=9, t>=6)             7   41    33     8   80%
+V6: 10m bar count (N=9, t>=5)            12   36    29     7   81%
+V6: 10m bar count (N=12, t>=8)            2   46    37     9   80%
+
+============================================================================
+KEY FINDINGS
+============================================================================
+1. Best by PnL: V4: 10m VWAP delayed entry
+   Net PnL: $14,769.00  (baseline: $-8,008.60, delta: $+22,777.60)
+
+2. Best Profit Factor (>=5 trades): V4: 10m VWAP delayed entry
+   PF: 2.08, 30 trades
+
+3. Best Sharpe: V4: 10m VWAP delayed entry
+   Sharpe: 4.81
+
+4. Best filter quality (>=10 filtered): V2: 10m momentum (lb=9)
+   83% of filtered trades were losers
+   Filtered: 30L + 6W
+
+============================================================================
+BASELINE TRADE LOG
+============================================================================
+Date           Dir      Entry       Exit Reason        PnL
+------------------------------------------------------------
+2026-01-02   SHORT   25489.25   25529.25     SL $  -800.70
+2026-01-05    LONG   25673.25   25633.25     SL $  -800.70
+2026-01-06   SHORT   25687.25   25727.25     SL $  -800.70
+2026-01-08    LONG   25697.00   25657.00     SL $  -800.70
+2026-01-13    LONG   26008.75   25968.75     SL $  -800.70
+2026-01-15    LONG   25884.50   25844.50     SL $  -800.70
+2026-01-16   SHORT   25701.25   25741.25     SL $  -800.70
+2026-01-20   SHORT   25339.00   25199.00     TP $  2799.30
+2026-01-21   SHORT   25229.00   25269.00     SL $  -800.70
+2026-01-22    LONG   25672.75   25632.75     SL $  -800.70
+2026-01-23   SHORT   25693.50   25733.50     SL $  -800.70
+2026-01-29    LONG   25839.75   25799.75     SL $  -800.70
+2026-02-04    LONG   25248.75   25208.75     SL $  -800.70
+2026-02-05    LONG   24780.25   24740.25     SL $  -800.70
+2026-02-10   SHORT   25292.25   25219.75    EOD $  1449.30
+2026-02-11   SHORT   25192.75   25232.75     SL $  -800.70
+2026-02-13    LONG   24848.75   24808.75     SL $  -800.70
+2026-02-16   SHORT   24709.50   24749.50     SL $  -800.70
+2026-02-17    LONG   24600.50   24740.50     TP $  2799.30
+2026-02-18   SHORT   24991.50   24957.50    EOD $   679.30
+2026-02-19   SHORT   24858.25   24898.25     SL $  -800.70
+2026-02-20   SHORT   24926.00   24966.00     SL $  -800.70
+2026-02-26    LONG   25048.50   25083.25    EOD $   694.30
+2026-02-27   SHORT   24910.75   24950.75     SL $  -800.70
+2026-03-03    LONG   24619.00   24579.00     SL $  -800.70
+2026-03-05   SHORT   25011.00   25051.00     SL $  -800.70
+2026-03-09    LONG   24549.25   24689.25     TP $  2799.30
+2026-03-10    LONG   25003.75   25143.75     TP $  2799.30
+2026-03-11   SHORT   25027.50   25067.50     SL $  -800.70
+2026-03-12    LONG   24665.75   24625.75     SL $  -800.70
+2026-03-13   SHORT   24674.00   24714.00     SL $  -800.70
+2026-03-16    LONG   24716.50   24676.50     SL $  -800.70
+2026-03-17   SHORT   24791.50   24831.50     SL $  -800.70
+2026-03-18   SHORT   24604.75   24644.75     SL $  -800.70
+2026-03-19   SHORT   24213.50   24253.50     SL $  -800.70
+2026-03-23   SHORT   24381.25   24421.25     SL $  -800.70
+2026-03-24    LONG   24242.75   24382.75     TP $  2799.30
+2026-03-25    LONG   24480.75   24440.75     SL $  -800.70
+2026-03-26   SHORT   24170.50   24210.50     SL $  -800.70
+2026-03-27    LONG   23556.50   23516.50     SL $  -800.70
+2026-03-30    LONG   23377.75   23337.75     SL $  -800.70
+2026-03-31   SHORT   23409.25   23449.25     SL $  -800.70
+2026-04-01   SHORT   24153.75   24193.75     SL $  -800.70
+2026-04-06   SHORT   24306.00   24346.00     SL $  -800.70
+2026-04-07    LONG   24108.75   24248.75     TP $  2799.30
+2026-04-08    LONG   25078.75   25038.75     SL $  -800.70
+2026-04-09    LONG   25041.50   25181.50     TP $  2799.30
+2026-04-10    LONG   25340.75   25300.75     SL $  -800.70

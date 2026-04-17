@@ -1,0 +1,327 @@
+==========================================================================================
+ROUND 5: ENSEMBLE STRATEGIES & ADVANCED RISK METRICS
+Data: 3 RTH sessions (Apr 8-10, 2026)  |  30-min NQ bars
+==========================================================================================
+
+==========================================================================================
+PART A: INDIVIDUAL STRATEGIES (Best Configs)
+==========================================================================================
+
+──────────────────────────────────────────────────────────────────────
+  ChNavy6  (SL=200, TP=480, Bounce=20, Start=9.5, End=14.5)
+──────────────────────────────────────────────────────────────────────
+  Trades: 3  (W: 2 / L: 1)
+  Net PnL:          $  4,277.90
+  Win Rate:               66.7%
+  Profit Factor:          9.38
+  Avg PnL/trade:    $  1,425.97
+  Max Drawdown:     $    510.70
+
+  --- Advanced Risk Metrics ---
+  Sharpe (ann.):        13.497
+  Sortino (ann.):       44.324
+  Calmar (ann.):        703.63
+  Avg Winner:       $  2,394.30
+  Avg Loser:        $    510.70
+  Win/Loss Ratio:        4.688
+  Expectancy:       $  1,425.97
+  Max Consec Losers:         1
+  Recovery Factor:       8.377
+  Risk of Ruin:            0.1%
+  Kelly %:                59.6%
+
+  --- Equity Curve Analysis ---
+  Eq. Smoothness R²:    0.5578
+  Time in Drawdown:       33.3%
+  Largest Trade:    $+2394.30 (56.0% of net PnL)
+
+  Trade Detail:
+    2026-04-08 09:30:00  SHORT  entry=25084.00  exit=24964.25  pnl=$+2,394.30  [TARGET]  ChNavy6
+    2026-04-09 10:30:00  LONG   entry=25039.75  exit=25159.50  pnl=$+2,394.30  [TARGET]  ChNavy6
+    2026-04-10 11:30:00  SHORT  entry=25260.00  exit=25285.50  pnl=$-510.70  [FLATTEN]  ChNavy6
+
+──────────────────────────────────────────────────────────────────────
+  Ch2Navy6  (SL=200, TP=480, Bounce=20, Start=9.5, End=14.5)
+──────────────────────────────────────────────────────────────────────
+  Trades: 3  (W: 2 / L: 1)
+  Net PnL:          $  4,272.90
+  Win Rate:               66.7%
+  Profit Factor:          9.29
+  Avg PnL/trade:    $  1,424.30
+  Max Drawdown:     $    515.70
+
+  --- Advanced Risk Metrics ---
+  Sharpe (ann.):        13.458
+  Sortino (ann.):       43.843
+  Calmar (ann.):       695.993
+  Avg Winner:       $  2,394.30
+  Avg Loser:        $    515.70
+  Win/Loss Ratio:        4.643
+  Expectancy:       $  1,424.30
+  Max Consec Losers:         1
+  Recovery Factor:       8.286
+  Risk of Ruin:            0.1%
+  Kelly %:                59.5%
+
+  --- Equity Curve Analysis ---
+  Eq. Smoothness R²:    0.5556
+  Time in Drawdown:       33.3%
+  Largest Trade:    $+2394.30 (56.0% of net PnL)
+
+  Trade Detail:
+    2026-04-08 10:00:00  SHORT  entry=25083.50  exit=24963.75  pnl=$+2,394.30  [TARGET]  Ch2Navy6
+    2026-04-09 11:00:00  LONG   entry=25039.00  exit=25158.75  pnl=$+2,394.30  [TARGET]  Ch2Navy6
+    2026-04-10 12:00:00  SHORT  entry=25259.75  exit=25285.50  pnl=$-515.70  [FLATTEN]  Ch2Navy6
+
+──────────────────────────────────────────────────────────────────────
+  CHTrendNavy6  (SL=240, TP=200, SlopeLB=2, PB=20, Start=10.0, End=14.5)
+──────────────────────────────────────────────────────────────────────
+  Trades: 3  (W: 3 / L: 0)
+  Net PnL:          $  2,982.90
+  Win Rate:              100.0%
+  Profit Factor:           inf
+  Avg PnL/trade:    $    994.30
+  Max Drawdown:     $      0.00
+
+  --- Advanced Risk Metrics ---
+  Sharpe (ann.):           inf
+  Sortino (ann.):          inf
+  Calmar (ann.):           inf
+  Avg Winner:       $    994.30
+  Avg Loser:        $      0.00
+  Win/Loss Ratio:          inf
+  Expectancy:       $    994.30
+  Max Consec Losers:         0
+  Recovery Factor:         inf
+  Risk of Ruin:            0.0%
+  Kelly %:               100.0%
+
+  --- Equity Curve Analysis ---
+  Eq. Smoothness R²:       1.0
+  Time in Drawdown:        0.0%
+  Largest Trade:    $+994.30 (33.3% of net PnL)
+
+  Trade Detail:
+    2026-04-08 10:00:00  SHORT  entry=25083.50  exit=25033.75  pnl=$+994.30  [TARGET]  CHTrendNavy6
+    2026-04-09 11:30:00  LONG   entry=25062.25  exit=25112.00  pnl=$+994.30  [TARGET]  CHTrendNavy6
+    2026-04-10 10:00:00  LONG   entry=25324.50  exit=25374.25  pnl=$+994.30  [TARGET]  CHTrendNavy6
+
+
+==========================================================================================
+PART A: ENSEMBLE STRATEGIES
+==========================================================================================
+
+──────────────────────────────────────────────────────────────────────
+  VOTING ENSEMBLE: Trade when 2+ strategies agree on direction
+──────────────────────────────────────────────────────────────────────
+  Trades: 3  (W: 3 / L: 0)
+  Net PnL:          $  7,182.90
+  Win Rate:              100.0%
+  Profit Factor:           inf
+  Avg PnL/trade:    $  2,394.30
+  Max Drawdown:     $      0.00
+
+  --- Advanced Risk Metrics ---
+  Sharpe (ann.):           inf
+  Sortino (ann.):          inf
+  Calmar (ann.):           inf
+  Avg Winner:       $  2,394.30
+  Avg Loser:        $      0.00
+  Win/Loss Ratio:          inf
+  Expectancy:       $  2,394.30
+  Max Consec Losers:         0
+  Recovery Factor:         inf
+  Risk of Ruin:            0.0%
+  Kelly %:               100.0%
+
+  --- Equity Curve Analysis ---
+  Eq. Smoothness R²:       1.0
+  Time in Drawdown:        0.0%
+  Largest Trade:    $+2394.30 (33.3% of net PnL)
+
+  Trade Detail:
+    2026-04-08 09:30:00  SHORT  entry=25207.50  exit=25087.75  pnl=$+2,394.30  [TARGET]  Voting
+    2026-04-09 10:30:00  LONG   entry=24974.00  exit=25093.75  pnl=$+2,394.30  [TARGET]  Voting
+    2026-04-10 11:30:00  SHORT  entry=25364.75  exit=25245.00  pnl=$+2,394.30  [TARGET]  Voting
+
+──────────────────────────────────────────────────────────────────────
+  SEQUENTIAL ENSEMBLE: If A stops out, try B; if B stops out, try C
+──────────────────────────────────────────────────────────────────────
+  Trades: 3  (W: 2 / L: 1)
+  Net PnL:          $  4,277.90
+  Win Rate:               66.7%
+  Profit Factor:          9.38
+  Avg PnL/trade:    $  1,425.97
+  Max Drawdown:     $    510.70
+
+  --- Advanced Risk Metrics ---
+  Sharpe (ann.):        13.497
+  Sortino (ann.):       44.324
+  Calmar (ann.):        703.63
+  Avg Winner:       $  2,394.30
+  Avg Loser:        $    510.70
+  Win/Loss Ratio:        4.688
+  Expectancy:       $  1,425.97
+  Max Consec Losers:         1
+  Recovery Factor:       8.377
+  Risk of Ruin:            0.1%
+  Kelly %:                59.6%
+
+  --- Equity Curve Analysis ---
+  Eq. Smoothness R²:    0.5578
+  Time in Drawdown:       33.3%
+  Largest Trade:    $+2394.30 (56.0% of net PnL)
+
+  Trade Detail:
+    2026-04-08 09:30:00  SHORT  entry=25084.00  exit=24964.25  pnl=$+2,394.30  [TARGET]  Seq-A(ChNavy6)
+    2026-04-09 10:30:00  LONG   entry=25039.75  exit=25159.50  pnl=$+2,394.30  [TARGET]  Seq-A(ChNavy6)
+    2026-04-10 11:30:00  SHORT  entry=25260.00  exit=25285.50  pnl=$-510.70  [FLATTEN]  Seq-A(ChNavy6)
+
+──────────────────────────────────────────────────────────────────────
+  CONFIRMATION ENSEMBLE: CHTrend slope filters ChNavy6/Ch2Navy6 direction
+──────────────────────────────────────────────────────────────────────
+  Trades: 2  (W: 2 / L: 0)
+  Net PnL:          $  4,788.60
+  Win Rate:              100.0%
+  Profit Factor:           inf
+  Avg PnL/trade:    $  2,394.30
+  Max Drawdown:     $      0.00
+
+  --- Advanced Risk Metrics ---
+  Sharpe (ann.):           inf
+  Sortino (ann.):          inf
+  Calmar (ann.):           inf
+  Avg Winner:       $  2,394.30
+  Avg Loser:        $      0.00
+  Win/Loss Ratio:          inf
+  Expectancy:       $  2,394.30
+  Max Consec Losers:         0
+  Recovery Factor:         inf
+  Risk of Ruin:            0.0%
+  Kelly %:               100.0%
+
+  --- Equity Curve Analysis ---
+  Eq. Smoothness R²:       1.0
+  Time in Drawdown:        0.0%
+  Largest Trade:    $+2394.30 (50.0% of net PnL)
+
+  Trade Detail:
+    2026-04-08 10:00:00  SHORT  entry=25083.50  exit=24963.75  pnl=$+2,394.30  [TARGET]  Confirm(Ch2Navy6)
+    2026-04-09 10:30:00  LONG   entry=25039.75  exit=25159.50  pnl=$+2,394.30  [TARGET]  Confirm(ChNavy6)
+
+
+==========================================================================================
+ENSEMBLE vs INDIVIDUAL COMPARISON
+==========================================================================================
+
+  Strategy                       Trades    Net PnL   Win%     PF  Sharpe      MaxDD  Kelly%   Expect
+  ──────────────────────────────────────────────────────────────────────────────────────────────────
+  ChNavy6                             3 $ 4,277.90  66.7%   9.38  13.497 $   510.70   59.6% $1,425.97
+  Ch2Navy6                            3 $ 4,272.90  66.7%   9.29  13.458 $   515.70   59.5% $1,424.30
+  CHTrendNavy6                        3 $ 2,982.90 100.0%    inf     inf $     0.00  100.0% $ 994.30
+  Voting (2+ agree)                   3 $ 7,182.90 100.0%    inf     inf $     0.00  100.0% $2,394.30
+  Sequential (A->B->C)                3 $ 4,277.90  66.7%   9.38  13.497 $   510.70   59.6% $1,425.97
+  Confirmation (slope filter)         2 $ 4,788.60 100.0%    inf     inf $     0.00  100.0% $2,394.30
+
+
+==========================================================================================
+PART B: ADVANCED RISK METRICS SUMMARY
+==========================================================================================
+
+  ChNavy6:
+    Sharpe=13.497, Sortino=44.324, Calmar=703.63
+    AvgW=$2394.30, AvgL=$510.70, W/L Ratio=4.688
+    Expectancy=$1425.97/trade, MaxConsecLosers=1
+    RecoveryFactor=8.377, RiskOfRuin=0.1%, Kelly=59.6%
+
+  Ch2Navy6:
+    Sharpe=13.458, Sortino=43.843, Calmar=695.993
+    AvgW=$2394.30, AvgL=$515.70, W/L Ratio=4.643
+    Expectancy=$1424.30/trade, MaxConsecLosers=1
+    RecoveryFactor=8.286, RiskOfRuin=0.1%, Kelly=59.5%
+
+  CHTrendNavy6:
+    Sharpe=inf, Sortino=inf, Calmar=inf
+    AvgW=$994.30, AvgL=$0.00, W/L Ratio=inf
+    Expectancy=$994.30/trade, MaxConsecLosers=0
+    RecoveryFactor=inf, RiskOfRuin=0.0%, Kelly=100.0%
+
+  Voting (2+ agree):
+    Sharpe=inf, Sortino=inf, Calmar=inf
+    AvgW=$2394.30, AvgL=$0.00, W/L Ratio=inf
+    Expectancy=$2394.30/trade, MaxConsecLosers=0
+    RecoveryFactor=inf, RiskOfRuin=0.0%, Kelly=100.0%
+
+  Sequential (A->B->C):
+    Sharpe=13.497, Sortino=44.324, Calmar=703.63
+    AvgW=$2394.30, AvgL=$510.70, W/L Ratio=4.688
+    Expectancy=$1425.97/trade, MaxConsecLosers=1
+    RecoveryFactor=8.377, RiskOfRuin=0.1%, Kelly=59.6%
+
+  Confirmation (slope filter):
+    Sharpe=inf, Sortino=inf, Calmar=inf
+    AvgW=$2394.30, AvgL=$0.00, W/L Ratio=inf
+    Expectancy=$2394.30/trade, MaxConsecLosers=0
+    RecoveryFactor=inf, RiskOfRuin=0.0%, Kelly=100.0%
+
+
+==========================================================================================
+PART C: EQUITY CURVE ANALYSIS
+==========================================================================================
+
+  ChNavy6:
+    Equity curve: $2,394.30 -> $4,788.60 -> $4,277.90
+    Smoothness (R²):       0.5578
+    Time in Drawdown:      33.3%
+    Largest Trade Impact:   $+2394.30 (56.0% of net PnL)
+
+  Ch2Navy6:
+    Equity curve: $2,394.30 -> $4,788.60 -> $4,272.90
+    Smoothness (R²):       0.5556
+    Time in Drawdown:      33.3%
+    Largest Trade Impact:   $+2394.30 (56.0% of net PnL)
+
+  CHTrendNavy6:
+    Equity curve: $994.30 -> $1,988.60 -> $2,982.90
+    Smoothness (R²):       1.0
+    Time in Drawdown:      0.0%
+    Largest Trade Impact:   $+994.30 (33.3% of net PnL)
+
+  Voting:
+    Equity curve: $2,394.30 -> $4,788.60 -> $7,182.90
+    Smoothness (R²):       1.0
+    Time in Drawdown:      0.0%
+    Largest Trade Impact:   $+2394.30 (33.3% of net PnL)
+
+  Sequential:
+    Equity curve: $2,394.30 -> $4,788.60 -> $4,277.90
+    Smoothness (R²):       0.5578
+    Time in Drawdown:      33.3%
+    Largest Trade Impact:   $+2394.30 (56.0% of net PnL)
+
+  Confirmation:
+    Equity curve: $2,394.30 -> $4,788.60
+    Smoothness (R²):       1.0
+    Time in Drawdown:      0.0%
+    Largest Trade Impact:   $+2394.30 (50.0% of net PnL)
+
+
+==========================================================================================
+ROUND 5 VERDICT
+==========================================================================================
+
+  Best by Net PnL:    Voting (2+ agree) ($7,182.90)
+  Best by Sharpe:     CHTrendNavy6 (inf)
+  Best by PF:         CHTrendNavy6 (inf)
+
+  Risk Assessment:
+    ChNavy6                         Kelly=59.6%  RoR=0.1%  -> FAVORABLE
+    Ch2Navy6                        Kelly=59.5%  RoR=0.1%  -> FAVORABLE
+    CHTrendNavy6                    Kelly=100.0%  RoR=0.0%  -> FAVORABLE
+    Voting (2+ agree)               Kelly=100.0%  RoR=0.0%  -> FAVORABLE
+    Sequential (A->B->C)            Kelly=59.6%  RoR=0.1%  -> FAVORABLE
+    Confirmation (slope filter)     Kelly=100.0%  RoR=0.0%  -> FAVORABLE
+
+==========================================================================================
+END OF ROUND 5 REPORT
+==========================================================================================

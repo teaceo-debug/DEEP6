@@ -1,0 +1,103 @@
+====================================================================================================
+OPT7 — COMBINED STRATEGY OPTIMIZATION: ChNavy6 VWAP Bounce
+====================================================================================================
+
+Combo                                         Trades        PnL    WR%     PF  Sharpe     MaxDD   AvgWin  AvgLoss
+----------------------------------------------------------------------------------------------------
+A. Baseline (SL=160, TP=560)                      78 $   -4,935  23.1%  0.90   -0.72 $  10,477 $  2,384 $   -797
+B. ATR stops only                                 78 $  +70,433  56.4%  1.71   +3.23 $  24,589 $  3,859 $ -2,923
+C. Regime filter only                             78 $   -4,935  23.1%  0.90   -0.72 $  10,477 $  2,384 $   -797
+D. Trailing stop only                             78 $  -10,480  37.2%  0.73   -2.32 $  12,325 $    983 $   -795
+E. Time 9:30-11:00 only                           34 $  +10,291  35.3%  1.58   +3.05 $   8,863 $  2,335 $   -806
+E2. Time 9:30-12:00 only                          41 $   +4,631  29.3%  1.20   +1.20 $  11,280 $  2,335 $   -806
+F. Loss breaker only                              54 $  -21,043  13.0%  0.44   -5.67 $  22,500 $  2,332 $   -795
+G. ATR + regime                                   78 $  +70,433  56.4%  1.71   +3.23 $  24,589 $  3,859 $ -2,923
+H. ATR + trailing                                 78 $   +8,425  79.5%  1.15   +0.74 $  33,465 $  1,051 $ -3,548
+I. Regime + trailing + time                       34 $  +15,491  50.0%  2.13   +4.98 $   4,834 $  1,717 $   -806
+J. Regime + trailing + loss breaker               61 $  -15,333  31.1%  0.54   -4.72 $  16,556 $    948 $   -794
+K. ALL combined                                   19 $  -33,656  36.8%  0.22   -9.25 $  34,198 $  1,321 $ -3,575
+L. Best 3: ATR+time_1100+time_1200                41 $  -20,140  48.8%  0.68   -2.38 $  21,878 $  2,167 $ -3,023
+
+RANKING BY PnL:
+   1. B. ATR stops only                             $  +70,433  (delta: $ +75,368)
+   2. G. ATR + regime                               $  +70,433  (delta: $ +75,368)
+   3. I. Regime + trailing + time                   $  +15,491  (delta: $ +20,426)
+   4. E. Time 9:30-11:00 only                       $  +10,291  (delta: $ +15,226)
+   5. H. ATR + trailing                             $   +8,425  (delta: $ +13,360)
+   6. E2. Time 9:30-12:00 only                      $   +4,631  (delta: $  +9,566)
+   7. A. Baseline (SL=160, TP=560)                  $   -4,935  (delta: $      +0)
+   8. C. Regime filter only                         $   -4,935  (delta: $      +0)
+   9. D. Trailing stop only                         $  -10,480  (delta: $  -5,545)
+  10. J. Regime + trailing + loss breaker           $  -15,333  (delta: $ -10,398)
+  11. L. Best 3: ATR+time_1100+time_1200            $  -20,140  (delta: $ -15,205)
+  12. F. Loss breaker only                          $  -21,043  (delta: $ -16,108)
+  13. K. ALL combined                               $  -33,656  (delta: $ -28,721)
+
+RANKING BY SHARPE:
+   1. I. Regime + trailing + time                   Sharpe: +4.98
+   2. B. ATR stops only                             Sharpe: +3.23
+   3. G. ATR + regime                               Sharpe: +3.23
+   4. E. Time 9:30-11:00 only                       Sharpe: +3.05
+   5. E2. Time 9:30-12:00 only                      Sharpe: +1.20
+   6. H. ATR + trailing                             Sharpe: +0.74
+   7. A. Baseline (SL=160, TP=560)                  Sharpe: -0.72
+   8. C. Regime filter only                         Sharpe: -0.72
+   9. D. Trailing stop only                         Sharpe: -2.32
+  10. L. Best 3: ATR+time_1100+time_1200            Sharpe: -2.38
+  11. J. Regime + trailing + loss breaker           Sharpe: -4.72
+  12. F. Loss breaker only                          Sharpe: -5.67
+  13. K. ALL combined                               Sharpe: -9.25
+
+====================================================================================================
+MONTHLY BREAKDOWN — TOP 3 BY PnL
+====================================================================================================
+
+#1 B. ATR stops only  (Total: $+70,433)
+    2026-01: 22 trades, PnL $+18,976, WR 59%
+    2026-02: 22 trades, PnL $+44,726, WR 68%
+    2026-03: 26 trades, PnL $+177, WR 46%
+    2026-04:  8 trades, PnL $+6,554, WR 50%
+
+#2 G. ATR + regime  (Total: $+70,433)
+    2026-01: 22 trades, PnL $+18,976, WR 59%
+    2026-02: 22 trades, PnL $+44,726, WR 68%
+    2026-03: 26 trades, PnL $+177, WR 46%
+    2026-04:  8 trades, PnL $+6,554, WR 50%
+
+#3 I. Regime + trailing + time  (Total: $+15,491)
+    2026-01: 10 trades, PnL $+1,633, WR 50%
+    2026-02: 10 trades, PnL $+13,838, WR 70%
+    2026-03:  9 trades, PnL $-3,846, WR 22%
+    2026-04:  5 trades, PnL $+3,866, WR 60%
+
+====================================================================================================
+WALK-FORWARD VALIDATION — B. ATR stops only
+  (40-day IS / 20-day OOS, rolling)
+====================================================================================================
+
+Window                                   IS Trades     IS PnL   IS WR OOS Trades    OOS PnL  OOS WR
+----------------------------------------------------------------------------------------------------
+2026-01-01→2026-03-11                           35 $  +47,318   60.0%         18 $   +4,586   55.6%
+2026-01-25→2026-04-03                           36 $  +35,720   61.1%         20 $  +17,117   50.0%
+----------------------------------------------------------------------------------------------------
+TOTALS                                             $  +83,038                    $  +21,704
+
+OOS windows positive: 2/2
+IS/OOS PnL ratio: 0.26x
+
+>>> VERDICT: Strategy shows ROBUSTNESS — OOS is profitable and consistent.
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+WALK-FORWARD COMPARISON — Baseline (A)
+
+  Baseline OOS total: $-392  (1/2 windows positive)
+  Best combo OOS total: $+21,704  (2/2 windows positive)
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+DIRECTION FILTER IMPACT (Combo K - ALL):
+  Longs:  13 trades, PnL $-16,067
+  Shorts: 6 trades, PnL $-17,589
+
+====================================================================================================
+END OF REPORT
+====================================================================================================
