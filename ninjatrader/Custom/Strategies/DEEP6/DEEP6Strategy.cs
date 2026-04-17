@@ -796,6 +796,15 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                 _activeAtmGuid = null;
         }
 
+        // NT8 8.1.6.3 bug: StrategyBase.CopyTo() calls set_BacktestCommissionTemplate after the
+        // clone's state has advanced past SetDefaults, causing InvalidOperationException.
+        // CopyTo IS virtual, so this override is called. We swallow only that specific exception.
+        public override void CopyTo(NinjaScript ninjaScript)
+        {
+            try { base.CopyTo(ninjaScript); }
+            catch (System.InvalidOperationException) { }
+        }
+
         #region Properties
 
         [NinjaScriptProperty]
