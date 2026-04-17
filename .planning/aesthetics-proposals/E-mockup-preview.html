@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>DEEP6 — F1 PITWALL Aesthetic Preview</title>
+<style>
+  :root {
+    /* Surfaces */
+    --surface-0: #000000;
+    --surface-1: #070A0E;
+    --surface-2: #0E1218;
+    --grid-line: rgba(26, 31, 38, 0.6);
+    --grid-major: #262C36;
+    /* Aerospace 787 PFD grammar */
+    --aero-cyan: #00E0FF;
+    --aero-magenta: #FF38C8;
+    --aero-green: #3DDC84;
+    --aero-amber: #FFB300;
+    --aero-red: #FF3030;
+    --aero-white: #F2F4F8;
+    /* F1 sector colors */
+    --f1-purple: #A100FF;
+    --f1-green: #3DB868;
+    --f1-white: #E8EAED;
+    --f1-yellow: #FFD600;
+    --f1-red: #FF1744;
+    /* Cell tints */
+    --tint-cyan-22: rgba(0, 224, 255, 0.22);
+    --tint-mag-22: rgba(255, 56, 200, 0.22);
+    --tint-amber-18: rgba(255, 179, 0, 0.18);
+    --tint-cyan-28: rgba(0, 224, 255, 0.28);
+    --tint-mag-28: rgba(255, 56, 200, 0.28);
+    /* Text */
+    --text-primary: #F2F4F8;
+    --text-secondary: #9BA3AE;
+    --text-tertiary: #5A636E;
+  }
+  body {
+    margin: 0;
+    background: #1a1a1a;
+    color: #ddd;
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    padding: 24px;
+  }
+  h1 { margin: 0 0 4px 0; font-size: 18px; font-weight: 700; letter-spacing: 0.02em; }
+  .meta { color: #888; font-size: 12px; margin-bottom: 16px; }
+  .legend {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    margin: 24px 0; font-size: 11px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .swatch {
+    width: 14px; height: 14px; border-radius: 2px; border: 1px solid #333;
+  }
+  /* The chart canvas — true black, NT8-emulated */
+  .chart {
+    background: var(--surface-0);
+    border: 1px solid #333;
+    width: 1200px;
+    height: 700px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+  }
+  /* PIT-WALL telemetry strip */
+  .pitwall {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 24px;
+    background: var(--surface-1);
+    border-bottom: 1px solid var(--grid-major);
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 6px;
+  }
+  .pill {
+    height: 18px;
+    background: var(--surface-2);
+    display: flex;
+    align-items: center;
+    padding: 0 8px 0 0;
+    position: relative;
+    font-size: 11px;
+  }
+  .pill-edge {
+    width: 2px;
+    height: 18px;
+    margin-right: 6px;
+  }
+  .pill-label {
+    color: var(--text-tertiary);
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    margin-right: 6px;
+    text-transform: uppercase;
+  }
+  .pill-value {
+    color: var(--text-primary);
+    font-family: 'Consolas', 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 1px #000, 0 0 1px #000;
+  }
+  /* Chart canvas content area */
+  .canvas-area {
+    position: absolute;
+    top: 24px; left: 0; right: 0; bottom: 0;
+  }
+  /* Score HUD top-right */
+  .score-hud {
+    position: absolute;
+    top: 32px; right: 0;
+    width: 200px; height: 62px;
+    background: rgba(14, 16, 20, 0.78);
+    border: 1px solid #262633;
+    padding: 6px 10px;
+    box-sizing: border-box;
+    z-index: 20;
+    font-family: 'Consolas', monospace;
+  }
+  .score-line {
+    color: #E8EAED;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .score-tier { color: #00E676; font-weight: 700; }
+  .score-narrative {
+    color: #B0BEC5; font-size: 9px; margin-top: 4px;
+    font-family: 'Segoe UI', sans-serif; line-height: 1.3;
+  }
+  /* Chart Trader buttons — top-left, pushed down 32 when pitwall is on */
+  .ct-toolbar {
+    position: absolute;
+    top: 32px; left: 8px;
+    display: flex;
+    gap: 4px;
+    z-index: 15;
+  }
+  .ct-btn {
+    width: 56px; height: 22px;
+    background: rgba(50, 130, 75, 0.86);
+    border: 1px solid #5A6473;
+    color: #F2F4F8;
+    font-size: 9px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .ct-btn.off {
+    background: rgba(35, 40, 50, 0.86);
+    color: #5A636E;
+  }
+  /* Footprint cells absolute-positioned via inline style */
+  .footprint-bar {
+    position: absolute;
+    color: var(--text-secondary);
+    font-family: 'Consolas', monospace;
+    font-size: 9px;
+    font-variant-numeric: tabular-nums;
+  }
+  .cell {
+    position: absolute;
+    height: 14px;
+    line-height: 14px;
+    text-align: center;
+    white-space: nowrap;
+    padding: 0 2px;
+  }
+  .cell.imb-amber { background: var(--tint-amber-18); }
+  .cell.imb-cyan { background: var(--tint-cyan-22); color: var(--text-primary); }
+  .cell.imb-mag { background: var(--tint-mag-22); color: var(--text-primary); }
+  .cell.imb-cyan-x8 {
+    background: var(--tint-cyan-28); color: var(--aero-white); font-weight: 700;
+    box-shadow: inset 0 0 0 0 transparent;
+  }
+  .cell.imb-mag-x8 {
+    background: var(--tint-mag-28); color: var(--aero-white); font-weight: 700;
+  }
+  /* Corner-bracket reticle on extreme cells */
+  .reticle {
+    position: absolute;
+    pointer-events: none;
+  }
+  .reticle::before, .reticle::after,
+  .reticle > .br-bl, .reticle > .br-br {
+    content: ''; position: absolute; width: 6px; height: 6px;
+    border-color: currentColor; border-style: solid;
+  }
+  .reticle::before { top: 0; left: 0; border-width: 1.5px 0 0 1.5px; }
+  .reticle::after  { top: 0; right: 0; border-width: 1.5px 1.5px 0 0; }
+  .reticle .br-bl  { bottom: 0; left: 0; border-width: 0 0 1.5px 1.5px; }
+  .reticle .br-br  { bottom: 0; right: 0; border-width: 0 1.5px 1.5px 0; }
+  .reticle.cyan { color: var(--aero-cyan); }
+  .reticle.mag  { color: var(--aero-magenta); }
+  /* POC line — F1 sector "best lap" purple */
+  .poc-line {
+    position: absolute;
+    height: 2px;
+    background: var(--f1-purple);
+  }
+  /* GEX levels — full chart-width horizontal lines + right-side telemetry pill */
+  .gex-line {
+    position: absolute; left: 0; right: 100px;
+    height: 0;
+  }
+  .gex-line.zg     { border-top: 2px solid var(--aero-cyan); }
+  .gex-line.cw     { border-top: 2px solid var(--aero-amber); }
+  .gex-line.pw     { border-top: 2px solid var(--aero-amber); }
+  .gex-line.posg   { border-top: 0.8px solid var(--aero-cyan); opacity: 0.7; }
+  .gex-line.negg   { border-top: 0.8px solid var(--aero-magenta); opacity: 0.7; }
+  /* Amber safety band behind walls */
+  .gex-band {
+    position: absolute; left: 0; right: 0;
+    height: 6px;
+    background: var(--tint-amber-18);
+    transform: translateY(-3px);
+  }
+  .gex-pill {
+    position: absolute; right: 4px;
+    width: 96px; height: 18px;
+    background: var(--surface-2);
+    transform: translateY(-9px);
+    display: flex; align-items: center;
+    z-index: 5;
+  }
+  .gex-pill-edge { width: 2px; height: 18px; margin-right: 6px; }
+  .gex-pill-text {
+    font-family: 'Consolas', monospace;
+    font-size: 11px;
+    color: var(--text-primary);
+    font-weight: 600;
+    text-shadow: 0 0 1px #000, 0 0 1px #000;
+    font-variant-numeric: tabular-nums;
+  }
+  /* Absorption signature box */
+  .abs-sig {
+    position: absolute;
+    background: var(--tint-cyan-22);
+    color: var(--aero-cyan);
+    padding: 4px 8px;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    z-index: 8;
+  }
+  .abs-sig .data-row {
+    color: var(--aero-white);
+    font-family: 'Consolas', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    margin-top: 18px;
+    font-variant-numeric: tabular-nums;
+  }
+  /* Working orders */
+  .order-line {
+    position: absolute;
+    left: 0; right: 4px;
+    height: 0;
+    border-top: 1.5px solid;
+  }
+  .order-line.lmt   { border-top-style: solid; border-color: var(--aero-cyan); }
+  .order-line.stop  { border-top-style: dashed; border-color: var(--aero-amber); }
+  .order-line.trail { border-top-style: dashed; border-color: var(--aero-magenta); }
+  .order-pill {
+    position: absolute; right: 4px;
+    width: 100px; height: 16px;
+    background: var(--surface-2);
+    transform: translateY(-8px);
+    padding: 0 6px;
+    font-family: 'Consolas', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex; align-items: center;
+    text-shadow: 0 0 1px #000;
+  }
+  /* Price labels on right axis */
+  .price-label {
+    position: absolute;
+    right: 110px;
+    color: var(--text-secondary);
+    font-family: 'Consolas', monospace;
+    font-size: 10px;
+    transform: translateY(-7px);
+  }
+  /* Section header */
+  h2 { font-size: 13px; font-weight: 600; margin: 24px 0 8px 0; color: #ccc; }
+  .doc { max-width: 1240px; }
+</style>
+</head>
+<body>
+<div class="doc">
+  <h1>DEEP6 NinjaTrader 8 — F1 PITWALL Aesthetic (Option E) — Live Preview</h1>
+  <div class="meta">
+    Rendered with the exact hex codes, fonts, and proportions implemented in
+    <code>DEEP6Footprint.cs</code> + <code>DEEP6GexLevels.cs</code>.
+    Build: ✅ 0 errors · 3/3 expert agents validated · Lifecycle replay passed.
+  </div>
+
+  <div class="chart">
+
+    <!-- ▰▰▰ PIT-WALL TELEMETRY STRIP (24px, top of chart) ▰▰▰ -->
+    <div class="pitwall">
+      <div class="pill">
+        <div class="pill-edge" style="background: var(--aero-white)"></div>
+        <span class="pill-label">SYM</span>
+        <span class="pill-value" style="color: var(--aero-white)">NQ</span>
+      </div>
+      <div class="pill">
+        <div class="pill-edge" style="background: var(--f1-purple)"></div>
+        <span class="pill-label">Δ</span>
+        <span class="pill-value" style="color: var(--f1-purple)">+2.4K</span>
+      </div>
+      <div class="pill">
+        <div class="pill-edge" style="background: var(--aero-amber)"></div>
+        <span class="pill-label">VOL</span>
+        <span class="pill-value" style="color: var(--aero-amber)">142K</span>
+      </div>
+      <div class="pill">
+        <div class="pill-edge" style="background: var(--f1-purple)"></div>
+        <span class="pill-label">POC</span>
+        <span class="pill-value">21457.25</span>
+      </div>
+      <div class="pill">
+        <div class="pill-edge" style="background: var(--f1-green)"></div>
+        <span class="pill-label">CVD</span>
+        <span class="pill-value" style="color: var(--f1-green)">+18.2K</span>
+      </div>
+      <div class="pill">
+        <div class="pill-edge" style="background: var(--f1-purple)"></div>
+        <span class="pill-label">SCORE</span>
+        <span class="pill-value" style="color: var(--f1-purple)">87</span>
+      </div>
+      <div class="pill">
+        <div class="pill-edge" style="background: var(--f1-purple)"></div>
+        <span class="pill-label">TIER</span>
+        <span class="pill-value" style="color: var(--f1-purple)">A</span>
+      </div>
+    </div>
+
+    <!-- ▰▰▰ Chart Trader toolbar (Y+32 because pitwall is on) ▰▰▰ -->
+    <div class="ct-toolbar">
+      <div class="ct-btn">CELLS</div>
+      <div class="ct-btn">POC</div>
+      <div class="ct-btn">VA</div>
+      <div class="ct-btn off">ANCH</div>
+      <div class="ct-btn">ABS</div>
+      <div class="ct-btn">EXH</div>
+      <div class="ct-btn off">L2</div>
+    </div>
+
+    <!-- ▰▰▰ Score HUD top-right (Y+32 because pitwall is on) ▰▰▰ -->
+    <div class="score-hud">
+      <div class="score-line">SCORE  <span class="score-tier">+0.78  TIER A LONG</span></div>
+      <div class="score-narrative">Stacked buy imbalance + absorption at PD POC.<br>Confluence: 6/12 categories firing.</div>
+    </div>
+
+    <!-- ▰▰▰ GEX LEVELS — aerospace 787 PFD grammar ▰▰▰ -->
+    <!-- Call Wall (amber) with safety band -->
+    <div class="gex-band" style="top: 110px"></div>
+    <div class="gex-line cw" style="top: 110px"></div>
+    <div class="gex-pill" style="top: 110px">
+      <div class="gex-pill-edge" style="background: var(--aero-amber)"></div>
+      <span class="gex-pill-text">CW  21500</span>
+    </div>
+
+    <!-- Zero Gamma (cyan = selected/target) -->
+    <div class="gex-line zg" style="top: 200px"></div>
+    <div class="gex-pill" style="top: 200px">
+      <div class="gex-pill-edge" style="background: var(--aero-cyan)"></div>
+      <span class="gex-pill-text">ZG  21450</span>
+    </div>
+
+    <!-- Put Wall (amber) with safety band -->
+    <div class="gex-band" style="top: 540px"></div>
+    <div class="gex-line pw" style="top: 540px"></div>
+    <div class="gex-pill" style="top: 540px">
+      <div class="gex-pill-edge" style="background: var(--aero-amber)"></div>
+      <span class="gex-pill-text">PW  21400</span>
+    </div>
+
+    <!-- Minor +GEX (cyan, thin) -->
+    <div class="gex-line posg" style="top: 350px"></div>
+    <div class="gex-pill" style="top: 350px">
+      <div class="gex-pill-edge" style="background: var(--aero-cyan); opacity: 0.7"></div>
+      <span class="gex-pill-text" style="color: var(--text-secondary)">+G  21430</span>
+    </div>
+
+    <!-- ▰▰▰ FOOTPRINT BAR 1 (regular) ▰▰▰ -->
+    <div class="footprint-bar" style="left: 200px; top: 240px;">
+      <div class="cell" style="top: 0px;   width: 80px;">  88 x 112  </div>
+      <div class="cell" style="top: 14px;  width: 80px;"> 124 x 167  </div>
+      <div class="cell" style="top: 28px; width: 80px;"> 198 x 245  </div>
+      <div class="cell" style="top: 42px; width: 80px;"> 287 x 312  </div>
+      <div class="cell" style="top: 56px; width: 80px;"> 156 x 189  </div>
+      <!-- POC line -->
+      <div class="poc-line" style="top: 39px; left: 0; width: 80px;"></div>
+    </div>
+
+    <!-- ▰▰▰ FOOTPRINT BAR 2 (with imbalance escalation — ×3 amber, ×5 cyan, ×8 cyan + reticle) ▰▰▰ -->
+    <div class="footprint-bar" style="left: 320px; top: 220px;">
+      <div class="cell"          style="top: 0px;   width: 80px;">  42 x 67   </div>
+      <div class="cell"          style="top: 14px;  width: 80px;">  88 x 92   </div>
+      <div class="cell imb-amber" style="top: 28px; width: 80px;"> 124 x 410  </div>     <!-- ×3.3 buy → amber -->
+      <div class="cell imb-cyan"  style="top: 42px; width: 80px;">  88 x 510  </div>     <!-- ×5.8 buy → cyan -->
+      <div class="cell imb-cyan-x8" style="top: 56px; width: 80px; position: absolute;">
+        <span style="position: relative; z-index: 2;">  56 x 489  </span>
+      </div>     <!-- ×8.7 buy → cyan + reticle -->
+      <div class="reticle cyan" style="top: 56px; left: 0; width: 80px; height: 14px;"><div class="br-bl"></div><div class="br-br"></div></div>
+      <div class="cell"          style="top: 70px;  width: 80px;"> 102 x 88   </div>
+      <div class="poc-line"      style="top: 53px;  left: 0; width: 80px;"></div>
+    </div>
+
+    <!-- ▰▰▰ FOOTPRINT BAR 3 (sell-side imbalance escalation — magenta) ▰▰▰ -->
+    <div class="footprint-bar" style="left: 440px; top: 180px;">
+      <div class="cell imb-mag-x8" style="top: 0px;   width: 80px; position: absolute;">
+        <span style="position: relative; z-index: 2;"> 489 x 56   </span>
+      </div>
+      <div class="reticle mag" style="top: 0px; left: 0; width: 80px; height: 14px;"><div class="br-bl"></div><div class="br-br"></div></div>
+      <div class="cell imb-mag" style="top: 14px;  width: 80px;"> 467 x 92   </div>
+      <div class="cell imb-amber" style="top: 28px; width: 80px;"> 312 x 88   </div>
+      <div class="cell" style="top: 42px;  width: 80px;"> 156 x 102  </div>
+      <div class="cell" style="top: 56px;  width: 80px;">  88 x 67   </div>
+      <div class="poc-line" style="top: 11px; left: 0; width: 80px;"></div>
+    </div>
+
+    <!-- ▰▰▰ FOOTPRINT BAR 4 (showing absorption signature renderer) ▰▰▰ -->
+    <div class="footprint-bar" style="left: 580px; top: 280px;">
+      <div class="cell"           style="top: 0px;   width: 80px;">  88 x 134  </div>
+      <div class="cell imb-amber" style="top: 14px;  width: 80px;"> 102 x 312  </div>
+      <div class="cell imb-cyan-x8" style="top: 28px;  width: 80px; position: absolute;">
+        <span style="position: relative; z-index: 2;"> 125 x 489  </span>
+      </div>
+      <div class="reticle cyan" style="top: 28px; left: 0; width: 80px; height: 14px;"><div class="br-bl"></div><div class="br-br"></div></div>
+      <div class="poc-line"      style="top: 25px;  left: 0; width: 80px;"></div>
+    </div>
+
+    <!-- Absorption signature (cyan reticle + label + Δ) -->
+    <div class="abs-sig" style="left: 580px; top: 220px; width: 80px; height: 56px; box-sizing: border-box;">
+      <div>ABSORPTION ▲</div>
+      <div class="data-row">Δ−119  W47%</div>
+      <div class="reticle cyan" style="top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%;"><div class="br-bl"></div><div class="br-br"></div></div>
+    </div>
+
+    <!-- ▰▰▰ FOOTPRINT BAR 5 (showing exhaustion signature) ▰▰▰ -->
+    <div class="footprint-bar" style="left: 720px; top: 200px;">
+      <div class="cell imb-mag-x8" style="top: 0px;   width: 80px; position: absolute;">
+        <span style="position: relative; z-index: 2;"> 489 x 88   </span>
+      </div>
+      <div class="reticle mag" style="top: 0px; left: 0; width: 80px; height: 14px;"><div class="br-bl"></div><div class="br-br"></div></div>
+      <div class="cell imb-mag" style="top: 14px;  width: 80px;"> 312 x 156  </div>
+      <div class="cell"         style="top: 28px;  width: 80px;"> 156 x 188  </div>
+      <div class="poc-line" style="top: 11px; left: 0; width: 80px;"></div>
+    </div>
+
+    <!-- Exhaustion signature (magenta reticle + label) -->
+    <div class="abs-sig" style="left: 720px; top: 140px; width: 80px; height: 56px; background: var(--tint-mag-22); color: var(--aero-magenta); box-sizing: border-box;">
+      <div>EXHAUSTION ▼</div>
+      <div class="data-row" style="color: var(--aero-white);">Δ+87  R68%</div>
+      <div class="reticle mag" style="top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%;"><div class="br-bl"></div><div class="br-br"></div></div>
+    </div>
+
+    <!-- ▰▰▰ Working orders ▰▰▰ -->
+    <!-- Limit (cyan solid = selected target) -->
+    <div class="order-line lmt" style="top: 440px"></div>
+    <div class="order-pill" style="top: 440px; color: var(--aero-cyan);">LMT 21438</div>
+    <!-- Stop (amber dashed = caution) -->
+    <div class="order-line stop" style="top: 480px"></div>
+    <div class="order-pill" style="top: 480px; color: var(--aero-amber);">STP 21425</div>
+    <!-- Trail (magenta dashed = autopilot) -->
+    <div class="order-line trail" style="top: 460px"></div>
+    <div class="order-pill" style="top: 460px; color: var(--aero-magenta);">TRL 21432</div>
+
+    <!-- Right-side price labels (every 25pt) -->
+    <div class="price-label" style="top: 110px;">21500</div>
+    <div class="price-label" style="top: 200px;">21450</div>
+    <div class="price-label" style="top: 240px;">21430</div>
+    <div class="price-label" style="top: 350px;">21430</div>
+    <div class="price-label" style="top: 440px;">21438</div>
+    <div class="price-label" style="top: 460px;">21432</div>
+    <div class="price-label" style="top: 480px;">21425</div>
+    <div class="price-label" style="top: 540px;">21400</div>
+
+  </div>
+
+  <h2>Color legend (verified hex codes — same as compiled C#)</h2>
+  <div class="legend">
+    <div class="legend-item"><div class="swatch" style="background: var(--aero-cyan)"></div>aero.cyan #00E0FF — selected/target/zero-gamma/limit</div>
+    <div class="legend-item"><div class="swatch" style="background: var(--aero-magenta)"></div>aero.magenta #FF38C8 — autopilot/trail/exhaustion</div>
+    <div class="legend-item"><div class="swatch" style="background: var(--aero-green)"></div>aero.green #3DDC84 — engaged/on/nominal</div>
+    <div class="legend-item"><div class="swatch" style="background: var(--aero-amber)"></div>aero.amber #FFB300 — caution/stop/walls</div>
+    <div class="legend-item"><div class="swatch" style="background: var(--aero-red)"></div>aero.red #FF3030 — warn/stop-hit</div>
+    <div class="legend-item"><div class="swatch" style="background: var(--f1-purple)"></div>f1.purple #A100FF — POC / personal-best</div>
+    <div class="legend-item"><div class="swatch" style="background: var(--f1-green)"></div>f1.green #3DB868 — winner sector</div>
+    <div class="legend-item"><div class="swatch" style="background: var(--f1-yellow)"></div>f1.yellow #FFD600 — slower sector</div>
+    <div class="legend-item"><div class="swatch" style="background: var(--f1-red)"></div>f1.red #FF1744 — loss sector</div>
+  </div>
+
+  <h2>What changed in your code</h2>
+  <pre style="background: #0a0a0a; color: #ccc; padding: 16px; font-size: 12px; overflow-x: auto; border: 1px solid #333;">
+DEEP6Footprint.cs:
+  ✓ Added 21 cached F1 PITWALL brushes (aerospace + sector palette)
+  ✓ Added RenderPitWallStrip + BuildPitWallPills (top-of-chart 24px telemetry strip)
+  ✓ Added DrawCornerBrackets (targeting-reticle for extreme imbalance cells)
+  ✓ Added DrawHaloText (1px black halo for legibility — fighter-HMD rule)
+  ✓ Added RenderAbsorptionSignature + RenderExhaustionSignature methods
+    (defined; wiring into marker placement deferred to v2)
+  ✓ Cell rendering: ×3 amber → ×5 cyan/magenta → ×8 + reticle escalation
+  ✓ POC line: now F1 sector purple #A100FF (was yellow)
+  ✓ Score HUD + Chart Trader auto-shift Y+32 when pit-wall is on
+  ✓ ShowPitWallStrip property (default ON for new instances)
+  ✓ _lastScorerResult marked volatile (race condition fix from H1)
+
+DEEP6GexLevels.cs:
+  ✓ GammaFlip → cyan #00E0FF (selected/target)
+  ✓ Call/Put walls → amber #FFB300 + 6px amber safety band
+  ✓ Right-side telemetry pill labels with sector-color edge stripes (96×18px)
+  ✓ Halo text on every pill label
+
+Validation: ✅ Build 0 errors · ✅ Lifecycle PASS · ✅ Replay PASS · ✅ 3/3 agents SAFE TO SHIP
+  </pre>
+</div>
+</body>
+</html>

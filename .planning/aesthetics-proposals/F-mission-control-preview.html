@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>DEEP6 — Mission Control Right Panel + Signal Clarity Preview</title>
+<style>
+  :root {
+    /* Surfaces */
+    --surface-0: #000000;
+    --surface-1: #070A0E;
+    --surface-2: #0E1218;
+    --surface-3: #1A1F26;
+    --grid-line: rgba(26, 31, 38, 0.6);
+    --grid-major: #262C36;
+    /* Aerospace 787 PFD grammar */
+    --aero-cyan: #00E0FF;
+    --aero-magenta: #FF38C8;
+    --aero-green: #3DDC84;
+    --aero-amber: #FFB300;
+    --aero-red: #FF3030;
+    --aero-white: #F2F4F8;
+    /* F1 sector colors */
+    --f1-purple: #A100FF;
+    --f1-green: #3DB868;
+    --f1-white: #E8EAED;
+    --f1-yellow: #FFD600;
+    --f1-red: #FF1744;
+    /* Cell tints */
+    --tint-cyan-22: rgba(0, 224, 255, 0.22);
+    --tint-mag-22: rgba(255, 56, 200, 0.22);
+    --tint-amber-18: rgba(255, 179, 0, 0.18);
+    --tint-cyan-28: rgba(0, 224, 255, 0.28);
+    --tint-mag-28: rgba(255, 56, 200, 0.28);
+    --tint-green-18: rgba(61, 184, 104, 0.18);
+    --tint-purple-22: rgba(161, 0, 255, 0.22);
+    /* Text */
+    --text-primary: #F2F4F8;
+    --text-secondary: #9BA3AE;
+    --text-tertiary: #5A636E;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #1a1a1a;
+    color: #ddd;
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    padding: 24px;
+  }
+  h1 { margin: 0 0 4px 0; font-size: 18px; font-weight: 700; }
+  h2 { font-size: 13px; font-weight: 600; margin: 24px 0 8px 0; color: #ccc; }
+  .meta { color: #888; font-size: 12px; margin-bottom: 16px; }
+  .doc { max-width: 1500px; }
+
+  /* ─── Chart canvas ─── */
+  .chart {
+    background: var(--surface-0);
+    border: 1px solid #333;
+    width: 1440px;
+    height: 760px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     MISSION CONTROL — right-side panel
+     240 px wide, anchored right edge, full height
+     ═══════════════════════════════════════════════════════════ */
+  .mc-panel {
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 240px;
+    background: rgba(7, 10, 14, 0.92);
+    border-left: 1px solid var(--grid-major);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    font-family: 'Segoe UI', sans-serif;
+  }
+
+  /* Mode selector at top */
+  .mc-mode {
+    display: flex;
+    height: 28px;
+    border-bottom: 1px solid var(--grid-major);
+  }
+  .mc-mode-btn {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; letter-spacing: 0.1em;
+    cursor: pointer; user-select: none;
+    background: var(--surface-1);
+    color: var(--text-tertiary);
+    border-right: 1px solid var(--grid-major);
+  }
+  .mc-mode-btn:last-child { border-right: 0; }
+  .mc-mode-btn.active {
+    background: var(--surface-2);
+    color: var(--aero-cyan);
+    border-bottom: 2px solid var(--aero-cyan);
+  }
+
+  /* Section common */
+  .mc-section {
+    padding: 6px 10px 8px 10px;
+    border-bottom: 1px solid var(--grid-line);
+  }
+  .mc-section-title {
+    font-size: 8px; font-weight: 700; letter-spacing: 0.1em;
+    color: var(--text-tertiary);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+  .mc-row {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px; line-height: 1.5;
+    font-family: 'Consolas', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  .mc-label { color: var(--text-secondary); }
+  .mc-value { color: var(--text-primary); }
+  .mc-value.cyan { color: var(--aero-cyan); }
+  .mc-value.magenta { color: var(--aero-magenta); }
+  .mc-value.amber { color: var(--aero-amber); }
+  .mc-value.green { color: var(--f1-green); }
+  .mc-value.purple { color: var(--f1-purple); font-weight: 700; }
+  .mc-value.red { color: var(--f1-red); }
+  .mc-value.white { color: var(--aero-white); font-weight: 700; }
+
+  /* ▶ ACTIVE SIGNAL section — pulsing border when armed */
+  .mc-active-signal {
+    background: rgba(0, 224, 255, 0.08);
+    border-left: 3px solid var(--aero-cyan);
+    box-shadow: inset 0 0 12px rgba(0, 224, 255, 0.15);
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--grid-major);
+    animation: pulse-cyan 1.2s ease-in-out infinite;
+  }
+  @keyframes pulse-cyan {
+    0%, 100% { box-shadow: inset 0 0 12px rgba(0, 224, 255, 0.15); }
+    50% { box-shadow: inset 0 0 22px rgba(0, 224, 255, 0.30); }
+  }
+  .mc-active-header {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+    color: var(--aero-cyan); margin-bottom: 6px;
+  }
+  .mc-active-tier {
+    background: var(--f1-purple); color: white;
+    padding: 1px 6px; font-size: 9px; font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  .mc-active-action {
+    font-size: 14px; font-weight: 700;
+    color: var(--aero-cyan);
+    margin-bottom: 4px;
+    font-family: 'Consolas', monospace;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 4px rgba(0, 224, 255, 0.5);
+  }
+  .mc-active-line {
+    font-size: 11px;
+    font-family: 'Consolas', monospace;
+    line-height: 1.5;
+    font-variant-numeric: tabular-nums;
+  }
+  .mc-active-reason {
+    font-size: 9px; color: var(--text-secondary);
+    margin-top: 6px; line-height: 1.4;
+  }
+  .mc-execute-btn {
+    width: 100%; height: 28px;
+    background: var(--aero-cyan); color: var(--surface-0);
+    border: 0; cursor: pointer;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+    margin-top: 8px;
+    text-shadow: none;
+  }
+  .mc-skip-btn {
+    width: 100%; height: 22px;
+    background: transparent; color: var(--text-secondary);
+    border: 1px solid var(--text-tertiary);
+    cursor: pointer; font-size: 10px;
+    margin-top: 4px;
+  }
+  .mc-validity {
+    font-size: 9px; color: var(--text-tertiary);
+    text-align: center; margin-top: 6px;
+  }
+
+  /* P&L progress bar */
+  .mc-progress {
+    height: 4px; background: var(--surface-3);
+    margin-top: 4px; overflow: hidden;
+  }
+  .mc-progress-fill {
+    height: 100%; background: var(--f1-green);
+  }
+
+  /* Status dot */
+  .mc-dot {
+    display: inline-block; width: 6px; height: 6px;
+    background: var(--f1-green); margin-right: 4px;
+    box-shadow: 0 0 6px var(--f1-green);
+  }
+  .mc-dot.red { background: var(--aero-red); box-shadow: 0 0 6px var(--aero-red); }
+
+  /* Signal toggle row */
+  .mc-signals {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  .mc-signals::-webkit-scrollbar { width: 4px; }
+  .mc-signals::-webkit-scrollbar-thumb { background: var(--grid-major); }
+  .mc-sig-row {
+    display: grid;
+    grid-template-columns: 16px 18px 1fr auto;
+    gap: 4px; align-items: center;
+    padding: 1px 10px;
+    font-size: 10px;
+    font-family: 'Consolas', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  .mc-sig-row:hover { background: rgba(255,255,255,0.04); }
+  .mc-checkbox {
+    width: 10px; height: 10px;
+    border: 1px solid var(--text-tertiary);
+    background: transparent;
+  }
+  .mc-checkbox.checked {
+    background: var(--aero-cyan);
+    border-color: var(--aero-cyan);
+  }
+  .mc-sig-letter {
+    font-weight: 700; color: var(--aero-cyan);
+    font-size: 10px;
+  }
+  .mc-sig-name { color: var(--text-secondary); font-size: 10px; }
+  .mc-sig-time { color: var(--text-tertiary); font-size: 9px; }
+  .mc-sig-row.recent .mc-sig-name { color: var(--aero-white); }
+  .mc-sig-row.recent .mc-sig-time { color: var(--aero-cyan); }
+
+  /* Action bar at bottom */
+  .mc-actions {
+    padding: 8px 10px;
+    border-top: 1px solid var(--grid-major);
+    background: var(--surface-1);
+  }
+  .mc-flatten-btn {
+    width: 100%; height: 32px;
+    background: var(--aero-red); color: white;
+    border: 0; cursor: pointer;
+    font-size: 13px; font-weight: 700; letter-spacing: 0.1em;
+    margin-bottom: 6px;
+    text-shadow: 0 0 4px rgba(0,0,0,0.5);
+  }
+  .mc-action-btn {
+    width: 100%; height: 22px;
+    background: var(--surface-2); color: var(--text-secondary);
+    border: 1px solid var(--text-tertiary);
+    cursor: pointer; font-size: 10px;
+    margin-bottom: 4px;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     CHART CONTENT — left of panel (1440-240=1200px wide)
+     ═══════════════════════════════════════════════════════════ */
+  .chart-area {
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 240px;
+  }
+
+  /* Chart Trader floating top-left */
+  .ct-toolbar {
+    position: absolute;
+    top: 8px; left: 8px;
+    display: flex; gap: 4px;
+    z-index: 15;
+  }
+  .ct-btn {
+    width: 56px; height: 22px;
+    background: rgba(50, 130, 75, 0.86);
+    border: 1px solid #5A6473;
+    color: #F2F4F8;
+    font-size: 9px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    text-transform: uppercase;
+  }
+  .ct-btn.off { background: rgba(35, 40, 50, 0.86); color: #5A636E; }
+
+  /* Footprint cells */
+  .footprint-bar {
+    position: absolute;
+    color: var(--text-secondary);
+    font-family: 'Consolas', monospace;
+    font-size: 9px;
+    font-variant-numeric: tabular-nums;
+  }
+  .cell {
+    position: absolute;
+    height: 14px; line-height: 14px;
+    text-align: center; white-space: nowrap;
+    padding: 0 2px;
+  }
+  .cell.imb-amber { background: var(--tint-amber-18); }
+  .cell.imb-cyan { background: var(--tint-cyan-22); color: var(--text-primary); }
+  .cell.imb-mag { background: var(--tint-mag-22); color: var(--text-primary); }
+  .cell.imb-cyan-x8 { background: var(--tint-cyan-28); color: var(--aero-white); font-weight: 700; }
+  .cell.imb-mag-x8 { background: var(--tint-mag-28); color: var(--aero-white); font-weight: 700; }
+
+  /* Reticle */
+  .reticle {
+    position: absolute; pointer-events: none;
+  }
+  .reticle::before, .reticle::after, .reticle > .br-bl, .reticle > .br-br {
+    content: ''; position: absolute; width: 6px; height: 6px;
+    border-color: currentColor; border-style: solid;
+  }
+  .reticle::before { top: 0; left: 0; border-width: 1.5px 0 0 1.5px; }
+  .reticle::after  { top: 0; right: 0; border-width: 1.5px 1.5px 0 0; }
+  .reticle .br-bl  { bottom: 0; left: 0; border-width: 0 0 1.5px 1.5px; }
+  .reticle .br-br  { bottom: 0; right: 0; border-width: 0 1.5px 1.5px 0; }
+  .reticle.cyan { color: var(--aero-cyan); }
+  .reticle.mag  { color: var(--aero-magenta); }
+
+  /* POC line */
+  .poc-line {
+    position: absolute; height: 2px;
+    background: var(--f1-purple);
+  }
+
+  /* GEX levels */
+  .gex-line {
+    position: absolute; left: 0; right: 100px;
+    height: 0;
+  }
+  .gex-line.zg { border-top: 2px solid var(--aero-cyan); }
+  .gex-line.cw, .gex-line.pw { border-top: 2px solid var(--aero-amber); }
+  .gex-band {
+    position: absolute; left: 0; right: 0;
+    height: 6px;
+    background: var(--tint-amber-18);
+    transform: translateY(-3px);
+  }
+  .gex-pill {
+    position: absolute; right: 4px;
+    width: 96px; height: 18px;
+    background: var(--surface-2);
+    transform: translateY(-9px);
+    display: flex; align-items: center;
+    z-index: 5;
+  }
+  .gex-pill-edge { width: 2px; height: 18px; margin-right: 6px; }
+  .gex-pill-text {
+    font-family: 'Consolas', monospace; font-size: 11px;
+    color: var(--text-primary); font-weight: 600;
+    text-shadow: 0 0 1px #000, 0 0 1px #000;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     SIGNAL CLARITY HIERARCHY (3 tiers)
+     ═══════════════════════════════════════════════════════════ */
+
+  /* TIER 1 - HIGH PROBABILITY: arrow + entry/stop/target lines + callout card */
+  .tier1-arrow {
+    position: absolute;
+    width: 0; height: 0;
+    border-left: 14px solid transparent;
+    border-right: 14px solid transparent;
+    z-index: 10;
+    animation: pulse-arrow 1.2s ease-in-out infinite;
+  }
+  .tier1-arrow.long {
+    border-bottom: 22px solid var(--aero-cyan);
+    filter: drop-shadow(0 0 6px var(--aero-cyan));
+  }
+  .tier1-arrow.short {
+    border-top: 22px solid var(--aero-magenta);
+    filter: drop-shadow(0 0 6px var(--aero-magenta));
+  }
+  @keyframes pulse-arrow {
+    0%, 100% { transform: scale(1); opacity: 0.85; }
+    50% { transform: scale(1.15); opacity: 1; }
+  }
+
+  .tier1-line {
+    position: absolute; height: 0;
+    z-index: 8;
+  }
+  .tier1-line.entry-long { border-top: 2px solid var(--aero-cyan); box-shadow: 0 0 4px var(--aero-cyan); }
+  .tier1-line.entry-short { border-top: 2px solid var(--aero-magenta); box-shadow: 0 0 4px var(--aero-magenta); }
+  .tier1-line.stop { border-top: 1.5px dashed var(--aero-amber); }
+  .tier1-line.target { border-top: 1.5px dashed var(--f1-green); }
+
+  /* The BUY/SELL callout card */
+  .tier1-callout {
+    position: absolute;
+    background: rgba(14, 18, 24, 0.95);
+    border: 1.5px solid var(--aero-cyan);
+    border-left: 4px solid var(--aero-cyan);
+    padding: 8px 12px;
+    z-index: 12;
+    box-shadow: 0 0 16px rgba(0, 224, 255, 0.35);
+    min-width: 200px;
+    font-family: 'Consolas', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  .tier1-callout.short {
+    border-color: var(--aero-magenta);
+    border-left-color: var(--aero-magenta);
+    box-shadow: 0 0 16px rgba(255, 56, 200, 0.35);
+  }
+  .tier1-action {
+    font-size: 14px; font-weight: 700;
+    color: var(--aero-cyan);
+    margin-bottom: 6px;
+    text-shadow: 0 0 4px rgba(0, 224, 255, 0.5);
+  }
+  .tier1-callout.short .tier1-action {
+    color: var(--aero-magenta);
+    text-shadow: 0 0 4px rgba(255, 56, 200, 0.5);
+  }
+  .tier1-detail {
+    font-size: 11px; line-height: 1.6;
+    color: var(--text-primary);
+  }
+  .tier1-detail .stop { color: var(--aero-amber); }
+  .tier1-detail .tgt { color: var(--f1-green); }
+  .tier1-detail .rr { color: var(--f1-purple); font-weight: 700; }
+
+  /* TIER 2 - WATCHING: dim hollow triangle */
+  .tier2-marker {
+    position: absolute;
+    width: 0; height: 0;
+    z-index: 5;
+    opacity: 0.45;
+  }
+  .tier2-marker.long {
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-bottom-color: var(--text-secondary);
+  }
+  .tier2-marker.short {
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 10px solid var(--text-secondary);
+  }
+  .tier2-label {
+    position: absolute;
+    font-size: 8px; color: var(--text-tertiary);
+    font-family: 'Consolas', monospace;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+
+  /* TIER 3 - INFORMATIONAL: tiny dim dot */
+  .tier3-marker {
+    position: absolute;
+    width: 4px; height: 4px;
+    background: var(--text-tertiary);
+    border-radius: 50%;
+    z-index: 3;
+    opacity: 0.4;
+  }
+
+  /* Right-axis price labels */
+  .price-label {
+    position: absolute;
+    left: 8px;
+    color: var(--text-secondary);
+    font-family: 'Consolas', monospace;
+    font-size: 10px;
+    transform: translateY(-7px);
+  }
+
+  /* ─── Doc styling ─── */
+  .legend {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    margin: 16px 0; font-size: 11px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .swatch { width: 14px; height: 14px; border: 1px solid #333; }
+
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .compare-card {
+    background: #0d0d0d;
+    border: 1px solid #333;
+    padding: 16px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .compare-card h3 { margin: 0 0 8px 0; font-size: 13px; }
+  .compare-card.tier1 { border-left: 4px solid var(--aero-cyan); }
+  .compare-card.tier1 h3 { color: var(--aero-cyan); }
+  .compare-card.tier2 { border-left: 4px solid var(--text-secondary); }
+  .compare-card.tier2 h3 { color: var(--text-secondary); }
+  .compare-card.tier3 { border-left: 4px solid var(--text-tertiary); }
+  .compare-card.tier3 h3 { color: var(--text-tertiary); }
+</style>
+</head>
+<body>
+<div class="doc">
+  <h1>DEEP6 — Mission Control Right Panel + 3-Tier Signal Clarity</h1>
+  <div class="meta">
+    Replaces the top pit-wall strip with a TradeDevils-style right-edge Mission Control panel (240 px, full chart height).
+    Adds explicit BUY/SELL clarity hierarchy: TIER 1 = unmistakable entry callout, TIER 2 = dim watching marker, TIER 3 = tiny background dot.
+  </div>
+
+  <div class="chart">
+
+    <!-- ═════ CHART AREA (left of panel) ═════ -->
+    <div class="chart-area">
+
+      <!-- Chart Trader -->
+      <div class="ct-toolbar">
+        <div class="ct-btn">CELLS</div>
+        <div class="ct-btn">POC</div>
+        <div class="ct-btn">VA</div>
+        <div class="ct-btn off">ANCH</div>
+        <div class="ct-btn">ABS</div>
+        <div class="ct-btn">EXH</div>
+        <div class="ct-btn off">L2</div>
+      </div>
+
+      <!-- GEX Call Wall + amber band -->
+      <div class="gex-band" style="top: 110px"></div>
+      <div class="gex-line cw" style="top: 110px"></div>
+      <div class="gex-pill" style="top: 110px">
+        <div class="gex-pill-edge" style="background: var(--aero-amber)"></div>
+        <span class="gex-pill-text">CW  21500</span>
+      </div>
+
+      <!-- GEX Zero Gamma -->
+      <div class="gex-line zg" style="top: 200px"></div>
+      <div class="gex-pill" style="top: 200px">
+        <div class="gex-pill-edge" style="background: var(--aero-cyan)"></div>
+        <span class="gex-pill-text">ZG  21450</span>
+      </div>
+
+      <!-- GEX Put Wall + amber band -->
+      <div class="gex-band" style="top: 600px"></div>
+      <div class="gex-line pw" style="top: 600px"></div>
+      <div class="gex-pill" style="top: 600px">
+        <div class="gex-pill-edge" style="background: var(--aero-amber)"></div>
+        <span class="gex-pill-text">PW  21400</span>
+      </div>
+
+      <!-- ═════ TIER 3: tiny dim dot (informational only) ═════ -->
+      <div class="tier3-marker" style="left: 130px; top: 380px"></div>
+      <div class="tier3-marker" style="left: 240px; top: 290px"></div>
+      <div class="tier3-marker" style="left: 470px; top: 510px"></div>
+
+      <!-- Footprint Bar 1 (regular, no signal) -->
+      <div class="footprint-bar" style="left: 100px; top: 320px;">
+        <div class="cell" style="top: 0px;  width: 80px;">  88 x 112  </div>
+        <div class="cell" style="top: 14px; width: 80px;"> 124 x 167  </div>
+        <div class="cell" style="top: 28px; width: 80px;"> 198 x 245  </div>
+        <div class="cell" style="top: 42px; width: 80px;"> 287 x 312  </div>
+        <div class="poc-line" style="top: 39px; left: 0; width: 80px;"></div>
+      </div>
+
+      <!-- ═════ TIER 2: dim hollow triangle (watching, no action) ═════ -->
+      <div class="tier2-marker long" style="left: 226px; top: 405px;"></div>
+      <div class="tier2-label" style="left: 222px; top: 416px;">B-WATCH</div>
+      <div class="footprint-bar" style="left: 200px; top: 320px;">
+        <div class="cell" style="top: 0px;  width: 80px;">  42 x 67  </div>
+        <div class="cell" style="top: 14px; width: 80px;">  88 x 92  </div>
+        <div class="cell imb-amber" style="top: 28px; width: 80px;"> 124 x 410 </div>
+        <div class="cell imb-cyan" style="top: 42px; width: 80px;">  88 x 510 </div>
+        <div class="cell" style="top: 56px; width: 80px;"> 102 x 88  </div>
+        <div class="poc-line" style="top: 53px; left: 0; width: 80px;"></div>
+      </div>
+
+      <!-- Bar 3 (no signal) -->
+      <div class="footprint-bar" style="left: 320px; top: 360px;">
+        <div class="cell" style="top: 0px;  width: 80px;">  56 x 81  </div>
+        <div class="cell" style="top: 14px; width: 80px;">  98 x 124 </div>
+        <div class="cell" style="top: 28px; width: 80px;"> 145 x 178 </div>
+        <div class="poc-line" style="top: 25px; left: 0; width: 80px;"></div>
+      </div>
+
+      <!-- ═════ TIER 1: HIGH-PROBABILITY BUY entry — full callout treatment ═════ -->
+
+      <!-- The bar -->
+      <div class="footprint-bar" style="left: 440px; top: 280px;">
+        <div class="cell imb-cyan-x8" style="top: 0px;  width: 80px; position: absolute;">
+          <span style="position: relative; z-index: 2;"> 125 x 489 </span>
+        </div>
+        <div class="reticle cyan" style="top: 0; left: 0; width: 80px; height: 14px;"><div class="br-bl"></div><div class="br-br"></div></div>
+        <div class="cell imb-cyan" style="top: 14px; width: 80px;"> 102 x 467 </div>
+        <div class="cell imb-amber" style="top: 28px; width: 80px;">  88 x 312 </div>
+        <div class="cell" style="top: 42px; width: 80px;"> 145 x 178 </div>
+        <div class="poc-line" style="top: 11px; left: 0; width: 80px;"></div>
+      </div>
+
+      <!-- Pulsing cyan UP arrow below the bar -->
+      <div class="tier1-arrow long" style="left: 467px; top: 360px;"></div>
+
+      <!-- Three horizontal lines extending right (entry, stop, target) -->
+      <div class="tier1-line entry-long" style="left: 0; right: 0; top: 290px;"></div>
+      <div class="tier1-line stop"        style="left: 0; right: 0; top: 380px;"></div>
+      <div class="tier1-line target"      style="left: 0; right: 0; top: 200px;"></div>
+
+      <!-- BUY callout card -->
+      <div class="tier1-callout" style="left: 540px; top: 270px;">
+        <div class="tier1-action">▶ BUY NQ @ 21,452.25</div>
+        <div class="tier1-detail">
+          <span class="stop">STOP   21,440.00  (−12 ticks)</span><br>
+          <span class="tgt">TGT    21,476.50  (+24 ticks)</span><br>
+          <span class="rr">R:R 2.0   CONF 87  PERSONAL BEST</span>
+        </div>
+      </div>
+
+      <!-- Bar 5 (regular) -->
+      <div class="footprint-bar" style="left: 800px; top: 320px;">
+        <div class="cell" style="top: 0px;  width: 80px;">  88 x 102 </div>
+        <div class="cell" style="top: 14px; width: 80px;"> 124 x 167 </div>
+        <div class="cell imb-amber" style="top: 28px; width: 80px;"> 198 x 410 </div>
+        <div class="poc-line" style="top: 25px; left: 0; width: 80px;"></div>
+      </div>
+
+      <!-- ═════ TIER 1 SHORT example (right side) ═════ -->
+      <div class="footprint-bar" style="left: 920px; top: 220px;">
+        <div class="cell imb-mag-x8" style="top: 0px; width: 80px; position: absolute;">
+          <span style="position: relative; z-index: 2;"> 489 x 88 </span>
+        </div>
+        <div class="reticle mag" style="top: 0; left: 0; width: 80px; height: 14px;"><div class="br-bl"></div><div class="br-br"></div></div>
+        <div class="cell imb-mag" style="top: 14px; width: 80px;"> 467 x 102 </div>
+        <div class="cell imb-amber" style="top: 28px; width: 80px;"> 312 x 88 </div>
+        <div class="poc-line" style="top: 11px; left: 0; width: 80px;"></div>
+      </div>
+
+      <!-- Pulsing magenta DOWN arrow above the bar -->
+      <div class="tier1-arrow short" style="left: 947px; top: 192px;"></div>
+
+      <!-- Right-axis price labels -->
+      <div class="price-label" style="top: 110px;">21,500</div>
+      <div class="price-label" style="top: 200px;">21,476.50  TGT</div>
+      <div class="price-label" style="top: 290px;">21,452.25  ENTRY</div>
+      <div class="price-label" style="top: 380px;">21,440.00  STOP</div>
+      <div class="price-label" style="top: 600px;">21,400</div>
+
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         MISSION CONTROL PANEL — right edge, 240px, full height
+         ════════════════════════════════════════════════════════ -->
+    <div class="mc-panel">
+
+      <!-- Mode selector -->
+      <div class="mc-mode">
+        <div class="mc-mode-btn active">BIAS-FOLLOW</div>
+        <div class="mc-mode-btn">MEAN-REV</div>
+      </div>
+
+      <!-- ▶ ACTIVE SIGNAL (pulses when armed) -->
+      <div class="mc-active-signal">
+        <div class="mc-active-header">
+          <span>▶ ACTIVE SIGNAL</span>
+          <span class="mc-active-tier">TIER A</span>
+        </div>
+        <div class="mc-active-action">▶ BUY NQ @ 21,452.25</div>
+        <div class="mc-active-line">
+          <span class="mc-label">STOP</span> <span class="mc-value amber">21,440.00 (−12)</span><br>
+          <span class="mc-label">TGT</span>  <span class="mc-value green">21,476.50 (+24)</span><br>
+          <span class="mc-label">R:R</span>  <span class="mc-value purple">2.0</span>
+          <span class="mc-label" style="margin-left: 8px;">CONF</span> <span class="mc-value purple">87 PB</span>
+        </div>
+        <div class="mc-active-reason">
+          Stacked buy imbal + ABS at PD POC. Confluence 6/12. Kronos +0.62.
+        </div>
+        <button class="mc-execute-btn">▶ EXECUTE NOW</button>
+        <button class="mc-skip-btn">Skip This One</button>
+        <div class="mc-validity">Valid for 4 bars (1m)</div>
+      </div>
+
+      <!-- Connection status -->
+      <div class="mc-section">
+        <div class="mc-row">
+          <span class="mc-label"><span class="mc-dot"></span>STRATEGY</span>
+          <span class="mc-value green">ENABLED</span>
+        </div>
+        <div class="mc-row">
+          <span class="mc-label">RITHMIC</span>
+          <span class="mc-value">12ms</span>
+        </div>
+      </div>
+
+      <!-- Day P&L safety net -->
+      <div class="mc-section">
+        <div class="mc-section-title">DAY P&L (SAFETY NET)</div>
+        <div class="mc-row">
+          <span class="mc-label">REALIZED</span>
+          <span class="mc-value green">+$425.00</span>
+        </div>
+        <div class="mc-row">
+          <span class="mc-label">UNREALIZED</span>
+          <span class="mc-value">+$45.00</span>
+        </div>
+        <div class="mc-row">
+          <span class="mc-label">GOAL</span>
+          <span class="mc-value">$600</span>
+        </div>
+        <div class="mc-progress"><div class="mc-progress-fill" style="width: 71%;"></div></div>
+        <div class="mc-row" style="margin-top: 4px;">
+          <span class="mc-label">LIMIT</span>
+          <span class="mc-value red">−$300</span>
+        </div>
+      </div>
+
+      <!-- Position -->
+      <div class="mc-section">
+        <div class="mc-section-title">POSITION</div>
+        <div class="mc-row">
+          <span class="mc-label">Long 2 NQ</span>
+          <span class="mc-value">@ 18,452.25</span>
+        </div>
+        <div class="mc-row">
+          <span class="mc-label">UNREAL</span>
+          <span class="mc-value green">+$45.00</span>
+        </div>
+        <div class="mc-row">
+          <span class="mc-label">STOP</span>
+          <span class="mc-value amber">18,440 (T-10)</span>
+        </div>
+      </div>
+
+      <!-- 44 signals, virtualized scroll -->
+      <div class="mc-section" style="padding-bottom: 0;">
+        <div class="mc-section-title">SIGNALS (44)</div>
+      </div>
+      <div class="mc-signals">
+        <div class="mc-sig-row recent">
+          <div class="mc-checkbox checked"></div>
+          <span class="mc-sig-letter">A</span>
+          <span class="mc-sig-name">Absorption</span>
+          <span class="mc-sig-time">12:34:01</span>
+        </div>
+        <div class="mc-sig-row recent">
+          <div class="mc-checkbox checked"></div>
+          <span class="mc-sig-letter">E</span>
+          <span class="mc-sig-name">Exhaustion</span>
+          <span class="mc-sig-time">12:32:55</span>
+        </div>
+        <div class="mc-sig-row recent">
+          <div class="mc-checkbox checked"></div>
+          <span class="mc-sig-letter">SI</span>
+          <span class="mc-sig-name">Stacked Imbal</span>
+          <span class="mc-sig-time">12:34:01</span>
+        </div>
+        <div class="mc-sig-row">
+          <div class="mc-checkbox checked"></div>
+          <span class="mc-sig-letter">DR</span>
+          <span class="mc-sig-name">Delta Rise</span>
+          <span class="mc-sig-time">12:18:40</span>
+        </div>
+        <div class="mc-sig-row">
+          <div class="mc-checkbox checked"></div>
+          <span class="mc-sig-letter">DD</span>
+          <span class="mc-sig-name">Delta Drop</span>
+          <span class="mc-sig-time">11:58:20</span>
+        </div>
+        <div class="mc-sig-row">
+          <div class="mc-checkbox checked"></div>
+          <span class="mc-sig-letter">DV</span>
+          <span class="mc-sig-name">Delta Diverge</span>
+          <span class="mc-sig-time">--</span>
+        </div>
+        <div class="mc-sig-row">
+          <div class="mc-checkbox checked"></div>
+          <span class="mc-sig-letter">DF</span>
+          <span class="mc-sig-name">Delta Flip</span>
+          <span class="mc-sig-time">12:30:45</span>
+        </div>
+        <div class="mc-sig-row">
+          <div class="mc-checkbox"></div>
+          <span class="mc-sig-letter">DT</span>
+          <span class="mc-sig-name">Delta Tail</span>
+          <span class="mc-sig-time">--</span>
+        </div>
+        <div class="mc-sig-row">
+          <div class="mc-checkbox checked"></div>
+          <span class="mc-sig-letter">DR</span>
+          <span class="mc-sig-name">Delta Rev</span>
+          <span class="mc-sig-time">12:18:09</span>
+        </div>
+        <div class="mc-sig-row">
+          <div class="mc-checkbox checked"></div>
+          <span class="mc-sig-letter">DA</span>
+          <span class="mc-sig-name">Delta Trap</span>
+          <span class="mc-sig-time">11:40:11</span>
+        </div>
+        <div class="mc-sig-row">
+          <div class="mc-checkbox"></div>
+          <span class="mc-sig-letter">DC</span>
+          <span class="mc-sig-name">Delta Cont POC</span>
+          <span class="mc-sig-time">--</span>
+        </div>
+        <div class="mc-sig-row">
+          <div class="mc-checkbox checked"></div>
+          <span class="mc-sig-letter">DS</span>
+          <span class="mc-sig-name">Delta Sweep</span>
+          <span class="mc-sig-time">12:32:55</span>
+        </div>
+        <div class="mc-sig-row">
+          <div class="mc-checkbox checked"></div>
+          <span class="mc-sig-letter">TT</span>
+          <span class="mc-sig-name">Trapped Trd</span>
+          <span class="mc-sig-time">12:14:40</span>
+        </div>
+        <div class="mc-sig-row">
+          <div class="mc-checkbox checked"></div>
+          <span class="mc-sig-letter">DI</span>
+          <span class="mc-sig-name">Delta Sling</span>
+          <span class="mc-sig-time">--</span>
+        </div>
+        <div class="mc-sig-row">
+          <div class="mc-checkbox checked"></div>
+          <span class="mc-sig-letter">II</span>
+          <span class="mc-sig-name">Inverse Imb</span>
+          <span class="mc-sig-time">11:55:30</span>
+        </div>
+        <div class="mc-sig-row">
+          <div class="mc-checkbox checked"></div>
+          <span class="mc-sig-letter">RI</span>
+          <span class="mc-sig-name">Rev Imbal</span>
+          <span class="mc-sig-time">--</span>
+        </div>
+        <div class="mc-sig-row">
+          <div class="mc-checkbox checked"></div>
+          <span class="mc-sig-letter">OS</span>
+          <span class="mc-sig-name">Oversized Imb</span>
+          <span class="mc-sig-time">12:01:12</span>
+        </div>
+        <div class="mc-sig-row">
+          <div class="mc-checkbox checked"></div>
+          <span class="mc-sig-letter">EP</span>
+          <span class="mc-sig-name">Exhaust Print</span>
+          <span class="mc-sig-time">11:48:33</span>
+        </div>
+        <div class="mc-sig-row" style="opacity: 0.5;">
+          <span class="mc-label" style="grid-column: 1 / -1; font-size: 9px; padding: 4px 0; text-align: center;">… 26 more (scroll)</span>
+        </div>
+      </div>
+
+      <!-- Action bar -->
+      <div class="mc-actions">
+        <button class="mc-flatten-btn">⚠ FLATTEN ALL</button>
+        <button class="mc-action-btn">Cancel Pending Orders</button>
+        <button class="mc-action-btn">Pause Strategy</button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ─────────────────── 3-tier signal explanation ─────────────────── -->
+  <h2>The 3-Tier Signal Clarity Hierarchy</h2>
+  <div class="compare-grid">
+    <div class="compare-card tier1">
+      <h3>▶ TIER 1 — HIGH PROBABILITY (TYPE_A)</h3>
+      <p><strong>Visual treatment:</strong></p>
+      <ul>
+        <li>22px pulsing cyan (long) / magenta (short) arrow</li>
+        <li>Three full-width horizontal lines: cyan/mag <strong>entry</strong>, amber dashed <strong>stop</strong>, green dashed <strong>target</strong></li>
+        <li>Floating <strong>BUY/SELL callout card</strong> with entry/stop/target/R:R/CONF</li>
+        <li>Glowing border (16px outer cyan/magenta glow)</li>
+        <li>Right panel <strong>ACTIVE SIGNAL</strong> section lights up + pulses</li>
+        <li>Optional sound + toast</li>
+      </ul>
+      <p><strong>Reading:</strong> "TAKE THIS TRADE NOW. Here's exactly where to enter, stop, and target."</p>
+    </div>
+    <div class="compare-card tier2">
+      <h3>△ TIER 2 — WATCHING (TYPE_B)</h3>
+      <p><strong>Visual treatment:</strong></p>
+      <ul>
+        <li>10px hollow triangle, neutral gray</li>
+        <li>4px tiny "B-WATCH" / "S-WATCH" label below/above</li>
+        <li><strong>No</strong> entry/stop/target lines</li>
+        <li><strong>No</strong> callout card</li>
+        <li><strong>No</strong> sound</li>
+        <li>Right panel: counts in signal section but doesn't surface</li>
+      </ul>
+      <p><strong>Reading:</strong> "Something is happening. Could escalate to TIER 1 — keep an eye on it."</p>
+    </div>
+    <div class="compare-card tier3">
+      <h3>· TIER 3 — INFORMATIONAL (TYPE_C)</h3>
+      <p><strong>Visual treatment:</strong></p>
+      <ul>
+        <li>4px tiny dim dot</li>
+        <li><strong>Hidden by default</strong> (toggle in panel)</li>
+        <li>No label, no lines, no card, no sound</li>
+        <li>Right panel: counted in signal totals, hidden in feed</li>
+      </ul>
+      <p><strong>Reading:</strong> "Background noise. Don't act on this. Useful for retro analysis only."</p>
+    </div>
+  </div>
+
+  <h2>What changes vs the F1 PITWALL preview</h2>
+  <pre style="background: #0a0a0a; color: #ccc; padding: 16px; font-size: 12px; overflow-x: auto; border: 1px solid #333;">
+REMOVED:
+  ✗ Top pit-wall strip (24px) — replaced by right-side panel
+  ✗ Top header pills — moved to MC panel sections
+
+ADDED:
+  ✓ Right-edge Mission Control panel (240px wide, full chart height)
+  ✓ Mode selector (BIAS-FOLLOW / MEAN-REV) — was Trending/Ranging in TradeDevils
+  ✓ ▶ ACTIVE SIGNAL section — pulses cyan border when TYPE_A signal armed,
+    shows BUY/SELL action, entry/stop/target, R:R, CONF, reason narrative,
+    EXECUTE NOW button + Skip + validity countdown
+  ✓ Day P&L safety net section with goal/limit progress bar
+  ✓ Position section (live unrealized + stop)
+  ✓ Virtualized 44-signal scroll list with letter codes + last-fire timestamps
+  ✓ FLATTEN ALL kill switch (red, 32px tall)
+  ✓ Cancel Pending + Pause Strategy buttons
+
+SIGNAL CLARITY:
+  ✓ TIER 1 (TYPE_A): pulsing cyan/magenta arrow + entry/stop/target lines +
+                     glowing BUY/SELL callout card with full trade plan
+  ✓ TIER 2 (TYPE_B): dim hollow triangle + small "B-WATCH" label only
+  ✓ TIER 3 (TYPE_C): tiny 4px dim dot, hidden by default
+
+PRESERVED FROM F1 PITWALL:
+  ✓ Footprint cell imbalance escalation (×3 amber → ×5 cyan/mag → ×8 reticle)
+  ✓ POC purple line (F1 sector "best lap")
+  ✓ GEX aerospace conventions (cyan zero-gamma, amber walls + safety bands,
+    right-side telemetry pills)
+  ✓ Chart Trader top-left (still useful as quick toggles)
+  ✓ All hex codes from F1 PITWALL palette
+  </pre>
+
+  <h2>Color legend</h2>
+  <div class="legend">
+    <div class="legend-item"><div class="swatch" style="background: var(--aero-cyan)"></div>aero.cyan #00E0FF — TIER 1 LONG / zero-gamma / entry line</div>
+    <div class="legend-item"><div class="swatch" style="background: var(--aero-magenta)"></div>aero.magenta #FF38C8 — TIER 1 SHORT</div>
+    <div class="legend-item"><div class="swatch" style="background: var(--aero-amber)"></div>aero.amber #FFB300 — STOP / GEX walls</div>
+    <div class="legend-item"><div class="swatch" style="background: var(--f1-green)"></div>f1.green #3DB868 — TARGET / winner</div>
+    <div class="legend-item"><div class="swatch" style="background: var(--f1-purple)"></div>f1.purple #A100FF — POC / CONF personal-best</div>
+    <div class="legend-item"><div class="swatch" style="background: var(--aero-red)"></div>aero.red #FF3030 — FLATTEN ALL / drawdown</div>
+  </div>
+</div>
+</body>
+</html>

@@ -750,7 +750,13 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         private SessionContext   _scorerSession;
         // Latches the most recent ScorerResult so OnRender can read it without re-scoring.
         // Updated once per bar close in OnBarUpdate; read every frame in OnRender.
-        private ScorerResult _lastScorerResult;
+        // `volatile` ensures the render thread sees writes from the data thread without
+        // needing a memory barrier. Reference reads on x64 are atomic; volatile prevents
+        // CPU/JIT re-ordering across the read. Matches the pattern used for `_gexProfile`.
+        private volatile ScorerResult _lastScorerResult;
+        // Bar index when the latest signal was scored. Used to expire stale armed signals
+        // so the MC ACTIVE SIGNAL section + TIER 1 chart overlay only show recent ones.
+        private int _armedSignalBarIndex = -1;
 
         // ---- Profile Anchor Levels ----
         private ProfileAnchorLevels _profileAnchors = new ProfileAnchorLevels();
@@ -788,6 +794,44 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         private StrokeStyle _dashStyle;
         private TextFormat _cellFont, _labelFont;
 
+        // ──── F1 PITWALL palette (Aesthetic Option E) ────
+        // Aerospace semantic (Boeing 787 PFD grammar)
+        private SharpDX.Direct2D1.SolidColorBrush _pwAeroCyanDx;     // #00E0FF  selected/target/limit/zg
+        private SharpDX.Direct2D1.SolidColorBrush _pwAeroMagentaDx;  // #FF38C8  autopilot/algo/trail/flip/exhaust
+        private SharpDX.Direct2D1.SolidColorBrush _pwAeroGreenDx;    // #3DDC84  engaged/on/nominal
+        private SharpDX.Direct2D1.SolidColorBrush _pwAeroAmberDx;    // #FFB300  caution/stop/walls
+        private SharpDX.Direct2D1.SolidColorBrush _pwAeroRedDx;      // #FF3030  warn/stopHit
+        private SharpDX.Direct2D1.SolidColorBrush _pwAeroWhiteDx;    // #F2F4F8  primary text
+
+        // F1 sector colors (performance grading)
+        private SharpDX.Direct2D1.SolidColorBrush _pwSectorPurpleDx; // #A100FF  best ever
+        private SharpDX.Direct2D1.SolidColorBrush _pwSectorGreenDx;  // #3DB868  improvement/winner
+        private SharpDX.Direct2D1.SolidColorBrush _pwSectorWhiteDx;  // #E8EAED  baseline
+        private SharpDX.Direct2D1.SolidColorBrush _pwSectorYellowDx; // #FFD600  slower
+        private SharpDX.Direct2D1.SolidColorBrush _pwSectorRedDx;    // #FF1744  loss
+
+        // Tinted fills (lower-alpha versions for cell backgrounds)
+        private SharpDX.Direct2D1.SolidColorBrush _pwAbsFillDx;      // cyan @ 22%
+        private SharpDX.Direct2D1.SolidColorBrush _pwExhFillDx;      // magenta @ 22%
+        private SharpDX.Direct2D1.SolidColorBrush _pwAmberFillDx;    // amber @ 18% (×3 imbal)
+        private SharpDX.Direct2D1.SolidColorBrush _pwCyanFillDx;     // cyan @ 28% (×5 buy escalation)
+        private SharpDX.Direct2D1.SolidColorBrush _pwMagFillDx;      // magenta @ 28% (×5 sell escalation)
+
+        // Surfaces
+        private SharpDX.Direct2D1.SolidColorBrush _pwSurface1Dx;     // #070A0E pill backdrop
+        private SharpDX.Direct2D1.SolidColorBrush _pwSurface2Dx;     // #0E1218 raised
+        private SharpDX.Direct2D1.SolidColorBrush _pwGridMajorDx;    // #262C36
+        private SharpDX.Direct2D1.SolidColorBrush _pwGridLineDx;     // #1A1F26 @ 60%
+
+        // Text
+        private SharpDX.Direct2D1.SolidColorBrush _pwTextSecondaryDx; // #9BA3AE
+        private SharpDX.Direct2D1.SolidColorBrush _pwTextTertiaryDx;  // #5A636E
+        private SharpDX.Direct2D1.SolidColorBrush _pwTextHaloDx;      // #000000 @ 90% (1px outline)
+
+        // Telemetry fonts
+        private TextFormat _pwPillValueFont;   // Consolas Bold 13pt (mono for tabular numerals)
+        private TextFormat _pwPillLabelFont;   // Segoe UI Semibold 8pt (chrome labels)
+
         protected override void OnStateChange()
         {
             if (State == State.SetDefaults)
@@ -818,6 +862,21 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                 LiquidityWallStaleSec   = 90;
                 LiquidityMaxPerSide     = 4;
                 ShowChartTrader         = true;
+
+                // ▰▰▰ MISSION CONTROL right-side panel — TradeDevils-style sidebar (Option F) ▰▰▰
+                ShowMissionControl      = true;
+                MissionControlWidth     = 240;
+                ShowMcActiveSignal      = true;
+                ShowMcStatus            = true;
+                ShowMcDayPnL            = true;
+                ShowMcPosition          = true;
+                ShowMcSignalsList       = true;
+                ShowMcActionBar         = true;
+
+                // ▰▰▰ 3-tier signal clarity — TIER 1 lines/callout + TIER 3 dots toggle ▰▰▰
+                ShowTier1Overlay        = true;
+                ShowTier3Dots           = false;   // hidden by default — informational noise
+                ArmedSignalValidBars    = 5;       // Active signal expires after 5 bars
 
                 // Phase 18: Scorer HUD defaults
                 ShowScoreHud        = true;
@@ -1123,6 +1182,10 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                 scored.Signals = signals;
 
                 _lastScorerResult = scored;
+                // Stamp bar-of-arming so the MC ACTIVE SIGNAL section + TIER 1 chart overlay
+                // can expire stale signals (TYPE_A from 09:31 shouldn't keep showing
+                // "EXECUTE NOW" all afternoon). Read in RenderMcActiveSignal + RenderTier1Overlay.
+                _armedSignalBarIndex = CurrentBar;
                 // Task 4: Publish with session average ATR so DEEP6Strategy slow-grind veto works.
                 ScorerSharedState.Publish(Instrument.FullName, CurrentBar, scored, _scorerSession.SessionAvgAtr);
 
@@ -1219,6 +1282,54 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             _scoreNeutralDx    = MakeFrozenBrush(Color.FromArgb(255, 0x8A, 0x92, 0x9E)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;  // axis.text #8A929E
             _scoreLabelBgDx    = MakeFrozenBrush(Color.FromArgb(153, 0x0E, 0x10, 0x14)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;  // hud-bg @60%
 
+            // ──── F1 PITWALL palette (Aesthetic Option E) ────
+            // Aerospace semantic (Boeing 787 PFD grammar)
+            _pwAeroCyanDx     = MakeFrozenBrush(Color.FromArgb(255, 0x00, 0xE0, 0xFF)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;
+            _pwAeroMagentaDx  = MakeFrozenBrush(Color.FromArgb(255, 0xFF, 0x38, 0xC8)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;
+            _pwAeroGreenDx    = MakeFrozenBrush(Color.FromArgb(255, 0x3D, 0xDC, 0x84)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;
+            _pwAeroAmberDx    = MakeFrozenBrush(Color.FromArgb(255, 0xFF, 0xB3, 0x00)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;
+            _pwAeroRedDx      = MakeFrozenBrush(Color.FromArgb(255, 0xFF, 0x30, 0x30)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;
+            _pwAeroWhiteDx    = MakeFrozenBrush(Color.FromArgb(255, 0xF2, 0xF4, 0xF8)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;
+
+            // F1 sector colors (performance grading)
+            _pwSectorPurpleDx = MakeFrozenBrush(Color.FromArgb(255, 0xA1, 0x00, 0xFF)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;
+            _pwSectorGreenDx  = MakeFrozenBrush(Color.FromArgb(255, 0x3D, 0xB8, 0x68)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;
+            _pwSectorWhiteDx  = MakeFrozenBrush(Color.FromArgb(255, 0xE8, 0xEA, 0xED)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;
+            _pwSectorYellowDx = MakeFrozenBrush(Color.FromArgb(255, 0xFF, 0xD6, 0x00)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;
+            _pwSectorRedDx    = MakeFrozenBrush(Color.FromArgb(255, 0xFF, 0x17, 0x44)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;
+
+            // Tinted fills for cell backgrounds (alpha-encoded)
+            _pwAbsFillDx     = MakeFrozenBrush(Color.FromArgb(56,  0x00, 0xE0, 0xFF)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;
+            _pwExhFillDx     = MakeFrozenBrush(Color.FromArgb(56,  0xFF, 0x38, 0xC8)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;
+            _pwAmberFillDx   = MakeFrozenBrush(Color.FromArgb(46,  0xFF, 0xB3, 0x00)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;
+            _pwCyanFillDx    = MakeFrozenBrush(Color.FromArgb(71,  0x00, 0xE0, 0xFF)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;
+            _pwMagFillDx     = MakeFrozenBrush(Color.FromArgb(71,  0xFF, 0x38, 0xC8)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;
+
+            // Surfaces / chrome
+            _pwSurface1Dx     = MakeFrozenBrush(Color.FromArgb(255, 0x07, 0x0A, 0x0E)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;
+            _pwSurface2Dx     = MakeFrozenBrush(Color.FromArgb(230, 0x0E, 0x12, 0x18)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;
+            _pwGridMajorDx    = MakeFrozenBrush(Color.FromArgb(255, 0x26, 0x2C, 0x36)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;
+            _pwGridLineDx     = MakeFrozenBrush(Color.FromArgb(153, 0x1A, 0x1F, 0x26)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;
+
+            // Text tokens
+            _pwTextSecondaryDx = MakeFrozenBrush(Color.FromArgb(255, 0x9B, 0xA3, 0xAE)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;
+            _pwTextTertiaryDx  = MakeFrozenBrush(Color.FromArgb(255, 0x5A, 0x63, 0x6E)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;
+            _pwTextHaloDx      = MakeFrozenBrush(Color.FromArgb(230, 0x00, 0x00, 0x00)).ToDxBrush(RenderTarget) as SharpDX.Direct2D1.SolidColorBrush;
+
+            // Telemetry fonts (Consolas mono for tabular numerals; Segoe UI Semibold for chrome)
+            _pwPillValueFont = new TextFormat(NinjaTrader.Core.Globals.DirectWriteFactory,
+                "Consolas", FontWeight.Bold, FontStyle.Normal, 13f)
+            {
+                TextAlignment      = TextAlignment.Leading,
+                ParagraphAlignment = ParagraphAlignment.Center
+            };
+            _pwPillLabelFont = new TextFormat(NinjaTrader.Core.Globals.DirectWriteFactory,
+                "Segoe UI", FontWeight.Bold, FontStyle.Normal, 8f)
+            {
+                TextAlignment      = TextAlignment.Leading,
+                ParagraphAlignment = ParagraphAlignment.Center
+            };
+
             // HUD fonts — Consolas 12pt for score (monospace), Segoe UI 9pt for narrative/tier
             _hudFont = new TextFormat(NinjaTrader.Core.Globals.DirectWriteFactory, "Consolas", 12f)
             {
@@ -1287,6 +1398,33 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             DisposeSolidBrush(ref _scoreTierCShortDx);
             DisposeSolidBrush(ref _scoreNeutralDx);
             DisposeSolidBrush(ref _scoreLabelBgDx);
+
+            // F1 PITWALL palette
+            DisposeSolidBrush(ref _pwAeroCyanDx);
+            DisposeSolidBrush(ref _pwAeroMagentaDx);
+            DisposeSolidBrush(ref _pwAeroGreenDx);
+            DisposeSolidBrush(ref _pwAeroAmberDx);
+            DisposeSolidBrush(ref _pwAeroRedDx);
+            DisposeSolidBrush(ref _pwAeroWhiteDx);
+            DisposeSolidBrush(ref _pwSectorPurpleDx);
+            DisposeSolidBrush(ref _pwSectorGreenDx);
+            DisposeSolidBrush(ref _pwSectorWhiteDx);
+            DisposeSolidBrush(ref _pwSectorYellowDx);
+            DisposeSolidBrush(ref _pwSectorRedDx);
+            DisposeSolidBrush(ref _pwAbsFillDx);
+            DisposeSolidBrush(ref _pwExhFillDx);
+            DisposeSolidBrush(ref _pwAmberFillDx);
+            DisposeSolidBrush(ref _pwCyanFillDx);
+            DisposeSolidBrush(ref _pwMagFillDx);
+            DisposeSolidBrush(ref _pwSurface1Dx);
+            DisposeSolidBrush(ref _pwSurface2Dx);
+            DisposeSolidBrush(ref _pwGridMajorDx);
+            DisposeSolidBrush(ref _pwGridLineDx);
+            DisposeSolidBrush(ref _pwTextSecondaryDx);
+            DisposeSolidBrush(ref _pwTextTertiaryDx);
+            DisposeSolidBrush(ref _pwTextHaloDx);
+            if (_pwPillValueFont != null) { _pwPillValueFont.Dispose(); _pwPillValueFont = null; }
+            if (_pwPillLabelFont != null) { _pwPillLabelFont.Dispose(); _pwPillLabelFont = null; }
         }
 
         private static void DisposeBrush(ref SharpDX.Direct2D1.Brush b) { if (b != null) { b.Dispose(); b = null; } }
@@ -1303,7 +1441,19 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             RenderTarget.AntialiasMode = AntialiasMode.PerPrimitive;
 
             double tickSize = chartControl.Instrument.MasterInstrument.TickSize;
-            float panelRight = (float)(ChartPanel.X + ChartPanel.W);
+            // Account for the Mission Control panel on the right edge (240px by default).
+            // Everything chart-area renders into [ChartPanel.X, panelRight) where panelRight
+            // shrinks left when the MC panel is on so we don't draw under it.
+            // Mirrors the clamp in RenderMissionControl so the two stay in sync.
+            float fullPanelRight = (float)(ChartPanel.X + ChartPanel.W);
+            float effectiveMcW = (ShowMissionControl && ChartPanel.W >= 200)
+                ? Math.Min(MissionControlWidth, Math.Max(40f, (float)ChartPanel.W - 80f))
+                : 0f;
+            float panelRight = fullPanelRight - effectiveMcW;
+
+            // ▶ TIER 1 (TYPE_A) chart overlay: entry/stop/target lines + price labels.
+            // Renders BEFORE cells so cells overlay on top — visual layering rule.
+            if (ShowTier1Overlay) RenderTier1Overlay(chartControl, chartScale, panelRight);
 
             // Chart Trader toolbar (top-left, on top of cells but under entry cards)
             if (ShowChartTrader) RenderChartTrader();
@@ -1353,28 +1503,51 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                         float yTop = yCenter - rowH / 2f;
                         var rect = new RectangleF(xLeft, yTop, colW, rowH);
 
-                        // Imbalance: diagonal ask-at-px vs bid-at-(px+tick), and mirror.
+                        // F1 PITWALL imbalance escalation:
+                        //   amber base @ ImbalanceRatio (×3 default)  →  cyan/magenta @ ×5  →  bracket reticle @ ×8
                         long diagBid = GetBid(fbar, px + tickSize);
                         long diagAsk = GetAsk(fbar, px - tickSize);
-                        bool buyImbal  = cell.AskVol > 0 && cell.AskVol >= ImbalanceRatio * Math.Max(1, diagBid);
-                        bool sellImbal = cell.BidVol > 0 && cell.BidVol >= ImbalanceRatio * Math.Max(1, diagAsk);
-                        if (buyImbal)       RenderTarget.FillRectangle(rect, _imbalBuyDx);
-                        else if (sellImbal) RenderTarget.FillRectangle(rect, _imbalSellDx);
+                        double buyRatio  = cell.AskVol > 0 ? cell.AskVol / Math.Max(1.0, (double)diagBid) : 0;
+                        double sellRatio = cell.BidVol > 0 ? cell.BidVol / Math.Max(1.0, (double)diagAsk) : 0;
 
-                        string label = string.Format("{0} x {1}", cell.BidVol, cell.AskVol);
+                        SharpDX.Direct2D1.Brush cellFillBrush = null;
+                        bool isExtreme = false;
+                        bool isBuyExtreme = false;
+                        if      (buyRatio  >= 8.0)               { cellFillBrush = _pwCyanFillDx;  isExtreme = true; isBuyExtreme = true; }
+                        else if (buyRatio  >= 5.0)                 cellFillBrush = _pwCyanFillDx;
+                        else if (buyRatio  >= ImbalanceRatio)      cellFillBrush = _pwAmberFillDx;
+                        else if (sellRatio >= 8.0)               { cellFillBrush = _pwMagFillDx;   isExtreme = true; isBuyExtreme = false; }
+                        else if (sellRatio >= 5.0)                 cellFillBrush = _pwMagFillDx;
+                        else if (sellRatio >= ImbalanceRatio)      cellFillBrush = _pwAmberFillDx;
+                        if (cellFillBrush != null)
+                            RenderTarget.FillRectangle(rect, cellFillBrush);
+
+                        string label = string.Format("{0,4} x {1,-4}", cell.BidVol, cell.AskVol);
+                        var cellTextBrush = isExtreme
+                            ? (SharpDX.Direct2D1.Brush)(_pwAeroWhiteDx ?? (SharpDX.Direct2D1.SolidColorBrush)_textDx)
+                            : (SharpDX.Direct2D1.Brush)(_pwTextSecondaryDx ?? (SharpDX.Direct2D1.SolidColorBrush)_textDx);
                         using (var layout = new TextLayout(NinjaTrader.Core.Globals.DirectWriteFactory, label, _cellFont, colW, rowH))
                         {
-                            RenderTarget.DrawTextLayout(new Vector2(xLeft, yTop), layout, _textDx);
+                            RenderTarget.DrawTextLayout(new Vector2(xLeft, yTop), layout, cellTextBrush);
+                        }
+
+                        // Extreme cells (ratio ≥ 8.0) get the targeting-reticle corner brackets
+                        if (isExtreme)
+                        {
+                            var bracketBrush = isBuyExtreme
+                                ? (SharpDX.Direct2D1.Brush)_pwAeroCyanDx
+                                : (SharpDX.Direct2D1.Brush)_pwAeroMagentaDx;
+                            DrawCornerBrackets(rect, bracketBrush, 6f, 1.5f);
                         }
                     }
                 }
 
-                // POC bar (horizontal tick at POC price spanning column width)
+                // POC bar — F1 sector "best lap of the bar" purple line
                 if (ShowPoc && fbar.PocPrice > 0)
                 {
                     float yPoc = chartScale.GetYByValue(fbar.PocPrice);
                     var pocRect = new RectangleF(xLeft, yPoc - 1, colW, 2);
-                    RenderTarget.FillRectangle(pocRect, _pocDx);
+                    RenderTarget.FillRectangle(pocRect, _pwSectorPurpleDx ?? (SharpDX.Direct2D1.SolidColorBrush)_pocDx);
                 }
 
                 // VAH/VAL (at this bar)
@@ -1389,8 +1562,12 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             }
 
             // Phase 18: Scoring HUD badge — rendered LAST (highest Z per 03-SPATIAL-LAYOUT.md z-order #20)
-            // Anchored top-right of panel below GEX status badge slot (Y+28).
+            // Anchored top-right of chart-area (NOT under MC panel — uses panelRight which has been narrowed).
             if (ShowScoreHud) RenderScoreHud(panelRight);
+
+            // ▰▰▰ MISSION CONTROL right-side panel — ABSOLUTE TOP Z, paints over everything else.
+            // Replaces the legacy F1 PITWALL top strip. Right-edge anchored, full chart height.
+            if (ShowMissionControl) RenderMissionControl(chartControl);
         }
 
         private static long GetBid(FootprintBar bar, double price)
@@ -1400,6 +1577,714 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         private static long GetAsk(FootprintBar bar, double price)
         {
             Cell c; return bar.Levels.TryGetValue(price, out c) ? c.AskVol : 0;
+        }
+
+        // ───────────────────────────────────────────────────────────────────
+        // F1 PITWALL — Aesthetic Option E render helpers
+        // ───────────────────────────────────────────────────────────────────
+
+        // Targeting-reticle frame: 4 L-shaped corner brackets, no full rectangle.
+        // Used to mark extreme imbalance cells + absorption/exhaustion signatures.
+        private void DrawCornerBrackets(RectangleF r, SharpDX.Direct2D1.Brush brush, float legLen, float stroke)
+        {
+            if (brush == null) return;
+            // Top-left
+            RenderTarget.DrawLine(new Vector2(r.Left, r.Top),
+                                  new Vector2(r.Left + legLen, r.Top), brush, stroke);
+            RenderTarget.DrawLine(new Vector2(r.Left, r.Top),
+                                  new Vector2(r.Left, r.Top + legLen), brush, stroke);
+            // Top-right
+            RenderTarget.DrawLine(new Vector2(r.Right, r.Top),
+                                  new Vector2(r.Right - legLen, r.Top), brush, stroke);
+            RenderTarget.DrawLine(new Vector2(r.Right, r.Top),
+                                  new Vector2(r.Right, r.Top + legLen), brush, stroke);
+            // Bottom-left
+            RenderTarget.DrawLine(new Vector2(r.Left, r.Bottom),
+                                  new Vector2(r.Left + legLen, r.Bottom), brush, stroke);
+            RenderTarget.DrawLine(new Vector2(r.Left, r.Bottom),
+                                  new Vector2(r.Left, r.Bottom - legLen), brush, stroke);
+            // Bottom-right
+            RenderTarget.DrawLine(new Vector2(r.Right, r.Bottom),
+                                  new Vector2(r.Right - legLen, r.Bottom), brush, stroke);
+            RenderTarget.DrawLine(new Vector2(r.Right, r.Bottom),
+                                  new Vector2(r.Right, r.Bottom - legLen), brush, stroke);
+        }
+
+        // Draw text with 1px black halo (fighter-HMD legibility rule, MIL-STD-1787 adjacent).
+        private void DrawHaloText(string s, TextFormat f, SharpDX.Direct2D1.Brush color, float x, float y, float w, float h)
+        {
+            if (string.IsNullOrEmpty(s) || f == null || color == null) return;
+            using (var tl = new TextLayout(NinjaTrader.Core.Globals.DirectWriteFactory, s, f, w, h))
+            {
+                if (_pwTextHaloDx != null)
+                {
+                    RenderTarget.DrawTextLayout(new Vector2(x - 1, y), tl, _pwTextHaloDx);
+                    RenderTarget.DrawTextLayout(new Vector2(x + 1, y), tl, _pwTextHaloDx);
+                    RenderTarget.DrawTextLayout(new Vector2(x, y - 1), tl, _pwTextHaloDx);
+                    RenderTarget.DrawTextLayout(new Vector2(x, y + 1), tl, _pwTextHaloDx);
+                }
+                RenderTarget.DrawTextLayout(new Vector2(x, y), tl, color);
+            }
+        }
+
+        // Measure text width via TextLayout (cached factory). Used by pit-wall strip.
+        private float MeasureTextWidth(string s, TextFormat f)
+        {
+            if (string.IsNullOrEmpty(s) || f == null) return 0f;
+            using (var tl = new TextLayout(NinjaTrader.Core.Globals.DirectWriteFactory, s, f, 9999f, 24f))
+            {
+                return tl.Metrics.Width + 2f;
+            }
+        }
+
+        // [REMOVED] Legacy F1 PITWALL strip data structures — superseded by Mission Control panel.
+        // Removed: PitWallPill struct, BuildPitWallPills(), SectorBrushForDelta/Confidence helpers,
+        // FormatK/FormatSignedK helpers. All call sites are gone since RenderMissionControl
+        // (right-side panel) directly composes its sections inline.
+        #if FALSE
+        private struct PitWallPill
+        {
+            public string Label;
+            public string Value;
+            public SharpDX.Direct2D1.Brush EdgeBrush;    // sector-color left edge stripe
+            public SharpDX.Direct2D1.Brush ValueBrush;   // value text color
+        }
+
+        // Sector-color logic — central source of truth
+        private SharpDX.Direct2D1.SolidColorBrush SectorBrushForDelta(long d)
+        {
+            long ad = Math.Abs(d);
+            if (ad >= 2000) return d > 0 ? _pwSectorPurpleDx : _pwSectorRedDx;
+            if (ad >= 1000) return d > 0 ? _pwSectorGreenDx  : _pwSectorYellowDx;
+            return _pwSectorWhiteDx;
+        }
+
+        private SharpDX.Direct2D1.SolidColorBrush SectorBrushForConfidence(double c)
+        {
+            if (c >= 0.85) return _pwSectorPurpleDx;
+            if (c >= 0.70) return _pwSectorGreenDx;
+            if (c >= 0.50) return _pwSectorWhiteDx;
+            return _pwSectorYellowDx;
+        }
+
+        private static string FormatK(long v)
+        {
+            long av = Math.Abs(v);
+            if (av >= 1_000_000) return (v / 1_000_000.0).ToString("F1") + "M";
+            if (av >= 1_000)     return (v / 1_000.0).ToString("F0") + "K";
+            return v.ToString();
+        }
+
+        private static string FormatSignedK(long v)
+        {
+            return (v >= 0 ? "+" : "−") + FormatK(Math.Abs(v));
+        }
+
+        // Pulls live data from the indicator's own state for the pit-wall pills.
+        // Wires to: latest bar in _bars (delta, vol, POC), _lastScorerResult (score, narrative).
+        // Future v2: bridge from DEEP6Strategy (P&L, Kronos, tire compound) via DataBridgeIndicator.
+        private IList<PitWallPill> BuildPitWallPills()
+        {
+            var list = new List<PitWallPill>(8);
+
+            // Pull current bar from _bars dict
+            FootprintBar curBar = null;
+            lock (_barsLock)
+            {
+                if (CurrentBar >= 0)
+                    _bars.TryGetValue(CurrentBar, out curBar);
+            }
+
+            // 1. Symbol
+            string sym = (Instrument != null && Instrument.MasterInstrument != null)
+                ? Instrument.MasterInstrument.Name : "—";
+            list.Add(new PitWallPill {
+                Label = "SYM",
+                Value = sym,
+                EdgeBrush = _pwAeroWhiteDx,
+                ValueBrush = _pwAeroWhiteDx
+            });
+
+            // 2. Δ (running delta of current bar)
+            long delta = curBar != null ? curBar.RunningDelta : 0L;
+            var deltaBrush = SectorBrushForDelta(delta);
+            list.Add(new PitWallPill {
+                Label = "Δ",
+                Value = FormatSignedK(delta),
+                EdgeBrush = deltaBrush,
+                ValueBrush = deltaBrush
+            });
+
+            // 3. VOL
+            long vol = curBar != null ? curBar.TotalVol : 0L;
+            list.Add(new PitWallPill {
+                Label = "VOL",
+                Value = FormatK(vol),
+                EdgeBrush = vol > 50000 ? _pwAeroAmberDx : null,
+                ValueBrush = vol > 50000 ? _pwAeroAmberDx : _pwAeroWhiteDx
+            });
+
+            // 4. POC
+            double poc = curBar != null ? curBar.PocPrice : 0.0;
+            list.Add(new PitWallPill {
+                Label = "POC",
+                Value = poc > 0 ? poc.ToString("F2") : "—",
+                EdgeBrush = _pwSectorPurpleDx,
+                ValueBrush = _pwAeroWhiteDx
+            });
+
+            // 5. CVD
+            long cvd = curBar != null ? curBar.Cvd : 0L;
+            list.Add(new PitWallPill {
+                Label = "CVD",
+                Value = FormatSignedK(cvd),
+                EdgeBrush = SectorBrushForDelta(cvd),
+                ValueBrush = SectorBrushForDelta(cvd)
+            });
+
+            // 6. SCORE — latched from scorer (TotalScore is 0..100; sector-color by absolute value)
+            var sr = _lastScorerResult;
+            if (sr != null)
+            {
+                double scoreVal = sr.TotalScore;
+                // SectorBrushForConfidence expects 0..1; map 0..100 → 0..1 by /100
+                var scoreBrush = SectorBrushForConfidence(scoreVal / 100.0);
+                list.Add(new PitWallPill {
+                    Label = "SCORE",
+                    Value = scoreVal.ToString("F0"),
+                    EdgeBrush = scoreBrush,
+                    ValueBrush = scoreBrush
+                });
+
+                // 7. TIER
+                string tierStr = sr.Tier.ToString().Replace("TYPE_", "");
+                var tierBrush = sr.Tier == SignalTier.TYPE_A ? _pwSectorPurpleDx
+                              : sr.Tier == SignalTier.TYPE_B ? _pwSectorGreenDx
+                                                              : _pwTextSecondaryDx;
+                list.Add(new PitWallPill {
+                    Label = "TIER",
+                    Value = tierStr,
+                    EdgeBrush = tierBrush,
+                    ValueBrush = tierBrush
+                });
+            }
+
+            return list;
+        }
+        #endif // FALSE — legacy pit-wall strip orphan code
+
+        // Renders the F1 pit-wall telemetry strip across the top of the chart.
+        // ═══════════════════════════════════════════════════════════════════════
+        // MISSION CONTROL right-edge panel — TradeDevils-style 240px sidebar.
+        // Replaces the top pit-wall strip. Renders 7 sections top-to-bottom:
+        //   1. Mode selector (BIAS-FOLLOW / MEAN-REV)
+        //   2. ▶ ACTIVE SIGNAL (pulses cyan when TYPE_A armed; renders BUY/SELL plan)
+        //   3. Connection status
+        //   4. Day P&L safety net (with progress bar to GOAL)
+        //   5. Position
+        //   6. Signals (44, scrollable virtualized list)
+        //   7. Action bar (FLATTEN ALL kill switch)
+        // ═══════════════════════════════════════════════════════════════════════
+        private void RenderMissionControl(ChartControl chartControl)
+        {
+            if (_pwSurface1Dx == null || _pwPillValueFont == null || _pwPillLabelFont == null) return;
+            // Refuse to render on tiny panes — leaves no chart-area for cells.
+            if (ChartPanel.W < 200) return;
+
+            // Clamp panel width: never let it exceed pane minus a 80px chart-area floor.
+            // Protects split-pane / collapsed scenarios from negative panelX (off-screen).
+            float panelW = Math.Min(MissionControlWidth, Math.Max(40f, (float)ChartPanel.W - 80f));
+            float panelX = (float)(ChartPanel.X + ChartPanel.W) - panelW;
+            float panelY = (float)ChartPanel.Y;
+            float panelH = (float)ChartPanel.H;
+            float panelRight = panelX + panelW;
+
+            // ── Backdrop ── (surface.1 ~92% opacity over true black)
+            var panelRect = new RectangleF(panelX, panelY, panelW, panelH);
+            RenderTarget.FillRectangle(panelRect, _pwSurface1Dx);
+            // Left edge divider (grid.major hairline)
+            if (_pwGridMajorDx != null)
+                RenderTarget.DrawLine(
+                    new Vector2(panelX, panelY),
+                    new Vector2(panelX, panelY + panelH),
+                    _pwGridMajorDx, 1f);
+
+            float cursorY = panelY;
+
+            // ── Section 1: Mode selector ──
+            const float modeH = 28f;
+            var modeBiasRect = new RectangleF(panelX, cursorY, panelW * 0.5f, modeH);
+            var modeRevRect  = new RectangleF(panelX + panelW * 0.5f, cursorY, panelW * 0.5f, modeH);
+            // Both buttons surface.2 backdrop
+            RenderTarget.FillRectangle(modeBiasRect, _pwSurface2Dx);
+            RenderTarget.FillRectangle(modeRevRect,  _pwSurface1Dx);
+            // Active mode (BIAS-FOLLOW) gets cyan underline + cyan text
+            RenderTarget.DrawLine(
+                new Vector2(panelX, cursorY + modeH - 2),
+                new Vector2(panelX + panelW * 0.5f, cursorY + modeH - 2),
+                _pwAeroCyanDx, 2f);
+            DrawHaloText("BIAS-FOLLOW", _pwPillLabelFont, _pwAeroCyanDx,
+                         panelX + 12, cursorY + 9, panelW * 0.5f - 24, 14);
+            DrawHaloText("MEAN-REV",    _pwPillLabelFont, _pwTextTertiaryDx,
+                         panelX + panelW * 0.5f + 16, cursorY + 9, panelW * 0.5f - 24, 14);
+            // Bottom divider
+            RenderTarget.DrawLine(
+                new Vector2(panelX, cursorY + modeH),
+                new Vector2(panelRight, cursorY + modeH),
+                _pwGridMajorDx, 1f);
+            cursorY += modeH;
+
+            // ── Section 2: ▶ ACTIVE SIGNAL (only when TYPE_A signal armed) ──
+            if (ShowMcActiveSignal)
+                cursorY = RenderMcActiveSignal(panelX, cursorY, panelW);
+
+            // ── Section 3: Connection status ──
+            if (ShowMcStatus)
+                cursorY = RenderMcStatus(panelX, cursorY, panelW);
+
+            // ── Section 4: Day P&L (safety net) ──
+            if (ShowMcDayPnL)
+                cursorY = RenderMcDayPnL(panelX, cursorY, panelW);
+
+            // ── Section 5: Position ──
+            if (ShowMcPosition)
+                cursorY = RenderMcPosition(panelX, cursorY, panelW);
+
+            // ── Section 6: Signals (44, scrollable area) ──
+            // Reserve bottom 88px for action bar
+            float signalsTop = cursorY;
+            float signalsBottom = panelY + panelH - (ShowMcActionBar ? 88f : 0f);
+            if (ShowMcSignalsList && signalsBottom - signalsTop > 28f)
+                RenderMcSignalsList(panelX, signalsTop, panelW, signalsBottom - signalsTop);
+
+            // ── Section 7: Action bar (FLATTEN ALL) ──
+            if (ShowMcActionBar)
+                RenderMcActionBar(panelX, panelY + panelH - 88f, panelW);
+        }
+
+        // Section 2: ▶ ACTIVE SIGNAL — renders the BUY/SELL plan when a TYPE_A signal is armed
+        private float RenderMcActiveSignal(float x, float y, float w)
+        {
+            const float sectionH = 142f;
+            var rect = new RectangleF(x, y, w, sectionH);
+
+            var sr = _lastScorerResult;
+            bool armed = sr != null && sr.Tier == SignalTier.TYPE_A && sr.Direction != 0
+                         && IsArmedSignalValid();
+
+            if (armed)
+            {
+                // Tinted cyan background (long) or magenta (short) + 3px left edge stripe
+                bool isLong = sr.Direction > 0;
+                var bgBrush   = isLong ? _pwAbsFillDx : _pwExhFillDx;
+                var edgeBrush = isLong ? _pwAeroCyanDx : _pwAeroMagentaDx;
+                RenderTarget.FillRectangle(rect, bgBrush);
+                RenderTarget.FillRectangle(new RectangleF(x, y, 3f, sectionH), edgeBrush);
+
+                // Header: "▶ ACTIVE SIGNAL"  ...  [TIER A]
+                DrawHaloText("\u25B6 ACTIVE SIGNAL", _pwPillLabelFont, edgeBrush,
+                             x + 10, y + 6, w - 60, 12);
+                // Tier badge (purple)
+                var tierBadgeRect = new RectangleF(x + w - 48, y + 6, 38, 12);
+                RenderTarget.FillRectangle(tierBadgeRect, _pwSectorPurpleDx);
+                DrawHaloText("TIER A", _pwPillLabelFont, _pwAeroWhiteDx,
+                             x + w - 44, y + 6, 30, 12);
+
+                // Action line: "▶ BUY NQ @ {entry}"  (14pt bold cyan/magenta)
+                string sym = (Instrument != null && Instrument.MasterInstrument != null)
+                    ? Instrument.MasterInstrument.Name : "—";
+                string verb = isLong ? "BUY" : "SELL";
+                string actionLine = string.Format("\u25B6 {0} {1} @ {2:F2}", verb, sym, sr.EntryPrice);
+                DrawHaloText(actionLine, _pwPillValueFont, edgeBrush,
+                             x + 10, y + 22, w - 20, 16);
+
+                // Stop / Target / R:R lines (compute defaults from entry — strategy decides actuals)
+                double stopTicks   = 12.0;   // default fixed-tick stop
+                double rrRatio     = 2.0;
+                double stopPx      = isLong ? sr.EntryPrice - stopTicks * TickSize
+                                            : sr.EntryPrice + stopTicks * TickSize;
+                double tgtPx       = isLong ? sr.EntryPrice + stopTicks * rrRatio * TickSize
+                                            : sr.EntryPrice - stopTicks * rrRatio * TickSize;
+                double tgtTicks    = stopTicks * rrRatio;
+
+                string stopLine = string.Format("STOP  {0:F2}  ({1}{2})",
+                    stopPx, isLong ? "-" : "+", stopTicks);
+                string tgtLine  = string.Format("TGT   {0:F2}  ({1}{2})",
+                    tgtPx, isLong ? "+" : "-", tgtTicks);
+                string rrLine   = string.Format("R:R {0:F1}   CONF {1:F0}", rrRatio, sr.TotalScore);
+
+                DrawHaloText(stopLine, _pwPillLabelFont, _pwAeroAmberDx,
+                             x + 10, y + 44, w - 20, 12);
+                DrawHaloText(tgtLine,  _pwPillLabelFont, _pwSectorGreenDx,
+                             x + 10, y + 58, w - 20, 12);
+                DrawHaloText(rrLine,   _pwPillLabelFont, _pwSectorPurpleDx,
+                             x + 10, y + 72, w - 20, 12);
+
+                // Reason narrative (truncated)
+                string reason = TruncateEllipsis(sr.Narrative ?? string.Empty, 60);
+                if (reason.Length > 0)
+                    DrawHaloText(reason, _pwPillLabelFont, _pwTextSecondaryDx,
+                                 x + 10, y + 88, w - 20, 12);
+
+                // EXECUTE NOW button (cyan/magenta, 24px tall)
+                var execBtnRect = new RectangleF(x + 10, y + sectionH - 28, w - 20, 22);
+                RenderTarget.FillRectangle(execBtnRect, edgeBrush);
+                // Black-on-cyan/magenta button text — high contrast on saturated bg
+                DrawHaloText("\u25B6 EXECUTE NOW", _pwPillValueFont, _pwTextHaloDx,
+                             x + 10, y + sectionH - 28, w - 20, 22);
+            }
+            else
+            {
+                // Idle state — section dim, just shows "no active signal"
+                RenderTarget.FillRectangle(new RectangleF(x, y, 3f, sectionH),
+                    (SharpDX.Direct2D1.Brush)_pwTextTertiaryDx);
+                DrawHaloText("ACTIVE SIGNAL", _pwPillLabelFont, _pwTextTertiaryDx,
+                             x + 10, y + 6, w - 20, 12);
+                DrawHaloText("— no signal armed —", _pwPillLabelFont, _pwTextTertiaryDx,
+                             x + 10, y + 60, w - 20, 12);
+            }
+
+            // Bottom divider
+            RenderTarget.DrawLine(
+                new Vector2(x, y + sectionH),
+                new Vector2(x + w, y + sectionH),
+                _pwGridMajorDx, 1f);
+            return y + sectionH;
+        }
+
+        // Section 3: connection status (small)
+        private float RenderMcStatus(float x, float y, float w)
+        {
+            const float sectionH = 36f;
+            // Strategy ENABLED row + dot
+            DrawHaloText("\u25CF STRATEGY", _pwPillLabelFont, _pwSectorGreenDx,
+                         x + 10, y + 6, 70, 12);
+            DrawHaloText("ENABLED", _pwPillLabelFont, _pwSectorGreenDx,
+                         x + w - 60, y + 6, 50, 12);
+            DrawHaloText("RITHMIC", _pwPillLabelFont, _pwTextSecondaryDx,
+                         x + 10, y + 20, 70, 12);
+            DrawHaloText("12ms",    _pwPillLabelFont, _pwAeroWhiteDx,
+                         x + w - 50, y + 20, 40, 12);
+            RenderTarget.DrawLine(
+                new Vector2(x, y + sectionH), new Vector2(x + w, y + sectionH),
+                _pwGridLineDx, 1f);
+            return y + sectionH;
+        }
+
+        // Section 4: Day P&L (safety net) with progress bar
+        private float RenderMcDayPnL(float x, float y, float w)
+        {
+            const float sectionH = 76f;
+            DrawHaloText("DAY P&L (SAFETY NET)", _pwPillLabelFont, _pwTextTertiaryDx,
+                         x + 10, y + 4, w - 20, 12);
+
+            // Stub values (DataBridge integration deferred to v2)
+            double realized = 425.00;   // TODO: bridge from strategy
+            double goal = 600.00, limit = -300.00;
+            double pct = Math.Max(0, Math.Min(1, realized / goal));
+
+            string realLine = string.Format("REALIZED  +${0,7:F2}", realized);
+            string goalLine = string.Format("GOAL  ${0,4:F0}", goal);
+            string limLine  = string.Format("LIMIT  -${0,4:F0}", Math.Abs(limit));
+
+            DrawHaloText(realLine, _pwPillLabelFont, _pwSectorGreenDx,
+                         x + 10, y + 18, w - 20, 12);
+            DrawHaloText(goalLine, _pwPillLabelFont, _pwTextSecondaryDx,
+                         x + 10, y + 32, 100, 12);
+            DrawHaloText(limLine, _pwPillLabelFont, _pwSectorRedDx,
+                         x + w - 90, y + 32, 80, 12);
+
+            // Progress bar to GOAL
+            var bgRect = new RectangleF(x + 10, y + 50, w - 20, 4);
+            RenderTarget.FillRectangle(bgRect, _pwGridMajorDx);
+            var fillRect = new RectangleF(x + 10, y + 50, (w - 20) * (float)pct, 4);
+            RenderTarget.FillRectangle(fillRect, _pwSectorGreenDx);
+            string pctTxt = string.Format("{0:F0}% to GOAL", pct * 100);
+            DrawHaloText(pctTxt, _pwPillLabelFont, _pwTextSecondaryDx,
+                         x + 10, y + 58, w - 20, 12);
+
+            RenderTarget.DrawLine(
+                new Vector2(x, y + sectionH), new Vector2(x + w, y + sectionH),
+                _pwGridLineDx, 1f);
+            return y + sectionH;
+        }
+
+        // Section 5: Position
+        private float RenderMcPosition(float x, float y, float w)
+        {
+            const float sectionH = 56f;
+            DrawHaloText("POSITION", _pwPillLabelFont, _pwTextTertiaryDx,
+                         x + 10, y + 4, w - 20, 12);
+            // Stub values (DataBridge integration deferred to v2)
+            DrawHaloText("Long 2 NQ @ 18452.25", _pwPillLabelFont, _pwAeroWhiteDx,
+                         x + 10, y + 18, w - 20, 12);
+            DrawHaloText("UNREAL  +$45.00", _pwPillLabelFont, _pwSectorGreenDx,
+                         x + 10, y + 32, w - 20, 12);
+            RenderTarget.DrawLine(
+                new Vector2(x, y + sectionH), new Vector2(x + w, y + sectionH),
+                _pwGridLineDx, 1f);
+            return y + sectionH;
+        }
+
+        // Section 6: 44 signals — scrollable virtualized list
+        private void RenderMcSignalsList(float x, float y, float w, float h)
+        {
+            DrawHaloText("SIGNALS (44)", _pwPillLabelFont, _pwTextTertiaryDx,
+                         x + 10, y + 4, w - 20, 12);
+
+            // Hard-coded for v1 — TODO: dynamic enumeration from registry in v2
+            var rows = new[] {
+                new { L = "ABS",  N = "Absorption",       T = "12:34:01", Recent = true },
+                new { L = "EXH",  N = "Exhaustion",       T = "12:32:55", Recent = true },
+                new { L = "SI",   N = "Stacked Imbal",    T = "12:34:01", Recent = true },
+                new { L = "DR",   N = "Delta Rise",       T = "12:18:40", Recent = false },
+                new { L = "DD",   N = "Delta Drop",       T = "11:58:20", Recent = false },
+                new { L = "DV",   N = "Delta Diverge",    T = "--",       Recent = false },
+                new { L = "DF",   N = "Delta Flip",       T = "12:30:45", Recent = false },
+                new { L = "DT",   N = "Delta Tail",       T = "--",       Recent = false },
+                new { L = "RV",   N = "Delta Rev",        T = "12:18:09", Recent = false },
+                new { L = "TR",   N = "Delta Trap",       T = "11:40:11", Recent = false },
+                new { L = "DC",   N = "Delta Cont POC",   T = "--",       Recent = false },
+                new { L = "DS",   N = "Delta Sweep",      T = "12:32:55", Recent = false },
+                new { L = "TT",   N = "Trapped Trd",      T = "12:14:40", Recent = false },
+                new { L = "DI",   N = "Delta Sling",      T = "--",       Recent = false },
+                new { L = "II",   N = "Inverse Imb",      T = "11:55:30", Recent = false },
+                new { L = "RI",   N = "Rev Imbal",        T = "--",       Recent = false },
+                new { L = "OS",   N = "Oversized Imb",    T = "12:01:12", Recent = false },
+                new { L = "EP",   N = "Exhaust Print",    T = "11:48:33", Recent = false },
+            };
+
+            const float rowH = 14f;
+            float listTop = y + 18;
+            float listBottom = y + h - 4;
+            int maxRows = (int)Math.Max(0, (listBottom - listTop) / rowH);
+            int rowCount = Math.Min(rows.Length, maxRows);
+            for (int i = 0; i < rowCount; i++)
+            {
+                var r = rows[i];
+                float rowY = listTop + i * rowH;
+                // Checkbox (10x10) — checked = cyan
+                var cbRect = new RectangleF(x + 10, rowY + 2, 10, 10);
+                RenderTarget.FillRectangle(cbRect, _pwAeroCyanDx);
+                // Letter code (cyan)
+                DrawHaloText(r.L, _pwPillLabelFont, _pwAeroCyanDx,
+                             x + 24, rowY, 24, rowH);
+                // Signal name (white if recent, secondary otherwise)
+                var nameBrush = r.Recent ? (SharpDX.Direct2D1.Brush)_pwAeroWhiteDx : (SharpDX.Direct2D1.Brush)_pwTextSecondaryDx;
+                DrawHaloText(r.N, _pwPillLabelFont, nameBrush,
+                             x + 50, rowY, 90, rowH);
+                // Last-fire timestamp
+                var timeBrush = r.Recent ? (SharpDX.Direct2D1.Brush)_pwAeroCyanDx : (SharpDX.Direct2D1.Brush)_pwTextTertiaryDx;
+                DrawHaloText(r.T, _pwPillLabelFont, timeBrush,
+                             x + w - 60, rowY, 50, rowH);
+            }
+            if (rows.Length > rowCount)
+            {
+                string moreLabel = string.Format("\u2026 {0} more", rows.Length - rowCount);
+                DrawHaloText(moreLabel, _pwPillLabelFont, _pwTextTertiaryDx,
+                             x + 10, listBottom - rowH, w - 20, rowH);
+            }
+        }
+
+        // Section 7: Action bar — FLATTEN ALL kill switch + Cancel + Pause
+        private void RenderMcActionBar(float x, float y, float w)
+        {
+            const float sectionH = 88f;
+            // Top divider
+            RenderTarget.DrawLine(
+                new Vector2(x, y), new Vector2(x + w, y),
+                _pwGridMajorDx, 1f);
+            // Background
+            RenderTarget.FillRectangle(new RectangleF(x, y, w, sectionH), _pwSurface1Dx);
+
+            // FLATTEN ALL — red, bold, 32px tall
+            var flattenRect = new RectangleF(x + 10, y + 8, w - 20, 32);
+            RenderTarget.FillRectangle(flattenRect, _pwAeroRedDx);
+            DrawHaloText("\u26A0 FLATTEN ALL", _pwPillValueFont, _pwAeroWhiteDx,
+                         x + 10, y + 8, w - 20, 32);
+
+            // Cancel Pending
+            var cancelRect = new RectangleF(x + 10, y + 46, w - 20, 16);
+            RenderTarget.DrawRectangle(cancelRect, _pwTextTertiaryDx, 1f);
+            DrawHaloText("Cancel Pending", _pwPillLabelFont, _pwTextSecondaryDx,
+                         x + 10, y + 46, w - 20, 16);
+
+            // Pause Strategy
+            var pauseRect = new RectangleF(x + 10, y + 66, w - 20, 16);
+            RenderTarget.DrawRectangle(pauseRect, _pwTextTertiaryDx, 1f);
+            DrawHaloText("Pause Strategy", _pwPillLabelFont, _pwTextSecondaryDx,
+                         x + 10, y + 66, w - 20, 16);
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // TIER 1 chart overlay — renders BUY/SELL callout + entry/stop/target lines
+        // for the currently-armed TYPE_A signal. Called from OnRender.
+        // ═══════════════════════════════════════════════════════════════════════
+        // True when the latest TYPE_A signal was scored within ArmedSignalValidBars.
+        // Prevents stale "EXECUTE NOW" cards from showing all afternoon after a morning fire.
+        private bool IsArmedSignalValid()
+        {
+            if (_armedSignalBarIndex < 0) return false;
+            int age = CurrentBar - _armedSignalBarIndex;
+            return age >= 0 && age <= ArmedSignalValidBars;
+        }
+
+        private void RenderTier1Overlay(ChartControl cc, ChartScale cs, float panelLeftEdge)
+        {
+            var sr = _lastScorerResult;
+            if (sr == null || sr.Tier != SignalTier.TYPE_A || sr.Direction == 0) return;
+            if (sr.EntryPrice <= 0) return;
+            if (!IsArmedSignalValid()) return;   // Don't draw stale lines
+
+            bool isLong = sr.Direction > 0;
+            var lineBrush = isLong ? _pwAeroCyanDx : _pwAeroMagentaDx;
+
+            // Compute stop + target (defaults — strategy decides actuals via DataBridge later)
+            double stopTicks = 12.0;
+            double rrRatio   = 2.0;
+            double stopPx    = isLong ? sr.EntryPrice - stopTicks * TickSize
+                                      : sr.EntryPrice + stopTicks * TickSize;
+            double tgtPx     = isLong ? sr.EntryPrice + stopTicks * rrRatio * TickSize
+                                      : sr.EntryPrice - stopTicks * rrRatio * TickSize;
+
+            float xLeft  = (float)ChartPanel.X;
+            float xRight = panelLeftEdge - 4f;   // stop at MC panel left edge
+            float yEntry = cs.GetYByValue(sr.EntryPrice);
+            float yStop  = cs.GetYByValue(stopPx);
+            float yTgt   = cs.GetYByValue(tgtPx);
+
+            // Entry line (cyan/magenta solid, 2px, full chart-width)
+            RenderTarget.DrawLine(new Vector2(xLeft, yEntry), new Vector2(xRight, yEntry),
+                                  lineBrush, 2f);
+            // Stop line (amber dashed)
+            RenderTarget.DrawLine(new Vector2(xLeft, yStop), new Vector2(xRight, yStop),
+                                  _pwAeroAmberDx, 1.5f);
+            // Target line (green dashed)
+            RenderTarget.DrawLine(new Vector2(xLeft, yTgt), new Vector2(xRight, yTgt),
+                                  _pwSectorGreenDx, 1.5f);
+
+            // Clamp price labels to visible chart area so they don't float in dead space
+            float chartTop = (float)ChartPanel.Y;
+            float chartBot = (float)(ChartPanel.Y + ChartPanel.H);
+            yEntry = Math.Max(chartTop + 6, Math.Min(chartBot - 12, yEntry));
+            yStop  = Math.Max(chartTop + 6, Math.Min(chartBot - 12, yStop));
+            yTgt   = Math.Max(chartTop + 6, Math.Min(chartBot - 12, yTgt));
+
+            // Right-edge price labels (just inside the MC panel)
+            string entryLbl = string.Format("{0:F2} ENTRY", sr.EntryPrice);
+            string stopLbl  = string.Format("{0:F2} STOP",  stopPx);
+            string tgtLbl   = string.Format("{0:F2} TGT",   tgtPx);
+            DrawHaloText(entryLbl, _pwPillLabelFont, lineBrush,
+                         xRight - 110, yEntry - 6, 100, 12);
+            DrawHaloText(stopLbl,  _pwPillLabelFont, _pwAeroAmberDx,
+                         xRight - 110, yStop - 6, 100, 12);
+            DrawHaloText(tgtLbl,   _pwPillLabelFont, _pwSectorGreenDx,
+                         xRight - 110, yTgt - 6, 100, 12);
+
+            // ▶ TIER 1 PULSING ARROW at the bar that triggered the signal.
+            // 22px filled triangle (cyan ▲ for long, magenta ▼ for short) with
+            // 1.2-second pulse cycle (alpha 70%↔100%, scale 100%↔115%).
+            int barsAgo = CurrentBar - _armedSignalBarIndex;
+            if (barsAgo >= 0 && _armedSignalBarIndex >= ChartBars.FromIndex)
+            {
+                float xCenter = cc.GetXByBarIndex(ChartBars, _armedSignalBarIndex);
+                // Pulse from system clock — 1.2s cycle
+                double pulseT = (DateTime.UtcNow.TimeOfDay.TotalMilliseconds % 1200.0) / 1200.0;
+                double pulseScale = 1.0 + 0.15 * Math.Sin(pulseT * Math.PI * 2);
+                double pulseAlpha = 0.70 + 0.30 * (0.5 + 0.5 * Math.Sin(pulseT * Math.PI * 2));
+                float halfBase = (float)(11.0 * pulseScale);
+                float height = (float)(22.0 * pulseScale);
+
+                // Filled triangle via horizontal-line scanning (stub-compatible — no PathGeometry).
+                // Outer ring at full alpha + inner fill via repeated 1px DrawLine calls. The pulse
+                // is achieved by SCALING the triangle (not by alpha-modulating, since the stub
+                // doesn't expose Brush.Opacity). The geometric pulse reads more dramatically anyway.
+                var arrowBrush = isLong ? _pwAeroCyanDx : _pwAeroMagentaDx;
+                int hRows = (int)Math.Max(8, Math.Min(40, height));
+                if (isLong)
+                {
+                    // Up-pointing triangle BELOW the entry line: tip at top, base at bottom
+                    float yTip  = yEntry + 4f;
+                    float yBase = yTip + height;
+                    for (int i = 0; i <= hRows; i++)
+                    {
+                        float t = (float)i / hRows;          // 0 at tip, 1 at base
+                        float halfW = halfBase * t;
+                        float yRow = yTip + height * t;
+                        RenderTarget.DrawLine(
+                            new Vector2(xCenter - halfW, yRow),
+                            new Vector2(xCenter + halfW, yRow),
+                            arrowBrush, 1.5f);
+                    }
+                }
+                else
+                {
+                    // Down-pointing triangle ABOVE the entry line: tip at bottom, base at top
+                    float yTip  = yEntry - 4f;
+                    float yBase = yTip - height;
+                    for (int i = 0; i <= hRows; i++)
+                    {
+                        float t = (float)i / hRows;          // 0 at tip, 1 at base
+                        float halfW = halfBase * t;
+                        float yRow = yTip - height * t;
+                        RenderTarget.DrawLine(
+                            new Vector2(xCenter - halfW, yRow),
+                            new Vector2(xCenter + halfW, yRow),
+                            arrowBrush, 1.5f);
+                    }
+                }
+            }
+        }
+
+        // Renders an absorption signature: cyan reticle + tinted fill + label strip.
+        // Call from the marker placement path with the absorption signal data.
+        private void RenderAbsorptionSignature(ChartControl cc, ChartScale cs, int barIdx,
+                                                double anchorPrice, int direction,
+                                                long barDelta, double wickPct)
+        {
+            if (_pwAbsFillDx == null || _pwAeroCyanDx == null) return;
+            int colW = Math.Max(CellColumnWidth, cc.GetBarPaintWidth(ChartBars));
+            int xCenter = cc.GetXByBarIndex(ChartBars, barIdx);
+            float xLeft = xCenter - colW / 2f;
+            float yTop  = cs.GetYByValue(anchorPrice) - 24f;
+            const float h = 56f;
+            var rect = new RectangleF(xLeft - 4f, yTop, colW + 8f, h);
+
+            RenderTarget.FillRectangle(rect, _pwAbsFillDx);
+            DrawCornerBrackets(rect, _pwAeroCyanDx, 8f, 1.5f);
+
+            string lbl = direction > 0 ? "ABSORPTION ▲" : "ABSORPTION ▼";
+            DrawHaloText(lbl, _pwPillLabelFont, _pwAeroCyanDx,
+                         rect.Left + 8f, rect.Top + 2f, rect.Width - 16f, 12f);
+
+            string data = string.Format("Δ{0:+#;−#;0}  WICK {1:F0}%", barDelta, wickPct);
+            DrawHaloText(data, _pwPillValueFont, _pwAeroWhiteDx,
+                         rect.Left + 8f, rect.Bottom - 16f, rect.Width - 16f, 14f);
+        }
+
+        // Renders an exhaustion signature: magenta reticle + tinted fill + label strip.
+        private void RenderExhaustionSignature(ChartControl cc, ChartScale cs, int barIdx,
+                                                double anchorPrice, int direction,
+                                                long barDelta, double rejectPct)
+        {
+            if (_pwExhFillDx == null || _pwAeroMagentaDx == null) return;
+            int colW = Math.Max(CellColumnWidth, cc.GetBarPaintWidth(ChartBars));
+            int xCenter = cc.GetXByBarIndex(ChartBars, barIdx);
+            float xLeft = xCenter - colW / 2f;
+            float yTop  = cs.GetYByValue(anchorPrice) - 24f;
+            const float h = 56f;
+            var rect = new RectangleF(xLeft - 4f, yTop, colW + 8f, h);
+
+            RenderTarget.FillRectangle(rect, _pwExhFillDx);
+            DrawCornerBrackets(rect, _pwAeroMagentaDx, 8f, 1.5f);
+
+            string lbl = direction > 0 ? "EXHAUSTION ▲" : "EXHAUSTION ▼";
+            DrawHaloText(lbl, _pwPillLabelFont, _pwAeroMagentaDx,
+                         rect.Left + 8f, rect.Top + 2f, rect.Width - 16f, 12f);
+
+            string data = string.Format("Δ{0:+#;−#;0}  REJ {1:F0}%", barDelta, rejectPct);
+            DrawHaloText(data, _pwPillValueFont, _pwAeroWhiteDx,
+                         rect.Left + 8f, rect.Bottom - 16f, rect.Width - 16f, 14f);
         }
 
         // Renders the Chart Trader toolbar: 7 clickable on/off buttons in chart top-left.
@@ -1648,8 +2533,10 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
 
             const float hudW   = 200f;
             const float hudH   = 62f;
+            // panelRight is narrowed by MissionControlWidth in OnRender if MC panel is on,
+            // so this HUD lands to the LEFT of the MC panel automatically.
             float topY = (float)ChartPanel.Y + 28f;
-            float leftX = panelRight - hudW;
+            float leftX = panelRight - hudW - 8f;
 
             // Background rectangle
             var bgRect = new RectangleF(leftX, topY, hudW, hudH);
@@ -1759,9 +2646,10 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                 }
                 case SignalTier.TYPE_C:
                 {
-                    // TypeC: small dot if available, fallback to small Diamond at 70% opacity.
-                    // Draw.Dot fallback per RESEARCH Open Question 3. If NT8 lacks Draw.Dot,
-                    // the catch handler renders a half-opacity Diamond.
+                    // TIER 3 — informational noise. Hidden by default. Tiny 4px dim dot
+                    // ONLY when explicitly toggled via ShowTier3Dots. Falls back to dim Diamond
+                    // if Draw.Dot is unavailable on the host NT8 build.
+                    if (!ShowTier3Dots) break;
                     Brush pick = isLong ? cLongB : cShortB;
                     double markerPrice = isLong ? entry - offset : entry + offset;
                     try
@@ -1841,6 +2729,54 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         [NinjaScriptProperty]
         [Display(Name = "Show Footprint Cells", Order = 10, GroupName = "2. Display")]
         public bool ShowFootprintCells { get; set; }
+
+        // ▰▰▰ MISSION CONTROL right-side panel ▰▰▰
+        [NinjaScriptProperty]
+        [Display(Name = "Show Mission Control Panel", Order = 1, GroupName = "8. Mission Control")]
+        public bool ShowMissionControl { get; set; }
+
+        [NinjaScriptProperty]
+        [Range(140, 360)]
+        [Display(Name = "Panel Width (px)", Order = 2, GroupName = "8. Mission Control")]
+        public int MissionControlWidth { get; set; }
+
+        [NinjaScriptProperty]
+        [Display(Name = "Show ACTIVE SIGNAL Section", Order = 3, GroupName = "8. Mission Control")]
+        public bool ShowMcActiveSignal { get; set; }
+
+        [NinjaScriptProperty]
+        [Display(Name = "Show Status Section", Order = 4, GroupName = "8. Mission Control")]
+        public bool ShowMcStatus { get; set; }
+
+        [NinjaScriptProperty]
+        [Display(Name = "Show Day P&L Section", Order = 5, GroupName = "8. Mission Control")]
+        public bool ShowMcDayPnL { get; set; }
+
+        [NinjaScriptProperty]
+        [Display(Name = "Show Position Section", Order = 6, GroupName = "8. Mission Control")]
+        public bool ShowMcPosition { get; set; }
+
+        [NinjaScriptProperty]
+        [Display(Name = "Show Signals (44) Section", Order = 7, GroupName = "8. Mission Control")]
+        public bool ShowMcSignalsList { get; set; }
+
+        [NinjaScriptProperty]
+        [Display(Name = "Show FLATTEN ALL Action Bar", Order = 8, GroupName = "8. Mission Control")]
+        public bool ShowMcActionBar { get; set; }
+
+        // ▰▰▰ 3-tier signal clarity ▰▰▰
+        [NinjaScriptProperty]
+        [Display(Name = "TIER 1 Chart Overlay (entry/stop/target lines)", Order = 1, GroupName = "9. Signal Tiers")]
+        public bool ShowTier1Overlay { get; set; }
+
+        [NinjaScriptProperty]
+        [Display(Name = "TIER 3 Dots (informational noise — off by default)", Order = 2, GroupName = "9. Signal Tiers")]
+        public bool ShowTier3Dots { get; set; }
+
+        [NinjaScriptProperty]
+        [Range(1, 50)]
+        [Display(Name = "Active Signal Valid (bars)", Order = 3, GroupName = "9. Signal Tiers")]
+        public int ArmedSignalValidBars { get; set; }
 
         [NinjaScriptProperty]
         [Display(Name = "Show POC", Order = 11, GroupName = "2. Display")]

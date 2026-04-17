@@ -343,6 +343,13 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         private SharpDX.Direct2D1.Brush _textDx;
         private TextFormat _labelFont;
 
+        // F1 PITWALL — telemetry-pill brushes for level labels (Aesthetic Option E)
+        private SharpDX.Direct2D1.Brush _pwSurface2Dx;     // #0E1218  raised pill backdrop
+        private SharpDX.Direct2D1.Brush _pwAmberFillDx;    // amber @ 18%  call/put wall safety band
+        private SharpDX.Direct2D1.Brush _pwAmberDx;        // amber 100%   stripe edge
+        private SharpDX.Direct2D1.Brush _pwTextHaloDx;     // black @ 90%  1px halo for legibility
+        private SharpDX.Direct2D1.Brush _pwWhiteTextDx;    // #F2F4F8      pill value text
+
         #endregion
 
         protected override void OnStateChange()
@@ -362,11 +369,15 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                 GexUnderlying               = "QQQ";
                 GexApiKey                   = string.Empty;
 
-                GexFlipBrush      = Brushes.Yellow;
-                GexCallWallBrush  = Brushes.LimeGreen;
-                GexPutWallBrush   = Brushes.OrangeRed;
-                GexPositiveBrush  = MakeFrozenBrush(Color.FromArgb(180, 0, 180, 120));
-                GexNegativeBrush  = MakeFrozenBrush(Color.FromArgb(180, 200, 70, 70));
+                // F1 PITWALL — aerospace 787 PFD color grammar (Aesthetic Option E)
+                //   cyan = selected/target  →  GammaFlip (zero-gamma point = primary target)
+                //   amber = caution/safety  →  Call/Put walls (price-bound limits)
+                //   minor levels: cyan (positive GEX) / magenta (negative GEX)
+                GexFlipBrush      = MakeFrozenBrush(Color.FromArgb(255, 0x00, 0xE0, 0xFF));   // aero cyan — zero-gamma target
+                GexCallWallBrush  = MakeFrozenBrush(Color.FromArgb(255, 0xFF, 0xB3, 0x00));   // aero amber — top safety limit
+                GexPutWallBrush   = MakeFrozenBrush(Color.FromArgb(255, 0xFF, 0xB3, 0x00));   // aero amber — bottom safety limit
+                GexPositiveBrush  = MakeFrozenBrush(Color.FromArgb(180, 0x00, 0xE0, 0xFF));   // cyan minor (positive GEX)
+                GexNegativeBrush  = MakeFrozenBrush(Color.FromArgb(180, 0xFF, 0x38, 0xC8));   // magenta minor (negative GEX)
             }
             else if (State == State.DataLoaded)
             {
@@ -493,6 +504,20 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             _gexNegDx      = GexNegativeBrush.ToDxBrush(RenderTarget);
             _textDx        = MakeFrozenBrush(Color.FromArgb(220, 220, 220, 220)).ToDxBrush(RenderTarget);
 
+            // F1 PITWALL — telemetry-pill brushes
+            _pwSurface2Dx   = MakeFrozenBrush(Color.FromArgb(230, 0x0E, 0x12, 0x18)).ToDxBrush(RenderTarget);
+            _pwAmberFillDx  = MakeFrozenBrush(Color.FromArgb(46,  0xFF, 0xB3, 0x00)).ToDxBrush(RenderTarget);
+            _pwAmberDx      = MakeFrozenBrush(Color.FromArgb(255, 0xFF, 0xB3, 0x00)).ToDxBrush(RenderTarget);
+            _pwTextHaloDx   = MakeFrozenBrush(Color.FromArgb(230, 0x00, 0x00, 0x00)).ToDxBrush(RenderTarget);
+            _pwWhiteTextDx  = MakeFrozenBrush(Color.FromArgb(255, 0xF2, 0xF4, 0xF8)).ToDxBrush(RenderTarget);
+
+            // F1 PITWALL: dash style is currently unused (zero-gamma is solid cyan).
+            // If a user toggle is added later for "dashed flip", construct it here:
+            //   var dashProps = new StrokeStyleProperties { DashStyle = SharpDX.Direct2D1.DashStyle.Dash };
+            //   _pwDashStyle = RenderTarget.Factory.CreateStrokeStyle(dashProps);
+            // Note: NT8 production has a (Factory, props, float[]) ctor that the simulator stub
+            // doesn't expose; use Factory.CreateStrokeStyle(props) for sim-compatible code.
+
             _labelFont = new TextFormat(NinjaTrader.Core.Globals.DirectWriteFactory, "Segoe UI", 9f)
             {
                 TextAlignment      = TextAlignment.Trailing,
@@ -505,6 +530,9 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             DisposeBrush(ref _gexFlipDx); DisposeBrush(ref _gexCallWallDx);
             DisposeBrush(ref _gexPutWallDx); DisposeBrush(ref _gexPosDx);
             DisposeBrush(ref _gexNegDx); DisposeBrush(ref _textDx);
+            DisposeBrush(ref _pwSurface2Dx); DisposeBrush(ref _pwAmberFillDx);
+            DisposeBrush(ref _pwAmberDx);    DisposeBrush(ref _pwTextHaloDx);
+            DisposeBrush(ref _pwWhiteTextDx);
             if (_labelFont != null) { _labelFont.Dispose(); _labelFont = null; }
         }
 
@@ -570,6 +598,13 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             double minVis = cs.MinValue;
             double maxVis = cs.MaxValue;
 
+            // F1 PITWALL — pill geometry constants
+            const float pillW    = 96f;
+            const float pillH    = 18f;
+            const float pillEdge = 2f;
+            float pillX = panelRight - pillW - 4f;
+            float lineEndX = pillX - 4f;   // line stops just before the pill so it doesn't show through
+
             foreach (var lv in gex.Levels)
             {
                 double mapped = lv.Strike * mult;
@@ -577,24 +612,69 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
 
                 SharpDX.Direct2D1.Brush brush;
                 float width;
+                bool drawSafetyBand = false;
+                string shortLabel;
                 switch (lv.Kind)
                 {
-                    case GexLevelKind.GammaFlip:     brush = _gexFlipDx;     width = 2.0f; break;
-                    case GexLevelKind.CallWall:       brush = _gexCallWallDx; width = 1.8f; break;
-                    case GexLevelKind.PutWall:        brush = _gexPutWallDx;  width = 1.8f; break;
-                    case GexLevelKind.MajorPositive:  brush = _gexPosDx;      width = 0.8f; break;
-                    default:                          brush = _gexNegDx;      width = 0.8f; break;
+                    case GexLevelKind.GammaFlip:
+                        brush = _gexFlipDx;     width = 2.0f; shortLabel = "ZG";   break;
+                    case GexLevelKind.CallWall:
+                        brush = _gexCallWallDx; width = 2.0f; drawSafetyBand = true; shortLabel = "CW"; break;
+                    case GexLevelKind.PutWall:
+                        brush = _gexPutWallDx;  width = 2.0f; drawSafetyBand = true; shortLabel = "PW"; break;
+                    case GexLevelKind.MajorPositive:
+                        brush = _gexPosDx;      width = 0.8f; shortLabel = "+G";  break;
+                    default:
+                        brush = _gexNegDx;      width = 0.8f; shortLabel = "−G";  break;
                 }
                 if (brush == null) continue;
 
                 float y = cs.GetYByValue(mapped);
-                RenderTarget.DrawLine(new Vector2((float)ChartPanel.X, y),
-                                      new Vector2(panelRight, y), brush, width);
 
-                string label = string.Format("{0} ({1:F2})", lv.Label, mapped);
-                using (var layout = new TextLayout(NinjaTrader.Core.Globals.DirectWriteFactory, label, _labelFont, 156, 16))
+                // Aerospace safety band (call/put walls only) — amber wash @ 18%
+                if (drawSafetyBand && _pwAmberFillDx != null)
                 {
-                    RenderTarget.DrawTextLayout(new Vector2(panelRight - 160, y - 8), layout, brush);
+                    var bandRect = new RectangleF((float)ChartPanel.X, y - 3f,
+                                                   panelRight - (float)ChartPanel.X, 6f);
+                    RenderTarget.FillRectangle(bandRect, _pwAmberFillDx);
+                }
+
+                // The level line (full width, but stops at pill backdrop)
+                RenderTarget.DrawLine(new Vector2((float)ChartPanel.X, y),
+                                      new Vector2(lineEndX, y), brush, width);
+
+                // F1 PITWALL telemetry pill on the right edge
+                if (_pwSurface2Dx != null && _pwWhiteTextDx != null && _pwTextHaloDx != null)
+                {
+                    var pillRect = new RectangleF(pillX, y - pillH * 0.5f, pillW, pillH);
+                    RenderTarget.FillRectangle(pillRect, _pwSurface2Dx);
+
+                    // Sector-color left-edge stripe
+                    var edgeRect = new RectangleF(pillX, y - pillH * 0.5f, pillEdge, pillH);
+                    RenderTarget.FillRectangle(edgeRect, brush);
+
+                    // "ZG  21450" or "CW  21500" — short label + price, halo for legibility
+                    string pillTxt = string.Format("{0}  {1:F0}", shortLabel, mapped);
+                    using (var layout = new TextLayout(NinjaTrader.Core.Globals.DirectWriteFactory,
+                                                        pillTxt, _labelFont, pillW - 12f, pillH))
+                    {
+                        var origin = new Vector2(pillX + 6f, y - pillH * 0.5f);
+                        // 1px halo (4-direction stamp)
+                        RenderTarget.DrawTextLayout(new Vector2(origin.X - 1, origin.Y), layout, _pwTextHaloDx);
+                        RenderTarget.DrawTextLayout(new Vector2(origin.X + 1, origin.Y), layout, _pwTextHaloDx);
+                        RenderTarget.DrawTextLayout(new Vector2(origin.X, origin.Y - 1), layout, _pwTextHaloDx);
+                        RenderTarget.DrawTextLayout(new Vector2(origin.X, origin.Y + 1), layout, _pwTextHaloDx);
+                        RenderTarget.DrawTextLayout(origin, layout, _pwWhiteTextDx);
+                    }
+                }
+                else
+                {
+                    // Fallback: legacy label rendering if F1 brushes haven't allocated yet
+                    string label = string.Format("{0} ({1:F2})", lv.Label, mapped);
+                    using (var layout = new TextLayout(NinjaTrader.Core.Globals.DirectWriteFactory, label, _labelFont, 156, 16))
+                    {
+                        RenderTarget.DrawTextLayout(new Vector2(panelRight - 160, y - 8), layout, brush);
+                    }
                 }
             }
         }
