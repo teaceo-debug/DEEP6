@@ -828,9 +828,13 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         private SharpDX.Direct2D1.SolidColorBrush _pwTextTertiaryDx;  // #5A636E
         private SharpDX.Direct2D1.SolidColorBrush _pwTextHaloDx;      // #000000 @ 90% (1px outline)
 
-        // Telemetry fonts
-        private TextFormat _pwPillValueFont;   // Consolas Bold 13pt (mono for tabular numerals)
-        private TextFormat _pwPillLabelFont;   // Segoe UI Semibold 8pt (chrome labels)
+        // Telemetry fonts (legacy pit-wall — still used by GEX pill labels)
+        private TextFormat _pwPillValueFont;   // Consolas Bold 13pt
+        private TextFormat _pwPillLabelFont;   // Segoe UI Semibold 8pt
+        // ▰▰▰ MINIMALIST HUD fonts — large breathing typography, no chrome ▰▰▰
+        private TextFormat _pwHudHeroFont;     // Consolas Bold 32pt — the BUY/SELL line
+        private TextFormat _pwHudValueFont;    // Consolas Bold 22pt — score / tier values
+        private TextFormat _pwHudLabelFont;    // Segoe UI Semibold 12pt — small caps labels
 
         protected override void OnStateChange()
         {
@@ -1330,6 +1334,26 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                 ParagraphAlignment = ParagraphAlignment.Center
             };
 
+            // ▰▰▰ MINIMALIST HUD fonts — large breathing typography, no chrome ▰▰▰
+            _pwHudHeroFont = new TextFormat(NinjaTrader.Core.Globals.DirectWriteFactory,
+                "Consolas", FontWeight.Bold, FontStyle.Normal, 32f)
+            {
+                TextAlignment      = TextAlignment.Leading,
+                ParagraphAlignment = ParagraphAlignment.Center
+            };
+            _pwHudValueFont = new TextFormat(NinjaTrader.Core.Globals.DirectWriteFactory,
+                "Consolas", FontWeight.Bold, FontStyle.Normal, 22f)
+            {
+                TextAlignment      = TextAlignment.Leading,
+                ParagraphAlignment = ParagraphAlignment.Center
+            };
+            _pwHudLabelFont = new TextFormat(NinjaTrader.Core.Globals.DirectWriteFactory,
+                "Segoe UI", FontWeight.Bold, FontStyle.Normal, 12f)
+            {
+                TextAlignment      = TextAlignment.Leading,
+                ParagraphAlignment = ParagraphAlignment.Center
+            };
+
             // HUD fonts — Consolas 12pt for score (monospace), Segoe UI 9pt for narrative/tier
             _hudFont = new TextFormat(NinjaTrader.Core.Globals.DirectWriteFactory, "Consolas", 12f)
             {
@@ -1425,6 +1449,9 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             DisposeSolidBrush(ref _pwTextHaloDx);
             if (_pwPillValueFont != null) { _pwPillValueFont.Dispose(); _pwPillValueFont = null; }
             if (_pwPillLabelFont != null) { _pwPillLabelFont.Dispose(); _pwPillLabelFont = null; }
+            if (_pwHudHeroFont   != null) { _pwHudHeroFont.Dispose();   _pwHudHeroFont   = null; }
+            if (_pwHudValueFont  != null) { _pwHudValueFont.Dispose();  _pwHudValueFont  = null; }
+            if (_pwHudLabelFont  != null) { _pwHudLabelFont.Dispose();  _pwHudLabelFont  = null; }
         }
 
         private static void DisposeBrush(ref SharpDX.Direct2D1.Brush b) { if (b != null) { b.Dispose(); b = null; } }
@@ -1785,81 +1812,78 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         //   6. Signals (44, scrollable virtualized list)
         //   7. Action bar (FLATTEN ALL kill switch)
         // ═══════════════════════════════════════════════════════════════════════
+        // ▰▰▰ MINIMALIST HUD — Linear / Stripe / Vercel restraint.
+        // No boxes. No borders. No fills. No gradients. Just big breathing typography
+        // floating in the top-right corner of the chart. Two colors total: cyan (long)
+        // and magenta (short). White for primary text. Everything else dim grey.
+        // Reads at a glance from across the room.
+        // ▰▰▰
         private void RenderMissionControl(ChartControl chartControl)
         {
-            if (_pwSurface1Dx == null || _pwPillValueFont == null || _pwPillLabelFont == null) return;
-            // Refuse to render on tiny panes — leaves no chart-area for cells.
+            if (_pwHudHeroFont == null || _pwHudLabelFont == null) return;
             if (ChartPanel.W < 200) return;
 
-            // Clamp panel width: never let it exceed pane minus a 80px chart-area floor.
-            // Protects split-pane / collapsed scenarios from negative panelX (off-screen).
-            float panelW = Math.Min(MissionControlWidth, Math.Max(40f, (float)ChartPanel.W - 80f));
-            float panelX = (float)(ChartPanel.X + ChartPanel.W) - panelW;
-            float panelY = (float)ChartPanel.Y;
-            float panelH = (float)ChartPanel.H;
-            float panelRight = panelX + panelW;
+            float chartTop   = (float)ChartPanel.Y;
+            float chartRight = (float)(ChartPanel.X + ChartPanel.W);
+            float x = chartRight - 280f;   // 280px column anchor, right-aligned text inside
+            float w = 264f;
+            float y = chartTop + 16f;
 
-            // ── Backdrop ── (surface.1 ~92% opacity over true black)
-            var panelRect = new RectangleF(panelX, panelY, panelW, panelH);
-            RenderTarget.FillRectangle(panelRect, _pwSurface1Dx);
-            // Left edge divider (grid.major hairline)
-            if (_pwGridMajorDx != null)
-                RenderTarget.DrawLine(
-                    new Vector2(panelX, panelY),
-                    new Vector2(panelX, panelY + panelH),
-                    _pwGridMajorDx, 1f);
+            var sr = _lastScorerResult;
+            bool armed = sr != null && sr.Tier == SignalTier.TYPE_A && sr.Direction != 0
+                         && IsArmedSignalValid();
 
-            float cursorY = panelY;
+            // ── Line 1 (HERO 32pt): the only thing that screams ──
+            //    Armed:  "▶ BUY 21452.25"  in cyan, or  "▶ SELL 21452.25"  in magenta
+            //    Idle:   "—" in dim grey (deliberate emptiness — restraint signals quality)
+            string heroText;
+            SharpDX.Direct2D1.Brush heroBrush;
+            if (armed)
+            {
+                bool isLong = sr.Direction > 0;
+                string verb = isLong ? "BUY" : "SELL";
+                heroText  = string.Format("\u25B6 {0} {1:F2}", verb, sr.EntryPrice);
+                heroBrush = isLong ? (SharpDX.Direct2D1.Brush)_pwAeroCyanDx
+                                   : (SharpDX.Direct2D1.Brush)_pwAeroMagentaDx;
+            }
+            else
+            {
+                heroText  = "\u2014";
+                heroBrush = (SharpDX.Direct2D1.Brush)_pwTextTertiaryDx;
+            }
+            DrawHaloText(heroText, _pwHudHeroFont, heroBrush, x, y, w, 38);
 
-            // ── Section 1: Mode selector ──
-            const float modeH = 28f;
-            var modeBiasRect = new RectangleF(panelX, cursorY, panelW * 0.5f, modeH);
-            var modeRevRect  = new RectangleF(panelX + panelW * 0.5f, cursorY, panelW * 0.5f, modeH);
-            // Both buttons surface.2 backdrop
-            RenderTarget.FillRectangle(modeBiasRect, _pwSurface2Dx);
-            RenderTarget.FillRectangle(modeRevRect,  _pwSurface1Dx);
-            // Active mode (BIAS-FOLLOW) gets cyan underline + cyan text
-            RenderTarget.DrawLine(
-                new Vector2(panelX, cursorY + modeH - 2),
-                new Vector2(panelX + panelW * 0.5f, cursorY + modeH - 2),
-                _pwAeroCyanDx, 2f);
-            DrawHaloText("BIAS-FOLLOW", _pwPillLabelFont, _pwAeroCyanDx,
-                         panelX + 12, cursorY + 9, panelW * 0.5f - 24, 14);
-            DrawHaloText("MEAN-REV",    _pwPillLabelFont, _pwTextTertiaryDx,
-                         panelX + panelW * 0.5f + 16, cursorY + 9, panelW * 0.5f - 24, 14);
-            // Bottom divider
-            RenderTarget.DrawLine(
-                new Vector2(panelX, cursorY + modeH),
-                new Vector2(panelRight, cursorY + modeH),
-                _pwGridMajorDx, 1f);
-            cursorY += modeH;
+            // ── Line 2 (16pt label, 14pt value): SCORE ──
+            y += 44f;
+            DrawHaloText("SCORE", _pwHudLabelFont, _pwTextTertiaryDx, x, y, 60, 18);
+            string scoreVal = (sr != null) ? sr.TotalScore.ToString("F0") : "—";
+            DrawHaloText(scoreVal, _pwHudValueFont, _pwAeroWhiteDx, x + 70, y, w - 70, 18);
 
-            // ── Section 2: ▶ ACTIVE SIGNAL (only when TYPE_A signal armed) ──
-            if (ShowMcActiveSignal)
-                cursorY = RenderMcActiveSignal(panelX, cursorY, panelW);
+            // ── Line 3: TIER ──
+            y += 24f;
+            DrawHaloText("TIER", _pwHudLabelFont, _pwTextTertiaryDx, x, y, 60, 18);
+            string tierVal = (sr != null) ? TierChar(sr.Tier) : "—";
+            var tierBrush = (sr != null && sr.Tier == SignalTier.TYPE_A)
+                ? heroBrush
+                : (SharpDX.Direct2D1.Brush)_pwAeroWhiteDx;
+            DrawHaloText(tierVal, _pwHudValueFont, tierBrush, x + 70, y, w - 70, 18);
 
-            // ── Section 3: Connection status ──
-            if (ShowMcStatus)
-                cursorY = RenderMcStatus(panelX, cursorY, panelW);
+            // ── Line 4 (only when armed): tiny stop / target row ──
+            if (armed)
+            {
+                bool isLong = sr.Direction > 0;
+                double stopTicks = 12.0, rrRatio = 2.0;
+                double stopPx = isLong ? sr.EntryPrice - stopTicks * TickSize
+                                       : sr.EntryPrice + stopTicks * TickSize;
+                double tgtPx  = isLong ? sr.EntryPrice + stopTicks * rrRatio * TickSize
+                                       : sr.EntryPrice - stopTicks * rrRatio * TickSize;
 
-            // ── Section 4: Day P&L (safety net) ──
-            if (ShowMcDayPnL)
-                cursorY = RenderMcDayPnL(panelX, cursorY, panelW);
-
-            // ── Section 5: Position ──
-            if (ShowMcPosition)
-                cursorY = RenderMcPosition(panelX, cursorY, panelW);
-
-            // ── Section 6: Signals (44, scrollable area) ──
-            // Reserve bottom 88px for action bar
-            float signalsTop = cursorY;
-            float signalsBottom = panelY + panelH - (ShowMcActionBar ? 88f : 0f);
-            if (ShowMcSignalsList && signalsBottom - signalsTop > 28f)
-                RenderMcSignalsList(panelX, signalsTop, panelW, signalsBottom - signalsTop);
-
-            // ── Section 7: Action bar (FLATTEN ALL) ──
-            if (ShowMcActionBar)
-                RenderMcActionBar(panelX, panelY + panelH - 88f, panelW);
+                y += 28f;
+                string stopLine = string.Format("STOP  {0:F2}", stopPx);
+                string tgtLine  = string.Format("TGT  {0:F2}",  tgtPx);
+                DrawHaloText(stopLine, _pwHudLabelFont, _pwTextSecondaryDx, x,           y, 130, 16);
+                DrawHaloText(tgtLine,  _pwHudLabelFont, _pwTextSecondaryDx, x + w - 110, y, 110, 16);
+            }
         }
 
         // Section 2: ▶ ACTIVE SIGNAL — renders the BUY/SELL plan when a TYPE_A signal is armed
