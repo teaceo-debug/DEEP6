@@ -2655,8 +2655,13 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                     double markerPrice = isLong ? entry - offset : entry + offset;
                     Draw.Diamond(this, "SCORE_A_" + suffix, false, barsAgo, markerPrice, pick);
 
-                    // TypeA narrative label adjacent to marker.
-                    double lblPrice = isLong ? markerPrice - 4.0 * TickSize : markerPrice + 4.0 * TickSize;
+                    // Score overlaid on the diamond: integer 0-100 (e.g. "91") — conviction at a glance.
+                    // Format: "score/cats" e.g. "91/6" — score + how many categories agreed.
+                    string scoreStr = string.Format("{0}/{1}", (int)scored.TotalScore, scored.CategoryCount);
+                    Draw.Text(this, "SCORE_NUM_" + suffix, scoreStr, barsAgo, markerPrice, pick);
+
+                    // TypeA narrative label — pushed further out so it doesn't collide with score text.
+                    double lblPrice = isLong ? markerPrice - 8.0 * TickSize : markerPrice + 8.0 * TickSize;
                     string narrative = TruncateEllipsis(scored.Narrative ?? string.Empty, 50);
                     if (narrative.Length > 0)
                         Draw.Text(this, "SCORE_LBL_" + suffix, narrative, barsAgo, lblPrice, pick);
@@ -2680,13 +2685,16 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                 }
                 case SignalTier.TYPE_B:
                 {
-                    // TypeB: triangle on signal bar, medium saturation.
+                    // TypeB: triangle on signal bar — score/cats overlaid on the shape.
                     Brush pick = isLong ? bLongB : bShortB;
                     double markerPrice = isLong ? entry - offset : entry + offset;
                     if (isLong)
                         Draw.TriangleUp(this, "SCORE_B_" + suffix, false, barsAgo, markerPrice, pick);
                     else
                         Draw.TriangleDown(this, "SCORE_B_" + suffix, false, barsAgo, markerPrice, pick);
+
+                    string scoreStr = string.Format("{0}/{1}", (int)scored.TotalScore, scored.CategoryCount);
+                    Draw.Text(this, "SCORE_NUM_" + suffix, scoreStr, barsAgo, markerPrice, pick);
 
                     // Entry arrow on next candle for TypeB as well.
                     if (canDrawEntry)
