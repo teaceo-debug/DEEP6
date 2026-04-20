@@ -2640,32 +2640,66 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             // Offset from bar geometry (ABS/EXH use 4–5 ticks; tier markers use 8 ticks to prevent collision)
             double offset = 8.0 * TickSize;
 
+            // Entry arrow on the next bar (barsAgo - 1): makes trade direction unambiguous.
+            // The signal bar gets the shape; the next candle gets the entry arrow + label.
+            // Guard: only draw entry arrow when the next bar exists (barsAgo >= 2).
+            int entryBarsAgo = barsAgo - 1;
+            bool canDrawEntry = entryBarsAgo >= 0;
+
             switch (scored.Tier)
             {
                 case SignalTier.TYPE_A:
                 {
-                    // TypeA: solid Diamond, fully saturated — shape encodes highest conviction.
+                    // TypeA: solid Diamond on signal bar, fully saturated.
                     Brush pick = isLong ? longBrush : shortBrush;
                     double markerPrice = isLong ? entry - offset : entry + offset;
                     Draw.Diamond(this, "SCORE_A_" + suffix, false, barsAgo, markerPrice, pick);
 
-                    // TypeA narrative label (≤50 chars, ellipsis) adjacent to marker.
-                    // Position: 4 more ticks beyond the diamond so text doesn't overlap the shape.
+                    // TypeA narrative label adjacent to marker.
                     double lblPrice = isLong ? markerPrice - 4.0 * TickSize : markerPrice + 4.0 * TickSize;
                     string narrative = TruncateEllipsis(scored.Narrative ?? string.Empty, 50);
                     if (narrative.Length > 0)
                         Draw.Text(this, "SCORE_LBL_" + suffix, narrative, barsAgo, lblPrice, pick);
+
+                    // Entry arrow on next candle — makes LONG/SHORT entry direction unmistakable.
+                    if (canDrawEntry)
+                    {
+                        double entryBarClose = Close[entryBarsAgo];
+                        double arrowOffset   = 10.0 * TickSize;
+                        string arrowTag      = "ENTRY_A_" + suffix;
+                        string entryLabel    = isLong ? "BUY" : "SELL";
+                        double arrowPrice    = isLong ? entryBarClose - arrowOffset : entryBarClose + arrowOffset;
+                        double entryLblPrice = isLong ? arrowPrice - 3.0 * TickSize : arrowPrice + 3.0 * TickSize;
+                        if (isLong)
+                            Draw.ArrowUp(this, arrowTag, false, entryBarsAgo, arrowPrice, pick);
+                        else
+                            Draw.ArrowDown(this, arrowTag, false, entryBarsAgo, arrowPrice, pick);
+                        Draw.Text(this, "ENTRY_LBL_A_" + suffix, entryLabel, entryBarsAgo, entryLblPrice, pick);
+                    }
                     break;
                 }
                 case SignalTier.TYPE_B:
                 {
-                    // TypeB: hollow triangle pointing in entry direction, medium saturation.
+                    // TypeB: triangle on signal bar, medium saturation.
                     Brush pick = isLong ? bLongB : bShortB;
                     double markerPrice = isLong ? entry - offset : entry + offset;
                     if (isLong)
                         Draw.TriangleUp(this, "SCORE_B_" + suffix, false, barsAgo, markerPrice, pick);
                     else
                         Draw.TriangleDown(this, "SCORE_B_" + suffix, false, barsAgo, markerPrice, pick);
+
+                    // Entry arrow on next candle for TypeB as well.
+                    if (canDrawEntry)
+                    {
+                        double entryBarClose = Close[entryBarsAgo];
+                        double arrowOffset   = 8.0 * TickSize;
+                        string arrowTag      = "ENTRY_B_" + suffix;
+                        double arrowPrice    = isLong ? entryBarClose - arrowOffset : entryBarClose + arrowOffset;
+                        if (isLong)
+                            Draw.ArrowUp(this, arrowTag, false, entryBarsAgo, arrowPrice, pick);
+                        else
+                            Draw.ArrowDown(this, arrowTag, false, entryBarsAgo, arrowPrice, pick);
+                    }
                     break;
                 }
                 case SignalTier.TYPE_C:
