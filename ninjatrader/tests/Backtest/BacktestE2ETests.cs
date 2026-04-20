@@ -220,12 +220,15 @@ namespace NinjaTrader.Tests.Backtest
         private static string FindPython3(string repoRoot)
         {
             // Prefer .venv in repo root
+            bool isWindows = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(
+                System.Runtime.InteropServices.OSPlatform.Windows);
             string[] candidates =
             {
-                Path.Combine(repoRoot, ".venv", "bin", "python3"),
+                Path.Combine(repoRoot, ".venv", "Scripts", "python.exe"),  // Windows venv
+                Path.Combine(repoRoot, ".venv", "bin", "python3"),          // Unix venv
                 "/usr/local/bin/python3",
                 "/opt/homebrew/bin/python3",
-                "python3",
+                isWindows ? "python" : "python3",
             };
 
             foreach (var candidate in candidates)
@@ -237,7 +240,7 @@ namespace NinjaTrader.Tests.Backtest
                 }
                 else
                 {
-                    // "python3" — rely on PATH; assume it exists
+                    // Bare command — rely on PATH; assume it exists
                     return candidate;
                 }
             }

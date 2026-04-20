@@ -78,9 +78,16 @@ namespace NinjaTrader.Tests.Scoring
             string repoRoot = ResolveRepoRoot();
             if (string.IsNullOrEmpty(python))
             {
-                // Prefer the project venv python (has deep6 package installed)
-                string venvPy = Path.Combine(repoRoot, ".venv", "bin", "python3");
-                python = File.Exists(venvPy) ? venvPy : "python3";
+                // Check venv (Windows: Scripts\python.exe; Unix: bin/python3)
+                string venvPyWin  = Path.Combine(repoRoot, ".venv", "Scripts", "python.exe");
+                string venvPyUnix = Path.Combine(repoRoot, ".venv", "bin", "python3");
+                if (File.Exists(venvPyWin))
+                    python = venvPyWin;
+                else if (File.Exists(venvPyUnix))
+                    python = venvPyUnix;
+                else
+                    python = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(
+                        System.Runtime.InteropServices.OSPlatform.Windows) ? "python" : "python3";
             }
 
             var psi = new ProcessStartInfo

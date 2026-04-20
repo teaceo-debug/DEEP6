@@ -102,13 +102,14 @@ correctly uses >= 4 to match the Python code.)
 
 | Property | Value |
 |----------|-------|
-| Python version | 3.12.12 (venv: /Users/teaceo/DEEP6/.venv/bin/python3) |
-| Python module path | `python3 -m deep6.scoring.replay_scorer` |
-| PYTHON3_PATH | auto-detected (.venv/bin/python3 adjacent to repo root) |
-| dotnet version | 10.0.201 (RollForward=Major, runs net8.0 target) |
+| Python version | 3.11.9 (C:\Users\Tea\AppData\Local\Programs\Python\Python311\python.exe) |
+| Python module path | `python -m deep6.scoring.replay_scorer` |
+| PYTHON3_PATH | auto-detected via Windows-aware fallback (no venv; uses system python) |
+| dotnet version | 8.0.420 (.NET 8) |
 | NUnit | 3.14.0 |
-| Test runtime | ~740ms (5 sessions + full suite 238 tests) |
-| Platform | macOS Darwin 24.6.0 arm64 |
+| Test runtime | ~3.5s parity harness (5 sessions × ~450ms subprocess); ~2.7s full suite |
+| Platform | Windows 11 Pro (win32) |
+| Fix applied | `ScoringParityHarness.cs` + `BacktestE2ETests.cs` updated for Windows Python path detection (`python` fallback on Windows; checks `.venv\Scripts\python.exe` before bare command) |
 
 ---
 
@@ -120,5 +121,6 @@ PHASE 18 PARITY: PASS
 Criterion:  |Δscore| ≤ 0.05 AND identical tier verdict per bar across all 5 sessions
 Result:     Max |Δscore| = 0.0000, tier mismatches = 0 (165/165 bars matched)
 Sessions:   5/5 PASS
-Full suite: 238/238 tests green
+Full suite: 289/290 tests green (1 pre-existing failure: E2E_FiveSessions_BacktestAndExportAndVbt
+            — vectorbt not installed in this environment; unrelated to Phase 18-04)
 ```
