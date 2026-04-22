@@ -14,9 +14,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.IO;
 using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -71,46 +70,68 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
             var profile = new GexProfile { Underlying = underlying, Spot = spot, FetchedUtc = DateTime.UtcNow };
             var sorted = byStrike.OrderBy(kv => kv.Key).ToList();
 
-            // gamma flip = cumulative GEX zero-crossing (ascending strikes)
-            double cum = 0.0;
+            // Gamma flip: interpolated zero-crossing of per-strike net GEX (matches Python gex.py).
+            // Walks sorted strikes; when adjacent values change sign, interpolates the exact price.
             double flip = spot;
             bool found = false;
-            foreach (var kv in sorted)
+            for (int i = 0; i < sorted.Count - 1; i++)
             {
-                double prev = cum;
-                cum += kv.Value;
-                if (!found && ((prev <= 0 && cum > 0) || (prev >= 0 && cum < 0)))
+                double g1 = sorted[i].Value, g2 = sorted[i + 1].Value;
+                if (g1 * g2 < 0)
                 {
-                    flip = kv.Key;
+                    double s1 = sorted[i].Key, s2 = sorted[i + 1].Key;
+                    flip = s1 + (s2 - s1) * System.Math.Abs(g1) / (System.Math.Abs(g1) + System.Math.Abs(g2));
                     found = true;
+                    break;
                 }
             }
+            if (!found) flip = spot;
             profile.GammaFlip = flip;
 
+            // R1 Call Wall = largest positive GEX strike AT OR ABOVE spot (resistance above price).
+            // S1 Put Wall  = largest magnitude negative GEX strike AT OR BELOW spot (support below price).
+            // Filtering to above/below ensures walls are structurally meaningful relative to current price.
             double callWallStrike = spot, callWallVal = double.NegativeInfinity;
             double putWallStrike  = spot, putWallVal  = double.PositiveInfinity;
             foreach (var kv in sorted)
             {
-                if (kv.Value > callWallVal) { callWallVal = kv.Value; callWallStrike = kv.Key; }
-                if (kv.Value < putWallVal)  { putWallVal  = kv.Value; putWallStrike  = kv.Key; }
+                if (kv.Key >= spot && kv.Value > callWallVal) { callWallVal = kv.Value; callWallStrike = kv.Key; }
+                if (kv.Key <= spot && kv.Value < putWallVal)  { putWallVal  = kv.Value; putWallStrike  = kv.Key; }
             }
             profile.CallWall = callWallStrike;
             profile.PutWall  = putWallStrike;
 
-            // top 8 absolute GEX nodes as major positive / major negative
+            // Always render GammaFlip, CallWall, PutWall regardless of GEX magnitude.
+            // The flip is a zero-crossing (low GEX value) and would otherwise be absent from the top-8 list.
+            var pinnedStrikes = new System.Collections.Generic.HashSet<double>();
+
+            profile.Levels.Add(new GexLevel { Strike = flip, GexNotional = 0, Kind = GexLevelKind.GammaFlip,
+                Label = string.Format("FLIP {0:F0}", flip) });
+            pinnedStrikes.Add(flip);
+
+            if (callWallVal > double.NegativeInfinity && System.Math.Abs(callWallStrike - flip) > 1e-4)
+            {
+                profile.Levels.Add(new GexLevel { Strike = callWallStrike, GexNotional = callWallVal,
+                    Kind = GexLevelKind.CallWall, Label = string.Format("SELL WALL {0:F0}", callWallStrike) });
+                pinnedStrikes.Add(callWallStrike);
+            }
+            if (putWallVal < double.PositiveInfinity && System.Math.Abs(putWallStrike - flip) > 1e-4
+                && System.Math.Abs(putWallStrike - callWallStrike) > 1e-4)
+            {
+                profile.Levels.Add(new GexLevel { Strike = putWallStrike, GexNotional = putWallVal,
+                    Kind = GexLevelKind.PutWall, Label = string.Format("BUY WALL {0:F0}", putWallStrike) });
+                pinnedStrikes.Add(putWallStrike);
+            }
+
+            // Fill remaining slots (up to 5) with highest absolute GEX nodes not already pinned.
             var nodes = sorted
+                .Where(kv => !pinnedStrikes.Contains(kv.Key))
                 .OrderByDescending(kv => System.Math.Abs(kv.Value))
-                .Take(8)
+                .Take(5)
                 .ToList();
             foreach (var kv in nodes)
             {
-                GexLevelKind kind;
-                if (System.Math.Abs(kv.Key - flip) < 1e-6) kind = GexLevelKind.GammaFlip;
-                else if (System.Math.Abs(kv.Key - callWallStrike) < 1e-6) kind = GexLevelKind.CallWall;
-                else if (System.Math.Abs(kv.Key - putWallStrike) < 1e-6) kind = GexLevelKind.PutWall;
-                else if (kv.Value > 0) kind = GexLevelKind.MajorPositive;
-                else kind = GexLevelKind.MajorNegative;
-
+                GexLevelKind kind = kv.Value > 0 ? GexLevelKind.MajorPositive : GexLevelKind.MajorNegative;
                 profile.Levels.Add(new GexLevel
                 {
                     Strike = kv.Key,
@@ -127,8 +148,8 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
             switch (k)
             {
                 case GexLevelKind.GammaFlip:     return "FLIP";
-                case GexLevelKind.CallWall:       return "CALL WALL";
-                case GexLevelKind.PutWall:        return "PUT WALL";
+                case GexLevelKind.CallWall:       return "SELL WALL";
+                case GexLevelKind.PutWall:        return "BUY WALL";
                 case GexLevelKind.MajorPositive:  return "+GEX";
                 case GexLevelKind.MajorNegative:  return "-GEX";
                 default:                          return "GEX";
@@ -138,7 +159,6 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
 
     public sealed class MassiveGexClient : IDisposable
     {
-        private readonly HttpClient _http;
         private readonly string _apiKey;
         private readonly string _baseUrl;
 
@@ -146,48 +166,62 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
         {
             _apiKey = apiKey ?? throw new ArgumentNullException("apiKey");
             _baseUrl = baseUrl.TrimEnd('/');
-
-            ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
-            // Raise connection limit so paginated fetches don't serialize on .NET's default of 2 per host.
+            // Force TLS 1.2 — required by api.massive.com. Set explicitly (not |=) to override any NT8 defaults.
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
             if (ServicePointManager.DefaultConnectionLimit < 8)
                 ServicePointManager.DefaultConnectionLimit = 8;
-            // NOTE: If massive.com ever returns 401 with query-param auth, swap to DefaultRequestHeaders.Authorization Bearer.
-            // Python ref (deep6/engines/gex.py) confirms query-param is correct as of 2026-04-15.
-            _http = new HttpClient
-            {
-                BaseAddress = new Uri(_baseUrl),
-                Timeout = TimeSpan.FromSeconds(30),
-            };
-            _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            _http.DefaultRequestHeaders.UserAgent.ParseAdd("DEEP6-NT8/1.0");
         }
 
         // Aggregates chain gamma × OI × 100 × spot² × 0.01 × sign(call=+1, put=-1) per strike.
-        // Throws on HTTP/parse failure with a descriptive message — caller catches and Prints.
-        public async Task<GexProfile> FetchAsync(string underlying, CancellationToken ct = default(CancellationToken))
+        // Synchronous HttpWebRequest — avoids HttpClient async/TLS issues in NT8's .NET Framework 4.8.
+        // Called from Timer thread (no SynchronizationContext) so blocking is safe.
+        public GexProfile Fetch(string underlying, CancellationToken ct, double spot = 0)
         {
             var byStrike = new Dictionary<double, double>();
-            double spot = 0;
             int contractsParsed = 0;
-            // First-page URL carries apiKey as query param (Polygon-compatible; matches deep6/engines/gex.py ref).
-            // Pagination: next_url returned by the API already embeds apiKey — do NOT re-append.
-            string url = string.Format("/v3/snapshot/options/{0}?limit=250&apiKey={1}", underlying, Uri.EscapeDataString(_apiKey));
+            string strikeFilter = string.Empty;
+            if (spot > 0)
+                strikeFilter = string.Format("&strike_price.gte={0:F2}&strike_price.lte={1:F2}",
+                    spot * 0.94, spot * 1.06);
+            string today = DateTime.UtcNow.ToString("yyyy-MM-dd");
+            string expMax = DateTime.UtcNow.AddDays(21).ToString("yyyy-MM-dd");
+            string dteFilter = string.Format("&expiration_date.gte={0}&expiration_date.lte={1}", today, expMax);
+            // apiKey in query param — Polygon-compatible; confirmed correct for massive.com as of 2026-04-15.
+            string url = string.Format("{0}/v3/snapshot/options/{1}?limit=250&apiKey={2}{3}{4}",
+                _baseUrl, underlying, Uri.EscapeDataString(_apiKey), strikeFilter, dteFilter);
             int safetyPages = 0;
 
             while (!string.IsNullOrEmpty(url) && safetyPages < 20)
             {
+                ct.ThrowIfCancellationRequested();
                 safetyPages++;
-                var req = new HttpRequestMessage(HttpMethod.Get, url);
-                var resp = await _http.SendAsync(req, ct).ConfigureAwait(false);
-                if (!resp.IsSuccessStatusCode)
+
+                var req = (HttpWebRequest)WebRequest.Create(url);
+                req.Method = "GET";
+                req.Accept = "application/json";
+                req.UserAgent = "DEEP6-NT8/1.0";
+                req.Timeout = 30000;
+                req.KeepAlive = false;
+
+                string json;
+                try
                 {
-                    string body = string.Empty;
-                    try { body = await resp.Content.ReadAsStringAsync().ConfigureAwait(false); } catch { }
-                    if (body.Length > 200) body = body.Substring(0, 200);
-                    throw new HttpRequestException(string.Format("HTTP {0} {1} for {2}. Body: {3}",
-                        (int)resp.StatusCode, resp.StatusCode, url, body));
+                    using (var resp = (HttpWebResponse)req.GetResponse())
+                    using (var reader = new StreamReader(resp.GetResponseStream()))
+                        json = reader.ReadToEnd();
                 }
-                var json = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
+                catch (WebException wex)
+                {
+                    // 4xx/5xx: read body for diagnostics, then rethrow with details.
+                    if (wex.Response is HttpWebResponse errResp)
+                    {
+                        string body = string.Empty;
+                        try { using (var r = new StreamReader(errResp.GetResponseStream())) body = r.ReadToEnd(); } catch { }
+                        if (body.Length > 300) body = body.Substring(0, 300);
+                        throw new Exception(string.Format("HTTP {0} {1} — {2}", (int)errResp.StatusCode, errResp.StatusCode, body));
+                    }
+                    throw; // network/DNS/TLS error — original WebException message is descriptive
+                }
 
                 string nextUrl = ExtractStringField(json, "next_url");
                 foreach (var obj in ExtractResultObjects(json))
@@ -210,17 +244,16 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
                     contractsParsed++;
                 }
                 url = nextUrl;
-                if (!string.IsNullOrEmpty(url) && url.StartsWith(_baseUrl)) url = url.Substring(_baseUrl.Length);
             }
 
             if (spot == 0 || byStrike.Count == 0)
                 throw new InvalidOperationException(string.Format(
-                    "Parsed {0} contracts but spot={1}, strikes={2}. Likely API returned empty results array — verify symbol '{3}' and that your massive.com plan covers options chain snapshots.",
+                    "Parsed {0} contracts but spot={1}, strikes={2}. Verify symbol '{3}' and that your massive.com plan covers options chain snapshots.",
                     contractsParsed, spot, byStrike.Count, underlying));
             return GexProfile.FromChain(underlying, spot, byStrike);
         }
 
-        public void Dispose() { _http.Dispose(); }
+        public void Dispose() { }
 
         // ---- Minimal JSON field extraction (no System.Runtime.Serialization dependency) ----
 
@@ -312,17 +345,27 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         // GEX fetch state
         private MassiveGexClient _gexClient;
         private volatile GexProfile _gexProfile;
-        private readonly TimeSpan _gexInterval = TimeSpan.FromMinutes(2);
+        private TimeSpan _gexInterval;
         private CancellationTokenSource _gexCts;
         // Background timer drives GEX fetches independently of tape activity.
         private System.Threading.Timer _gexTimer;
         private int _gexFailCount;
-        private DateTime _gexLastSuccess = DateTime.MinValue;
+        // Price-drift trigger: re-fetch immediately when NQ moves more than PriceDriftPoints.
+        private double _nqSpotAtLastFetch;
+        private DateTime _driftFetchCooldown = DateTime.MinValue;  // minimum 10s between drift-triggered fetches
         // Sticky status — never cleared on failure.
         private volatile string _gexLastSuccessStatus = "GEX: idle (no key)";
         // Transient status — set during retry, cleared on success.
         private volatile string _gexRetryStatus = string.Empty;
         private readonly object _gexTimerLock = new object();
+
+        // TextLayout cache — rebuilt on fetch, disposed on render-target change.
+        // Eliminates 480 COM allocations/sec from the render loop.
+        private Dictionary<string, TextLayout> _pillCache = new Dictionary<string, TextLayout>();
+        private string _statusCacheKey;
+        private TextLayout _statusCacheLayout;
+        // Stale overlay brush (amber — allocated alongside other DX brushes)
+        private SharpDX.Direct2D1.Brush _pwStaleDx;
 
         // Composed status view
         private string _gexStatus
@@ -345,8 +388,8 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
 
         // F1 PITWALL — telemetry-pill brushes for level labels (Aesthetic Option E)
         private SharpDX.Direct2D1.Brush _pwSurface2Dx;     // #0E1218  raised pill backdrop
-        private SharpDX.Direct2D1.Brush _pwAmberFillDx;    // amber @ 18%  call/put wall safety band
-        private SharpDX.Direct2D1.Brush _pwAmberDx;        // amber 100%   stripe edge
+        private SharpDX.Direct2D1.Brush _pwSellFillDx;     // red  @ 22%   SELL wall safety band
+        private SharpDX.Direct2D1.Brush _pwBuyFillDx;      // green @ 22%  BUY wall safety band
         private SharpDX.Direct2D1.Brush _pwTextHaloDx;     // black @ 90%  1px halo for legibility
         private SharpDX.Direct2D1.Brush _pwWhiteTextDx;    // #F2F4F8      pill value text
 
@@ -356,7 +399,7 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         {
             if (State == State.SetDefaults)
             {
-                Description                  = "Gamma exposure levels from massive.com overlaid on NQ via underlying spot ratio.";
+                Description                  = "Gamma exposure levels from massive.com overlaid on NQ. Use NDX for direct NQ parent index (NQ ≈ NDX × 20).";
                 Name                         = "DEEP6 GEX Levels";
                 Calculate                    = Calculate.OnEachTick;
                 IsOverlay                    = true;
@@ -368,16 +411,18 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                 ShowGexLevels                = true;
                 GexUnderlying               = "QQQ";
                 GexApiKey                   = string.Empty;
+                FetchIntervalSeconds        = 15;
+                PriceDriftPoints            = 10;
 
                 // F1 PITWALL — aerospace 787 PFD color grammar (Aesthetic Option E)
                 //   cyan = selected/target  →  GammaFlip (zero-gamma point = primary target)
                 //   amber = caution/safety  →  Call/Put walls (price-bound limits)
                 //   minor levels: cyan (positive GEX) / magenta (negative GEX)
-                GexFlipBrush      = MakeFrozenBrush(Color.FromArgb(255, 0x00, 0xE0, 0xFF));   // aero cyan — zero-gamma target
-                GexCallWallBrush  = MakeFrozenBrush(Color.FromArgb(255, 0xFF, 0xB3, 0x00));   // aero amber — top safety limit
-                GexPutWallBrush   = MakeFrozenBrush(Color.FromArgb(255, 0xFF, 0xB3, 0x00));   // aero amber — bottom safety limit
-                GexPositiveBrush  = MakeFrozenBrush(Color.FromArgb(180, 0x00, 0xE0, 0xFF));   // cyan minor (positive GEX)
-                GexNegativeBrush  = MakeFrozenBrush(Color.FromArgb(180, 0xFF, 0x38, 0xC8));   // magenta minor (negative GEX)
+                GexFlipBrush      = MakeFrozenBrush(Color.FromArgb(255, 0x00, 0xE0, 0xFF));   // aero cyan  — zero-gamma regime line
+                GexCallWallBrush  = MakeFrozenBrush(Color.FromArgb(255, 0xFF, 0x3B, 0x30));   // bright red — SELL resistance (R1)
+                GexPutWallBrush   = MakeFrozenBrush(Color.FromArgb(255, 0x30, 0xD1, 0x58));   // bright green — BUY support (S1)
+                GexPositiveBrush  = MakeFrozenBrush(Color.FromArgb(140, 0x30, 0xD1, 0x58));   // dim green  — minor +GEX nodes
+                GexNegativeBrush  = MakeFrozenBrush(Color.FromArgb(140, 0xFF, 0x3B, 0x30));   // dim red    — minor −GEX nodes
             }
             else if (State == State.DataLoaded)
             {
@@ -394,6 +439,7 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                 }
                 else
                 {
+                    _gexInterval = TimeSpan.FromSeconds(System.Math.Max(15, FetchIntervalSeconds));
                     _gexClient = new MassiveGexClient(GexApiKey);
                     _gexCts = new CancellationTokenSource();
                     _gexFailCount = 0;
@@ -428,9 +474,17 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                 _gexRetryStatus = "fetching " + underlying + "…";
                 Print("[DEEP6 GEX] Fetch start: " + underlying + " @ " + DateTime.Now.ToString("HH:mm:ss"));
 
+                // Pass the underlying's own spot from the previous successful fetch as
+                // the strike-range hint. First fetch: no hint (0) → no filter → discovers spot.
+                // Subsequent fetches: use known spot → ±15% filter → fast and targeted.
+                double underlyingSpotHint = 0;
+                var prevProfile = _gexProfile;
+                if (prevProfile != null && prevProfile.Spot > 0)
+                    underlyingSpotHint = prevProfile.Spot;
+
                 try
                 {
-                    var profile = client.FetchAsync(underlying, ctsTok).GetAwaiter().GetResult();
+                    var profile = client.Fetch(underlying, ctsTok, underlyingSpotHint);
                     if (profile != null && profile.Levels.Count > 0)
                         OnGexFetchSuccess(profile);
                     else
@@ -449,9 +503,14 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         private void OnGexFetchSuccess(GexProfile profile)
         {
             _gexProfile = profile;
-            _gexLastSuccess = DateTime.UtcNow;
             _gexFailCount = 0;
-            _gexLastSuccessStatus = "GEX: " + profile.Levels.Count + " levels @ " + DateTime.Now.ToString("HH:mm");
+            // Invalidate pill label cache — text will change (new prices mapped from new profile).
+            if (_pillCache != null) { foreach (var kv in _pillCache) if (kv.Value != null) kv.Value.Dispose(); _pillCache.Clear(); }
+            if (_statusCacheLayout != null) { _statusCacheLayout.Dispose(); _statusCacheLayout = null; }
+            _statusCacheKey = null;
+            // Record NQ price at fetch time so drift trigger can compare against it.
+            try { if (Bars != null && Bars.Count > 0) _nqSpotAtLastFetch = Bars.GetClose(Bars.Count - 1); } catch { }
+            _gexLastSuccessStatus = "GEX: " + profile.Levels.Count + " levels @ " + DateTime.Now.ToString("HH:mm:ss");
             _gexRetryStatus = string.Empty;
             Print("[DEEP6 GEX] OK: " + profile.Levels.Count + " levels, spot " + profile.Spot.ToString("F2") + ", flip " + profile.GammaFlip.ToString("F2"));
         }
@@ -461,7 +520,8 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             _gexFailCount++;
             var delay = ComputeGexRetryDelay(_gexFailCount);
             _gexRetryStatus = "retry in " + ((int)delay.TotalSeconds) + "s after " + ex.GetType().Name;
-            Print("[DEEP6 GEX] EXCEPTION (#" + _gexFailCount + "): " + ex.GetType().Name + " — " + ex.Message + ". Retrying in " + (int)delay.TotalSeconds + "s.");
+            string inner = ex.InnerException != null ? " | inner: " + ex.InnerException.Message : string.Empty;
+            Print("[DEEP6 GEX] EXCEPTION (#" + _gexFailCount + "): " + ex.GetType().Name + " — " + ex.Message + inner + ". Retrying in " + (int)delay.TotalSeconds + "s.");
         }
 
         // 5s → 15s → 60s → 120s (cap = _gexInterval).
@@ -482,10 +542,61 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             if (_gexTimer == null) return;
             try
             {
-                var next = _gexFailCount == 0 ? _gexInterval : ComputeGexRetryDelay(_gexFailCount);
+                var next = _gexFailCount == 0 ? AdaptiveInterval() : ComputeGexRetryDelay(_gexFailCount);
                 _gexTimer.Change(next, System.Threading.Timeout.InfiniteTimeSpan);
             }
             catch (ObjectDisposedException) { /* shutting down */ }
+        }
+
+        private static readonly TimeZoneInfo _etZone =
+            TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+
+        // Returns the optimal polling interval based on time of day (ET).
+        // Fast at open/close where gamma sensitivity is highest; slow pre-market.
+        private TimeSpan AdaptiveInterval()
+        {
+            try
+            {
+                var et = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _etZone);
+                int totalMin = et.Hour * 60 + et.Minute;
+                // Pre-market / post-market
+                if (totalMin < 9 * 60 + 15 || totalMin >= 16 * 60 + 5)
+                    return TimeSpan.FromSeconds(60);
+                // Pre-open ramp 9:15–9:30
+                if (totalMin < 9 * 60 + 30)
+                    return TimeSpan.FromSeconds(15);
+                // RTH open surge 9:30–10:30 — highest gamma sensitivity
+                if (totalMin < 10 * 60 + 30)
+                    return TimeSpan.FromSeconds(5);
+                // FOMC window 14:45–15:00
+                if (totalMin >= 14 * 60 + 45 && totalMin < 15 * 60)
+                    return TimeSpan.FromSeconds(10);
+                // 0DTE gamma cliff 15:54–16:05
+                if (totalMin >= 15 * 60 + 54)
+                    return TimeSpan.FromSeconds(5);
+                // Standard RTH mid-session
+                return TimeSpan.FromSeconds(15);
+            }
+            catch
+            {
+                return _gexInterval;
+            }
+        }
+
+        #endregion
+
+        #region Price-drift trigger
+
+        protected override void OnBarUpdate()
+        {
+            if (_gexClient == null || _nqSpotAtLastFetch <= 0 || PriceDriftPoints <= 0) return;
+            double nqNow = Close[0];
+            double drift = System.Math.Abs(nqNow - _nqSpotAtLastFetch);
+            if (drift < PriceDriftPoints) return;
+            if (DateTime.UtcNow < _driftFetchCooldown) return;
+            // Price has drifted enough — kick the timer to fire immediately.
+            _driftFetchCooldown = DateTime.UtcNow.AddSeconds(10);
+            try { _gexTimer?.Change(TimeSpan.Zero, System.Threading.Timeout.InfiniteTimeSpan); } catch { }
         }
 
         #endregion
@@ -506,10 +617,16 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
 
             // F1 PITWALL — telemetry-pill brushes
             _pwSurface2Dx   = MakeFrozenBrush(Color.FromArgb(230, 0x0E, 0x12, 0x18)).ToDxBrush(RenderTarget);
-            _pwAmberFillDx  = MakeFrozenBrush(Color.FromArgb(46,  0xFF, 0xB3, 0x00)).ToDxBrush(RenderTarget);
-            _pwAmberDx      = MakeFrozenBrush(Color.FromArgb(255, 0xFF, 0xB3, 0x00)).ToDxBrush(RenderTarget);
+            _pwSellFillDx   = MakeFrozenBrush(Color.FromArgb(56,  0xFF, 0x3B, 0x30)).ToDxBrush(RenderTarget);  // red band
+            _pwBuyFillDx    = MakeFrozenBrush(Color.FromArgb(56,  0x30, 0xD1, 0x58)).ToDxBrush(RenderTarget);  // green band
             _pwTextHaloDx   = MakeFrozenBrush(Color.FromArgb(230, 0x00, 0x00, 0x00)).ToDxBrush(RenderTarget);
             _pwWhiteTextDx  = MakeFrozenBrush(Color.FromArgb(255, 0xF2, 0xF4, 0xF8)).ToDxBrush(RenderTarget);
+            _pwStaleDx      = MakeFrozenBrush(Color.FromArgb(200, 0xFF, 0xBF, 0x00)).ToDxBrush(RenderTarget); // amber — stale warning
+
+            // Invalidate layout cache on device reset — layouts are device-dependent
+            if (_pillCache != null) { foreach (var kv in _pillCache) if (kv.Value != null) kv.Value.Dispose(); _pillCache.Clear(); }
+            if (_statusCacheLayout != null) { _statusCacheLayout.Dispose(); _statusCacheLayout = null; }
+            _statusCacheKey = null;
 
             // F1 PITWALL: dash style is currently unused (zero-gamma is solid cyan).
             // If a user toggle is added later for "dashed flip", construct it here:
@@ -530,10 +647,14 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             DisposeBrush(ref _gexFlipDx); DisposeBrush(ref _gexCallWallDx);
             DisposeBrush(ref _gexPutWallDx); DisposeBrush(ref _gexPosDx);
             DisposeBrush(ref _gexNegDx); DisposeBrush(ref _textDx);
-            DisposeBrush(ref _pwSurface2Dx); DisposeBrush(ref _pwAmberFillDx);
-            DisposeBrush(ref _pwAmberDx);    DisposeBrush(ref _pwTextHaloDx);
-            DisposeBrush(ref _pwWhiteTextDx);
+            DisposeBrush(ref _pwSurface2Dx);
+            DisposeBrush(ref _pwSellFillDx); DisposeBrush(ref _pwBuyFillDx);
+            DisposeBrush(ref _pwTextHaloDx); DisposeBrush(ref _pwWhiteTextDx);
+            DisposeBrush(ref _pwStaleDx);
             if (_labelFont != null) { _labelFont.Dispose(); _labelFont = null; }
+            if (_pillCache != null) { foreach (var kv in _pillCache) if (kv.Value != null) kv.Value.Dispose(); _pillCache.Clear(); }
+            if (_statusCacheLayout != null) { _statusCacheLayout.Dispose(); _statusCacheLayout = null; }
+            _statusCacheKey = null;
         }
 
         private static void DisposeBrush(ref SharpDX.Direct2D1.Brush b)
@@ -552,58 +673,81 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
 
             float panelRight = (float)(ChartPanel.X + ChartPanel.W);
 
-            // GEX status badge (top-right corner)
+            // Staleness — compute once per frame, used by both badge and level rendering
+            var profile = _gexProfile;
+            double staleSeconds = profile != null
+                ? (DateTime.UtcNow - profile.FetchedUtc).TotalSeconds
+                : double.MaxValue;
+            bool isStale = staleSeconds > 120;   // >2 min = stale
+            bool isVeryStale = staleSeconds > 600; // >10 min = very stale
+
+            // GEX status badge (top-right corner) — cached TextLayout, rebuilt only when text changes
             {
+                // Append stale age to status text when data is old
                 string status = _gexStatus ?? string.Empty;
+                if (isStale && profile != null)
+                {
+                    int ageSec = (int)staleSeconds;
+                    status = status + (isVeryStale ? "  ⚠ STALE " : "  [") +
+                             (ageSec >= 60 ? (ageSec / 60) + "m" : ageSec + "s") +
+                             (isVeryStale ? " old" : "]");
+                }
+
                 if (!string.IsNullOrEmpty(status))
                 {
                     SharpDX.Direct2D1.Brush statusBrush;
-                    if (status.IndexOf("ERROR", StringComparison.Ordinal) >= 0 ||
-                        status.IndexOf("NO API KEY", StringComparison.Ordinal) >= 0 ||
-                        status.IndexOf("empty", StringComparison.Ordinal) >= 0)
-                        statusBrush = _gexPutWallDx ?? _textDx;
+                    if (isVeryStale)
+                        statusBrush = _pwStaleDx ?? _textDx;       // amber = very stale
+                    else if (isStale)
+                        statusBrush = _pwStaleDx ?? _textDx;       // amber = stale
+                    else if (status.IndexOf("ERROR", StringComparison.Ordinal) >= 0 ||
+                             status.IndexOf("NO API KEY", StringComparison.Ordinal) >= 0 ||
+                             status.IndexOf("empty", StringComparison.Ordinal) >= 0)
+                        statusBrush = _gexCallWallDx ?? _textDx;   // red = error
                     else if (status.IndexOf("levels", StringComparison.Ordinal) >= 0)
-                        statusBrush = _gexCallWallDx ?? _textDx;
+                        statusBrush = _gexPutWallDx ?? _textDx;    // green = success
                     else
                         statusBrush = _textDx;
 
-                    if (statusBrush != null)
+                    // Use cached TextLayout — only rebuild when text actually changes
+                    if (_statusCacheKey != status || _statusCacheLayout == null)
                     {
-                        using (var statusLayout = new TextLayout(NinjaTrader.Core.Globals.DirectWriteFactory,
-                                                                  status, _labelFont, 380f, 18f))
-                        {
-                            RenderTarget.DrawTextLayout(
-                                new Vector2(panelRight - 384, (float)ChartPanel.Y + 4),
-                                statusLayout, statusBrush);
-                        }
+                        if (_statusCacheLayout != null) { _statusCacheLayout.Dispose(); _statusCacheLayout = null; }
+                        _statusCacheLayout = new TextLayout(NinjaTrader.Core.Globals.DirectWriteFactory,
+                                                            status, _labelFont, 420f, 18f);
+                        _statusCacheKey = status;
                     }
+
+                    if (statusBrush != null && _statusCacheLayout != null)
+                        RenderTarget.DrawTextLayout(
+                            new Vector2(panelRight - 424, (float)ChartPanel.Y + 4),
+                            _statusCacheLayout, statusBrush);
                 }
             }
 
-            // GEX horizontal levels
-            if (ShowGexLevels && _gexProfile != null)
-                RenderGexLevels(_gexProfile, chartControl, chartScale, panelRight);
+            // GEX horizontal levels — pass stale flag so renderer can dim them
+            if (ShowGexLevels && profile != null)
+                RenderGexLevels(profile, chartControl, chartScale, panelRight, isStale);
         }
 
-        private void RenderGexLevels(GexProfile gex, ChartControl cc, ChartScale cs, float panelRight)
+        private void RenderGexLevels(GexProfile gex, ChartControl cc, ChartScale cs, float panelRight, bool isStale)
         {
-            // GEX strikes are in the underlying's price space (QQQ),
-            // but our chart is NQ. Map QQQ → NQ via a simple multiplier inferred
-            // from spot ratio. This is a rough visual overlay, not a tradeable level.
             double nqSpot = (Bars != null && Bars.Count > 0) ? Bars.GetClose(Bars.Count - 1) : 0;
-            double qqqSpot = gex.Spot;
-            if (nqSpot <= 0 || qqqSpot <= 0) return;
-            double mult = nqSpot / qqqSpot;
+            double underlyingSpot = gex.Spot;
+            if (nqSpot <= 0 || underlyingSpot <= 0) return;
+            double mult = nqSpot / underlyingSpot;
 
             double minVis = cs.MinValue;
             double maxVis = cs.MaxValue;
 
-            // F1 PITWALL — pill geometry constants
             const float pillW    = 96f;
             const float pillH    = 18f;
             const float pillEdge = 2f;
-            float pillX = panelRight - pillW - 4f;
-            float lineEndX = pillX - 4f;   // line stops just before the pill so it doesn't show through
+            float pillX    = panelRight - pillW - 4f;
+            float lineEndX = pillX - 4f;
+
+            // Stale: dim line opacity by lowering stroke width and using the stale brush for minor levels
+            float staleWidthMult = isStale ? 0.5f : 1.0f;
 
             foreach (var lv in gex.Levels)
             {
@@ -611,70 +755,75 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                 if (mapped < minVis || mapped > maxVis) continue;
 
                 SharpDX.Direct2D1.Brush brush;
+                SharpDX.Direct2D1.Brush bandFill = null;
                 float width;
-                bool drawSafetyBand = false;
                 string shortLabel;
                 switch (lv.Kind)
                 {
                     case GexLevelKind.GammaFlip:
-                        brush = _gexFlipDx;     width = 2.0f; shortLabel = "ZG";   break;
+                        brush = isStale ? (_pwStaleDx ?? _gexFlipDx) : _gexFlipDx;
+                        width = 1.5f * staleWidthMult; shortLabel = "FLIP"; break;
                     case GexLevelKind.CallWall:
-                        brush = _gexCallWallDx; width = 2.0f; drawSafetyBand = true; shortLabel = "CW"; break;
+                        brush = _gexCallWallDx; width = 3.0f * staleWidthMult;
+                        bandFill = isStale ? null : _pwSellFillDx; shortLabel = "SELL"; break;
                     case GexLevelKind.PutWall:
-                        brush = _gexPutWallDx;  width = 2.0f; drawSafetyBand = true; shortLabel = "PW"; break;
+                        brush = _gexPutWallDx; width = 3.0f * staleWidthMult;
+                        bandFill = isStale ? null : _pwBuyFillDx; shortLabel = "BUY"; break;
                     case GexLevelKind.MajorPositive:
-                        brush = _gexPosDx;      width = 0.8f; shortLabel = "+G";  break;
+                        brush = _gexPosDx; width = 0.8f * staleWidthMult; shortLabel = "+GEX"; break;
                     default:
-                        brush = _gexNegDx;      width = 0.8f; shortLabel = "−G";  break;
+                        brush = _gexNegDx; width = 0.8f * staleWidthMult; shortLabel = "−GEX"; break;
                 }
                 if (brush == null) continue;
 
                 float y = cs.GetYByValue(mapped);
 
-                // Aerospace safety band (call/put walls only) — amber wash @ 18%
-                if (drawSafetyBand && _pwAmberFillDx != null)
+                if (bandFill != null)
                 {
-                    var bandRect = new RectangleF((float)ChartPanel.X, y - 3f,
-                                                   panelRight - (float)ChartPanel.X, 6f);
-                    RenderTarget.FillRectangle(bandRect, _pwAmberFillDx);
+                    var bandRect = new RectangleF((float)ChartPanel.X, y - 4f,
+                                                   panelRight - (float)ChartPanel.X, 8f);
+                    RenderTarget.FillRectangle(bandRect, bandFill);
                 }
 
-                // The level line (full width, but stops at pill backdrop)
                 RenderTarget.DrawLine(new Vector2((float)ChartPanel.X, y),
                                       new Vector2(lineEndX, y), brush, width);
 
-                // F1 PITWALL telemetry pill on the right edge
                 if (_pwSurface2Dx != null && _pwWhiteTextDx != null && _pwTextHaloDx != null)
                 {
                     var pillRect = new RectangleF(pillX, y - pillH * 0.5f, pillW, pillH);
                     RenderTarget.FillRectangle(pillRect, _pwSurface2Dx);
 
-                    // Sector-color left-edge stripe
                     var edgeRect = new RectangleF(pillX, y - pillH * 0.5f, pillEdge, pillH);
                     RenderTarget.FillRectangle(edgeRect, brush);
 
-                    // "ZG  21450" or "CW  21500" — short label + price, halo for legibility
+                    // Cache pill TextLayout by text key — only ~8 unique strings, rebuilt on fetch
                     string pillTxt = string.Format("{0}  {1:F0}", shortLabel, mapped);
-                    using (var layout = new TextLayout(NinjaTrader.Core.Globals.DirectWriteFactory,
-                                                        pillTxt, _labelFont, pillW - 12f, pillH))
+                    TextLayout layout;
+                    if (!_pillCache.TryGetValue(pillTxt, out layout) || layout == null)
                     {
-                        var origin = new Vector2(pillX + 6f, y - pillH * 0.5f);
-                        // 1px halo (4-direction stamp)
-                        RenderTarget.DrawTextLayout(new Vector2(origin.X - 1, origin.Y), layout, _pwTextHaloDx);
-                        RenderTarget.DrawTextLayout(new Vector2(origin.X + 1, origin.Y), layout, _pwTextHaloDx);
-                        RenderTarget.DrawTextLayout(new Vector2(origin.X, origin.Y - 1), layout, _pwTextHaloDx);
-                        RenderTarget.DrawTextLayout(new Vector2(origin.X, origin.Y + 1), layout, _pwTextHaloDx);
-                        RenderTarget.DrawTextLayout(origin, layout, _pwWhiteTextDx);
+                        layout = new TextLayout(NinjaTrader.Core.Globals.DirectWriteFactory,
+                                                pillTxt, _labelFont, pillW - 12f, pillH);
+                        _pillCache[pillTxt] = layout;
                     }
+
+                    var origin = new Vector2(pillX + 6f, y - pillH * 0.5f);
+                    RenderTarget.DrawTextLayout(new Vector2(origin.X - 1, origin.Y), layout, _pwTextHaloDx);
+                    RenderTarget.DrawTextLayout(new Vector2(origin.X + 1, origin.Y), layout, _pwTextHaloDx);
+                    RenderTarget.DrawTextLayout(new Vector2(origin.X, origin.Y - 1), layout, _pwTextHaloDx);
+                    RenderTarget.DrawTextLayout(new Vector2(origin.X, origin.Y + 1), layout, _pwTextHaloDx);
+                    RenderTarget.DrawTextLayout(origin, layout, _pwWhiteTextDx);
                 }
                 else
                 {
-                    // Fallback: legacy label rendering if F1 brushes haven't allocated yet
                     string label = string.Format("{0} ({1:F2})", lv.Label, mapped);
-                    using (var layout = new TextLayout(NinjaTrader.Core.Globals.DirectWriteFactory, label, _labelFont, 156, 16))
+                    TextLayout layout;
+                    if (!_pillCache.TryGetValue(label, out layout) || layout == null)
                     {
-                        RenderTarget.DrawTextLayout(new Vector2(panelRight - 160, y - 8), layout, brush);
+                        layout = new TextLayout(NinjaTrader.Core.Globals.DirectWriteFactory,
+                                                label, _labelFont, 156, 16);
+                        _pillCache[label] = layout;
                     }
+                    RenderTarget.DrawTextLayout(new Vector2(panelRight - 160, y - 8), layout, brush);
                 }
             }
         }
@@ -691,9 +840,9 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             if (!ShowGexLevels || _gexProfile == null) return;
 
             double nqSpot = (Bars != null && Bars.Count > 0) ? Bars.GetClose(Bars.Count - 1) : 0;
-            double qqqSpot = _gexProfile.Spot;
-            if (nqSpot <= 0 || qqqSpot <= 0) return;
-            double mult = nqSpot / qqqSpot;
+            double underlyingSpot = _gexProfile.Spot;
+            if (nqSpot <= 0 || underlyingSpot <= 0) return;
+            double mult = nqSpot / underlyingSpot;
 
             foreach (var lv in _gexProfile.Levels)
             {
@@ -722,12 +871,20 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         public bool ShowGexLevels { get; set; }
 
         [NinjaScriptProperty]
-        [Display(Name = "GEX Underlying (QQQ/NDX)", Order = 21, GroupName = "3. GEX (massive.com)")]
+        [Display(Name = "Fetch Interval (seconds, min 15)", Order = 21, GroupName = "3. GEX (massive.com)")]
+        public int FetchIntervalSeconds { get; set; }
+
+        [NinjaScriptProperty]
+        [Display(Name = "Price Drift Re-fetch (NQ points, 0=off)", Order = 22, GroupName = "3. GEX (massive.com)")]
+        public int PriceDriftPoints { get; set; }
+
+        [NinjaScriptProperty]
+        [Display(Name = "GEX Underlying (QQQ/NDX)", Order = 23, GroupName = "3. GEX (massive.com)")]
         public string GexUnderlying { get; set; }
 
         [NinjaScriptProperty]
         [PasswordPropertyText(true)]
-        [Display(Name = "massive.com API Key", Order = 22, GroupName = "3. GEX (massive.com)")]
+        [Display(Name = "massive.com API Key", Order = 24, GroupName = "3. GEX (massive.com)")]
         public string GexApiKey { get; set; }
 
         // --- Brush properties ---
@@ -766,18 +923,18 @@ namespace NinjaTrader.NinjaScript.Indicators
     public partial class Indicator : NinjaTrader.Gui.NinjaScript.IndicatorRenderBase
     {
         private DEEP6.DEEP6GexLevels[] cacheDEEP6GexLevels;
-        public DEEP6.DEEP6GexLevels DEEP6GexLevels(bool showGexLevels, string gexUnderlying, string gexApiKey)
+        public DEEP6.DEEP6GexLevels DEEP6GexLevels(bool showGexLevels, int fetchIntervalSeconds, string gexUnderlying, string gexApiKey)
         {
-            return DEEP6GexLevels(Input, showGexLevels, gexUnderlying, gexApiKey);
+            return DEEP6GexLevels(Input, showGexLevels, fetchIntervalSeconds, gexUnderlying, gexApiKey);
         }
 
-        public DEEP6.DEEP6GexLevels DEEP6GexLevels(ISeries<double> input, bool showGexLevels, string gexUnderlying, string gexApiKey)
+        public DEEP6.DEEP6GexLevels DEEP6GexLevels(ISeries<double> input, bool showGexLevels, int fetchIntervalSeconds, string gexUnderlying, string gexApiKey)
         {
             if (cacheDEEP6GexLevels != null)
                 for (int idx = 0; idx < cacheDEEP6GexLevels.Length; idx++)
-                    if (cacheDEEP6GexLevels[idx] != null && cacheDEEP6GexLevels[idx].ShowGexLevels == showGexLevels && cacheDEEP6GexLevels[idx].GexUnderlying == gexUnderlying && cacheDEEP6GexLevels[idx].GexApiKey == gexApiKey && cacheDEEP6GexLevels[idx].EqualsInput(input))
+                    if (cacheDEEP6GexLevels[idx] != null && cacheDEEP6GexLevels[idx].ShowGexLevels == showGexLevels && cacheDEEP6GexLevels[idx].FetchIntervalSeconds == fetchIntervalSeconds && cacheDEEP6GexLevels[idx].GexUnderlying == gexUnderlying && cacheDEEP6GexLevels[idx].GexApiKey == gexApiKey && cacheDEEP6GexLevels[idx].EqualsInput(input))
                         return cacheDEEP6GexLevels[idx];
-            return CacheIndicator<DEEP6.DEEP6GexLevels>(new DEEP6.DEEP6GexLevels() { ShowGexLevels = showGexLevels, GexUnderlying = gexUnderlying, GexApiKey = gexApiKey }, input, ref cacheDEEP6GexLevels);
+            return CacheIndicator<DEEP6.DEEP6GexLevels>(new DEEP6.DEEP6GexLevels() { ShowGexLevels = showGexLevels, FetchIntervalSeconds = fetchIntervalSeconds, GexUnderlying = gexUnderlying, GexApiKey = gexApiKey }, input, ref cacheDEEP6GexLevels);
         }
     }
 }
@@ -786,14 +943,14 @@ namespace NinjaTrader.NinjaScript.MarketAnalyzerColumns
 {
     public partial class MarketAnalyzerColumn : MarketAnalyzerColumnBase
     {
-        public Indicators.DEEP6.DEEP6GexLevels DEEP6GexLevels(bool showGexLevels, string gexUnderlying, string gexApiKey)
+        public Indicators.DEEP6.DEEP6GexLevels DEEP6GexLevels(bool showGexLevels, int fetchIntervalSeconds, string gexUnderlying, string gexApiKey)
         {
-            return indicator.DEEP6GexLevels(Input, showGexLevels, gexUnderlying, gexApiKey);
+            return indicator.DEEP6GexLevels(Input, showGexLevels, fetchIntervalSeconds, gexUnderlying, gexApiKey);
         }
 
-        public Indicators.DEEP6.DEEP6GexLevels DEEP6GexLevels(ISeries<double> input, bool showGexLevels, string gexUnderlying, string gexApiKey)
+        public Indicators.DEEP6.DEEP6GexLevels DEEP6GexLevels(ISeries<double> input, bool showGexLevels, int fetchIntervalSeconds, string gexUnderlying, string gexApiKey)
         {
-            return indicator.DEEP6GexLevels(input, showGexLevels, gexUnderlying, gexApiKey);
+            return indicator.DEEP6GexLevels(input, showGexLevels, fetchIntervalSeconds, gexUnderlying, gexApiKey);
         }
     }
 }
@@ -802,14 +959,14 @@ namespace NinjaTrader.NinjaScript.Strategies
 {
     public partial class Strategy : NinjaTrader.Gui.NinjaScript.StrategyRenderBase
     {
-        public Indicators.DEEP6.DEEP6GexLevels DEEP6GexLevels(bool showGexLevels, string gexUnderlying, string gexApiKey)
+        public Indicators.DEEP6.DEEP6GexLevels DEEP6GexLevels(bool showGexLevels, int fetchIntervalSeconds, string gexUnderlying, string gexApiKey)
         {
-            return indicator.DEEP6GexLevels(Input, showGexLevels, gexUnderlying, gexApiKey);
+            return indicator.DEEP6GexLevels(Input, showGexLevels, fetchIntervalSeconds, gexUnderlying, gexApiKey);
         }
 
-        public Indicators.DEEP6.DEEP6GexLevels DEEP6GexLevels(ISeries<double> input, bool showGexLevels, string gexUnderlying, string gexApiKey)
+        public Indicators.DEEP6.DEEP6GexLevels DEEP6GexLevels(ISeries<double> input, bool showGexLevels, int fetchIntervalSeconds, string gexUnderlying, string gexApiKey)
         {
-            return indicator.DEEP6GexLevels(input, showGexLevels, gexUnderlying, gexApiKey);
+            return indicator.DEEP6GexLevels(input, showGexLevels, fetchIntervalSeconds, gexUnderlying, gexApiKey);
         }
     }
 }

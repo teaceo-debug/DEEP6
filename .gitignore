@@ -66,8 +66,16 @@ _ReSharper*/
 # Temp
 *.tmp
 *.bak
+*.broken-bak
+*.strat-bak
 *.swp
 *~
+
+# Screenshot captures (session artifacts, not source)
+captures/
+nt8_*.png
+sa_*.png
+ninjatrader/captures/
 
 # Databento downloads (large binary data files)
 data/databento/**/*.dbn

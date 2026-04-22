@@ -1237,7 +1237,13 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             else if (s.Direction < 0)
                 Draw.ArrowDown(this, tag, false, barsAgo, s.Price + 5 * TickSize, brush);
             else
+            {
                 Draw.Diamond(this, tag, false, barsAgo, s.Price, brush);
+                string strText = string.Format("{0:0}%", s.Strength * 100.0);
+                Draw.Text(this, tag + "_str", false, strText, barsAgo, s.Price, 0,
+                    Brushes.White, new SimpleFont("Arial", 9) { Bold = true },
+                    System.Windows.TextAlignment.Center, null, null, 0);
+            }
         }
 
         // ---- Custom render ----
@@ -2660,7 +2666,7 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                     string scoreStr = string.Format("{0}/{1}", (int)scored.TotalScore, scored.CategoryCount);
                     Draw.Text(this, "SCORE_NUM_" + suffix, false, scoreStr, barsAgo, markerPrice, 0,
                         Brushes.White, new SimpleFont("Arial", 9) { Bold = true },
-                        TextAlignment.Center, null, null, 0);
+                        System.Windows.TextAlignment.Center, null, null, 0);
 
                     // TypeA narrative label — pushed further out so it doesn't collide with score text.
                     double lblPrice = isLong ? markerPrice - 8.0 * TickSize : markerPrice + 8.0 * TickSize;
@@ -2698,7 +2704,7 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                     string scoreStr = string.Format("{0}/{1}", (int)scored.TotalScore, scored.CategoryCount);
                     Draw.Text(this, "SCORE_NUM_" + suffix, false, scoreStr, barsAgo, markerPrice, 0,
                         Brushes.White, new SimpleFont("Arial", 9) { Bold = true },
-                        TextAlignment.Center, null, null, 0);
+                        System.Windows.TextAlignment.Center, null, null, 0);
 
                     // Entry arrow on next candle for TypeB as well.
                     if (canDrawEntry)

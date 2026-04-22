@@ -56,6 +56,8 @@ using Brushes = System.Windows.Media.Brushes;
 
 namespace NinjaTrader.NinjaScript.Strategies.DEEP6
 {
+    public enum PropFirmProfile { Apex50K, Apex150K, TopStep50K, TopStep150K, LucidFlex, Custom }
+
     public class DEEP6Strategy : Strategy
     {
         // ---- Detection state (mirrors indicator) ----
@@ -100,6 +102,18 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
         private int _lastEntryBar = -1;
         private string _activeAtmGuid;   // tracks live ATM bracket so we can AtmStrategyClose() instead of racing ExitLong/Short
 
+        // P9: consistency rule tracking
+        private double _challengeStartBalance = double.NaN; // captured once at first live account read; never reset
+        private double _dailyClosedPnl = 0.0;               // today's realized P&L from closed trades; reset at session boundary
+        private double _entryAccountValue = double.NaN;     // account value at most recent entry; used to compute closed P&L
+
+        // Self-scoring: rolling session ATR for slow-grind veto (replaces ScorerSharedState read from DEEP6Footprint)
+        private double _sessionAtrSum = 0.0;
+        private int    _sessionAtrCount = 0;
+
+        // Consistency cap fraction by firm: Apex=0.50, TopStep XFA=0.40
+        private double ConsistencyCapFraction => FirmProfile == PropFirmProfile.TopStep50K || FirmProfile == PropFirmProfile.TopStep150K ? 0.40 : 0.50;
+
         // ---- R1: EvaluateWithContext session gate state ----
         // Owns VolSurgeFiredThisSession flag; reset at session boundary (when _sessionDate changes).
         private ScorerEntryGate.SessionGateState _gateState = new ScorerEntryGate.SessionGateState();
@@ -142,7 +156,8 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                 ApprovedAccountName          = "Sim101";
                 MaxContractsPerTrade         = 2;      // R1: scale-out requires 2 contracts (50% T1, 50% T2)
                 MaxTradesPerSession          = 5;
-                DailyLossCapDollars          = 500.0;  // R1: updated from 250 → 500 per PRODUCTION-CONFIG.md
+                DailyLossCapDollars          = 1000.0; // P9: Apex $50K DLL = $1,000 (was $500)
+                FirmProfile                  = PropFirmProfile.Apex50K;
                 RthStartHour                 = 9;
                 RthStartMinute               = 35;
                 RthEndHour                   = 15;
@@ -236,6 +251,10 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                 _killSwitch = false;
                 _tradesThisSession = 0;
                 _sessionDate = DateTime.MinValue;
+                _dailyClosedPnl = 0.0;
+                _entryAccountValue = double.NaN;
+                _sessionAtrSum = 0.0;
+                _sessionAtrCount = 0;
 
                 // Fix 11: initialize _session here (DataLoaded) so TickSize is valid.
                 if (UseNewRegistry && _registry != null)
@@ -331,6 +350,8 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
             double sum = 0; foreach (var v in _atrWindow) sum += v;
             _atr = _atrWindow.Count == 0 ? 1.0 : Math.Max(sum / _atrWindow.Count, TickSize);
             _volEma = _volEma == 0 ? prev.TotalVol : _volEma + VolEmaAlpha * (prev.TotalVol - _volEma);
+            _sessionAtrSum += _atr;
+            _sessionAtrCount++;
 
             // Session boundary — reset risk counters
             DateTime barDate = Bars.GetTime(prevIdx).Date;
@@ -340,6 +361,10 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                 _tradesThisSession = 0;
                 _killSwitch = false;
                 _sessionStartBalance = double.NaN;   // re-capture below once Account/balance are valid
+                _dailyClosedPnl = 0.0;
+                _entryAccountValue = double.NaN;
+                _sessionAtrSum = 0.0;
+                _sessionAtrCount = 0;
                 _exhDetector.ResetCooldowns();
                 // R1: reset session gate state (clears VolSurgeFiredThisSession and other session flags)
                 _gateState.ResetSession();
@@ -360,6 +385,12 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                 {
                     _sessionStartBalance = bal;
                     Print(string.Format("[DEEP6 Strategy] Session start balance captured: ${0:F2}.", bal));
+                    // P9: challenge start balance — captured once per strategy lifetime (never reset)
+                    if (double.IsNaN(_challengeStartBalance))
+                    {
+                        _challengeStartBalance = bal;
+                        Print(string.Format("[DEEP6 Strategy] Challenge start balance captured: ${0:F2}.", bal));
+                    }
                 }
             }
             // Capture the bar-before-prev BEFORE we overwrite _priorFinalized — otherwise
@@ -384,8 +415,18 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                 _session.PriorBar     = priorBeforePrev;
                 _session.BarsSinceOpen = prevIdx;
 
-                var regResults = _registry.EvaluateBar(prev, _session);
+                var regResults = System.Linq.Enumerable.ToArray(_registry.EvaluateBar(prev, _session));
                 _session.PriorBar = prev;   // advance prior bar for next bar
+
+                // Self-score and publish — strategy owns scoring, DEEP6Footprint not required.
+                {
+                    double _sAvgAtr = _sessionAtrCount > 0 ? _sessionAtrSum / _sessionAtrCount : 0.0;
+                    var _ss = ConfluenceScorer.Score(
+                        regResults, _session.BarsSinceOpen, 0L, prev.Close,
+                        tickSize: TickSize > 0 ? TickSize : 0.25);
+                    _ss.Signals = regResults;
+                    ScorerSharedState.Publish(Instrument.FullName, CurrentBar, _ss, _sAvgAtr);
+                }
 
                 // Log non-ABS/EXH signals once (ABS/EXH drive confluence below; others are observational)
                 foreach (var sr in regResults)
@@ -639,12 +680,52 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
             if (sessionPnl <= -DailyLossCapDollars)
             {
                 _killSwitch = true;
+                CloseAllPositionsOnDllBreach();
                 Print(string.Format("[DEEP6 Strategy] KILL SWITCH — daily loss cap hit. Session P&L ${0:F2}. No more trades today.",
                     sessionPnl));
                 return false;
             }
 
+            // P9: consistency rule — largest single day cannot exceed ConsistencyCapFraction of total challenge profit.
+            // Apex: 50% (0.50), TopStep XFA: 40% (0.40). Only applies when challenge is in profit.
+            if (_dailyClosedPnl > 0 && !double.IsNaN(_challengeStartBalance))
+            {
+                double challengeProfit = currentBal - _challengeStartBalance;
+                if (challengeProfit > 0)
+                {
+                    double cap = challengeProfit * ConsistencyCapFraction;
+                    if (_dailyClosedPnl >= cap)
+                    {
+                        Print(string.Format("[DEEP6 Strategy] BLOCKED — consistency rule: today ${0:F2} >= {1:P0} of challenge profit ${2:F2} (cap ${3:F2}).",
+                            _dailyClosedPnl, ConsistencyCapFraction, challengeProfit, cap));
+                        return false;
+                    }
+                }
+            }
+
             return true;
+        }
+
+        private void CloseAllPositionsOnDllBreach()
+        {
+            if (Position.MarketPosition == MarketPosition.Flat) return;
+            try
+            {
+                string atmGuidToClose;
+                lock (_l2Lock)
+                {
+                    atmGuidToClose = _activeAtmGuid;
+                    if (!string.IsNullOrEmpty(atmGuidToClose)) _activeAtmGuid = null;
+                }
+                if (!string.IsNullOrEmpty(atmGuidToClose))
+                    AtmStrategyClose(atmGuidToClose);
+                else if (Position.MarketPosition == MarketPosition.Long)
+                    ExitLong("DLL_BREACH");
+                else
+                    ExitShort("DLL_BREACH");
+                Print("[DEEP6 Strategy] DLL breach: closing all positions.");
+            }
+            catch (Exception ex) { Print("[DEEP6 Strategy] DLL breach close exception: " + ex.Message); }
         }
 
         // ---- Entry submission ----
@@ -678,6 +759,7 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
             {
                 Print(string.Format("[DEEP6 Strategy] DRY-RUN entry: {0} qty={1} ATM='{2}' @ signal price {3:F2} (label {4})",
                     side, MaxContractsPerTrade, atmTemplate, signalPrice, label));
+                _entryAccountValue = GetAccountValue();
                 _lastEntryBar = CurrentBar;
                 _tradesThisSession++;
                 return;
@@ -699,6 +781,7 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                         if (atmCallbackErrorCode == ErrorCode.NoError)
                         {
                             _activeAtmGuid = atmGuid;
+                            _entryAccountValue = GetAccountValue();
                             _lastEntryBar = CurrentBar;
                             _tradesThisSession++;
                             Print(string.Format("[DEEP6 Strategy] LIVE entry CONFIRMED: {0} ATM='{1}' trigger={2} @ {3:F2} atmGuid={4}",
@@ -706,6 +789,7 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                         }
                         else
                         {
+                            _entryAccountValue = double.NaN;
                             Print(string.Format("[DEEP6 Strategy] LIVE entry REJECTED: ATM='{0}' code={1} (id={2}). Counter NOT incremented.",
                                 atmTemplate, atmCallbackErrorCode, atmCallbackId));
                         }
@@ -780,6 +864,15 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
         {
             if (marketPosition == MarketPosition.Flat && quantity == 0)
             {
+                // P9: accumulate closed P&L for consistency rule tracking
+                if (!double.IsNaN(_entryAccountValue))
+                {
+                    double closedPnl = GetAccountValue() - _entryAccountValue;
+                    _dailyClosedPnl += closedPnl;
+                    _entryAccountValue = double.NaN;
+                    Print(string.Format("[DEEP6 Strategy] Trade closed. P&L: ${0:F2}. Today total: ${1:F2}.",
+                        closedPnl, _dailyClosedPnl));
+                }
                 Print(string.Format("[DEEP6 Strategy] Position flat. Trades today: {0}/{1}.",
                     _tradesThisSession, MaxTradesPerSession));
             }
@@ -808,6 +901,11 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
         #region Properties
 
         [NinjaScriptProperty]
+        [Display(Name = "Prop Firm Profile", Order = 0, GroupName = "1. Safety",
+                 Description = "P9: selects DLL amount and consistency rule fraction. Apex=$1K soft/50%, TopStep=$1K hard/40%, LucidFlex=none.")]
+        public PropFirmProfile FirmProfile { get; set; }
+
+        [NinjaScriptProperty]
         [Display(Name = "Enable Live Trading", Order = 1, GroupName = "1. Safety",
                  Description = "MUST be true for orders to actually submit. Default false (dry-run).")]
         public bool EnableLiveTrading { get; set; }
@@ -828,9 +926,9 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
         public int MaxTradesPerSession { get; set; }
 
         [NinjaScriptProperty]
-        [Range(50, 10000)]
+        [Range(100, 20000)]
         [Display(Name = "Daily Loss Cap ($)", Order = 5, GroupName = "1. Safety",
-                 Description = "Strategy stops trading for the day if session P&L drops below this many dollars (negative).")]
+                 Description = "P9: DLL by account — Apex $50K=$1,000 (soft), Apex $150K=$3,000, TopStep $50K=$1,000 (hard broker liquidation), TopStep $150K=$3,000.")]
         public double DailyLossCapDollars { get; set; }
 
         [NinjaScriptProperty]

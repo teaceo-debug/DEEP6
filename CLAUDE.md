@@ -241,7 +241,58 @@ Architecture not yet mapped. Follow existing patterns found in the codebase.
 <!-- GSD:skills-start source:skills/ -->
 ## Project Skills
 
-No project skills found. Add skills to any of: `.claude/skills/`, `.agents/skills/`, `.cursor/skills/`, or `.github/skills/` with a `SKILL.md` index file.
+### nt8-expert — NinjaTrader 8 Expert Agent
+
+Skill location: `.claude/skills/nt8-expert/`
+
+Invoke this skill for ANY NinjaTrader 8 interaction:
+- Deploy indicators/strategies to NT8 (`ninjatrader/scripts/nt8-deploy.ps1`)
+- Trigger recompile via UI automation (`ninjatrader/scripts/nt8-compile.ps1`)
+- Interact with NT8 UI: focus window, open editor, add indicator/strategy to chart, screenshot (`ninjatrader/scripts/nt8-ui.ps1`)
+- Check NT8 status, deployed files, sync state, compile errors (`ninjatrader/scripts/nt8-status.ps1`)
+- Answer any NT8 settings, NinjaScript API, namespace, or folder-structure question
+
+Load `.claude/skills/nt8-expert/knowledge.md` for verified paths, compile methods,
+common errors, keyboard shortcuts, and DEEP6 file inventory.
+Load `.claude/skills/nt8-expert/scripts.md` for script usage reference.
+
+### nt8-fix — NT8 Compile Error Auto-Fixer
+
+Skill location: `.claude/skills/nt8-fix/`
+
+Invoke this skill when:
+- NT8 compile fails and you need to fix errors
+- User says "fix errors", "fix it", "what's broken"
+- `nt8-compile.ps1` returns `[COMPILE-RESULT] FAILED`
+
+Reads full error messages via UIAutomation from the NT8 NinjaScript Editor DataGrid,
+then applies targeted fixes using NT8-specific error patterns.
+See `nt8-errors-full.ps1` for the UIAutomation error reader.
+
+### nt8-new — NinjaScript Code Generator
+
+Skill location: `.claude/skills/nt8-new/`
+
+Invoke this skill when:
+- User wants to create a new indicator, strategy, or AddOn
+- User describes a trading concept and wants NinjaScript code
+- User says "write an indicator that...", "create a strategy for..."
+
+Generates valid NinjaScript C# code from a description, deploys it, compiles it,
+and fixes any errors automatically.
+
+### nt8-architect — DEEP6 Architecture Map
+
+Skill location: `.claude/skills/nt8-architect/`
+
+Invoke this skill when:
+- User asks about file dependencies, what's broken, what namespace is where
+- Investigating a CS0234/CS0246 missing type error
+- Planning a new file that needs to know what types already exist
+- Checking deployment state
+
+Maintains a live map of all DEEP6 files, their namespaces, exports, and dependency graph.
+
 <!-- GSD:skills-end -->
 
 <!-- GSD:workflow-start source:GSD defaults -->

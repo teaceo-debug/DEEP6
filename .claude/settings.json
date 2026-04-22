@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "ninja-trader-control": {
+      "command": "python",
+      "args": ["C:\\Users\\Tea\\Documents\\Project\\ninja-ai-controller\\mcp_server.py"]
+    },
+    "ninjatrader-autodocs": {
+      "type": "http",
+      "url": "https://gitmcp.io/matdev83/ninjatrader-autodocs"
+    },
+    "ninjatrader-mcp": {
+      "type": "http",
+      "url": "http://localhost:9111",
+      "description": "NT8 AddOn HTTP server — start DEEP6DevAddon in NT8 first"
+    }
+  }
+}
