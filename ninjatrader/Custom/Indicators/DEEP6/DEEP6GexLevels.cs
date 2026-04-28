@@ -332,11 +332,323 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6
             return m.Success ? ExtractDoubleField(m.Groups[1].Value, inner) : 0.0;
         }
     }
+
+    // ─── Shared JSON + HTTP helpers ─────────────────────────────────────────────
+    internal static class GexJson
+    {
+        internal static string Str(string json, string field)
+        {
+            var m = Regex.Match(json, "\"" + Regex.Escape(field) + "\"\\s*:\\s*\"((?:\\\\.|[^\"\\\\])*)\"");
+            return m.Success ? Regex.Unescape(m.Groups[1].Value) : string.Empty;
+        }
+        internal static double Dbl(string json, string field)
+        {
+            var m = Regex.Match(json, "\"" + Regex.Escape(field) + "\"\\s*:\\s*\"?(-?\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?)\"?");
+            double v; return m.Success && double.TryParse(m.Groups[1].Value,
+                System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out v) ? v : 0.0;
+        }
+        internal static double DblNested(string json, string outer, string inner)
+        {
+            var m = Regex.Match(json, "\"" + Regex.Escape(outer) + "\"\\s*:\\s*\\{([^{}]*)\\}");
+            return m.Success ? Dbl(m.Groups[1].Value, inner) : 0.0;
+        }
+        internal static string HttpGet(string url, System.Collections.Generic.Dictionary<string, string> headers = null)
+        {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11;
+            var req = (HttpWebRequest)WebRequest.Create(url);
+            req.Method = "GET"; req.Accept = "application/json";
+            req.UserAgent = "DEEP6-NT8/1.0"; req.Timeout = 15000; req.KeepAlive = false;
+            if (headers != null) foreach (var kv in headers) req.Headers[kv.Key] = kv.Value;
+            try
+            {
+                using (var resp = (HttpWebResponse)req.GetResponse())
+                using (var r = new StreamReader(resp.GetResponseStream()))
+                    return r.ReadToEnd();
+            }
+            catch (WebException wex)
+            {
+                if (wex.Response is HttpWebResponse err)
+                {
+                    string body = string.Empty;
+                    try { using (var r2 = new StreamReader(err.GetResponseStream())) body = r2.ReadToEnd(); } catch { }
+                    throw new Exception(string.Format("HTTP {0} — {1}", (int)err.StatusCode,
+                        body.Length > 300 ? body.Substring(0, 300) : body));
+                }
+                throw;
+            }
+        }
+    }
+
+    public enum GexDataSource { Massive, FlashAlpha, GEXBot, LocalFile }
+
+    // ─── FlashAlpha client ──────────────────────────────────────────────────────
+    // GET /v1/exposure/levels/{symbol}  — Free: 5/day, Basic $79/mo: 100/day
+    // GET /v1/exposure/gex/{symbol}     — per-strike heatmap, Growth $299/mo
+    public sealed class FlashAlphaClient : IDisposable
+    {
+        private readonly string _apiKey;
+        private const string Base = "https://lab.flashalpha.com";
+
+        public FlashAlphaClient(string apiKey) { _apiKey = apiKey; }
+
+        public GexProfile Fetch(string symbol, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            var hdrs = new System.Collections.Generic.Dictionary<string, string> { { "X-Api-Key", _apiKey } };
+            string lj = GexJson.HttpGet(string.Format("{0}/v1/exposure/levels/{1}", Base, symbol), hdrs);
+
+            double spot = GexJson.Dbl(lj, "underlying_price");
+            if (spot <= 0) spot = GexJson.DblNested(lj, "levels", "underlying_price");
+
+            double flip     = GexJson.DblNested(lj, "levels", "gamma_flip");
+            double callWall = GexJson.DblNested(lj, "levels", "call_wall");
+            double putWall  = GexJson.DblNested(lj, "levels", "put_wall");
+            double maxPos   = GexJson.DblNested(lj, "levels", "max_positive_gamma");
+            double maxNeg   = GexJson.DblNested(lj, "levels", "max_negative_gamma");
+            double hvl      = GexJson.DblNested(lj, "levels", "highest_oi_strike");
+            double zdte     = GexJson.DblNested(lj, "levels", "zero_dte_magnet");
+
+            if (spot <= 0)
+                throw new InvalidOperationException("FlashAlpha: no underlying_price. Check key + plan (QQQ needs Basic $79/mo+).");
+
+            // Per-strike heatmap — Growth plan only; non-fatal 403 on Basic
+            System.Collections.Generic.Dictionary<double, double> byStrike = null;
+            try
+            {
+                ct.ThrowIfCancellationRequested();
+                string gj = GexJson.HttpGet(string.Format("{0}/v1/exposure/gex/{1}", Base, symbol), hdrs);
+                byStrike = ParseStrikes(gj);
+            }
+            catch { }
+
+            var p = new GexProfile { Underlying = symbol, Spot = spot, FetchedUtc = DateTime.UtcNow,
+                GammaFlip = flip > 0 ? flip : spot,
+                CallWall  = callWall > 0 ? callWall : spot,
+                PutWall   = putWall > 0 ? putWall : spot };
+
+            AddLevel(p, flip,     GexLevelKind.GammaFlip,     0,      "FLIP {0:F0}",     -1,        byStrike);
+            AddLevel(p, callWall, GexLevelKind.CallWall,       1e9,    "SELL WALL {0:F0}", flip,     byStrike);
+            AddLevel(p, putWall,  GexLevelKind.PutWall,       -1e9,    "BUY WALL {0:F0}",  flip,     byStrike);
+            AddLevel(p, maxPos,   GexLevelKind.MajorPositive,  0.5e9,  "+GEX {0:F0}",     callWall, byStrike);
+            AddLevel(p, maxNeg,   GexLevelKind.MajorNegative, -0.5e9,  "-GEX {0:F0}",     putWall,  byStrike);
+            AddLevel(p, hvl,      GexLevelKind.MajorPositive,  0.3e9,  "HVL {0:F0}",      -1,       byStrike);
+            AddLevel(p, zdte,     GexLevelKind.MajorNegative, -0.3e9,  "0DTE {0:F0}",     -1,       byStrike);
+            return p;
+        }
+
+        private static void AddLevel(GexProfile p, double price, GexLevelKind kind, double gex,
+            string fmt, double avoidPrice, System.Collections.Generic.Dictionary<double, double> byStrike)
+        {
+            if (price <= 0) return;
+            if (avoidPrice > 0 && System.Math.Abs(price - avoidPrice) < 1) return;
+            if (p.Levels.Any(l => System.Math.Abs(l.Strike - price) < 1)) return;
+            double notional = (byStrike != null && byStrike.ContainsKey(price)) ? byStrike[price] : gex;
+            p.Levels.Add(new GexLevel { Strike = price, Kind = kind, GexNotional = notional, Label = string.Format(fmt, price) });
+        }
+
+        private static System.Collections.Generic.Dictionary<double, double> ParseStrikes(string json)
+        {
+            var d = new System.Collections.Generic.Dictionary<double, double>();
+            int si = json.IndexOf("\"strikes\""); if (si < 0) return d;
+            int ai = json.IndexOf('[', si); if (ai < 0) return d;
+            int i = ai + 1; int n = json.Length; int depth = 0; bool inStr = false; bool esc = false; int os = -1;
+            for (; i < n; i++)
+            {
+                char c = json[i];
+                if (esc) { esc = false; continue; }
+                if (inStr) { if (c == '\\') esc = true; else if (c == '"') inStr = false; continue; }
+                if (c == '"') { inStr = true; continue; }
+                if (c == '{') { if (depth == 0) os = i; depth++; }
+                else if (c == '}') { depth--; if (depth == 0 && os >= 0) { string obj = json.Substring(os, i - os + 1); double s = GexJson.Dbl(obj, "strike"); if (s > 0) d[s] = GexJson.Dbl(obj, "net_gex"); os = -1; } }
+                else if (c == ']' && depth == 0) break;
+            }
+            return d;
+        }
+
+        public void Dispose() { }
+    }
+
+    // ─── GEXBot client ──────────────────────────────────────────────────────────
+    // GET api.gexbot.com/{ticker}/classic/full?key={key}
+    // NQ_NDX returns native NQ prices — ratio = 1.0, no QQQ proxy math needed.
+    public sealed class GexBotClient : IDisposable
+    {
+        private readonly string _apiKey;
+        private const string Base = "https://api.gexbot.com";
+
+        public GexBotClient(string apiKey) { _apiKey = apiKey; }
+
+        public GexProfile Fetch(string ticker, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            string url = string.Format("{0}/{1}/classic/full?key={2}", Base, ticker, Uri.EscapeDataString(_apiKey));
+            string json = GexJson.HttpGet(url);
+
+            double spot   = GexJson.Dbl(json, "spot");
+            double flip   = GexJson.Dbl(json, "zero_gamma");
+            double posOi  = GexJson.Dbl(json, "major_pos_oi");
+            double negOi  = GexJson.Dbl(json, "major_neg_oi");
+            double posVol = GexJson.Dbl(json, "major_pos_vol");
+            double negVol = GexJson.Dbl(json, "major_neg_vol");
+
+            if (spot <= 0) throw new InvalidOperationException("GEXBot: no spot in response. Check API key and ticker.");
+
+            var p = new GexProfile { Underlying = ticker, Spot = spot, FetchedUtc = DateTime.UtcNow,
+                GammaFlip = flip > 0 ? flip : spot,
+                CallWall  = posOi > 0 ? posOi : spot,
+                PutWall   = negOi > 0 ? negOi : spot };
+
+            if (flip > 0)   p.Levels.Add(new GexLevel { Strike = flip,   Kind = GexLevelKind.GammaFlip,    GexNotional = 0,      Label = string.Format("FLIP {0:F0}",      flip) });
+            if (posOi > 0)  p.Levels.Add(new GexLevel { Strike = posOi,  Kind = GexLevelKind.CallWall,     GexNotional = 1e9,    Label = string.Format("SELL WALL {0:F0}", posOi) });
+            if (negOi > 0)  p.Levels.Add(new GexLevel { Strike = negOi,  Kind = GexLevelKind.PutWall,      GexNotional = -1e9,   Label = string.Format("BUY WALL {0:F0}",  negOi) });
+            if (posVol > 0 && System.Math.Abs(posVol - posOi) > 1)
+                p.Levels.Add(new GexLevel { Strike = posVol, Kind = GexLevelKind.MajorPositive, GexNotional = 0.5e9,  Label = string.Format("+GEX {0:F0}", posVol) });
+            if (negVol > 0 && System.Math.Abs(negVol - negOi) > 1)
+                p.Levels.Add(new GexLevel { Strike = negVol, Kind = GexLevelKind.MajorNegative, GexNotional = -0.5e9, Label = string.Format("-GEX {0:F0}", negVol) });
+
+            ParseGexBotStrikes(json, p);
+            return p;
+        }
+
+        private static void ParseGexBotStrikes(string json, GexProfile p)
+        {
+            int si = json.IndexOf("\"strikes\""); if (si < 0) return;
+            int ai = json.IndexOf('[', si); if (ai < 0) return;
+            var existing = new System.Collections.Generic.HashSet<double>(p.Levels.Select(l => l.Strike));
+            int i = ai + 1; int n = json.Length; int added = 0;
+            while (i < n && added < 30)
+            {
+                while (i < n && json[i] != '[' && json[i] != ']') i++;
+                if (i >= n || json[i] == ']') break;
+                i++;
+                var nums = new List<double>(); int j = i;
+                while (j < n && json[j] != ']' && nums.Count < 3)
+                {
+                    while (j < n && (json[j] == ',' || json[j] == ' ')) j++;
+                    if (j < n && json[j] == '[') { while (j < n && json[j] != ']') j++; break; }
+                    int k = j; while (k < n && (char.IsDigit(json[k]) || json[k] == '.' || json[k] == '-')) k++;
+                    if (k > j) { double v; if (double.TryParse(json.Substring(j, k - j), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out v)) nums.Add(v); j = k; } else j++;
+                }
+                while (i < n && json[i] != ']') i++; i++;
+                if (nums.Count >= 3 && nums[0] > 100 && !existing.Contains(nums[0]))
+                {
+                    double netGex = nums[2]; // OI-based GEX in $ millions
+                    p.Levels.Add(new GexLevel { Strike = nums[0], GexNotional = netGex * 1e6,
+                        Kind = netGex >= 0 ? GexLevelKind.MajorPositive : GexLevelKind.MajorNegative,
+                        Label = string.Format("{0} {1:F0}", netGex >= 0 ? "+GEX" : "-GEX", nums[0]) });
+                    existing.Add(nums[0]); added++;
+                }
+            }
+        }
+
+        public void Dispose() { }
+    }
+
+    // ─── LocalFile client ───────────────────────────────────────────────────────
+    // Reads gex_command.json written by gex_service.py. Prices are pre-mapped to NQ.
+    // Set Spot = futuresSpot so RenderGexLevels computes ratio = 1.0.
+    public sealed class LocalFileGexClient : IDisposable
+    {
+        private readonly string _filePath;
+        private DateTime _lastModified = DateTime.MinValue;
+        private GexProfile _cached;
+
+        public LocalFileGexClient(string filePath) { _filePath = filePath; }
+
+        public GexProfile Fetch(string futuresRoot, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            if (!File.Exists(_filePath))
+                throw new FileNotFoundException("GEX JSON not found — is gex_service.py running?", _filePath);
+            var fi = new FileInfo(_filePath);
+            if (_cached != null && fi.LastWriteTimeUtc <= _lastModified) return _cached;
+
+            string json = File.ReadAllText(_filePath);
+            _lastModified = fi.LastWriteTimeUtc;
+
+            string assetJson = FindAsset(json, futuresRoot);
+            if (string.IsNullOrEmpty(assetJson))
+                throw new InvalidOperationException("gex_command.json: no asset for futures_root=" + futuresRoot);
+
+            double futSpot = GexJson.Dbl(assetJson, "futures_spot");
+            if (futSpot <= 0) futSpot = GexJson.Dbl(assetJson, "mapped_spot");
+            if (futSpot <= 0) throw new InvalidOperationException("gex_command.json: no futures_spot for " + futuresRoot);
+
+            var p = new GexProfile { Underlying = futuresRoot, Spot = futSpot, FetchedUtc = DateTime.UtcNow };
+            ParseLevelsList(assetJson, p);
+            if (p.Levels.Count == 0) ParseLevelsDict(assetJson, p);
+            _cached = p;
+            return p;
+        }
+
+        private static string FindAsset(string json, string root)
+        {
+            int ai = json.IndexOf("\"assets\""); if (ai < 0) return string.Empty;
+            int arrStart = json.IndexOf('[', ai); if (arrStart < 0) return string.Empty;
+            int i = arrStart + 1; int n = json.Length;
+            while (i < n)
+            {
+                while (i < n && json[i] != '{' && json[i] != ']') i++;
+                if (i >= n || json[i] == ']') break;
+                int os = i; int d = 0; bool ins = false; bool esc = false;
+                for (; i < n; i++) { char c = json[i]; if (esc) { esc = false; continue; } if (ins) { if (c == '\\') esc = true; else if (c == '"') ins = false; continue; } if (c == '"') { ins = true; continue; } if (c == '{') d++; else if (c == '}') { d--; if (d == 0) { i++; break; } } }
+                string obj = json.Substring(os, i - os);
+                if (string.Equals(GexJson.Str(obj, "futures_root"), root, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(GexJson.Str(obj, "underlying"), root, StringComparison.OrdinalIgnoreCase))
+                    return obj;
+            }
+            return string.Empty;
+        }
+
+        private static void ParseLevelsList(string assetJson, GexProfile p)
+        {
+            int li = assetJson.IndexOf("\"levels_list\""); if (li < 0) return;
+            int ai = assetJson.IndexOf('[', li); if (ai < 0) return;
+            int i = ai + 1; int n = assetJson.Length;
+            while (i < n)
+            {
+                while (i < n && assetJson[i] != '{' && assetJson[i] != ']') i++;
+                if (i >= n || assetJson[i] == ']') break;
+                int os = i; int d = 0; bool ins = false; bool esc = false;
+                for (; i < n; i++) { char c = assetJson[i]; if (esc) { esc = false; continue; } if (ins) { if (c == '\\') esc = true; else if (c == '"') ins = false; continue; } if (c == '"') { ins = true; continue; } if (c == '{') d++; else if (c == '}') { d--; if (d == 0) { i++; break; } } }
+                string item = assetJson.Substring(os, i - os);
+                string key = GexJson.Str(item, "key"); double price = GexJson.Dbl(item, "price"); double val = GexJson.Dbl(item, "value");
+                if (price <= 0) continue;
+                string label = GexJson.Str(item, "label"); if (string.IsNullOrEmpty(label)) label = key.Replace('_', ' ').ToUpper();
+                GexLevelKind kind; switch (key) { case "gamma_flip": kind = GexLevelKind.GammaFlip; p.GammaFlip = price; break; case "call_wall": kind = GexLevelKind.CallWall; p.CallWall = price; break; case "put_wall": kind = GexLevelKind.PutWall; p.PutWall = price; break; default: kind = val >= 0 ? GexLevelKind.MajorPositive : GexLevelKind.MajorNegative; break; }
+                p.Levels.Add(new GexLevel { Strike = price, Kind = kind, GexNotional = val, Label = label });
+            }
+        }
+
+        private static void ParseLevelsDict(string assetJson, GexProfile p)
+        {
+            string[] keys = { "gamma_flip", "call_wall", "put_wall", "hvl", "vanna_call", "vanna_put", "dex_peak" };
+            GexLevelKind[] kinds = { GexLevelKind.GammaFlip, GexLevelKind.CallWall, GexLevelKind.PutWall, GexLevelKind.MajorPositive, GexLevelKind.MajorPositive, GexLevelKind.MajorNegative, GexLevelKind.MajorPositive };
+            int li = assetJson.IndexOf("\"levels\""); if (li < 0) return;
+            int ob = assetJson.IndexOf('{', li); if (ob < 0) return;
+            for (int ki = 0; ki < keys.Length; ki++)
+            {
+                int kIdx = assetJson.IndexOf("\"" + keys[ki] + "\"", ob); if (kIdx < 0) continue;
+                int sb = assetJson.IndexOf('{', kIdx); if (sb < 0) continue;
+                int se = assetJson.IndexOf('}', sb); if (se < 0) continue;
+                string sub = assetJson.Substring(sb, se - sb + 1);
+                double price = GexJson.Dbl(sub, "price"); if (price <= 0) continue;
+                string label = GexJson.Str(sub, "label"); double val = GexJson.Dbl(sub, "value");
+                if (string.IsNullOrEmpty(label)) label = keys[ki].Replace('_', ' ').ToUpper();
+                p.Levels.Add(new GexLevel { Strike = price, Kind = kinds[ki], GexNotional = val, Label = label });
+                if (ki == 0) p.GammaFlip = price; else if (ki == 1) p.CallWall = price; else if (ki == 2) p.PutWall = price;
+            }
+        }
+
+        public void Dispose() { _cached = null; }
+    }
 }
 
 namespace NinjaTrader.NinjaScript.Indicators.DEEP6
 {
     using NinjaTrader.NinjaScript.AddOns.DEEP6;
+    using NinjaTrader.NinjaScript.AddOns.DEEP6.Bridge;
 
     public class DEEP6GexLevels : Indicator
     {
@@ -344,6 +656,10 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
 
         // GEX fetch state
         private MassiveGexClient _gexClient;
+        private FlashAlphaClient _flashAlphaClient;
+        private GexBotClient     _gexBotClient;
+        private LocalFileGexClient _localFileClient;
+        private Func<CancellationToken, GexProfile> _fetchDelegate;
         private volatile GexProfile _gexProfile;
         private TimeSpan _gexInterval;
         private CancellationTokenSource _gexCts;
@@ -366,6 +682,9 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         private TextLayout _statusCacheLayout;
         // Stale overlay brush (amber — allocated alongside other DX brushes)
         private SharpDX.Direct2D1.Brush _pwStaleDx;
+        // TradeGEX-style heatmap band fills (transparent, drawn behind lines)
+        private SharpDX.Direct2D1.Brush _gexPosBandDx;   // cyan  — positive-GEX zone fill
+        private SharpDX.Direct2D1.Brush _gexNegBandDx;   // orange — negative-GEX zone fill
 
         // Composed status view
         private string _gexStatus
@@ -409,8 +728,17 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                 IsSuspendedWhileInactive     = true;
 
                 ShowGexLevels                = true;
+                ShowGexBands                = true;
+                BandMaxHeightPoints         = 80;
+                DataSource                  = GexDataSource.FlashAlpha;
                 GexUnderlying               = "QQQ";
                 GexApiKey                   = string.Empty;
+                FlashAlphaApiKey            = string.Empty;
+                GexBotApiKey                = string.Empty;
+                GexBotTicker                = "NQ_NDX";
+                LocalGexFilePath            = System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                    @"NinjaTrader 8\templates\DEEP6\gex_command.json");
                 FetchIntervalSeconds        = 15;
                 PriceDriftPoints            = 10;
 
@@ -430,30 +758,59 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
                 {
                     _gexLastSuccessStatus = "GEX: disabled";
                     _gexRetryStatus = string.Empty;
+                    return;
                 }
-                else if (string.IsNullOrWhiteSpace(GexApiKey))
+                _gexInterval = TimeSpan.FromSeconds(System.Math.Max(15, FetchIntervalSeconds));
+                _gexCts = new CancellationTokenSource();
+                _gexFailCount = 0;
+
+                switch (DataSource)
                 {
-                    _gexLastSuccessStatus = "GEX: NO API KEY (set in indicator properties)";
-                    _gexRetryStatus = string.Empty;
-                    Print("[DEEP6 GEX] Disabled — set massive.com API key in indicator properties.");
+                    case GexDataSource.FlashAlpha:
+                        if (string.IsNullOrWhiteSpace(FlashAlphaApiKey))
+                        { _gexLastSuccessStatus = "GEX [FlashAlpha]: set FlashAlpha API Key in properties (free at flashalpha.com)"; return; }
+                        _flashAlphaClient = new FlashAlphaClient(FlashAlphaApiKey);
+                        _fetchDelegate = ct => _flashAlphaClient.Fetch(GexUnderlying, ct);
+                        Print("[DEEP6 GEX] FlashAlpha: fetching " + GexUnderlying + " levels…");
+                        break;
+
+                    case GexDataSource.GEXBot:
+                        if (string.IsNullOrWhiteSpace(GexBotApiKey))
+                        { _gexLastSuccessStatus = "GEX [GEXBot]: set GEXBot API Key in properties (gexbot.com)"; return; }
+                        _gexBotClient = new GexBotClient(GexBotApiKey);
+                        _fetchDelegate = ct => _gexBotClient.Fetch(GexBotTicker, ct);
+                        Print("[DEEP6 GEX] GEXBot: fetching " + GexBotTicker + "…");
+                        break;
+
+                    case GexDataSource.LocalFile:
+                        _localFileClient = new LocalFileGexClient(LocalGexFilePath);
+                        _fetchDelegate = ct => _localFileClient.Fetch("NQ", ct);
+                        Print("[DEEP6 GEX] LocalFile: reading " + LocalGexFilePath + "…");
+                        break;
+
+                    default: // Massive
+                        if (string.IsNullOrWhiteSpace(GexApiKey))
+                        { _gexLastSuccessStatus = "GEX [Massive]: set API Key in properties (massive.com)"; return; }
+                        _gexClient = new MassiveGexClient(GexApiKey);
+                        _fetchDelegate = null; // massive uses legacy path in GexTimerTick
+                        Print("[DEEP6 GEX] Massive: fetching " + GexUnderlying + " chain…");
+                        break;
                 }
-                else
-                {
-                    _gexInterval = TimeSpan.FromSeconds(System.Math.Max(15, FetchIntervalSeconds));
-                    _gexClient = new MassiveGexClient(GexApiKey);
-                    _gexCts = new CancellationTokenSource();
-                    _gexFailCount = 0;
-                    _gexLastSuccessStatus = "GEX: initializing — first fetch in progress";
-                    _gexRetryStatus = string.Empty;
-                    Print("[DEEP6 GEX] Client initialized. Fetching " + GexUnderlying + " chain from massive.com…");
-                    _gexTimer = new System.Threading.Timer(GexTimerTick, null, TimeSpan.Zero, System.Threading.Timeout.InfiniteTimeSpan);
-                }
+
+                _gexLastSuccessStatus = "GEX [" + DataSource + "]: initializing…";
+                _gexRetryStatus = string.Empty;
+                _gexTimer = new System.Threading.Timer(GexTimerTick, null, TimeSpan.Zero, System.Threading.Timeout.InfiniteTimeSpan);
             }
             else if (State == State.Terminated)
             {
+                if (Instrument != null) GexSharedState.Clear(Instrument.FullName);
                 if (_gexTimer != null) { try { _gexTimer.Dispose(); } catch { } _gexTimer = null; }
                 if (_gexCts != null) { try { _gexCts.Cancel(); } catch { } }
                 if (_gexClient != null) { _gexClient.Dispose(); _gexClient = null; }
+                if (_flashAlphaClient != null) { _flashAlphaClient.Dispose(); _flashAlphaClient = null; }
+                if (_gexBotClient != null) { _gexBotClient.Dispose(); _gexBotClient = null; }
+                if (_localFileClient != null) { _localFileClient.Dispose(); _localFileClient = null; }
+                _fetchDelegate = null;
                 DisposeDx();
             }
         }
@@ -465,32 +822,38 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             if (!System.Threading.Monitor.TryEnter(_gexTimerLock)) return;
             try
             {
-                var client = _gexClient;
-                if (client == null) return;
                 var ctsTok = _gexCts == null ? CancellationToken.None : _gexCts.Token;
                 if (ctsTok.IsCancellationRequested) return;
-                var underlying = GexUnderlying;
 
-                _gexRetryStatus = "fetching " + underlying + "…";
-                Print("[DEEP6 GEX] Fetch start: " + underlying + " @ " + DateTime.Now.ToString("HH:mm:ss"));
-
-                // Pass the underlying's own spot from the previous successful fetch as
-                // the strike-range hint. First fetch: no hint (0) → no filter → discovers spot.
-                // Subsequent fetches: use known spot → ±15% filter → fast and targeted.
-                double underlyingSpotHint = 0;
-                var prevProfile = _gexProfile;
-                if (prevProfile != null && prevProfile.Spot > 0)
-                    underlyingSpotHint = prevProfile.Spot;
+                string label = DataSource.ToString();
+                _gexRetryStatus = "fetching [" + label + "]…";
+                Print("[DEEP6 GEX] Fetch start [" + label + "] @ " + DateTime.Now.ToString("HH:mm:ss"));
 
                 try
                 {
-                    var profile = client.Fetch(underlying, ctsTok, underlyingSpotHint);
+                    GexProfile profile;
+                    if (_fetchDelegate != null)
+                    {
+                        // FlashAlpha / GEXBot / LocalFile
+                        profile = _fetchDelegate(ctsTok);
+                    }
+                    else
+                    {
+                        // Massive (legacy path — keeps spot-hint optimisation)
+                        var client = _gexClient;
+                        if (client == null) return;
+                        double spotHint = 0;
+                        var prev = _gexProfile;
+                        if (prev != null && prev.Spot > 0) spotHint = prev.Spot;
+                        profile = client.Fetch(GexUnderlying, ctsTok, spotHint);
+                    }
+
                     if (profile != null && profile.Levels.Count > 0)
                         OnGexFetchSuccess(profile);
                     else
-                        OnGexFetchFailure(new InvalidOperationException("empty response (check API key, plan, underlying)"));
+                        OnGexFetchFailure(new InvalidOperationException("empty response — check API key/plan/ticker"));
                 }
-                catch (OperationCanceledException) { /* shutdown — stay silent */ }
+                catch (OperationCanceledException) { }
                 catch (Exception ex) { OnGexFetchFailure(ex); }
             }
             finally
@@ -510,9 +873,52 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             _statusCacheKey = null;
             // Record NQ price at fetch time so drift trigger can compare against it.
             try { if (Bars != null && Bars.Count > 0) _nqSpotAtLastFetch = Bars.GetClose(Bars.Count - 1); } catch { }
+            PublishSharedSnapshot(profile);
             _gexLastSuccessStatus = "GEX: " + profile.Levels.Count + " levels @ " + DateTime.Now.ToString("HH:mm:ss");
             _gexRetryStatus = string.Empty;
             Print("[DEEP6 GEX] OK: " + profile.Levels.Count + " levels, spot " + profile.Spot.ToString("F2") + ", flip " + profile.GammaFlip.ToString("F2"));
+        }
+
+        private void PublishSharedSnapshot(GexProfile profile)
+        {
+            if (profile == null || profile.Levels == null || profile.Levels.Count == 0) return;
+            double nqSpot = _nqSpotAtLastFetch;
+            if (nqSpot <= 0)
+            {
+                try { if (Bars != null && Bars.Count > 0) nqSpot = Bars.GetClose(Bars.Count - 1); } catch { nqSpot = 0; }
+            }
+            if (nqSpot <= 0 || profile.Spot <= 0 || Instrument == null) return;
+
+            double ratio = nqSpot / profile.Spot;
+            var snap = new GexContextSnapshot
+            {
+                Instrument = Instrument.FullName,
+                FetchedUtc = profile.FetchedUtc,
+                Stale = false,
+                Underlying = profile.Underlying,
+                UnderlyingSpot = profile.Spot,
+                NqSpot = nqSpot,
+                MappingRatio = ratio,
+                GammaFlip = profile.GammaFlip * ratio,
+                CallWall = profile.CallWall * ratio,
+                PutWall = profile.PutWall * ratio,
+            };
+
+            for (int i = 0; i < profile.Levels.Count; i++)
+            {
+                var lv = profile.Levels[i];
+                if (lv == null || lv.Strike <= 0) continue;
+                snap.Levels.Add(new MappedGexLevel
+                {
+                    Kind = lv.Kind.ToString(),
+                    NqPrice = lv.Strike * ratio,
+                    SourceStrike = lv.Strike,
+                    SourceSpot = profile.Spot,
+                    Weight = Math.Abs(lv.GexNotional),
+                });
+            }
+
+            GexSharedState.Publish(Instrument.FullName, snap);
         }
 
         private void OnGexFetchFailure(Exception ex)
@@ -622,6 +1028,8 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             _pwTextHaloDx   = MakeFrozenBrush(Color.FromArgb(230, 0x00, 0x00, 0x00)).ToDxBrush(RenderTarget);
             _pwWhiteTextDx  = MakeFrozenBrush(Color.FromArgb(255, 0xF2, 0xF4, 0xF8)).ToDxBrush(RenderTarget);
             _pwStaleDx      = MakeFrozenBrush(Color.FromArgb(200, 0xFF, 0xBF, 0x00)).ToDxBrush(RenderTarget); // amber — stale warning
+            _gexPosBandDx   = MakeFrozenBrush(Color.FromArgb(80,  0x00, 0xE0, 0xFF)).ToDxBrush(RenderTarget); // cyan   @ 31% — +GEX heatmap band
+            _gexNegBandDx   = MakeFrozenBrush(Color.FromArgb(80,  0xFF, 0x80, 0x00)).ToDxBrush(RenderTarget); // orange @ 31% — -GEX heatmap band
 
             // Invalidate layout cache on device reset — layouts are device-dependent
             if (_pillCache != null) { foreach (var kv in _pillCache) if (kv.Value != null) kv.Value.Dispose(); _pillCache.Clear(); }
@@ -651,6 +1059,7 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             DisposeBrush(ref _pwSellFillDx); DisposeBrush(ref _pwBuyFillDx);
             DisposeBrush(ref _pwTextHaloDx); DisposeBrush(ref _pwWhiteTextDx);
             DisposeBrush(ref _pwStaleDx);
+            DisposeBrush(ref _gexPosBandDx); DisposeBrush(ref _gexNegBandDx);
             if (_labelFont != null) { _labelFont.Dispose(); _labelFont = null; }
             if (_pillCache != null) { foreach (var kv in _pillCache) if (kv.Value != null) kv.Value.Dispose(); _pillCache.Clear(); }
             if (_statusCacheLayout != null) { _statusCacheLayout.Dispose(); _statusCacheLayout = null; }
@@ -739,6 +1148,38 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
 
             double minVis = cs.MinValue;
             double maxVis = cs.MaxValue;
+
+            // ── TradeGEX-style heatmap bands (drawn first so lines/pills render on top) ──
+            if (ShowGexBands && BandMaxHeightPoints > 0 && _gexPosBandDx != null && _gexNegBandDx != null)
+            {
+                double maxGex = 0;
+                foreach (var lv in gex.Levels)
+                    if (lv.Kind != GexLevelKind.GammaFlip && System.Math.Abs(lv.GexNotional) > maxGex)
+                        maxGex = System.Math.Abs(lv.GexNotional);
+
+                if (maxGex > 0)
+                {
+                    foreach (var lv in gex.Levels)
+                    {
+                        if (lv.Kind == GexLevelKind.GammaFlip) continue;
+                        double mapped = lv.Strike * mult;
+                        double bandHalfPts = (System.Math.Abs(lv.GexNotional) / maxGex) * (BandMaxHeightPoints * 0.5);
+                        if (mapped + bandHalfPts < minVis || mapped - bandHalfPts > maxVis) continue;
+                        if (bandHalfPts < 0.5) continue;
+
+                        float yTop  = cs.GetYByValue(mapped + bandHalfPts);
+                        float yBot  = cs.GetYByValue(mapped - bandHalfPts);
+                        float bandH = System.Math.Abs(yBot - yTop);
+                        if (bandH < 1f) continue;
+
+                        var fillBrush = lv.GexNotional > 0 ? _gexPosBandDx : _gexNegBandDx;
+                        RenderTarget.FillRectangle(
+                            new RectangleF((float)ChartPanel.X, yTop,
+                                           panelRight - (float)ChartPanel.X, bandH),
+                            fillBrush);
+                    }
+                }
+            }
 
             const float pillW    = 96f;
             const float pillH    = 18f;
@@ -867,24 +1308,66 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         #region Properties
 
         [NinjaScriptProperty]
-        [Display(Name = "Show GEX Levels", Order = 20, GroupName = "3. GEX (massive.com)")]
+        [Display(Name = "Show GEX Levels", Order = 10, GroupName = "3. GEX Levels")]
         public bool ShowGexLevels { get; set; }
 
         [NinjaScriptProperty]
-        [Display(Name = "Fetch Interval (seconds, min 15)", Order = 21, GroupName = "3. GEX (massive.com)")]
+        [Display(Name = "Show GEX Bands (heatmap)", Order = 11, GroupName = "3. GEX Levels")]
+        public bool ShowGexBands { get; set; }
+
+        [NinjaScriptProperty]
+        [Display(Name = "Band Max Height (NQ pts)", Order = 12, GroupName = "3. GEX Levels")]
+        public int BandMaxHeightPoints { get; set; }
+
+        [NinjaScriptProperty]
+        [Display(Name = "Fetch Interval (seconds, min 15)", Order = 13, GroupName = "3. GEX Levels")]
         public int FetchIntervalSeconds { get; set; }
 
         [NinjaScriptProperty]
-        [Display(Name = "Price Drift Re-fetch (NQ points, 0=off)", Order = 22, GroupName = "3. GEX (massive.com)")]
+        [Display(Name = "Price Drift Re-fetch (NQ points, 0=off)", Order = 14, GroupName = "3. GEX Levels")]
         public int PriceDriftPoints { get; set; }
 
-        [NinjaScriptProperty]
-        [Display(Name = "GEX Underlying (QQQ/NDX)", Order = 23, GroupName = "3. GEX (massive.com)")]
-        public string GexUnderlying { get; set; }
+        // ── Data source selection ──
 
         [NinjaScriptProperty]
+        [Display(Name = "Data Source", Order = 20, GroupName = "3. GEX Levels",
+            Description = "FlashAlpha = pre-computed levels (free API key at flashalpha.com); GEXBot = native NQ prices (gexbot.com); LocalFile = reads gex_command.json from gex_service.py; Massive = raw chain (original, requires Advanced plan $199/mo)")]
+        public GexDataSource DataSource { get; set; }
+
+        // ── FlashAlpha ──
+        [NinjaScriptProperty]
         [PasswordPropertyText(true)]
-        [Display(Name = "massive.com API Key", Order = 24, GroupName = "3. GEX (massive.com)")]
+        [Display(Name = "FlashAlpha API Key", Order = 30, GroupName = "3. GEX Levels",
+            Description = "Free key at flashalpha.com — 5 req/day free, Basic $79/mo for live polling (QQQ supported)")]
+        public string FlashAlphaApiKey { get; set; }
+
+        [NinjaScriptProperty]
+        [Display(Name = "FlashAlpha Symbol (QQQ/NDX)", Order = 31, GroupName = "3. GEX Levels")]
+        public string GexUnderlying { get; set; }
+
+        // ── GEXBot ──
+        [NinjaScriptProperty]
+        [PasswordPropertyText(true)]
+        [Display(Name = "GEXBot API Key", Order = 40, GroupName = "3. GEX Levels",
+            Description = "From gexbot.com — supports NQ_NDX, NDX, QQQ (NQ_NDX returns native NQ prices)")]
+        public string GexBotApiKey { get; set; }
+
+        [NinjaScriptProperty]
+        [Display(Name = "GEXBot Ticker", Order = 41, GroupName = "3. GEX Levels",
+            Description = "NQ_NDX (recommended for NQ), NDX, QQQ, SPX, ES_SPX")]
+        public string GexBotTicker { get; set; }
+
+        // ── Local File ──
+        [NinjaScriptProperty]
+        [Display(Name = "Local GEX JSON Path", Order = 50, GroupName = "3. GEX Levels",
+            Description = "Path to gex_command.json written by gex_service.py. Run: python scripts/gex_service.py")]
+        public string LocalGexFilePath { get; set; }
+
+        // ── Massive (legacy) ──
+        [NinjaScriptProperty]
+        [PasswordPropertyText(true)]
+        [Display(Name = "Massive.com API Key (legacy)", Order = 60, GroupName = "3. GEX Levels",
+            Description = "Original Massive/Polygon API key — requires Advanced plan $199/mo for real-time greeks")]
         public string GexApiKey { get; set; }
 
         // --- Brush properties ---
