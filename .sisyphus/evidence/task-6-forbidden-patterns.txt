@@ -1,0 +1,2 @@
+﻿Forbidden patterns mentions: 6
+PASS

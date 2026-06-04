@@ -1,0 +1,273 @@
+{
+  "version": "v8-parent0",
+  "source": "deep6/engines/signal_config.py + footprint-v8-refactor task defaults",
+  "BiasLongThreshold": 0.6,
+  "BiasShortThreshold": -0.6,
+  "MinArrowConfluence": 4,
+  "MinExhaustionStrength": 0.6,
+  "MaxSignalsPerSession": 15,
+  "BiasLookback": 3,
+  "ShowClassicAbsorption": false,
+  "ShowPassiveAbsorption": false,
+  "ShowStoppingVolume": false,
+  "ShowEffortVsResult": false,
+  "ShowZeroPrint": false,
+  "ShowExhaustionPrint": true,
+  "ShowThinPrint": false,
+  "ShowFatPrint": false,
+  "ShowFadingMomentum": false,
+  "ShowBidAskFade": true,
+  "v7_signal_thresholds": {
+    "AbsorptionConfig": {
+      "absorb_delta_max": 0.12,
+      "absorb_wick_min": 30.0,
+      "confirmation_breach_ticks": 2,
+      "confirmation_score_bonus": 2.0,
+      "confirmation_window_bars": 3,
+      "evr_range_cap": 0.3,
+      "evr_vol_mult": 1.5,
+      "passive_extreme_pct": 0.2,
+      "passive_vol_pct": 0.6,
+      "stop_vol_mult": 2.0,
+      "va_extreme_strength_bonus": 0.15,
+      "va_extreme_ticks": 2
+    },
+    "AuctionConfig": {
+      "balance_count_threshold": 3,
+      "breakout_range_threshold": 2.0,
+      "poor_extreme_vol_ratio": 0.3,
+      "sweep_min_levels": 10,
+      "sweep_vol_increase": 1.5,
+      "void_min_levels": 3,
+      "void_vol_ratio": 0.05
+    },
+    "BiasHysteresisConfig": {
+      "degrade_lean_threshold": 1,
+      "degrade_strong_threshold": 4,
+      "emergency_delta": 10,
+      "enter_lean_threshold": 3,
+      "enter_strong_threshold": 7
+    },
+    "ConfluenceRulesConfig": {
+      "cr_08_shorts_multiplier": 0.6,
+      "cr_25_round_number_mult": 1.25,
+      "enable_CR_01": true,
+      "enable_CR_02": true,
+      "enable_CR_03": true,
+      "enable_CR_04": true,
+      "enable_CR_05": true,
+      "enable_CR_06": true,
+      "enable_CR_07": true,
+      "enable_CR_08": true,
+      "enable_CR_09": true,
+      "enable_CR_10": true,
+      "enable_CR_11": false,
+      "enable_CR_12": false,
+      "enable_CR_13": false,
+      "enable_CR_14": false,
+      "enable_CR_15": false,
+      "enable_CR_16": true,
+      "enable_CR_17": true,
+      "enable_CR_18": true,
+      "enable_CR_19": false,
+      "enable_CR_20": true,
+      "enable_CR_21": true,
+      "enable_CR_22": false,
+      "enable_CR_23": true,
+      "enable_CR_24": true,
+      "enable_CR_25": true,
+      "enable_CR_26": true,
+      "enable_CR_27": false,
+      "enable_CR_28": true,
+      "enable_CR_29": true,
+      "enable_CR_30": true,
+      "enable_CR_31": true,
+      "enable_CR_32": true,
+      "enable_CR_33": true,
+      "enable_CR_34": true,
+      "enable_CR_35": true,
+      "enable_CR_36": true,
+      "enable_CR_37": false,
+      "enable_CR_38": true,
+      "pin_regime_min_strikes": 3,
+      "proximity_med_ticks": 8,
+      "proximity_tight_ticks": 6,
+      "proximity_wide_ticks": 12,
+      "regime_change_min_score_delta": 15.0,
+      "spoof_detection_min_cancel_ratio": 0.85
+    },
+    "CounterSpoofConfig": {
+      "spoof_cancel_threshold": 10.0,
+      "spoof_cancel_window_ms": 200.0,
+      "spoof_history_len": 20,
+      "spoof_large_order": 50.0,
+      "w1_anomaly_sigma": 3.0,
+      "w1_min_samples": 5
+    },
+    "DeltaConfig": {
+      "cvd_divergence_min_bars": 10,
+      "cvd_slope_divergence_factor": 0.3,
+      "divergence_lookback": 5,
+      "lookback": 20,
+      "reversal_min_delta_ratio": 0.15,
+      "slingshot_explosive_ratio": 0.4,
+      "slingshot_quiet_bars": 2,
+      "slingshot_quiet_ratio": 0.1,
+      "sweep_min_levels": 5,
+      "sweep_vol_increase_ratio": 1.5,
+      "tail_threshold": 0.95,
+      "trap_delta_ratio": 0.3,
+      "velocity_accel_ratio": 0.3
+    },
+    "ExhaustionConfig": {
+      "cooldown_bars": 5,
+      "delta_gate_enabled": true,
+      "delta_gate_min_ratio": 0.1,
+      "exhaust_wick_min": 35.0,
+      "fade_threshold": 0.6,
+      "fat_mult": 2.0,
+      "thin_pct": 0.05
+    },
+    "GexConfig": {
+      "gex_normalize_divisor": 1000000000.0,
+      "near_wall_pct": 0.005,
+      "nq_to_qqq_divisor": 40.0,
+      "staleness_seconds": 900.0,
+      "underlying": "QQQ"
+    },
+    "IcebergConfig": {
+      "conviction_bonus_at_zone": 3,
+      "depletion_threshold": 0.15,
+      "iceberg_min_size": 30.0,
+      "native_ratio": 1.5,
+      "refill_ratio": 0.8,
+      "refill_window_ms": 250.0,
+      "synthetic_min_refills": 2
+    },
+    "ImbalanceConfig": {
+      "consecutive_min_bars": 2,
+      "inverse_min_imbalances": 3,
+      "multiple_min_count": 3,
+      "oversized_threshold": 10.0,
+      "ratio_threshold": 3.0,
+      "stacked_gap_tolerance": 2,
+      "stacked_t1": 3,
+      "stacked_t2": 5,
+      "stacked_t3": 7
+    },
+    "IntermarketBiasConfig": {
+      "stale_threshold_sec": 300.0,
+      "vix_high_threshold": 25.0,
+      "vix_low_threshold": 20.0
+    },
+    "IntermarketConfig": {
+      "bar_interval_sec": 60,
+      "staleness_sec": 300,
+      "symbols": [
+        "ZN",
+        "DXY",
+        "VIX",
+        "RTY",
+        "TICK",
+        "VOLD",
+        "AD"
+      ]
+    },
+    "IntradayFlowConfig": {
+      "cvd_slope_threshold": 50.0,
+      "stale_threshold_sec": 60.0,
+      "tick_thrust_threshold": 800
+    },
+    "KillSwitchConfig": {
+      "cutoff_hour": 15,
+      "event_day_mode": "STOP",
+      "lunch_end_hour": 13,
+      "lunch_start_hour": 12,
+      "min_domains_for_go": 2,
+      "vix_crisis_threshold": 35.0,
+      "vix_elevated_threshold": 25.0
+    },
+    "KronosConfig": {
+      "decay_factor": 0.95,
+      "device": "auto",
+      "inference_interval": 5,
+      "lookback": 100,
+      "model_name": "NeoQuasar/Kronos-small",
+      "num_samples": 20,
+      "pred_len": 5,
+      "tokenizer_name": "NeoQuasar/Kronos-Tokenizer-base"
+    },
+    "KronosDomainConfig": {
+      "high_conf_threshold": 70.0,
+      "low_conf_threshold": 30.0,
+      "max_range": 3,
+      "stale_threshold_sec": 300.0
+    },
+    "MicroConfig": {
+      "bear_threshold": 0.4,
+      "bull_likelihood": 0.65,
+      "bull_threshold": 0.6
+    },
+    "POCConfig": {
+      "bearish_poc_position_min": 0.65,
+      "bullish_poc_position_max": 0.35,
+      "continuous_streak_min": 3,
+      "extreme_bot_pct": 0.15,
+      "extreme_top_pct": 0.15,
+      "migration_window": 5,
+      "poc_gap_ticks": 8,
+      "va_pct": 0.7
+    },
+    "ScorerConfig": {
+      "confluence_threshold": 5,
+      "midday_block_end": 330,
+      "midday_block_start": 240,
+      "min_categories": 3,
+      "poc_weight": 1.0,
+      "type_a_min": 80.0,
+      "type_b_min": 72.0,
+      "type_c_min": 50.0,
+      "zone_high_bonus": 8.0,
+      "zone_high_min": 50.0,
+      "zone_mid_bonus": 6.0,
+      "zone_mid_min": 30.0,
+      "zone_near_bonus": 4.0,
+      "zone_near_ticks": 0.5
+    },
+    "SessionBiasConfig": {
+      "stale_threshold_sec": 60.0
+    },
+    "TrapConfig": {
+      "cvd_trap_lookback": 8,
+      "cvd_trap_min_slope": 0.05,
+      "false_breakout_vol_mult": 1.8,
+      "hvr_vol_mult": 2.5,
+      "hvr_wick_min": 0.35,
+      "trap_delta_ratio": 0.25
+    },
+    "TrespassConfig": {
+      "bear_ratio_threshold": 0.8,
+      "bull_ratio_threshold": 1.2,
+      "trespass_depth": 10
+    },
+    "VolPatternConfig": {
+      "bubble_mult": 4.0,
+      "surge_delta_min_ratio": 0.15,
+      "surge_mult": 3.0,
+      "vol_seq_min_bars": 3,
+      "vol_seq_step_ratio": 1.15
+    },
+    "VolumeProfileConfig": {
+      "hvn_threshold": 1.7,
+      "lvn_threshold": 0.3,
+      "max_zones": 80,
+      "min_zone_ticks": 2,
+      "session_decay_weight": 0.7,
+      "w_defense": 0.15,
+      "w_recency": 0.25,
+      "w_touches": 0.25,
+      "w_type": 0.35,
+      "zone_decay_rate": 0.005
+    }
+  }
+}

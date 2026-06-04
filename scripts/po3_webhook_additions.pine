@@ -1,0 +1,155 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// PO3 BIAS SYSTEM — DEEP6 WEBHOOK ADDITIONS
+// ─────────────────────────────────────────────────────────────────────────────
+// Append these lines to the END of the main PO3 Daily Bias System indicator.
+//
+// Prerequisites:
+//   • TradingView Pro or higher (required for webhook alerts)
+//   • Your DEEP6 FastAPI server running (uvicorn deep6.api.app:app --port 8765)
+//   • Webhook URL: https://YOUR-SERVER/api/bias/tv-webhook
+//     (use ngrok for local dev: ngrok http 8765)
+//
+// How it works:
+//   1. Pine Script fires alert with JSON payload
+//   2. POST → /api/bias/tv-webhook
+//   3. Server: fetch Finnhub news + Claude synthesis
+//   4. Broadcast LiveBiasMessage via /ws/live to Next.js dashboard
+//
+// Alert setup in TradingView:
+//   • Condition: Any alert() call below
+//   • Webhook URL: https://YOUR-SERVER/api/bias/tv-webhook
+//   • Message: {{strategy.order.alert_message}}  ← uses the JSON from alert()
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── JSON Payload Builder ──────────────────────────────────────────────────────
+// Builds the JSON string sent to /api/bias/tv-webhook.
+// All PO3 state variables reference the ones already computed in the indicator.
+
+f_webhook_json(string event_type) =>
+    // Core scores
+    bp_s   = str.tostring(bull_pts)
+    brp_s  = str.tostring(bear_pts)
+    cl_s   = str.tostring(close, format.mintick)
+
+    // Bias direction
+    bias_s = bias_is_bull ? "BULLISH" : bias_is_bear ? "BEARISH" : "NEUTRAL"
+
+    // Phase
+    ph_s   = in_acc ? "Accumulation" : in_manip ? "Manipulation" : in_dist ? "Distribution" : "Between Sessions"
+
+    // Level prices (safe NA handling)
+    mo_s   = not na(mo_px)    ? str.tostring(mo_px, format.mintick) : "null"
+    wo_s   = not na(wo_px)    ? str.tostring(wo_px, format.mintick) : "null"
+    pdh_s  = not na(pd_h)     ? str.tostring(pd_h, format.mintick)  : "null"
+    pdl_s  = not na(pd_l)     ? str.tostring(pd_l, format.mintick)  : "null"
+    ahi_s  = not na(frozen_hi)? str.tostring(frozen_hi, format.mintick) : "null"
+    alo_s  = not na(frozen_lo)? str.tostring(frozen_lo, format.mintick) : "null"
+
+    // Boolean flags
+    jb_s   = judas_bull ? "true" : "false"
+    jbr_s  = judas_bear ? "true" : "false"
+    sl_s   = swept_lo   ? "true" : "false"
+    sh_s   = swept_hi   ? "true" : "false"
+
+    // Relative position flags
+    above_mo_s = not na(mo_px) ? (close >= mo_px ? "true" : "false") : "null"
+    above_wo_s = not na(wo_px) ? (close >= wo_px ? "true" : "false") : "null"
+    pd_eq_val  = not na(pd_h) and not na(pd_l) ? (pd_h + pd_l) / 2 : na
+    in_disc_s  = not na(pd_eq_val) ? (close <= pd_eq_val ? "true" : "false") : "null"
+
+    // Timestamp (milliseconds)
+    ts_s = str.tostring(timenow)
+
+    '{"ticker":"' + syminfo.ticker + '"' +
+    ',"close":'   + cl_s +
+    ',"bull_pts":' + bp_s +
+    ',"bear_pts":' + brp_s +
+    ',"bias":"'   + bias_s + '"' +
+    ',"phase":"'  + ph_s   + '"' +
+    ',"judas_bull":' + jb_s +
+    ',"judas_bear":' + jbr_s +
+    ',"swept_lo":'   + sl_s +
+    ',"swept_hi":'   + sh_s +
+    ',"above_mo":'   + above_mo_s +
+    ',"above_wo":'   + above_wo_s +
+    ',"in_discount":' + in_disc_s +
+    ',"mo_px":'  + mo_s +
+    ',"wo_px":'  + wo_s +
+    ',"pd_h":'   + pdh_s +
+    ',"pd_l":'   + pdl_s +
+    ',"asia_hi":' + ahi_s +
+    ',"asia_lo":' + alo_s +
+    ',"event":"' + event_type + '"' +
+    ',"timestamp":' + ts_s + '}'
+
+
+// ── Alert Fires ───────────────────────────────────────────────────────────────
+
+// 1. BIAS DIRECTION CHANGE — fires when bull/bear majority flips
+//    Highest-priority event. Triggers immediate Claude synthesis.
+bias_dir_changed = (bias_is_bull and not bias_is_bull[1]) or
+                   (bias_is_bear and not bias_is_bear[1]) or
+                   (not bias_is_bull and not bias_is_bear and (bias_is_bull[1] or bias_is_bear[1]))
+
+if bias_dir_changed
+    alert(f_webhook_json("bias_change"), alert.freq_once_per_bar_close)
+
+// 2. JUDAS SWING CONFIRMED — highest-alpha signal, double-weighted
+//    Fires the moment Judas bull or bear is confirmed.
+judas_just_confirmed = (judas_bull and not judas_bull[1]) or
+                       (judas_bear and not judas_bear[1])
+
+if judas_just_confirmed
+    alert(f_webhook_json("judas_confirmed"), alert.freq_once_per_bar_close)
+
+// 3. ASIA SWEEP — lower-priority, sweep detected but Judas not yet confirmed
+asia_just_swept = (swept_lo and not swept_lo[1]) or
+                  (swept_hi and not swept_hi[1])
+
+if asia_just_swept and not judas_just_confirmed
+    alert(f_webhook_json("asia_sweep"), alert.freq_once_per_bar_close)
+
+// 4. SESSION START — fires at Manipulation and Distribution opens
+//    Gives server a fresh context snapshot for each major phase.
+if manip_start or dist_start
+    event_name = manip_start ? "manipulation_start" : "distribution_start"
+    alert(f_webhook_json(event_name), alert.freq_once_per_bar_close)
+
+// 5. MIDNIGHT OPEN CROSS — price crosses the primary bias anchor
+mo_cross_up   = not na(mo_px) and ta.crossover(close,  mo_px)
+mo_cross_down = not na(mo_px) and ta.crossunder(close, mo_px)
+
+if mo_cross_up or mo_cross_down
+    alert(f_webhook_json("mo_cross"), alert.freq_once_per_bar_close)
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DEEP6 AI CONFIDENCE OVERLAY (optional visual)
+// ─────────────────────────────────────────────────────────────────────────────
+// Adds a small label at bar close showing the Judas confirmation + score.
+// Does not call external APIs — purely visual indicator of current state.
+
+if barstate.islast and show_dash
+    judas_overlay = judas_bull ? " ✓ JUDAS BULL" :
+                    judas_bear ? " ✓ JUDAS BEAR" :
+                    swept_lo   ? " ⚡ SWEPT LO"   :
+                    swept_hi   ? " ⚡ SWEPT HI"   : ""
+
+    score_bar = ""
+    for i = 1 to bull_pts
+        score_bar := score_bar + "▲"
+    for i = 1 to bear_pts
+        score_bar := score_bar + "▼"
+
+    if judas_overlay != ""
+        label.new(
+             bar_index + 2,
+             judas_bull ? low - ta.atr(14) * 0.5 : high + ta.atr(14) * 0.5,
+             score_bar + judas_overlay,
+             style     = judas_bull ? label.style_label_up : label.style_label_down,
+             textcolor = judas_bull ? col_bull : col_bear,
+             color     = color.new(#0D1117, 80),
+             size      = size.small,
+             xloc      = xloc.bar_index,
+             yloc      = yloc.price
+        )

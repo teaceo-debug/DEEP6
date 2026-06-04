@@ -1,0 +1,13 @@
+feature_name,value,description
+bid_ask_imbalance_ratio,4.0,bid_vol / ask_vol at top 5 levels (200 bid vs 50 ask)
+depth_asymmetry_score,0.6,(bid_depth - ask_depth) / (bid_depth + ask_depth)
+book_thinness,1250.0,total_volume at top 5 bid + ask levels
+cvd_value,1500.0,current cumulative delta value
+cvd_acceleration,-23.5,rate of change of CVD over last 3 snapshots
+pull_replace_ratio,0.0,cancel/replace events per unit time (no events)
+micro_momentum,0.0,price velocity over last N snapshots (no events)
+large_burst_count,5.0,number of large trades in window
+micro_vol_ratio,0.0,realized vol / baseline vol (no events)
+tps_intensity,3.5,trades per second intensity score
+---
+labeling_strategy: Tier-2 heuristic labels derived from Task 6B golden sessions. Event-sourced: use Task 6B fixture timestamps + price levels as event anchors for supervised labeling of pull/replace/momentum/burst features.

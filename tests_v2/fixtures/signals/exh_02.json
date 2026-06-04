@@ -1,0 +1,51 @@
+{
+  "name": "EXH_02_single_side_extreme_volume",
+  "description": "Single-side volume at extreme exceeds threshold × avg_row_vol. Only ask volume at high — exhaustive buying with no seller resistance.",
+  "bar": {
+    "open": 21470.0,
+    "high": 21495.0,
+    "low": 21468.0,
+    "close": 21475.0,
+    "delta": 450,
+    "total_volume": 3500,
+    "bid_volumes": {
+      "21468.0": 100,
+      "21470.0": 200,
+      "21475.0": 300,
+      "21480.0": 250,
+      "21485.0": 200,
+      "21490.0": 150
+    },
+    "ask_volumes": {
+      "21470.0": 150,
+      "21475.0": 200,
+      "21480.0": 250,
+      "21485.0": 300,
+      "21490.0": 400,
+      "21495.0": 800
+    },
+    "poc_price": 21480.0,
+    "poc_volume": 500,
+    "vah": 21492.0,
+    "val": 21472.0,
+    "cvd": 500.0,
+    "bar_index": 38,
+    "timestamp": "2026-05-13T10:23:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 11.0,
+    "cvd": 500.0,
+    "vah": 21492.0,
+    "val": 21472.0,
+    "poc": 21480.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0
+  },
+  "expected_signal": {
+    "signal_id": "EXH_02",
+    "direction": "BEARISH",
+    "strength_min": 0.35,
+    "strength_max": 0.55
+  }
+}

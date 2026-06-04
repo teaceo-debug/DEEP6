@@ -238,9 +238,19 @@ namespace NinjaTrader.NinjaScript.AddOns
         {
             try
             {
-                Application.Current.Dispatcher.BeginInvoke(
-                    new Action(delegate { TriggerCompile(); }));
-                return "{\"triggered\":true}";
+                bool triggered = false;
+                string reason = "unknown";
+                string telemetry = "";
+                Application.Current.Dispatcher.Invoke(
+                    new Action(delegate
+                    {
+                        triggered = TriggerCompile(out reason, out telemetry);
+                    }),
+                    TimeSpan.FromSeconds(5));
+
+                return "{\"triggered\":" + (triggered ? "true" : "false")
+                     + ",\"reason\":" + JsonStr(reason)
+                     + ",\"telemetry\":" + JsonStr(telemetry) + "}";
             }
             catch (Exception ex)
             {
@@ -361,6 +371,9 @@ namespace NinjaTrader.NinjaScript.AddOns
 
         private static bool IsErrorLine(string line)
         {
+            if (string.IsNullOrWhiteSpace(line)) return false;
+            if (line.IndexOf("No error", StringComparison.OrdinalIgnoreCase) >= 0) return false;
+
             return line.IndexOf("error", StringComparison.OrdinalIgnoreCase) >= 0
                 || line.IndexOf("CS0", StringComparison.Ordinal) >= 0
                 || line.IndexOf("CS1", StringComparison.Ordinal) >= 0
@@ -391,29 +404,183 @@ namespace NinjaTrader.NinjaScript.AddOns
             catch { }
         }
 
-        private void TriggerCompile()
+        private bool TriggerCompile(out string reason, out string telemetry)
         {
-            // Try to invoke compile via reflection on the NinjaScript editor window
+            reason = "unknown";
+            telemetry = "start";
             try
             {
+                Assembly guiAsm = null;
+                foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    try
+                    {
+                        if (asm != null && string.Equals(asm.GetName().Name, "NinjaTrader.Gui", StringComparison.Ordinal))
+                        {
+                            guiAsm = asm;
+                            break;
+                        }
+                    }
+                    catch { }
+                }
+                if (guiAsm == null)
+                {
+                    reason = "gui_assembly_missing";
+                    telemetry = "guiAsm=null";
+                    return false;
+                }
+
+                Type editorViewType = guiAsm.GetType("NinjaTrader.Gui.NinjaScript.Editor.EditorView");
+                Type editorVmType = guiAsm.GetType("NinjaTrader.Gui.NinjaScript.Editor.EditorViewModel");
+                telemetry = "editorViewType=" + (editorViewType != null ? editorViewType.FullName : "null")
+                    + ";editorVmType=" + (editorVmType != null ? editorVmType.FullName : "null");
+                if (editorViewType == null || editorVmType == null)
+                {
+                    reason = "editor_types_missing";
+                    return false;
+                }
+
+                Window best = null;
+                int editorWindowCount = 0;
                 foreach (Window win in Application.Current.Windows)
                 {
-                    if (win == null) continue;
-                    string typeName = win.GetType().FullName ?? "";
-                    if (typeName.IndexOf("NinjaScript", StringComparison.OrdinalIgnoreCase) >= 0
-                     && typeName.IndexOf("Editor",     StringComparison.OrdinalIgnoreCase) >= 0)
+                    if (win == null || !win.IsVisible) continue;
+
+                    bool isEditorHost = false;
+                    try
                     {
-                        // Try reflection: CompileAll, Compile, or Build
-                        foreach (string methodName in new[] { "CompileAll", "Compile", "Build" })
+                        if (editorViewType.IsInstanceOfType(win))
+                            isEditorHost = true;
+                    }
+                    catch { }
+
+                    if (!isEditorHost)
+                    {
+                        try
                         {
-                            MethodInfo m = win.GetType().GetMethod(methodName,
-                                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                            if (m != null) { m.Invoke(win, null); return; }
+                            object content = win.Content;
+                            if (content != null && editorViewType.IsInstanceOfType(content))
+                                isEditorHost = true;
+                        }
+                        catch { }
+                    }
+
+                    if (!isEditorHost)
+                    {
+                        try
+                        {
+                            object dc = win.DataContext;
+                            if (dc != null && editorVmType.IsInstanceOfType(dc))
+                                isEditorHost = true;
+                        }
+                        catch { }
+                    }
+
+                    if (!isEditorHost) continue;
+
+                    editorWindowCount++;
+                    if (win.IsActive) { best = win; break; }
+                    if (best == null) best = win;
+                }
+                telemetry += ";editorWindowCount=" + editorWindowCount.ToString(CultureInfo.InvariantCulture);
+                if (best == null)
+                {
+                    reason = "editor_window_not_found";
+                    return false;
+                }
+
+                telemetry += ";bestWindowType=" + (best.GetType().FullName ?? "null");
+                try { best.Activate(); } catch { }
+
+                object vm = null;
+                try
+                {
+                    PropertyInfo dataContextProp = best.GetType().GetProperty("DataContext", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                    if (dataContextProp != null) vm = dataContextProp.GetValue(best, null);
+                }
+                catch { }
+                telemetry += ";vmType=" + (vm != null ? vm.GetType().FullName : "null");
+
+                FieldInfo cmdField = editorVmType.GetField("CompileCommand", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+                if (cmdField != null)
+                {
+                    var routedCmd = cmdField.GetValue(null) as System.Windows.Input.RoutedUICommand;
+                    telemetry += ";compileCommandField=true;routedCmd=" + (routedCmd != null ? "true" : "false");
+                    if (routedCmd != null)
+                    {
+                        try
+                        {
+                            bool canExecute = routedCmd.CanExecute(null, best);
+                            telemetry += ";canExecute=" + (canExecute ? "true" : "false");
+                            if (canExecute)
+                            {
+                                routedCmd.Execute(null, best);
+                                reason = "compile_command_executed";
+                                telemetry += ";path=command";
+                                return true;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            telemetry += ";commandException=" + ex.GetType().Name;
                         }
                     }
                 }
+                else
+                {
+                    telemetry += ";compileCommandField=false";
+                }
+
+                if (vm != null && editorVmType.IsInstanceOfType(vm))
+                {
+                    try
+                    {
+                        MethodInfo saveAll = editorVmType.GetMethod("OnSaveAll", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                        if (saveAll != null)
+                        {
+                            saveAll.Invoke(vm, null);
+                            telemetry += ";saveAllInvoked=true";
+                        }
+                        else
+                        {
+                            telemetry += ";saveAllInvoked=false";
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        telemetry += ";saveAllException=" + ex.GetType().Name;
+                    }
+
+                    MethodInfo onCompile = editorVmType.GetMethod(
+                        "OnCompile",
+                        BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+                        null,
+                        new Type[] { typeof(bool) },
+                        null);
+                    if (onCompile != null)
+                    {
+                        onCompile.Invoke(vm, new object[] { true });
+                        reason = "viewmodel_oncompile_invoked";
+                        telemetry += ";path=viewmodel";
+                        return true;
+                    }
+
+                    telemetry += ";onCompileMethod=false";
+                    reason = "viewmodel_compile_method_missing";
+                    return false;
+                }
+
+                reason = "viewmodel_missing";
+                return false;
             }
-            catch { }
+            catch (Exception ex)
+            {
+                reason = "exception";
+                telemetry += ";exception=" + ex.GetType().Name + ":" + ex.Message;
+                Print("DEEP6DevAddon TriggerCompile error: " + ex.Message);
+            }
+
+            return false;
         }
 
         private static string FindLatestFile(string dir, string pattern)

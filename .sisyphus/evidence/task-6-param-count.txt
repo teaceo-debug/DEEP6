@@ -1,0 +1,12 @@
+NinjaScriptProperty count: 30
+Source: MADConfluenceAI.cs
+Verified: 2026-05-12
+
+Groups:
+  1 Signal Weights: 7 properties (AbsorptionWeight, ExhaustionWeight, DeltaWeight, ImbalanceWeight, IcebergWeight, LiquidityWeight, TrapWeight)
+  2 Thresholds: 8 properties (MinConfidenceScore, EliteThreshold, HighThreshold, AbsorptionVolumeMultiplier, ImbalanceRatio, SweepReversalSeconds, ExhaustionDeltaDecay, TrapFailureSeconds)
+  3 Visual: 8 properties (ShowLevelZones, ShowSignalMarkers, ShowDashboard, ShowHeatmap, ShowSlTp, ShowAbsorptionZones, ShowSweepMarkers, ShowImbalanceHighlights)
+  4 Session: 4 properties (OpeningRangeMinutes, WarmupBars, RthStartHour, RthStartMinute)
+  5 Risk: 3 properties (DefaultStopTicks, DefaultTargetTicks, MaxRiskRewardRatio)
+
+Total: 7 + 8 + 8 + 4 + 3 = 30

@@ -187,6 +187,72 @@ class LiveTapeMessage(BaseModel):
     event: TapeEventIn
 
 
+class WallSnapshotOut(BaseModel):
+    episode_id: str
+    price: float
+    side: str
+    size: int
+    max_size: int
+    age_sec: float
+    intent: str
+    intent_confidence: float
+    state: str
+    interaction: str | None = None
+    interaction_confidence: float | None = None
+
+
+class LiveDepthradarMessage(BaseModel):
+    type: Literal["depthradar"] = "depthradar"
+    walls: list[WallSnapshotOut]
+    episode_count: int
+
+
+class DepthradarEpisodeOut(BaseModel):
+    episode_id: str
+    session_date: str
+    side: str
+    price: float
+    first_seen: str
+    retirement_time: str | None = None
+    intent_label: str | None = None
+    final_state: str | None = None
+    max_size: int | None = None
+    duration_sec: float | None = None
+    touch_count: int | None = None
+
+
+class LiveBiasMessage(BaseModel):
+    """Backend → client: synthesized PO3 daily bias update.
+
+    Fired after each TradingView webhook is processed — carries the full
+    bias score breakdown including PO3 pts, news sentiment, and AI reasoning.
+    """
+    type: Literal["bias"] = "bias"
+    direction: str                      # BiasDirection.value
+    score: float                        # -100 to +100
+    confidence: float                   # 0.0 to 1.0
+    bull_pts: int                       # 0-6 from PO3 scoring
+    bear_pts: int                       # 0-6 from PO3 scoring
+    phase: str                          # PO3Phase.value
+    judas_status: str                   # JudasStatus.value
+    technical_score: float = 0.0
+    news_score: float = 0.0
+    ai_score: float = 0.0
+    ai_reasoning: str = ""
+    ai_key_triggers: str = ""
+    macro_blackout: bool = False
+    divergence_warning: str = ""
+    ts: float                           # epoch seconds
+
+
 #: Discriminated union of all live message types.
 #: Client dispatches on the ``type`` field.
-LiveMessage = Union[LiveBarMessage, LiveSignalMessage, LiveScoreMessage, LiveStatusMessage, LiveTapeMessage]
+LiveMessage = Union[
+    LiveBarMessage,
+    LiveSignalMessage,
+    LiveScoreMessage,
+    LiveStatusMessage,
+    LiveTapeMessage,
+    LiveDepthradarMessage,
+    LiveBiasMessage,
+]

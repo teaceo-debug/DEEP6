@@ -1,0 +1,54 @@
+{
+  "name": "DELT_06_trapped_momentum_reversal",
+  "description": "Large delta bar followed by price reversal. Prior bar had +600 delta and closed high, current bar reverses — momentum trapped.",
+  "bar": {
+    "open": 21520.0,
+    "high": 21522.0,
+    "low": 21502.0,
+    "close": 21505.0,
+    "delta": -300,
+    "total_volume": 2800,
+    "bid_volumes": {
+      "21502.0": 250,
+      "21505.0": 350,
+      "21508.0": 300,
+      "21510.0": 250,
+      "21515.0": 200,
+      "21520.0": 180
+    },
+    "ask_volumes": {
+      "21505.0": 100,
+      "21508.0": 150,
+      "21510.0": 120,
+      "21515.0": 100,
+      "21518.0": 80,
+      "21520.0": 120,
+      "21522.0": 80
+    },
+    "poc_price": 21505.0,
+    "poc_volume": 450,
+    "vah": 21515.0,
+    "val": 21504.0,
+    "cvd": 300.0,
+    "bar_index": 78,
+    "timestamp": "2026-05-13T11:03:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 300.0,
+    "vah": 21515.0,
+    "val": 21504.0,
+    "poc": 21505.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "bar_history_deltas": [200, 400, 600, -300],
+    "bar_history_closes": [21505.0, 21510.0, 21520.0, 21505.0]
+  },
+  "expected_signal": {
+    "signal_id": "DELT_06",
+    "direction": "BEARISH",
+    "strength_min": 0.35,
+    "strength_max": 0.55
+  }
+}

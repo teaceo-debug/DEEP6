@@ -1,0 +1,3 @@
+PASS: clamp_config clamped stop_ticks to 100
+Command: pytest tests_v2/backtest/test_param_bounds.py -q
+Result: 4 passed

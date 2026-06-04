@@ -1,0 +1,8 @@
+Command:
+python -m deep6.backtest.variant_evaluator --data data/backtests/nq_3mo_1m.csv --variant ABS_01 --bars-forward 10
+
+CLI stdout:
+{"variant":"ABS_01","bars_forward":10,"data":"data/backtests/nq_3mo_1m.csv","db_path":"data/backtests/v8_variant_audit.duckdb","is_hit_rate":0.976893,"oos_hit_rate":0.971918,"rr":1.153691,"pf":1.965806,"n_is":28693,"n_oos":13710,"verdict":"INCONCLUSIVE","signals_written":42403}
+
+DuckDB verification:
+{"variant_row":["ABS_01",0.976893,0.971918,1.153691,1.965806,28693,13710,"INCONCLUSIVE"],"signal_count":42403,"sample_signal":["2026-01-02T00:03:00+00:00","ABS_01","SHORT",25490.75,0.777778,2.888889,-5.444444]}

@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DEEP6 Footprint — Example 4: Professional Signal Display</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #0F1120;
+  color: #C0CEEA;
+  font-family: 'Consolas', 'Courier New', monospace;
+  padding: 28px;
+}
+
+.page-title { color: #E0E8FF; font-size: 13px; font-weight: bold; margin-bottom: 3px; }
+.page-sub { color: #2A3460; font-size: 10px; margin-bottom: 26px; letter-spacing: 1px; }
+
+/* ── Chart shell ── */
+.fp-chart {
+  display: inline-flex;
+  flex-direction: column;
+  background: #131722;
+  border: 1px solid #1E2440;
+  border-radius: 5px;
+  overflow: visible;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.6);
+}
+
+/* ── Top bar ── */
+.topbar {
+  background: #0D1020;
+  border-bottom: 2px solid #1E2440;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  font-size: 10px;
+  gap: 0;
+  border-radius: 5px 5px 0 0;
+}
+.tb-sep { color: #1E2440; margin: 0 10px; }
+
+/* ── Chart body ── */
+.chart-body { display: flex; }
+
+/* ── Price scale ── */
+.ps {
+  display: flex;
+  flex-direction: column;
+  min-width: 64px;
+  background: #0D1020;
+  border-right: 2px solid #1E2440;
+  flex-shrink: 0;
+}
+.ps-sig-head {
+  height: 52px;
+  border-bottom: 1px solid #1E2440;
+  display: flex;
+  align-items: flex-end;
+  padding: 5px 8px;
+}
+.ps-sig-label { font-size: 8px; color: #252D50; text-transform: uppercase; letter-spacing: 1.5px; }
+.ps-cell {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 8px;
+  font-size: 9px;
+  color: #252D50;
+  border-bottom: 1px solid #0D1020;
+  white-space: nowrap;
+}
+.ps-cell.is-vwap { color: #3A8ECC; border-bottom: 1px solid rgba(58, 142, 204, 0.4); }
+.ps-cell.is-va   { color: #2A4480; }
+.ps-cell.is-ibhi, .ps-cell.is-iblo { color: #4A3A80; }
+.ps-foot { height: 60px; border-top: 1px solid #1E2440; background: #0D1020; }
+
+/* ── Bar column ── */
+.bar-col {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #181D30;
+  position: relative;
+  min-width: 96px;
+}
+.bar-col:last-child { border-right: none; }
+
+/* tier stripe — left 3px */
+.tier-stripe {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  z-index: 5;
+}
+
+/* ── Signal band ── */
+.sig-band {
+  height: 52px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 10px 0 12px;
+  border-bottom: 1px solid #1E2440;
+  gap: 3px;
+}
+.sig-band.sa { background: rgba(0, 170, 75, 0.10); border-bottom-color: rgba(0, 170, 75, 0.22); }
+.sig-band.sb { background: rgba(40, 100, 220, 0.10); border-bottom-color: rgba(40, 100, 220, 0.22); }
+.sig-name { font-size: 10px; font-weight: bold; line-height: 1; }
+.sig-name.sa { color: #22DD77; }
+.sig-name.sb { color: #4A8FFF; }
+.sig-name.sn { color: #252D50; font-weight: normal; }
+.sig-row2 { display: flex; align-items: center; gap: 7px; }
+.sig-score { font-size: 9px; color: #8899BB; }
+.sig-time  { font-size: 8px; color: #252D50; }
+.conf-track { width: 60px; height: 3px; background: #1E2440; border-radius: 1.5px; overflow: hidden; }
+.conf-fill  { height: 100%; border-radius: 1.5px; }
+
+/* ── Footprint cells ── */
+.fp-cell {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  border-bottom: 1px solid rgba(10, 12, 22, 0.85);
+  position: relative;
+  overflow: hidden;
+}
+/* POC — gold accent */
+.fp-cell.is-poc {
+  background-color: rgba(255, 185, 0, 0.10) !important;
+  border-bottom: 1.5px solid rgba(255, 185, 0, 0.65) !important;
+}
+/* VWAP row */
+.fp-cell.is-vwap {
+  border-bottom: 1px solid rgba(58, 142, 204, 0.35) !important;
+}
+/* Value area — subtle tint */
+.fp-cell.is-va { background-color: rgba(50, 70, 140, 0.06); }
+/* Absorption — glowing emerald */
+.fp-cell.is-abs {
+  background: rgba(0, 210, 90, 0.22) !important;
+  border: 1px solid rgba(0, 210, 90, 0.50) !important;
+  box-shadow: inset 0 0 8px rgba(0, 210, 90, 0.15);
+  z-index: 2;
+}
+/* Stacked zone borders */
+.fp-cell.sz-ask-top    { border-top: 1.5px solid rgba(34, 200, 100, 0.55) !important; }
+.fp-cell.sz-ask-bot    { border-bottom: 1.5px solid rgba(34, 200, 100, 0.55) !important; }
+.fp-cell.sz-ask-side   { border-left: 2px solid rgba(34, 200, 100, 0.55) !important; background-color: rgba(22, 180, 80, 0.06); }
+.fp-cell.sz-bid-top    { border-top: 1.5px solid rgba(220, 45, 55, 0.55) !important; }
+.fp-cell.sz-bid-bot    { border-bottom: 1.5px solid rgba(220, 45, 55, 0.55) !important; }
+.fp-cell.sz-bid-side   { border-right: 2px solid rgba(220, 45, 55, 0.55) !important; background-color: rgba(200, 35, 45, 0.06); }
+
+/* Numbers */
+.bv, .av {
+  font-size: 9px;
+  min-width: 24px;
+  line-height: 1;
+}
+.bv { text-align: right; padding-right: 2px; }
+.av { text-align: left;  padding-left:  2px; }
+
+/* Separator between bid/ask */
+.cell-sep { font-size: 7px; color: #252D50; flex-shrink: 0; margin: 0 1px; }
+
+/* Imbalance arrows */
+.imb-ask { position: absolute; right: 4px; font-size: 8px; color: #22CC66; }
+.imb-bid { position: absolute; left:  4px; font-size: 8px; color: #DD3344; }
+
+/* Absorption dot center */
+.abs-dot {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: rgba(0, 230, 90, 0.95);
+  line-height: 1;
+  pointer-events: none;
+}
+
+/* Stacked zone label */
+.sz-label {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 7px;
+  letter-spacing: 0.5px;
+  font-weight: bold;
+  pointer-events: none;
+}
+.sz-label.ask { color: rgba(34, 200, 100, 0.7); }
+.sz-label.bid { color: rgba(220, 45, 55, 0.7); }
+
+/* ── Bar footer ── */
+.bar-foot {
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid #1E2440;
+  background: #0D1020;
+}
+.delta-zone {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid #181D30;
+}
+.dbar {
+  position: absolute;
+  top: 5px; bottom: 5px;
+  border-radius: 2px;
+}
+.dbar.pos { left: 50%; }
+.dbar.neg { right: 50%; }
+.dnum { position: relative; z-index: 1; font-size: 9px; font-weight: bold; }
+.dnum.pos { color: #22CC66; }
+.dnum.neg { color: #EE3344; }
+.cvd-zone {
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+.cvd-lbl { font-size: 7px; color: #252D50; text-transform: uppercase; letter-spacing: 1px; }
+.cvd-val { font-size: 9px; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<p class="page-title">DEEP6 Footprint</p>
+<p class="page-sub">EXAMPLE 4 — PROFESSIONAL SIGNAL DISPLAY · NQ Futures 5-Minute · CME 14:00–14:30</p>
+
+<div id="chart-container"></div>
+
+<div style="margin-top:18px;display:flex;gap:22px;flex-wrap:wrap;font-size:10px;color:#252D50">
+  <span><span style="color:#22DD77;font-weight:bold">◆ TYPE_A</span> — Absorption reversal</span>
+  <span><span style="color:#4A8FFF;font-weight:bold">◈ TYPE_B</span> — Exhaustion reversal</span>
+  <span><span style="color:rgba(0,230,90,0.95)">◉</span> — Absorption cell (DEEP6 detected)</span>
+  <span><span style="color:#22CC66">▶</span> Ask imbalance 3:1+</span>
+  <span><span style="color:#DD3344">◀</span> Bid imbalance 3:1+</span>
+  <span style="border-left:2px solid rgba(34,200,100,0.6);padding-left:5px">Stacked buy zone</span>
+  <span style="border-right:2px solid rgba(220,45,55,0.6);padding-right:5px">Stacked sell zone</span>
+  <span style="border-bottom:1.5px solid rgba(255,185,0,0.65);padding-bottom:2px">POC</span>
+</div>
+
+<script>
+const PRICES = [20010,20009,20008,20007,20006,20005,20004,20003,20002,20001,20000,19999,19998];
+const VWAP    = 20003;
+const VA_HI   = 20008;
+const VA_LO   = 20001;
+const IB_HI   = 20008;
+const IB_LO   = 19999;
+const IMB_THR = 2.8;
+
+// absorb: price index where absorption was detected
+const BARS = [
+  { time:"14:00", tier:"N", score:14, delta:-654, cvd:-654,  poc:20007, sig:null,             absorb:null,
+    cells:[[8,3],[24,8],[46,13],[78,24],[56,18],[38,14],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]] },
+  { time:"14:05", tier:"N", score:21, delta:-481, cvd:-1135, poc:20004, sig:null,             absorb:null,
+    cells:[[0,0],[5,2],[14,5],[22,8],[35,12],[48,16],[58,20],[42,15],[28,10],[0,0],[0,0],[0,0],[0,0]] },
+  { time:"14:10", tier:"N", score:38, delta:-186, cvd:-1321, poc:20001, sig:"SETUP",          absorb:9,
+    cells:[[0,0],[0,0],[0,0],[4,2],[10,4],[22,9],[36,15],[45,21],[52,26],[68,40],[30,24],[12,10],[4,3]] },
+  { time:"14:15", tier:"A", score:84, delta:+529, cvd:-792,  poc:20003, sig:"◆ TYPE_A LONG", absorb:10,
+    cells:[[0,0],[0,0],[0,0],[0,0],[6,14],[10,30],[14,44],[18,58],[22,72],[28,48],[38,30],[20,14],[8,5]] },
+  { time:"14:20", tier:"A", score:91, delta:+718, cvd:-74,   poc:20005, sig:"◆ CONFIRM",     absorb:null,
+    cells:[[0,0],[0,0],[5,18],[8,35],[12,52],[18,68],[22,48],[10,24],[0,0],[0,0],[0,0],[0,0],[0,0]] },
+  { time:"14:25", tier:"B", score:77, delta:+538, cvd:+464,  poc:20007, sig:"◈ TYPE_B LONG", absorb:null,
+    cells:[[5,22],[8,38],[12,55],[15,68],[18,42],[8,20],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]] },
+  { time:"14:30", tier:"N", score:44, delta:-148, cvd:+316,  poc:20009, sig:null,             absorb:null,
+    cells:[[18,22],[32,30],[28,24],[38,18],[22,12],[8,5],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]] }
+];
+
+let GM = 0;
+for (const b of BARS) for (const [bv,av] of b.cells) GM = Math.max(GM, bv + av);
+
+function cellBg(bid, ask) {
+  const tot = bid + ask;
+  if (!tot) return null;
+  const raw = tot / GM;
+  if (ask > bid) {
+    const dom = ask / tot;
+    const a = 0.09 + dom * raw * 0.55;
+    const bright = (ask > 0 && bid > 0 && ask / bid >= IMB_THR);
+    return `rgba(22,165,72,${bright ? a + 0.18 : a})`;
+  }
+  if (bid > ask) {
+    const dom = bid / tot;
+    const a = 0.09 + dom * raw * 0.55;
+    const bright = (bid > 0 && ask > 0 && bid / ask >= IMB_THR);
+    return `rgba(200,38,50,${bright ? a + 0.18 : a})`;
+  }
+  return `rgba(80,90,130,${0.05 + raw * 0.08})`;
+}
+
+function isAskImb(bid, ask) { return ask > bid && (bid === 0 ? ask > 4 : ask / bid >= IMB_THR); }
+function isBidImb(bid, ask) { return bid > ask && (ask === 0 ? bid > 4 : bid / ask >= IMB_THR); }
+
+function stackedZones(cells) {
+  const out = []; // {start, end, type}
+  let run = null;
+  for (let i = 0; i < cells.length; i++) {
+    const [b, a] = cells[i];
+    const ai = isAskImb(b, a), bi = isBidImb(b, a);
+    const type = ai ? 'ask' : bi ? 'bid' : null;
+    if (type && run && run.type === type) {
+      run.end = i;
+    } else {
+      if (run && run.end - run.start >= 2) out.push(run);
+      run = type ? {start: i, end: i, type} : null;
+    }
+  }
+  if (run && run.end - run.start >= 2) out.push(run);
+  return out;
+}
+
+function nColor(v) { return v ? '#C0CEEA' : '#1E2440'; }
+function boldW(v, tot) { return (v / (tot || 1) > 0.55 && v > 8) ? 'bold' : 'normal'; }
+function fmtD(d) { return (d > 0 ? '+' : '') + d.toLocaleString(); }
+
+function tierCol(t) {
+  return t === 'A' ? '#22DD77' : t === 'B' ? '#4A8FFF' : '#1E2440';
+}
+function confGrad(score, tier) {
+  const w = score + '%';
+  if (tier === 'A') return `width:${w};background:linear-gradient(90deg,#00AA55,#22FF88)`;
+  if (tier === 'B') return `width:${w};background:linear-gradient(90deg,#2255CC,#4499FF)`;
+  return `width:${w};background:#252D50`;
+}
+
+function build() {
+  let h = '<div class="fp-chart">';
+
+  // ── topbar ──
+  h += `<div class="topbar">
+    <span style="color:#E0E8FF;font-weight:bold;font-size:12px;margin-right:14px">NQ&nbsp;12-26</span>
+    <span style="color:#4A8FFF">5m&nbsp;&nbsp;Footprint</span>
+    <span class="tb-sep">|</span>
+    <span style="color:#3A8ECC">VWAP&nbsp;20,003.50</span>
+    <span class="tb-sep">|</span>
+    <span style="color:#2A4480">VA&nbsp;20,001&ndash;20,008</span>
+    <span class="tb-sep">|</span>
+    <span style="color:#4A3A80">IB&nbsp;19,999&ndash;20,008</span>
+    <span class="tb-sep">|</span>
+    <span style="color:#22DD77;font-weight:bold">◆ TYPE_A LONG &nbsp;84</span>
+  </div>`;
+
+  h += '<div class="chart-body">';
+
+  // ── price scale ──
+  h += '<div class="ps"><div class="ps-sig-head"><span class="ps-sig-label">Signal</span></div>';
+  for (let i = 0; i < PRICES.length; i++) {
+    const p = PRICES[i];
+    let cls = 'ps-cell';
+    let lbl = p.toLocaleString();
+    if (p === VWAP)   { cls += ' is-vwap'; lbl = '◆ ' + lbl; }
+    else if (p === IB_HI) { cls += ' is-ibhi'; lbl = '▲ ' + lbl; }
+    else if (p === IB_LO) { cls += ' is-iblo'; lbl = '▼ ' + lbl; }
+    else if (p >= VA_LO && p <= VA_HI) cls += ' is-va';
+    h += `<div class="${cls}">${lbl}</div>`;
+  }
+  h += '<div class="ps-foot"></div></div>';
+
+  // ── bar columns ──
+  for (const bar of BARS) {
+    const zones = stackedZones(bar.cells);
+    // build a per-cell zone tag map
+    const zoneTag = new Array(PRICES.length).fill(null);
+    for (const z of zones) {
+      for (let i = z.start; i <= z.end; i++) {
+        zoneTag[i] = { type: z.type, isFirst: i === z.start, isLast: i === z.end };
+      }
+    }
+
+    h += '<div class="bar-col">';
+
+    // tier stripe
+    h += `<div class="tier-stripe" style="background:${tierCol(bar.tier)}55"></div>`;
+
+    // signal band
+    const sbCls = bar.tier === 'A' ? ' sa' : bar.tier === 'B' ? ' sb' : '';
+    const snCls = bar.tier === 'A' ? ' sa' : bar.tier === 'B' ? ' sb' : ' sn';
+    const sigText = bar.sig || '&mdash;';
+    h += `<div class="sig-band${sbCls}" style="border-left:3px solid ${tierCol(bar.tier)}">
+      <div class="sig-name${snCls}">${sigText}</div>
+      <div class="sig-row2">
+        <span class="sig-score">Score&nbsp;${bar.score}</span>
+        <span class="sig-time">${bar.time}</span>
+      </div>
+      <div class="conf-track"><div class="conf-fill" style="${confGrad(bar.score, bar.tier)}"></div></div>
+    </div>`;
+
+    // cells
+    for (let i = 0; i < PRICES.length; i++) {
+      const p = PRICES[i];
+      const [bid, ask] = bar.cells[i];
+      const tot = bid + ask;
+      const isPoc  = p === bar.poc;
+      const isVwap = p === VWAP;
+      const inVA   = p >= VA_LO && p <= VA_HI;
+      const isAbs  = bar.absorb === i;
+      const ai     = isAskImb(bid, ask);
+      const bi     = isBidImb(bid, ask);
+      const zt     = zoneTag[i];
+
+      let cls = 'fp-cell';
+      if (isPoc)  cls += ' is-poc';
+      if (isVwap) cls += ' is-vwap';
+      if (inVA)   cls += ' is-va';
+      if (isAbs)  cls += ' is-abs';
+      if (zt) {
+        cls += ` sz-${zt.type}-side`;
+        if (zt.isFirst) cls += ` sz-${zt.type}-top`;
+        if (zt.isLast)  cls += ` sz-${zt.type}-bot`;
+      }
+
+      const bg = (!isAbs && cellBg(bid, ask)) ? `background:${cellBg(bid, ask)};` : '';
+
+      const bStr = bid || '';
+      const aStr = ask || '';
+      const bW   = boldW(bid, tot);
+      const aW   = boldW(ask, tot);
+
+      let inner = '';
+      if (bi) inner += '<span class="imb-bid">◀</span>';
+      inner += `<span class="bv" style="color:${nColor(bid)};font-weight:${bW}">${bStr}</span>`;
+      inner += `<span class="cell-sep">·</span>`;
+      if (isAbs) inner += '<span class="abs-dot">◉</span>';
+      inner += `<span class="av" style="color:${nColor(ask)};font-weight:${aW}">${aStr}</span>`;
+      if (ai) inner += '<span class="imb-ask">▶</span>';
+      // stacked zone label on first cell
+      if (zt && zt.isFirst) {
+        inner += `<span class="sz-label ${zt.type}">STACK</span>`;
+      }
+
+      h += `<div class="${cls}" style="${bg}">${inner}</div>`;
+    }
+
+    // footer
+    const dPos = bar.delta > 0;
+    const dW   = Math.min(44, Math.abs(bar.delta) / 17);
+    const dFill = dPos
+      ? `left:50%;background:linear-gradient(90deg,rgba(34,200,100,0.25),rgba(34,200,100,0.5))`
+      : `right:50%;background:linear-gradient(270deg,rgba(210,40,50,0.25),rgba(210,40,50,0.5))`;
+    const cvdPos = bar.cvd >= 0;
+
+    h += `<div class="bar-foot">
+      <div class="delta-zone">
+        <div class="dbar ${dPos?'pos':'neg'}" style="${dFill};width:${dW}%"></div>
+        <span class="dnum ${dPos?'pos':'neg'}">${fmtD(bar.delta)}</span>
+      </div>
+      <div class="cvd-zone">
+        <span class="cvd-lbl">CVD</span>
+        <span class="cvd-val" style="color:${cvdPos?'#22CC66':'#EE3344'}">${fmtD(bar.cvd)}</span>
+      </div>
+    </div>`;
+
+    h += '</div>'; // bar-col
+  }
+
+  h += '</div>'; // chart-body
+  h += '</div>'; // fp-chart
+  return h;
+}
+
+document.getElementById('chart-container').innerHTML = build();
+</script>
+</body>
+</html>

@@ -57,6 +57,9 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Scoring
             /// <summary>R1: Bar timestamp falls within the time-of-day blackout window (e.g. 1530–1600 ET).</summary>
             BlackoutVeto,
 
+            /// <summary>Trend context: scored direction opposes session EMA slope — entry suppressed.</summary>
+            TrendContextVeto,
+
             /// <summary>All gates passed — caller may proceed to risk gates.</summary>
             Passed
         }
@@ -130,6 +133,8 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Scoring
         /// <param name="blackoutWindowStart">R1: start of time-of-day blackout as HHMM int (e.g. 1530). 0 = disabled.</param>
         /// <param name="blackoutWindowEnd">R1: end of time-of-day blackout as HHMM int (e.g. 1600). Inclusive.</param>
         /// <param name="barTimeHHMM">R1: current bar time as HHMM int derived from session open + barsSinceOpen. 0 = skip check.</param>
+        /// <param name="trendContextEnabled">When true, veto entries where scored direction opposes sessionTrendDirection.</param>
+        /// <param name="sessionTrendDirection">+1 uptrend, -1 downtrend, 0 unknown. Derived from EMA slope by caller.</param>
         public static GateOutcome EvaluateWithContext(
             ScorerResult     scored,
             double           scoreThreshold,
@@ -144,7 +149,9 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Scoring
             SignalResult[]   signals                 = null,
             int              blackoutWindowStart     = 0,
             int              blackoutWindowEnd       = 0,
-            int              barTimeHHMM             = 0)
+            int              barTimeHHMM             = 0,
+            bool             trendContextEnabled     = false,
+            int              sessionTrendDirection   = 0)
         {
             if (scored == null)
                 return GateOutcome.NoScore;
@@ -187,6 +194,13 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Scoring
             {
                 if (barTimeHHMM >= blackoutWindowStart && barTimeHHMM <= blackoutWindowEnd)
                     return GateOutcome.BlackoutVeto;
+            }
+
+            // Trend context veto: block entries where scored direction opposes the session EMA slope.
+            if (trendContextEnabled && sessionTrendDirection != 0 && scored.Direction != 0)
+            {
+                if (scored.Direction != sessionTrendDirection)
+                    return GateOutcome.TrendContextVeto;
             }
 
             return GateOutcome.Passed;

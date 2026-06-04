@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DEEP6 Footprint — Example 3: Heat Intensity</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #08091A;
+  color: #B0BEDC;
+  font-family: 'Consolas', 'Courier New', monospace;
+  padding: 28px;
+  min-height: 100vh;
+}
+
+.page-title { color: #3366FF; font-size: 12px; letter-spacing: 5px; text-transform: uppercase; margin-bottom: 3px; }
+.page-sub { color: #1E2850; font-size: 10px; margin-bottom: 28px; letter-spacing: 1px; }
+
+/* ── Chart shell ── */
+.fp-chart {
+  display: inline-flex;
+  flex-direction: column;
+  background: #090B1E;
+  border: 1px solid #141A3C;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 0 48px rgba(20, 60, 200, 0.12), 0 2px 20px rgba(0,0,0,0.5);
+}
+
+/* ── Top bar ── */
+.topbar {
+  background: #0C1028;
+  border-bottom: 1px solid #141A3C;
+  padding: 7px 14px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  font-size: 10px;
+}
+.tb-sym { color: #E0E8FF; font-weight: bold; font-size: 12px; margin-right: 10px; }
+.tb-tag { color: #2244AA; margin-right: 6px; }
+.tb-sep { color: #141A3C; margin: 0 10px; }
+.tb-vwap { color: #44CCFF; }
+.tb-vol { color: #223060; }
+.tb-score { color: #FFD040; }
+.tb-sig { color: #00CC66; }
+
+/* ── Body ── */
+.body-row { display: flex; }
+
+/* ── Price scale ── */
+.ps {
+  display: flex;
+  flex-direction: column;
+  min-width: 58px;
+  background: #0C1028;
+  border-right: 2px solid #141A3C;
+  flex-shrink: 0;
+}
+.ps-head { height: 40px; border-bottom: 1px solid #141A3C; }
+.ps-cell {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 7px;
+  font-size: 9px;
+  color: #1E2850;
+  border-bottom: 1px solid #0B0D20;
+  white-space: nowrap;
+}
+.ps-cell.is-vwap  { color: #44CCFF; border-bottom-color: rgba(68, 204, 255, 0.35); }
+.ps-cell.is-ib    { color: #8855FF; }
+.ps-foot { height: 46px; border-top: 1px solid #141A3C; }
+
+/* ── Bar column ── */
+.bar-col {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #0B0D20;
+  flex-shrink: 0;
+}
+.bar-col:last-child { border-right: none; }
+
+/* ── Bar header ── */
+.bh {
+  height: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #0C1028;
+  border-bottom: 1px solid #141A3C;
+  gap: 3px;
+}
+.bh-time { font-size: 8px; color: #1E2850; }
+.bh-badge {
+  font-size: 8px;
+  font-weight: bold;
+  padding: 1px 5px;
+  border-radius: 2px;
+  letter-spacing: 0.5px;
+}
+.badge-A { background: rgba(0, 200, 100, 0.18); color: #00E080; border: 1px solid rgba(0, 200, 100, 0.4); }
+.badge-B { background: rgba(60, 130, 255, 0.18); color: #5599FF; border: 1px solid rgba(60, 130, 255, 0.4); }
+.badge-N { background: transparent; color: #1E2850; border: 1px solid #141A3C; }
+
+/* ── Footprint cell ── */
+.fp-cell {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5px;
+  border-bottom: 1px solid rgba(11, 13, 32, 0.9);
+  min-width: 82px;
+  position: relative;
+}
+.fp-cell.is-poc  { border-bottom: 1px solid rgba(255, 210, 40, 0.6) !important; }
+.fp-cell.is-vwap { border-bottom: 1px solid rgba(68, 204, 255, 0.3) !important; }
+
+.bv, .av { font-size: 9px; min-width: 22px; }
+.bv { text-align: right; }
+.av { text-align: left; }
+
+/* ── Bottom section (delta + score bar) ── */
+.bar-foot {
+  height: 46px;
+  display: flex;
+  flex-direction: column;
+  background: #08091A;
+  border-top: 1px solid #141A3C;
+  overflow: hidden;
+}
+.delta-row {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+.delta-fill {
+  position: absolute;
+  top: 3px; bottom: 3px;
+  border-radius: 2px;
+}
+.delta-fill.pos { left: 50%; }
+.delta-fill.neg { right: 50%; }
+.delta-num {
+  position: relative;
+  z-index: 1;
+  font-size: 9px;
+  font-weight: bold;
+}
+.delta-num.pos { color: #00CC66; }
+.delta-num.neg { color: #FF3322; }
+.score-strip { height: 5px; width: 100%; margin-top: 0; }
+.conf-row {
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.conf-num { font-size: 8px; }
+
+/* ── Annotations ── */
+.ann-row {
+  display: flex;
+  margin-top: 14px;
+  padding-left: 60px;
+}
+.ann-col {
+  min-width: 82px;
+  flex: 0 0 82px;
+  padding: 0 4px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.ann-col .arrow { font-size: 13px; line-height: 1; }
+.ann-col .label { font-size: 8px; color: #1E2850; line-height: 1.3; }
+.ann-col .label.sig { color: #FFD040; }
+.ann-col .label.confirm { color: #00CC66; }
+.ann-col .label.warn { color: #FF6644; }
+
+/* ── Legend ── */
+.legend {
+  margin-top: 20px;
+  display: flex;
+  gap: 22px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.leg { display: flex; align-items: center; gap: 6px; font-size: 10px; color: #1E2850; }
+.leg-b { width: 18px; height: 10px; border-radius: 1px; }
+.leg-l { width: 22px; height: 2px; border-radius: 1px; }
+
+/* ── Design note ── */
+.design-note {
+  margin-top: 28px;
+  padding: 12px 16px;
+  background: #0A0C20;
+  border: 1px solid #141A3C;
+  border-radius: 4px;
+  font-size: 10px;
+  color: #1E2850;
+  max-width: 740px;
+  line-height: 1.7;
+}
+.design-note strong { color: #3366FF; }
+</style>
+</head>
+<body>
+
+<p class="page-title">DEEP6 Footprint</p>
+<p class="page-sub">EXAMPLE 3 &mdash; BOOKMAP HEAT INTENSITY &bull; NQ Futures 5-Minute &bull; CME 14:00&ndash;14:35</p>
+
+<div id="chart-container"></div>
+<div class="ann-row" id="annotations"></div>
+
+<div class="legend">
+  <div class="leg"><div class="leg-b" style="background:rgba(0,190,255,0.65)"></div>Ask dominant (buyers)</div>
+  <div class="leg"><div class="leg-b" style="background:rgba(255,70,0,0.65)"></div>Bid dominant (sellers)</div>
+  <div class="leg"><div class="leg-b" style="background:rgba(60,60,120,0.35)"></div>Balanced / low volume</div>
+  <div class="leg"><div class="leg-l" style="background:#FFD040"></div>Point of Control (POC)</div>
+  <div class="leg"><div class="leg-l" style="background:#44CCFF"></div>VWAP level</div>
+  <div class="leg" style="color:#00E080">◆ TYPE_A signal</div>
+  <div class="leg" style="color:#5599FF">◈ TYPE_B signal</div>
+</div>
+
+<div class="design-note">
+  <strong>Heat Intensity design principle:</strong> Cell brightness encodes volume. A near-transparent cell = barely traded. A glowing cell = heavy activity.
+  Color indicates side: <span style="color:#44AAFF">cyan-blue = net buying (ask aggression)</span> / <span style="color:#FF6633">red-orange = net selling (bid aggression)</span>.
+  Brightness = total volume at that level × dominance ratio. Same data as ATAS Classic — radically different read.
+</div>
+
+<script>
+const PRICES = [20010, 20009, 20008, 20007, 20006, 20005, 20004, 20003, 20002, 20001, 20000, 19999, 19998];
+const VWAP_PRICE = 20003;
+const IB_HI = 20008;
+const IB_LO = 19999;
+
+// Each cell: [bid_vol, ask_vol]. Index 0 = top price (20010), index 12 = bottom (19998)
+const BARS = [
+  {
+    time: "14:00", score: 14, tier: "N", delta: -654, poc: 20007,
+    annArrow: "", annLabel: "Bearish distribution", annCls: "",
+    cells: [
+      [8,   3],   // 20010
+      [24,  8],   // 20009
+      [46, 13],   // 20008  IB Hi
+      [78, 24],   // 20007  POC
+      [56, 18],   // 20006
+      [38, 14],   // 20005
+      [ 0,  0],   // 20004
+      [ 0,  0],   // 20003  VWAP
+      [ 0,  0],   // 20002
+      [ 0,  0],   // 20001
+      [ 0,  0],   // 20000
+      [ 0,  0],   // 19999  IB Lo
+      [ 0,  0],   // 19998
+    ]
+  },
+  {
+    time: "14:05", score: 21, tier: "N", delta: -481, poc: 20004,
+    annArrow: "", annLabel: "Continuation — bids dominate", annCls: "",
+    cells: [
+      [ 0,  0],
+      [ 5,  2],
+      [14,  5],
+      [22,  8],
+      [35, 12],
+      [48, 16],
+      [58, 20],   // 20004  POC
+      [42, 15],   // 20003  VWAP
+      [28, 10],
+      [ 0,  0],
+      [ 0,  0],
+      [ 0,  0],
+      [ 0,  0],
+    ]
+  },
+  {
+    time: "14:10", score: 38, tier: "N", delta: -186, poc: 20001,
+    annArrow: "", annLabel: "Selling exhaustion", annCls: "",
+    cells: [
+      [ 0,  0],
+      [ 0,  0],
+      [ 0,  0],
+      [ 4,  2],
+      [10,  4],
+      [22,  9],
+      [36, 15],
+      [45, 21],   // VWAP
+      [52, 26],
+      [68, 40],   // 20001 POC — absorption begins
+      [30, 24],   // 20000 key level
+      [12, 10],   // IB Lo
+      [ 4,  3],
+    ]
+  },
+  {
+    time: "14:15", score: 84, tier: "A", delta: +529, poc: 20003,
+    annArrow: "▲", annLabel: "◆ TYPE_A — Absorption at 20,000", annCls: "sig",
+    cells: [
+      [ 0,  0],
+      [ 0,  0],
+      [ 0,  0],
+      [ 0,  0],
+      [ 6, 14],
+      [10, 30],
+      [14, 44],
+      [18, 58],   // 20003 POC  VWAP
+      [22, 72],   // 20002 — heavy ask absorption
+      [28, 48],   // 20001
+      [38, 30],   // 20000 — ASK > BID at low = absorption confirmed
+      [20, 14],
+      [ 8,  5],
+    ]
+  },
+  {
+    time: "14:20", score: 91, tier: "A", delta: +718, poc: 20005,
+    annArrow: "▲", annLabel: "◆ Confirmation — ask pressure", annCls: "confirm",
+    cells: [
+      [ 0,  0],
+      [ 0,  0],
+      [ 5, 18],
+      [ 8, 35],
+      [12, 52],
+      [18, 68],   // 20005 POC
+      [22, 48],
+      [10, 24],   // VWAP
+      [ 0,  0],
+      [ 0,  0],
+      [ 0,  0],
+      [ 0,  0],
+      [ 0,  0],
+    ]
+  },
+  {
+    time: "14:25", score: 77, tier: "B", delta: +538, poc: 20007,
+    annArrow: "▲", annLabel: "◈ Follow-through bullish", annCls: "confirm",
+    cells: [
+      [ 5, 22],
+      [ 8, 38],
+      [12, 55],   // IB Hi
+      [15, 68],   // 20007 POC
+      [18, 42],
+      [ 8, 20],
+      [ 0,  0],
+      [ 0,  0],   // VWAP — below open
+      [ 0,  0],
+      [ 0,  0],
+      [ 0,  0],
+      [ 0,  0],
+      [ 0,  0],
+    ]
+  },
+  {
+    time: "14:30", score: 60, tier: "B", delta: +312, poc: 20009,
+    annArrow: "▲", annLabel: "Continued — higher lows", annCls: "",
+    cells: [
+      [ 8, 28],
+      [12, 48],   // 20009 POC
+      [18, 35],   // IB Hi
+      [22, 24],
+      [10, 14],
+      [ 0,  0],
+      [ 0,  0],
+      [ 0,  0],
+      [ 0,  0],
+      [ 0,  0],
+      [ 0,  0],
+      [ 0,  0],
+      [ 0,  0],
+    ]
+  },
+  {
+    time: "14:35", score: 44, tier: "N", delta: -148, poc: 20009,
+    annArrow: "↕", annLabel: "Distribution hint — bids return", annCls: "warn",
+    cells: [
+      [18, 22],   // 20010 — bids appearing at top
+      [32, 30],   // 20009 POC — nearly balanced
+      [28, 24],   // IB Hi
+      [38, 18],   // bid heavy — bearish sign
+      [22, 12],
+      [ 8,  5],
+      [ 0,  0],
+      [ 0,  0],
+      [ 0,  0],
+      [ 0,  0],
+      [ 0,  0],
+      [ 0,  0],
+      [ 0,  0],
+    ]
+  }
+];
+
+// ── Color functions ──
+
+function globalMax() {
+  let mx = 0;
+  for (const b of BARS)
+    for (const [bid, ask] of b.cells)
+      if (bid + ask > mx) mx = bid + ask;
+  return mx;
+}
+const G_MAX = globalMax();
+
+function lerpColor(r0, g0, b0, r1, g1, b1, t) {
+  return [
+    Math.round(r0 + (r1 - r0) * t),
+    Math.round(g0 + (g1 - g0) * t),
+    Math.round(b0 + (b1 - b0) * t)
+  ];
+}
+
+function askColor(intensity) {
+  // dark navy → bright cyan-blue
+  const [r, g, b] = lerpColor(0, 18, 55,  0, 200, 255,  intensity);
+  const a = 0.08 + intensity * 0.80;
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+function bidColor(intensity) {
+  // dark maroon → bright red-orange
+  const [r, g, b] = lerpColor(40, 8, 0,  255, 85, 0,  intensity);
+  const a = 0.08 + intensity * 0.80;
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+function neutralColor(intensity) {
+  return `rgba(55, 55, 100, ${0.04 + intensity * 0.12})`;
+}
+
+function numColor(vol, isDom, isAsk) {
+  if (vol === 0) return '#141830';
+  if (isDom) return '#FFFFFF';
+  return isAsk ? '#2A6080' : '#602828';
+}
+
+function fmtDelta(d) {
+  const s = d > 0 ? '+' : '';
+  return s + d.toLocaleString();
+}
+
+function tierStripColor(tier) {
+  if (tier === 'A') return 'linear-gradient(90deg, #00CC66, #00FF88)';
+  if (tier === 'B') return 'linear-gradient(90deg, #4488FF, #66AAFF)';
+  return 'linear-gradient(90deg, #1A2040, #222840)';
+}
+
+function confColor(tier) {
+  if (tier === 'A') return '#00CC66';
+  if (tier === 'B') return '#4488FF';
+  return '#1E2850';
+}
+
+// ── Build HTML ──
+
+function buildChart() {
+  let h = '<div class="fp-chart">';
+
+  // Top bar
+  h += `<div class="topbar">
+    <span class="tb-sym">NQ 12-26</span>
+    <span class="tb-tag">5m &nbsp;·&nbsp; Footprint</span>
+    <span class="tb-sep">|</span>
+    <span class="tb-vwap">VWAP&nbsp;20,003.50</span>
+    <span class="tb-sep">|</span>
+    <span class="tb-vol">IB&nbsp;19,999&nbsp;–&nbsp;20,008</span>
+    <span class="tb-sep">|</span>
+    <span class="tb-score">Score&nbsp;84</span>&nbsp;
+    <span class="tb-sig">◆&nbsp;TYPE_A&nbsp;LONG</span>
+  </div>`;
+
+  h += '<div class="body-row">';
+
+  // Price scale
+  h += '<div class="ps"><div class="ps-head"></div>';
+  for (let i = 0; i < PRICES.length; i++) {
+    const p = PRICES[i];
+    let cls = 'ps-cell';
+    if (p === VWAP_PRICE) cls += ' is-vwap';
+    if (p === IB_HI || p === IB_LO) cls += ' is-ib';
+    let label = p.toLocaleString();
+    if (p === VWAP_PRICE) label = '◆ ' + label;
+    if (p === IB_HI) label = '▲ ' + label;
+    if (p === IB_LO) label = '▼ ' + label;
+    h += `<div class="${cls}">${label}</div>`;
+  }
+  h += '<div class="ps-foot"></div></div>';
+
+  // Bar columns
+  for (const bar of BARS) {
+    h += '<div class="bar-col">';
+
+    // Header
+    let badgeCls = 'bh-badge badge-' + bar.tier;
+    let badgeText = bar.tier === 'N'
+      ? (bar.score + '')
+      : (bar.tier === 'A' ? '◆ TYPE_A' : '◈ TYPE_B');
+    h += `<div class="bh">
+      <div class="bh-time">${bar.time}</div>
+      <div class="${badgeCls}">${badgeText}</div>
+    </div>`;
+
+    // Cells
+    for (let i = 0; i < PRICES.length; i++) {
+      const p = PRICES[i];
+      const [bid, ask] = bar.cells[i];
+      const total = bid + ask;
+      const isPoc  = p === bar.poc;
+      const isVwap = p === VWAP_PRICE;
+
+      let cellCls = 'fp-cell';
+      if (isPoc)  cellCls += ' is-poc';
+      if (isVwap) cellCls += ' is-vwap';
+
+      let bg = 'transparent';
+      if (total > 0) {
+        const raw = total / G_MAX;
+        if (ask > bid) {
+          const dom = ask / total;
+          bg = askColor(raw * dom);
+        } else if (bid > ask) {
+          const dom = bid / total;
+          bg = bidColor(raw * dom);
+        } else {
+          bg = neutralColor(raw);
+        }
+      }
+
+      const bidDom = bid > ask;
+      const askDom = ask > bid;
+      const bCol = numColor(bid, bidDom, false);
+      const aCol = numColor(ask, askDom, true);
+
+      // Bold the dominant number
+      const bStyle = `color:${bCol};${bidDom && bid > 0 ? 'font-weight:bold' : ''}`;
+      const aStyle = `color:${aCol};${askDom && ask > 0 ? 'font-weight:bold' : ''}`;
+
+      h += `<div class="${cellCls}" style="background:${bg}">
+        <span class="bv" style="${bStyle}">${bid || ''}</span>
+        <span class="av" style="${aStyle}">${ask || ''}</span>
+      </div>`;
+    }
+
+    // Footer: delta + score strip
+    const dPos = bar.delta > 0;
+    const dCls = dPos ? 'pos' : 'neg';
+    const dW   = Math.min(44, Math.abs(bar.delta) / 18);
+    const dFillColor = dPos
+      ? 'linear-gradient(90deg, rgba(0,200,100,0.25), rgba(0,200,100,0.55))'
+      : 'linear-gradient(270deg, rgba(255,50,0,0.25), rgba(255,50,0,0.55))';
+    const dFillSide = dPos ? 'left:50%' : 'right:50%';
+
+    h += `<div class="bar-foot">
+      <div class="delta-row">
+        <div class="delta-fill ${dCls}" style="${dFillSide};width:${dW}%;background:${dFillColor}"></div>
+        <span class="delta-num ${dCls}">${fmtDelta(bar.delta)}</span>
+      </div>
+      <div class="score-strip" style="background:${tierStripColor(bar.tier)}"></div>
+      <div class="conf-row">
+        <span class="conf-num" style="color:${confColor(bar.tier)}">${bar.score}</span>
+      </div>
+    </div>`;
+
+    h += '</div>'; // bar-col
+  }
+
+  h += '</div>'; // body-row
+  h += '</div>'; // fp-chart
+  return h;
+}
+
+function buildAnnotations() {
+  // Price scale spacer
+  let h = `<div style="min-width:60px;flex-shrink:0"></div>`;
+  for (const bar of BARS) {
+    h += `<div class="ann-col" style="min-width:82px;flex:0 0 82px">
+      <div class="arrow" style="color:${bar.tier === 'A' ? '#00CC66' : bar.tier === 'B' ? '#5599FF' : '#1E2850'}">${bar.annArrow}</div>
+      <div class="label ${bar.annCls}">${bar.annLabel}</div>
+    </div>`;
+  }
+  return h;
+}
+
+document.getElementById('chart-container').innerHTML = buildChart();
+document.getElementById('annotations').innerHTML = buildAnnotations();
+</script>
+</body>
+</html>

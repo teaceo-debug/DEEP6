@@ -1,0 +1,97 @@
+AI Chart Copilot end-to-end smoke test
+Date: 2026-05-12
+Workspace: C:\Users\Tea\DEEP6
+
+Modules discovered via glob:
+- deep6/copilot/__init__.py
+- deep6/copilot/__main__.py
+- deep6/copilot/brain.py
+- deep6/copilot/bridge_client.py
+- deep6/copilot/budget.py
+- deep6/copilot/config.py
+- deep6/copilot/context.py
+- deep6/copilot/freshness.py
+- deep6/copilot/narrative.py
+- deep6/copilot/overlay.py
+- deep6/copilot/overlay_content.py
+- deep6/copilot/session.py
+- deep6/copilot/token_budget.py
+- deep6/copilot/trade_calls.py
+- deep6/copilot/types.py
+- deep6/copilot/vision.py
+- deep6/copilot/vision_analysis.py
+
+Smoke test results:
+
+1) Star import
+Command:
+python -c "from deep6.copilot import *; print('OK')"
+Result:
+OK
+
+2) Full module import chain
+Command:
+python -c "import deep6.copilot.config, deep6.copilot.types, deep6.copilot.brain, deep6.copilot.context, deep6.copilot.vision, deep6.copilot.vision_analysis, deep6.copilot.overlay, deep6.copilot.bridge_client, deep6.copilot.token_budget, deep6.copilot.narrative, deep6.copilot.trade_calls, deep6.copilot.session, deep6.copilot.freshness, deep6.copilot.overlay_content; print('ALL IMPORTS OK')"
+Result:
+ALL IMPORTS OK
+
+3) Adapter imports
+Command:
+python -c "from deep6.copilot.adapters import calendar, news, sentiment, internals, options_flow; print('ADAPTERS OK')"
+Result:
+ADAPTERS OK
+
+4) Package import / circular import check
+Command:
+python -c "import deep6.copilot; print('PACKAGE IMPORT OK')"
+Result:
+PACKAGE IMPORT OK
+Conclusion:
+- Package import returned immediately.
+- No circular import hang observed.
+
+5) CLI help
+Command:
+python -m deep6.copilot --help
+Result:
+usage: deep6.copilot [-h] [--dry-run] [--test-overlay] [--config CONFIG]
+
+options:
+  -h, --help       show this help message and exit
+  --dry-run        Run without side effects
+  --test-overlay   Test overlay wiring
+  --config CONFIG  Optional config path
+
+6) Dry run startup
+Command:
+python -m deep6.copilot --dry-run
+Result:
+Copilot starting...
+Dry run enabled
+Conclusion:
+- Started and exited cleanly.
+
+7) Test suite
+Command:
+python -m pytest tests/copilot/ -q
+Result:
+93 passed in 9.54s
+
+8) LSP diagnostics snapshot
+Command source:
+lsp_diagnostics on deep6/copilot
+Result:
+- Errors: 0
+- Warnings: 6 existing Ruff unused-import warnings in:
+  - deep6/copilot/adapters/calendar.py
+  - deep6/copilot/bridge_client.py
+  - deep6/copilot/overlay_content.py
+
+Summary:
+- All requested copilot modules imported successfully.
+- Adapters imported successfully.
+- CLI help worked and exposed the expected flags.
+- Dry-run booted and shut down cleanly.
+- Copilot pytest suite passed completely.
+- No circular imports detected during import smoke checks.
+- No code changes were required for this smoke test.

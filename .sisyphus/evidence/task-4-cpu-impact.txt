@@ -1,0 +1,2 @@
+﻿NT8 CPU 3-sample avg: 96.51% (whole process during active NQ session — not indicator-specific)
+Indicator render avg: 0.00-0.06ms (well under 2ms budget)

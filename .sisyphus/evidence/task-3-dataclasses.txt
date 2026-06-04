@@ -1,0 +1,10 @@
+QA 1: CompileError / FixResult import
+Output: CS0246 error
+
+QA 2: RunArtifacts
+Output: C:\Users\Tea\AppData\Local\Temp\opencode\test-artifacts\bv-20260513-212335-0300
+
+QA 3: parse_sentinel
+Output:
+{'status': 'SUCCESS', 'timestamp': '2026-05-13T14:30:22'}
+{'status': 'FAILED', 'reason': 'timeout'}

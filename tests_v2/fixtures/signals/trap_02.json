@@ -1,0 +1,51 @@
+{
+  "name": "TRAP_02_large_positive_delta_lower_close",
+  "description": "Large positive delta bar followed by lower close. Buyers pushed aggressively but couldn't hold — trapped longs.",
+  "bar": {
+    "open": 21510.0,
+    "high": 21525.0,
+    "low": 21505.0,
+    "close": 21508.0,
+    "delta": 400,
+    "total_volume": 3500,
+    "bid_volumes": {
+      "21505.0": 100,
+      "21508.0": 150,
+      "21510.0": 200,
+      "21515.0": 300,
+      "21520.0": 350,
+      "21525.0": 250
+    },
+    "ask_volumes": {
+      "21508.0": 200,
+      "21510.0": 300,
+      "21515.0": 450,
+      "21520.0": 500,
+      "21525.0": 400,
+      "21525.0": 300
+    },
+    "poc_price": 21520.0,
+    "poc_volume": 850,
+    "vah": 21523.0,
+    "val": 21509.0,
+    "cvd": 500.0,
+    "bar_index": 65,
+    "timestamp": "2026-05-13T10:50:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 500.0,
+    "vah": 21523.0,
+    "val": 21509.0,
+    "poc": 21520.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0
+  },
+  "expected_signal": {
+    "signal_id": "TRAP_02",
+    "direction": "BEARISH",
+    "strength_min": 0.35,
+    "strength_max": 0.55
+  }
+}

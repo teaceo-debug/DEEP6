@@ -1,0 +1,53 @@
+{
+  "name": "ABS_01_basic_absorption_at_low",
+  "description": "Classic absorption at bar low: heavy selling volume absorbed at low price levels. Sellers exhausted, price held — BULLISH reversal expected.",
+  "bar": {
+    "open": 21480.0,
+    "high": 21485.0,
+    "low": 21460.0,
+    "close": 21478.0,
+    "delta": -200,
+    "total_volume": 3200,
+    "bid_volumes": {
+      "21460.0": 850,
+      "21460.25": 620,
+      "21460.5": 280,
+      "21465.0": 180,
+      "21470.0": 120,
+      "21475.0": 80,
+      "21480.0": 50
+    },
+    "ask_volumes": {
+      "21460.0": 30,
+      "21460.25": 20,
+      "21465.0": 100,
+      "21470.0": 150,
+      "21475.0": 200,
+      "21480.0": 250,
+      "21485.0": 170
+    },
+    "poc_price": 21460.0,
+    "poc_volume": 880,
+    "vah": 21480.0,
+    "val": 21460.0,
+    "cvd": -150.0,
+    "bar_index": 30,
+    "timestamp": "2026-05-13T10:15:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": -150.0,
+    "vah": 21480.0,
+    "val": 21460.0,
+    "poc": 21460.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0
+  },
+  "expected_signal": {
+    "signal_id": "ABS_01",
+    "direction": "BULLISH",
+    "strength_min": 0.35,
+    "strength_max": 0.55
+  }
+}

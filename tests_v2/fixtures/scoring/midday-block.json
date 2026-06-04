@@ -1,0 +1,53 @@
+{
+  "name": "midday_block_suppressed",
+  "description": "Strong signals during midday chop window (bar_index=120, 11:30 ET). Despite high signal strength, midday suppression should force QUIET tier.",
+  "bar": {
+    "open": 21500.0,
+    "high": 21520.0,
+    "low": 21490.0,
+    "close": 21518.0,
+    "delta": 500,
+    "total_volume": 4000,
+    "bid_volumes": {
+      "21490.0": 200,
+      "21495.0": 300,
+      "21500.0": 400,
+      "21505.0": 350,
+      "21510.0": 250
+    },
+    "ask_volumes": {
+      "21495.0": 300,
+      "21500.0": 450,
+      "21505.0": 500,
+      "21510.0": 400,
+      "21515.0": 350,
+      "21518.0": 250,
+      "21520.0": 150
+    },
+    "poc_price": 21505.0,
+    "poc_volume": 900,
+    "vah": 21516.0,
+    "val": 21496.0,
+    "cvd": 700.0,
+    "bar_index": 120,
+    "timestamp": "2026-05-13T11:30:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 12.0,
+    "cvd": 700.0,
+    "vah": 21516.0,
+    "val": 21496.0,
+    "poc": 21505.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0
+  },
+  "active_signals": [
+    {"signal_id": "ABS_01", "direction": "BULLISH", "strength": 0.50},
+    {"signal_id": "IMB_03", "direction": "BULLISH", "strength": 0.55},
+    {"signal_id": "DELT_01", "direction": "BULLISH", "strength": 0.45}
+  ],
+  "expected_tier": "QUIET",
+  "expected_score_range": [0, 49],
+  "suppression_reason": "midday_block_60_210"
+}

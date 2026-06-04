@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DEEP6 Footprint — Style Gallery</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0A0C14; font-family:'Consolas','Courier New',monospace; color:#E0E4F0; }
+
+h1 { padding:16px 20px 4px; font-size:13px; color:#5A6080; letter-spacing:2px; text-transform:uppercase; }
+.subtitle { padding:0 20px 16px; font-size:10px; color:#3A3D52; }
+
+.gallery { display:flex; flex-wrap:wrap; gap:20px; padding:16px 20px; }
+
+.card {
+  border:1px solid #1E2236;
+  border-radius:4px;
+  overflow:hidden;
+  width:340px;
+  flex-shrink:0;
+}
+.card-title {
+  padding:8px 12px;
+  font-size:10px;
+  font-weight:bold;
+  letter-spacing:.5px;
+  border-bottom:1px solid;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.card-sub { font-size:8px; font-weight:normal; opacity:.6; }
+
+/* ── shared bar anatomy ── */
+.mini-chart {
+  padding:10px 8px;
+  display:flex;
+  gap:3px;
+  align-items:flex-end;
+  min-height:200px;
+}
+.mb { display:flex; flex-direction:column; align-items:center; }
+.mbadge {
+  font-size:7px; font-weight:bold; border:1px solid; border-radius:2px;
+  padding:1px 4px; margin-bottom:2px; min-width:32px; text-align:center;
+}
+.mbar { display:flex; }
+.mds { width:3px; border-radius:1px 0 0 1px; }
+.mcol { display:flex; flex-direction:column; position:relative; width:86px; }
+.mcol::before {
+  content:''; position:absolute; left:50%; top:0; bottom:0; width:1px;
+  transform:translateX(-50%); pointer-events:none; z-index:0;
+}
+.mc {
+  height:16px; width:86px; display:flex; align-items:center;
+  position:relative; z-index:1; border-bottom:1px solid rgba(30,35,50,.7);
+}
+.mn { flex:1; font-size:7.5px; padding:0 2px; white-space:nowrap; z-index:2; position:relative; }
+.mnl { text-align:right; }
+.mnr { text-align:left; }
+.mdb { height:14px; width:86px; display:flex; align-items:center; gap:3px; padding:0 2px; border-top:1px solid; margin-left:3px; }
+.mdbar { height:5px; border-radius:1px; }
+.mdtxt { font-size:7px; }
+.mbl { font-size:7px; color:#3D4060; text-align:center; margin-top:2px; margin-left:3px; }
+
+.legend-strip {
+  display:flex; flex-wrap:wrap; gap:6px; padding:8px 10px;
+  border-top:1px solid #1A1D28; font-size:7.5px; color:#5A6080;
+}
+.ls { display:flex; align-items:center; gap:3px; }
+.lc { width:10px; height:8px; border-radius:1px; }
+
+/* ============================================================
+   STYLE 1 — "ATAS Classic" (confirmed real colors)
+   ============================================================ */
+.s1-bg   { background:#1C1E26; }
+.s1-bar  { background:#14162A; border-color:#242840; color:#E0E4F0; }
+.s1-wick { background:#353752; }
+.s1-ds-b { background:#00C040; }
+.s1-ds-r { background:#C02000; }
+.s1-cn   { background:transparent; color:#ABAEB8; }
+.s1-cam  { background:#1A3A1A; color:#ABAEB8; }
+.s1-cam2 { background:#1C5A1C; color:#ABAEB8; }
+.s1-cas  { background:#1E7A28; color:#FFFFFF; }
+.s1-cbm  { background:#2A1818; color:#ABAEB8; }
+.s1-cbm2 { background:#5A1C1C; color:#ABAEB8; }
+.s1-cbs  { background:#7A2018; color:#FFFFFF; }
+.s1-sk   { background:rgba(0,195,255,.52); color:#FFFFFF; }
+.s1-ss   { background:rgba(255,115,0,.52);  color:#FFFFFF; }
+.s1-poc  { outline:2px solid #FFD700; outline-offset:-2px; }
+.s1-abs  { background:linear-gradient(90deg,transparent 50%,rgba(0,191,165,.55) 50%); }
+.s1-ent  { outline:1.5px solid rgba(0,210,255,.7)!important; outline-offset:-1px; background:rgba(0,210,255,.06); }
+.s1-white{ color:#FFFFFF; }
+.s1-ai   { color:#00FFAA; font-weight:bold; }
+.s1-bi   { color:#FF4466; font-weight:bold; }
+.s1-dim  { color:#505470; }
+.s1-dp   { color:#00C878; }
+.s1-dn   { color:#C84040; }
+.s1-dbar-bg { background:#12141E; border-color:#1A1D28; }
+.s1-dbar-p  { background:#00C040; }
+.s1-dbar-n  { background:#C02000; }
+.s1-badge-al { color:#00FF88; border-color:#00FF88; background:rgba(0,255,136,.07); }
+.s1-badge-as { color:#FF2962; border-color:#FF2962; background:rgba(255,41,98,.07); }
+
+/* ============================================================
+   STYLE 2 — "Sierra Minimal" (no fills, number color only)
+   ============================================================ */
+.s2-bg   { background:#111418; }
+.s2-bar  { background:#0C0E14; border-color:#1A1D28; color:#D0D8E8; }
+.s2-wick { background:#3A3D50; }
+.s2-cn   { background:transparent; }
+.s2-poc  { border-top:2px solid #FFFFFF; border-bottom:2px solid #FFFFFF; z-index:2; }
+.s2-bid  { color:#FF7070; }
+.s2-ask  { color:#70D070; }
+.s2-bid-imb { color:#FF2020; font-weight:bold; }
+.s2-ask-imb { color:#00FF44; font-weight:bold; }
+.s2-poc-num { color:#FFFFFF; }
+.s2-dim  { color:#404460; }
+.s2-dp   { color:#70D070; }
+.s2-dn   { color:#FF7070; }
+.s2-dbar-bg { background:#0C0E14; border-color:#1A1D28; }
+.s2-dbar-p  { background:#70D070; }
+.s2-dbar-n  { background:#FF7070; }
+.s2-badge-al { color:#70FF70; border-color:#70FF70; background:transparent; }
+.s2-badge-as { color:#FF7070; border-color:#FF7070; background:transparent; }
+.s2-ds-b { background:#4A9A4A; }
+.s2-ds-r { background:#9A4444; }
+.s2-ds-n { background:#2A2A3A; }
+
+/* ============================================================
+   STYLE 3 — "Heatmap Gold" (amber intensity)
+   ============================================================ */
+.s3-bg   { background:#0A0A0D; }
+.s3-bar  { background:#090A0E; border-color:#1A1A1E; color:#E0D8C0; }
+.s3-wick { background:#3A3020; }
+.s3-ds-b { background:#226622; }
+.s3-ds-r { background:#662222; }
+.s3-c0   { background:#0D0D0D; color:#505040; }
+.s3-c1   { background:#1C1508; color:#8A8060; }
+.s3-c2   { background:#2E2010; color:#B0A070; }
+.s3-c3   { background:#5C3D14; color:#D0C090; }
+.s3-c4   { background:#8C5E1C; color:#E8D8A0; }
+.s3-c5   { background:#C8882A; color:#FFFFFF; }
+.s3-c6   { background:#FFD23F; color:#000000; font-weight:bold; }
+.s3-poc  { background:#FFD23F!important; color:#000000!important; font-weight:bold!important; }
+.s3-bi   { color:#FF8888; }
+.s3-ai   { color:#88FF88; }
+.s3-dp   { color:#C8882A; }
+.s3-dn   { color:#884422; }
+.s3-dbar-bg { background:#080808; border-color:#1A1A18; }
+.s3-dbar-p  { background:#C8882A; }
+.s3-dbar-n  { background:#884422; }
+.s3-badge-al { color:#FFD23F; border-color:#FFD23F; background:rgba(255,210,63,.07); }
+.s3-badge-as { color:#884422; border-color:#884422; background:transparent; }
+
+/* ============================================================
+   STYLE 4 — "Neon Terminal" (electric opacity-based)
+   ============================================================ */
+.s4-bg   { background:#080B10; }
+.s4-bar  { background:#060810; border-color:#1A2030; color:#E0EAF8; }
+.s4-wick { background:#FFFFFF; opacity:.7; }
+.s4-ds-b { background:#00FF88; }
+.s4-ds-r { background:#FF3344; }
+.s4-cn   { background:rgba(255,255,255,.01); color:#445566; }
+.s4-a10  { background:rgba(0,255,136,.10); color:#44AAFF; }
+.s4-a25  { background:rgba(0,255,136,.25); color:#00FFAA; }
+.s4-a50  { background:rgba(0,255,136,.50); color:#00FFCC; font-weight:bold; }
+.s4-a75  { background:rgba(0,255,136,.75); color:#00FFEE; font-weight:bold; }
+.s4-b10  { background:rgba(255,51,68,.10);  color:#FF8888; }
+.s4-b25  { background:rgba(255,51,68,.25);  color:#FF5566; }
+.s4-b50  { background:rgba(255,51,68,.50);  color:#FF3344; font-weight:bold; }
+.s4-b75  { background:rgba(255,51,68,.75);  color:#FF1122; font-weight:bold; }
+.s4-poc  { outline:2px solid #FFD23F; outline-offset:-2px; box-shadow:0 0 6px rgba(255,210,63,.4); }
+.s4-dp   { color:#00FF88; }
+.s4-dn   { color:#FF3344; }
+.s4-dbar-bg { background:#050710; border-color:#1A2030; }
+.s4-dbar-p  { background:#00FF88; }
+.s4-dbar-n  { background:#FF3344; }
+.s4-badge-al { color:#00FF88; border-color:#00FF88; background:rgba(0,255,136,.08); text-shadow:0 0 8px rgba(0,255,136,.5); }
+.s4-badge-as { color:#FF3344; border-color:#FF3344; background:rgba(255,51,68,.08); text-shadow:0 0 8px rgba(255,51,68,.5); }
+
+/* ============================================================
+   STYLE 5 — "Cyan/Orange" (AnalyticaChart signature)
+   ============================================================ */
+.s5-bg   { background:#0D1117; }
+.s5-bar  { background:#090C12; border-color:#1E2334; color:#C8D8E8; }
+.s5-wick { background:#2A3550; }
+.s5-ds-b { background:#006633; }
+.s5-ds-r { background:#660033; }
+.s5-cn   { background:transparent; color:#4A5870; }
+.s5-cam  { background:#0A1A10; color:#88AA88; }
+.s5-cbm  { background:#1A0A08; color:#AA8888; }
+.s5-sk   { background:rgba(0,212,255,.60); color:#FFFFFF; }
+.s5-ss   { background:rgba(255,110,0,.60);  color:#FFFFFF; }
+.s5-poc  { background:rgba(255,210,63,.15)!important; outline:2px solid #FFD23F; outline-offset:-2px; color:#FFFFFF!important; }
+.s5-ent  { outline:1.5px solid rgba(0,212,255,.8)!important; outline-offset:-1px; background:rgba(0,212,255,.08); }
+.s5-abs  { background:linear-gradient(90deg,transparent 50%,rgba(0,210,180,.5) 50%); }
+.s5-white{ color:#FFFFFF; }
+.s5-ai   { color:#00DDFF; font-weight:bold; }
+.s5-bi   { color:#FF6600; font-weight:bold; }
+.s5-dp   { color:#00AAFF; }
+.s5-dn   { color:#FF6600; }
+.s5-dbar-bg { background:#080A12; border-color:#1A1E2C; }
+.s5-dbar-p  { background:#0088DD; }
+.s5-dbar-n  { background:#DD6600; }
+.s5-badge-al { color:#00D4FF; border-color:#00D4FF; background:rgba(0,212,255,.07); }
+.s5-badge-as { color:#FF6600; border-color:#FF6600; background:rgba(255,102,0,.07); }
+
+/* ============================================================
+   STYLE 6 — "Red/Green Classic" (standard retail)
+   ============================================================ */
+.s6-bg   { background:#141414; }
+.s6-bar  { background:#0E0E0E; border-color:#242424; color:#D0D0D0; }
+.s6-wick { background:#3A3A3A; }
+.s6-ds-b { background:#228822; }
+.s6-ds-r { background:#882222; }
+.s6-cn   { background:transparent; color:#707070; }
+.s6-cam  { background:#0D280D; color:#88B888; }
+.s6-cam2 { background:#1A4A1A; color:#AACAAA; }
+.s6-cas  { background:#287028; color:#FFFFFF; }
+.s6-cbm  { background:#280D0D; color:#B88888; }
+.s6-cbm2 { background:#4A1A1A; color:#CAAAAA; }
+.s6-cbs  { background:#702828; color:#FFFFFF; }
+.s6-poc  { outline:2px solid #FFD700; outline-offset:-2px; }
+.s6-white{ color:#FFFFFF; }
+.s6-ai   { color:#44FF44; font-weight:bold; }
+.s6-bi   { color:#FF4444; font-weight:bold; }
+.s6-dim  { color:#404040; }
+.s6-dp   { color:#44BB44; }
+.s6-dn   { color:#BB4444; }
+.s6-dbar-bg { background:#0A0A0A; border-color:#1A1A1A; }
+.s6-dbar-p  { background:#228822; }
+.s6-dbar-n  { background:#882222; }
+.s6-badge-al { color:#44CC44; border-color:#44CC44; background:rgba(68,204,68,.07); }
+.s6-badge-as { color:#CC4444; border-color:#CC4444; background:rgba(204,68,68,.07); }
+
+</style>
+</head>
+<body>
+
+<h1>DEEP6 Footprint Chart — Style Gallery</h1>
+<div class="subtitle">6 distinct design approaches — same bar data, different visual grammar</div>
+
+<div class="gallery">
+
+<!-- ════════════════════════════════════════════
+     STYLE 1 — ATAS Classic Dark
+     ════════════════════════════════════════════ -->
+<div class="card s1-bg">
+  <div class="card-title s1-bar" style="border-color:#242840">
+    Style 1 — ATAS Classic Dark
+    <span class="card-sub">Confirmed real ATAS colors · Teal/Red fills · Grey text</span>
+  </div>
+  <div class="mini-chart s1-bg">
+
+    <!-- Bear bar -->
+    <div class="mb">
+      <div class="mbadge s1-badge-as">A 88</div>
+      <div class="mbar">
+        <div class="mds s1-ds-r"></div>
+        <div class="mcol" style="--wick-color:#353752">
+          <div class="mc s1-cbm"><span class="mn mnl s1-cn" style="color:#ABAEB8">41</span><span class="mn mnr" style="color:#505470">18</span></div>
+          <div class="mc s1-cbm2"><span class="mn mnl" style="color:#ABAEB8">78</span><span class="mn mnr" style="color:#505470">24</span></div>
+          <div class="mc s1-cbs s1-poc"><span class="mn mnl s1-white">144</span><span class="mn mnr s1-white">38</span></div>
+          <div class="mc s1-ss"><span class="mn mnl s1-white">112</span><span class="mn mnr s1-white">19</span></div>
+          <div class="mc s1-ss"><span class="mn mnl s1-white">98</span><span class="mn mnr s1-white">14</span></div>
+          <div class="mc s1-cbs"><span class="mn mnl s1-white">211</span><span class="mn mnr s1-white">42</span></div>
+          <div class="mc s1-cbm"><span class="mn mnl" style="color:#ABAEB8">66</span><span class="mn mnr" style="color:#ABAEB8">71</span></div>
+          <div class="mc s1-cn"><span class="mn mnl s1-dim">22</span><span class="mn mnr s1-dim">28</span></div>
+        </div>
+      </div>
+      <div class="mdb s1-dbar-bg"><div style="width:6px"></div><div class="mdbar s1-dbar-n" style="width:52px"></div><span class="mdtxt s1-dn">-588</span></div>
+      <div class="mbl">09:50 A↓</div>
+    </div>
+
+    <!-- Reversal bar -->
+    <div class="mb">
+      <div class="mbadge s1-badge-al">A 93</div>
+      <div class="mbar">
+        <div class="mds s1-ds-b"></div>
+        <div class="mcol">
+          <div class="mc s1-sk"><span class="mn mnl s1-white">44</span><span class="mn mnr s1-white">98</span></div>
+          <div class="mc s1-sk"><span class="mn mnl s1-white">38</span><span class="mn mnr s1-white">88</span></div>
+          <div class="mc s1-sk"><span class="mn mnl s1-white">31</span><span class="mn mnr s1-white">77</span></div>
+          <div class="mc s1-abs s1-poc"><span class="mn mnl s1-white">122</span><span class="mn mnr s1-white">166</span></div>
+          <div class="mc s1-ent"><span class="mn mnl s1-white">188</span><span class="mn mnr s1-ai">311</span></div>
+          <div class="mc s1-cas"><span class="mn mnl s1-white">144</span><span class="mn mnr s1-ai">388</span></div>
+          <div class="mc s1-cam2"><span class="mn mnl" style="color:#ABAEB8">66</span><span class="mn mnr" style="color:#ABAEB8">98</span></div>
+          <div class="mc s1-cn"><span class="mn mnl s1-dim">22</span><span class="mn mnr s1-dim">31</span></div>
+        </div>
+      </div>
+      <div class="mdb s1-dbar-bg"><div style="width:14px"></div><div class="mdbar s1-dbar-p" style="width:50px"></div><span class="mdtxt s1-dp">+488</span></div>
+      <div class="mbl">09:55 A↑</div>
+    </div>
+
+    <!-- Follow-through -->
+    <div class="mb">
+      <div class="mbadge" style="color:#00CC66;border-color:#00CC66;background:rgba(0,204,102,.07)">B 71</div>
+      <div class="mbar">
+        <div class="mds s1-ds-b"></div>
+        <div class="mcol">
+          <div class="mc s1-cam"><span class="mn mnl" style="color:#ABAEB8">22</span><span class="mn mnr" style="color:#ABAEB8">38</span></div>
+          <div class="mc s1-sk"><span class="mn mnl s1-white">31</span><span class="mn mnr s1-white">71</span></div>
+          <div class="mc s1-sk"><span class="mn mnl s1-white">27</span><span class="mn mnr s1-white">62</span></div>
+          <div class="mc s1-cam2 s1-poc"><span class="mn mnl s1-white">55</span><span class="mn mnr s1-white">77</span></div>
+          <div class="mc s1-cam"><span class="mn mnl" style="color:#ABAEB8">44</span><span class="mn mnr" style="color:#ABAEB8">58</span></div>
+          <div class="mc s1-cn"><span class="mn mnl s1-dim">28</span><span class="mn mnr s1-dim">31</span></div>
+          <div class="mc s1-cn"><span class="mn mnl s1-dim">14</span><span class="mn mnr s1-dim">18</span></div>
+          <div class="mc s1-cn"><span class="mn mnl s1-dim">—</span><span class="mn mnr s1-dim">—</span></div>
+        </div>
+      </div>
+      <div class="mdb s1-dbar-bg"><div style="width:18px"></div><div class="mdbar s1-dbar-p" style="width:38px"></div><span class="mdtxt s1-dp">+299</span></div>
+      <div class="mbl">10:00 B↑</div>
+    </div>
+
+  </div>
+  <div class="legend-strip s1-bg">
+    <div class="ls"><div class="lc" style="background:#1C5A1C"></div>Ask fills</div>
+    <div class="ls"><div class="lc" style="background:#5A1C1C"></div>Bid fills</div>
+    <div class="ls"><div class="lc" style="background:rgba(0,195,255,.52)"></div>Cyan stack</div>
+    <div class="ls"><div class="lc" style="background:rgba(255,115,0,.52)"></div>Orange stack</div>
+    <div class="ls"><div class="lc" style="outline:2px solid #FFD700;outline-offset:-2px"></div>POC</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     STYLE 2 — Sierra Minimal
+     ════════════════════════════════════════════ -->
+<div class="card s2-bg">
+  <div class="card-title s2-bar" style="border-color:#1A1D28">
+    Style 2 — Sierra Minimal
+    <span class="card-sub">No fills · Color = numbers only · White POC stroke</span>
+  </div>
+  <div class="mini-chart s2-bg">
+
+    <div class="mb">
+      <div class="mbadge s2-badge-as">A 88</div>
+      <div class="mbar">
+        <div class="mds s2-ds-r"></div>
+        <div class="mcol" style="--wick-color:#3A3D50">
+          <div class="mc s2-cn"><span class="mn mnl s2-bid">41</span><span class="mn mnr s2-ask s2-dim">18</span></div>
+          <div class="mc s2-cn"><span class="mn mnl s2-bid">78</span><span class="mn mnr s2-ask s2-dim">24</span></div>
+          <div class="mc s2-cn s2-poc"><span class="mn mnl s2-poc-num">144</span><span class="mn mnr s2-poc-num">38</span></div>
+          <div class="mc s2-cn"><span class="mn mnl s2-bid-imb">112</span><span class="mn mnr s2-ask s2-dim">19</span></div>
+          <div class="mc s2-cn"><span class="mn mnl s2-bid-imb">98</span><span class="mn mnr s2-ask s2-dim">14</span></div>
+          <div class="mc s2-cn"><span class="mn mnl s2-bid-imb">211</span><span class="mn mnr s2-ask s2-dim">42</span></div>
+          <div class="mc s2-cn"><span class="mn mnl s2-bid">66</span><span class="mn mnr s2-ask">71</span></div>
+          <div class="mc s2-cn"><span class="mn mnl s2-dim">22</span><span class="mn mnr s2-dim">28</span></div>
+        </div>
+      </div>
+      <div class="mdb s2-dbar-bg"><div style="width:6px"></div><div class="mdbar s2-dbar-n" style="width:52px"></div><span class="mdtxt s2-dn">-588</span></div>
+      <div class="mbl" style="color:#3D4060">09:50 A↓</div>
+    </div>
+
+    <div class="mb">
+      <div class="mbadge s2-badge-al">A 93</div>
+      <div class="mbar">
+        <div class="mds s2-ds-b"></div>
+        <div class="mcol">
+          <div class="mc s2-cn"><span class="mn mnl s2-bid s2-dim">44</span><span class="mn mnr s2-ask">98</span></div>
+          <div class="mc s2-cn"><span class="mn mnl s2-bid s2-dim">38</span><span class="mn mnr s2-ask">88</span></div>
+          <div class="mc s2-cn"><span class="mn mnl s2-bid s2-dim">31</span><span class="mn mnr s2-ask">77</span></div>
+          <div class="mc s2-cn s2-poc"><span class="mn mnl s2-poc-num">122</span><span class="mn mnr s2-poc-num">166</span></div>
+          <div class="mc s2-cn"><span class="mn mnl s2-bid">188</span><span class="mn mnr s2-ask-imb">311</span></div>
+          <div class="mc s2-cn"><span class="mn mnl s2-bid">144</span><span class="mn mnr s2-ask-imb">388</span></div>
+          <div class="mc s2-cn"><span class="mn mnl s2-bid">66</span><span class="mn mnr s2-ask">98</span></div>
+          <div class="mc s2-cn"><span class="mn mnl s2-dim">22</span><span class="mn mnr s2-dim">31</span></div>
+        </div>
+      </div>
+      <div class="mdb s2-dbar-bg"><div style="width:14px"></div><div class="mdbar s2-dbar-p" style="width:50px"></div><span class="mdtxt s2-dp">+488</span></div>
+      <div class="mbl" style="color:#3D4060">09:55 A↑</div>
+    </div>
+
+    <div class="mb">
+      <div class="mbadge" style="color:#70D070;border-color:#70D070;background:transparent">B 71</div>
+      <div class="mbar">
+        <div class="mds s2-ds-b"></div>
+        <div class="mcol">
+          <div class="mc s2-cn"><span class="mn mnl s2-bid s2-dim">22</span><span class="mn mnr s2-ask">38</span></div>
+          <div class="mc s2-cn"><span class="mn mnl s2-bid s2-dim">31</span><span class="mn mnr s2-ask">71</span></div>
+          <div class="mc s2-cn"><span class="mn mnl s2-bid s2-dim">27</span><span class="mn mnr s2-ask">62</span></div>
+          <div class="mc s2-cn s2-poc"><span class="mn mnl s2-poc-num">55</span><span class="mn mnr s2-poc-num">77</span></div>
+          <div class="mc s2-cn"><span class="mn mnl s2-bid">44</span><span class="mn mnr s2-ask">58</span></div>
+          <div class="mc s2-cn"><span class="mn mnl s2-dim">28</span><span class="mn mnr s2-dim">31</span></div>
+          <div class="mc s2-cn"><span class="mn mnl s2-dim">14</span><span class="mn mnr s2-dim">18</span></div>
+          <div class="mc s2-cn"><span class="mn mnl s2-dim">—</span><span class="mn mnr s2-dim">—</span></div>
+        </div>
+      </div>
+      <div class="mdb s2-dbar-bg"><div style="width:18px"></div><div class="mdbar s2-dbar-p" style="width:38px"></div><span class="mdtxt s2-dp">+299</span></div>
+      <div class="mbl" style="color:#3D4060">10:00 B↑</div>
+    </div>
+
+  </div>
+  <div class="legend-strip s2-bg">
+    <div class="ls"><div class="lc" style="background:transparent;border:1px solid #3A3A5A"></div>No fills</div>
+    <div class="ls"><span style="color:#FF7070;font-size:8px">41</span>&nbsp;Bid numbers</div>
+    <div class="ls"><span style="color:#70D070;font-size:8px">98</span>&nbsp;Ask numbers</div>
+    <div class="ls"><span style="color:#FF2020;font-size:8px">112</span>&nbsp;Imbalance</div>
+    <div class="ls" style="border-top:2px solid #FFF;width:14px;height:8px"></div><span style="color:#5A6080;font-size:7.5px">POC stroke</span>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     STYLE 3 — Heatmap Gold
+     ════════════════════════════════════════════ -->
+<div class="card s3-bg">
+  <div class="card-title s3-bar" style="border-color:#1A1A1E">
+    Style 3 — Heatmap Gold
+    <span class="card-sub">Volume intensity → amber gradient · POC = brightest</span>
+  </div>
+  <div class="mini-chart s3-bg">
+
+    <div class="mb">
+      <div class="mbadge s3-badge-as">A 88</div>
+      <div class="mbar">
+        <div class="mds s3-ds-r"></div>
+        <div class="mcol">
+          <div class="mc s3-c1"><span class="mn mnl" style="color:#8A8060">41</span><span class="mn mnr" style="color:#8A8060">18</span></div>
+          <div class="mc s3-c2"><span class="mn mnl" style="color:#B0A070">78</span><span class="mn mnr" style="color:#B0A070">24</span></div>
+          <div class="mc s3-poc"><span class="mn mnl" style="color:#000">144</span><span class="mn mnr" style="color:#000">38</span></div>
+          <div class="mc s3-c5"><span class="mn mnl" style="color:#FFF">112</span><span class="mn mnr s3-bi">19</span></div>
+          <div class="mc s3-c5"><span class="mn mnl" style="color:#FFF">98</span><span class="mn mnr s3-bi">14</span></div>
+          <div class="mc s3-c5"><span class="mn mnl" style="color:#FFF">211</span><span class="mn mnr" style="color:#FFF">42</span></div>
+          <div class="mc s3-c3"><span class="mn mnl" style="color:#D0C090">66</span><span class="mn mnr" style="color:#D0C090">71</span></div>
+          <div class="mc s3-c0"><span class="mn mnl" style="color:#505040">22</span><span class="mn mnr" style="color:#505040">28</span></div>
+        </div>
+      </div>
+      <div class="mdb s3-dbar-bg"><div style="width:6px"></div><div class="mdbar s3-dbar-n" style="width:52px"></div><span class="mdtxt s3-dn">-588</span></div>
+      <div class="mbl" style="color:#404030">09:50 A↓</div>
+    </div>
+
+    <div class="mb">
+      <div class="mbadge s3-badge-al">A 93</div>
+      <div class="mbar">
+        <div class="mds s3-ds-b"></div>
+        <div class="mcol">
+          <div class="mc s3-c2"><span class="mn mnl" style="color:#B0A070">44</span><span class="mn mnr" style="color:#B0A070">98</span></div>
+          <div class="mc s3-c3"><span class="mn mnl" style="color:#D0C090">38</span><span class="mn mnr" style="color:#D0C090">88</span></div>
+          <div class="mc s3-c3"><span class="mn mnl" style="color:#D0C090">31</span><span class="mn mnr" style="color:#D0C090">77</span></div>
+          <div class="mc s3-poc"><span class="mn mnl" style="color:#000">122</span><span class="mn mnr" style="color:#000">166</span></div>
+          <div class="mc s3-c5"><span class="mn mnl" style="color:#FFF">188</span><span class="mn mnr s3-ai">311</span></div>
+          <div class="mc s3-c5"><span class="mn mnl" style="color:#FFF">144</span><span class="mn mnr s3-ai">388</span></div>
+          <div class="mc s3-c3"><span class="mn mnl" style="color:#D0C090">66</span><span class="mn mnr" style="color:#D0C090">98</span></div>
+          <div class="mc s3-c1"><span class="mn mnl" style="color:#8A8060">22</span><span class="mn mnr" style="color:#8A8060">31</span></div>
+        </div>
+      </div>
+      <div class="mdb s3-dbar-bg"><div style="width:14px"></div><div class="mdbar s3-dbar-p" style="width:50px"></div><span class="mdtxt s3-dp">+488</span></div>
+      <div class="mbl" style="color:#404030">09:55 A↑</div>
+    </div>
+
+    <div class="mb">
+      <div class="mbadge" style="color:#C8882A;border-color:#C8882A;background:rgba(200,136,42,.07)">B 71</div>
+      <div class="mbar">
+        <div class="mds s3-ds-b"></div>
+        <div class="mcol">
+          <div class="mc s3-c1"><span class="mn mnl" style="color:#8A8060">22</span><span class="mn mnr" style="color:#8A8060">38</span></div>
+          <div class="mc s3-c2"><span class="mn mnl" style="color:#B0A070">31</span><span class="mn mnr" style="color:#B0A070">71</span></div>
+          <div class="mc s3-c3"><span class="mn mnl" style="color:#D0C090">27</span><span class="mn mnr" style="color:#D0C090">62</span></div>
+          <div class="mc s3-poc"><span class="mn mnl" style="color:#000">55</span><span class="mn mnr" style="color:#000">77</span></div>
+          <div class="mc s3-c3"><span class="mn mnl" style="color:#D0C090">44</span><span class="mn mnr" style="color:#D0C090">58</span></div>
+          <div class="mc s3-c1"><span class="mn mnl" style="color:#8A8060">28</span><span class="mn mnr" style="color:#8A8060">31</span></div>
+          <div class="mc s3-c0"><span class="mn mnl" style="color:#505040">14</span><span class="mn mnr" style="color:#505040">18</span></div>
+          <div class="mc s3-c0"><span class="mn mnl" style="color:#505040">—</span><span class="mn mnr" style="color:#505040">—</span></div>
+        </div>
+      </div>
+      <div class="mdb s3-dbar-bg"><div style="width:18px"></div><div class="mdbar s3-dbar-p" style="width:38px"></div><span class="mdtxt s3-dp">+299</span></div>
+      <div class="mbl" style="color:#404030">10:00 B↑</div>
+    </div>
+
+  </div>
+  <div class="legend-strip s3-bg">
+    <div class="ls"><div class="lc" style="background:#1C1508"></div>Low vol</div>
+    <div class="ls"><div class="lc" style="background:#5C3D14"></div>Mid vol</div>
+    <div class="ls"><div class="lc" style="background:#C8882A"></div>High vol</div>
+    <div class="ls"><div class="lc" style="background:#FFD23F"></div>POC (max)</div>
+    <div class="ls"><span style="color:#88FF88;font-size:8px">311</span>&nbsp;Ask imb</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     STYLE 4 — Neon Terminal
+     ════════════════════════════════════════════ -->
+<div class="card s4-bg">
+  <div class="card-title s4-bar" style="border-color:#1A2030">
+    Style 4 — Neon Terminal
+    <span class="card-sub">Opacity = dominance ratio · Electric green/red · Glowing POC</span>
+  </div>
+  <div class="mini-chart s4-bg">
+
+    <div class="mb">
+      <div class="mbadge s4-badge-as">A 88</div>
+      <div class="mbar">
+        <div class="mds s4-ds-r"></div>
+        <div class="mcol">
+          <div class="mc s4-b25"><span class="mn mnl" style="color:#FF5566">41</span><span class="mn mnr s4-cn">18</span></div>
+          <div class="mc s4-b50"><span class="mn mnl" style="color:#FF3344;font-weight:bold">78</span><span class="mn mnr s4-cn">24</span></div>
+          <div class="mc s4-b75 s4-poc"><span class="mn mnl" style="color:#FF1122;font-weight:bold">144</span><span class="mn mnr" style="color:#FF1122">38</span></div>
+          <div class="mc s4-b75"><span class="mn mnl" style="color:#FF1122;font-weight:bold">112</span><span class="mn mnr s4-cn">19</span></div>
+          <div class="mc s4-b50"><span class="mn mnl" style="color:#FF3344;font-weight:bold">98</span><span class="mn mnr s4-cn">14</span></div>
+          <div class="mc s4-b75"><span class="mn mnl" style="color:#FF1122;font-weight:bold">211</span><span class="mn mnr s4-cn">42</span></div>
+          <div class="mc s4-b25"><span class="mn mnl" style="color:#FF5566">66</span><span class="mn mnr" style="color:#FF5566">71</span></div>
+          <div class="mc s4-cn"><span class="mn mnl s4-cn">22</span><span class="mn mnr s4-cn">28</span></div>
+        </div>
+      </div>
+      <div class="mdb s4-dbar-bg"><div style="width:6px"></div><div class="mdbar s4-dbar-n" style="width:52px"></div><span class="mdtxt s4-dn">-588</span></div>
+      <div class="mbl" style="color:#2A3040">09:50 A↓</div>
+    </div>
+
+    <div class="mb">
+      <div class="mbadge s4-badge-al">A 93</div>
+      <div class="mbar">
+        <div class="mds s4-ds-b"></div>
+        <div class="mcol">
+          <div class="mc s4-a25"><span class="mn mnl s4-cn">44</span><span class="mn mnr" style="color:#00FFAA">98</span></div>
+          <div class="mc s4-a25"><span class="mn mnl s4-cn">38</span><span class="mn mnr" style="color:#00FFAA">88</span></div>
+          <div class="mc s4-a50"><span class="mn mnl s4-cn">31</span><span class="mn mnr" style="color:#00FFCC;font-weight:bold">77</span></div>
+          <div class="mc s4-a75 s4-poc"><span class="mn mnl" style="color:#00FFEE">122</span><span class="mn mnr" style="color:#00FFEE;font-weight:bold">166</span></div>
+          <div class="mc s4-a75"><span class="mn mnl" style="color:#00FFEE">188</span><span class="mn mnr" style="color:#00FFEE;font-weight:bold">311</span></div>
+          <div class="mc s4-a75"><span class="mn mnl" style="color:#00FFEE">144</span><span class="mn mnr" style="color:#00FFEE;font-weight:bold">388</span></div>
+          <div class="mc s4-a25"><span class="mn mnl s4-cn">66</span><span class="mn mnr" style="color:#00FFAA">98</span></div>
+          <div class="mc s4-cn"><span class="mn mnl s4-cn">22</span><span class="mn mnr s4-cn">31</span></div>
+        </div>
+      </div>
+      <div class="mdb s4-dbar-bg"><div style="width:14px"></div><div class="mdbar s4-dbar-p" style="width:50px"></div><span class="mdtxt s4-dp">+488</span></div>
+      <div class="mbl" style="color:#2A3040">09:55 A↑</div>
+    </div>
+
+    <div class="mb">
+      <div class="mbadge" style="color:#00CC88;border-color:#00CC88;background:rgba(0,204,136,.08)">B 71</div>
+      <div class="mbar">
+        <div class="mds s4-ds-b"></div>
+        <div class="mcol">
+          <div class="mc s4-a10"><span class="mn mnl s4-cn">22</span><span class="mn mnr" style="color:#44AAFF">38</span></div>
+          <div class="mc s4-a25"><span class="mn mnl s4-cn">31</span><span class="mn mnr" style="color:#00FFAA">71</span></div>
+          <div class="mc s4-a25"><span class="mn mnl s4-cn">27</span><span class="mn mnr" style="color:#00FFAA">62</span></div>
+          <div class="mc s4-a50 s4-poc"><span class="mn mnl" style="color:#00FFCC">55</span><span class="mn mnr" style="color:#00FFCC;font-weight:bold">77</span></div>
+          <div class="mc s4-a25"><span class="mn mnl s4-cn">44</span><span class="mn mnr" style="color:#00FFAA">58</span></div>
+          <div class="mc s4-cn"><span class="mn mnl s4-cn">28</span><span class="mn mnr s4-cn">31</span></div>
+          <div class="mc s4-cn"><span class="mn mnl s4-cn">14</span><span class="mn mnr s4-cn">18</span></div>
+          <div class="mc s4-cn"><span class="mn mnl s4-cn">—</span><span class="mn mnr s4-cn">—</span></div>
+        </div>
+      </div>
+      <div class="mdb s4-dbar-bg"><div style="width:18px"></div><div class="mdbar s4-dbar-p" style="width:38px"></div><span class="mdtxt s4-dp">+299</span></div>
+      <div class="mbl" style="color:#2A3040">10:00 B↑</div>
+    </div>
+
+  </div>
+  <div class="legend-strip s4-bg">
+    <div class="ls"><div class="lc" style="background:rgba(255,51,68,.25)"></div>Bid 25%</div>
+    <div class="ls"><div class="lc" style="background:rgba(255,51,68,.75)"></div>Bid 75%</div>
+    <div class="ls"><div class="lc" style="background:rgba(0,255,136,.25)"></div>Ask 25%</div>
+    <div class="ls"><div class="lc" style="background:rgba(0,255,136,.75)"></div>Ask 75%</div>
+    <div class="ls"><div class="lc" style="outline:2px solid #FFD23F;outline-offset:-2px;box-shadow:0 0 6px rgba(255,210,63,.4)"></div>POC glow</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     STYLE 5 — Cyan/Orange (AnalyticaChart)
+     ════════════════════════════════════════════ -->
+<div class="card s5-bg">
+  <div class="card-title s5-bar" style="border-color:#1E2334">
+    Style 5 — Cyan / Orange
+    <span class="card-sub">AnalyticaChart signature · Cyan = buy stacks · Orange = sell stacks</span>
+  </div>
+  <div class="mini-chart s5-bg">
+
+    <div class="mb">
+      <div class="mbadge s5-badge-as">A 88</div>
+      <div class="mbar">
+        <div class="mds s5-ds-r"></div>
+        <div class="mcol">
+          <div class="mc s5-cbm"><span class="mn mnl" style="color:#AA8888">41</span><span class="mn mnr" style="color:#886666">18</span></div>
+          <div class="mc s5-cbm"><span class="mn mnl" style="color:#AA8888">78</span><span class="mn mnr" style="color:#886666">24</span></div>
+          <div class="mc s5-poc"><span class="mn mnl s5-white">144</span><span class="mn mnr s5-white">38</span></div>
+          <div class="mc s5-ss"><span class="mn mnl s5-white">112</span><span class="mn mnr s5-bi">19</span></div>
+          <div class="mc s5-ss"><span class="mn mnl s5-white">98</span><span class="mn mnr s5-bi">14</span></div>
+          <div class="mc s5-ss"><span class="mn mnl s5-white">211</span><span class="mn mnr s5-white">42</span></div>
+          <div class="mc s5-cn"><span class="mn mnl" style="color:#4A5870">66</span><span class="mn mnr" style="color:#4A5870">71</span></div>
+          <div class="mc s5-cn"><span class="mn mnl" style="color:#2A3450">22</span><span class="mn mnr" style="color:#2A3450">28</span></div>
+        </div>
+      </div>
+      <div class="mdb s5-dbar-bg"><div style="width:6px"></div><div class="mdbar s5-dbar-n" style="width:52px"></div><span class="mdtxt s5-dn">-588</span></div>
+      <div class="mbl" style="color:#3A4560">09:50 A↓</div>
+    </div>
+
+    <div class="mb">
+      <div class="mbadge s5-badge-al">A 93</div>
+      <div class="mbar">
+        <div class="mds s5-ds-b"></div>
+        <div class="mcol">
+          <div class="mc s5-sk"><span class="mn mnl s5-white">44</span><span class="mn mnr s5-white">98</span></div>
+          <div class="mc s5-sk"><span class="mn mnl s5-white">38</span><span class="mn mnr s5-white">88</span></div>
+          <div class="mc s5-sk"><span class="mn mnl s5-white">31</span><span class="mn mnr s5-white">77</span></div>
+          <div class="mc s5-abs s5-poc"><span class="mn mnl s5-white" style="padding-left:6px">122</span><span class="mn mnr s5-white">166</span></div>
+          <div class="mc s5-ent"><span class="mn mnl s5-white">188</span><span class="mn mnr s5-ai">311</span></div>
+          <div class="mc s5-cam"><span class="mn mnl" style="color:#88AA88">144</span><span class="mn mnr s5-ai">388</span></div>
+          <div class="mc s5-cn"><span class="mn mnl" style="color:#4A5870">66</span><span class="mn mnr" style="color:#4A5870">98</span></div>
+          <div class="mc s5-cn"><span class="mn mnl" style="color:#2A3450">22</span><span class="mn mnr" style="color:#2A3450">31</span></div>
+        </div>
+      </div>
+      <div class="mdb s5-dbar-bg"><div style="width:14px"></div><div class="mdbar s5-dbar-p" style="width:50px"></div><span class="mdtxt s5-dp">+488</span></div>
+      <div class="mbl" style="color:#3A4560">09:55 A↑</div>
+    </div>
+
+    <div class="mb">
+      <div class="mbadge" style="color:#00AAEE;border-color:#00AAEE;background:rgba(0,170,238,.07)">B 71</div>
+      <div class="mbar">
+        <div class="mds s5-ds-b"></div>
+        <div class="mcol">
+          <div class="mc s5-cam"><span class="mn mnl" style="color:#88AA88">22</span><span class="mn mnr" style="color:#88AA88">38</span></div>
+          <div class="mc s5-sk"><span class="mn mnl s5-white">31</span><span class="mn mnr s5-white">71</span></div>
+          <div class="mc s5-sk"><span class="mn mnl s5-white">27</span><span class="mn mnr s5-white">62</span></div>
+          <div class="mc s5-poc s5-cam"><span class="mn mnl s5-white">55</span><span class="mn mnr s5-white">77</span></div>
+          <div class="mc s5-cam"><span class="mn mnl" style="color:#88AA88">44</span><span class="mn mnr" style="color:#88AA88">58</span></div>
+          <div class="mc s5-cn"><span class="mn mnl" style="color:#4A5870">28</span><span class="mn mnr" style="color:#4A5870">31</span></div>
+          <div class="mc s5-cn"><span class="mn mnl" style="color:#2A3450">14</span><span class="mn mnr" style="color:#2A3450">18</span></div>
+          <div class="mc s5-cn"><span class="mn mnl" style="color:#2A3450">—</span><span class="mn mnr" style="color:#2A3450">—</span></div>
+        </div>
+      </div>
+      <div class="mdb s5-dbar-bg"><div style="width:18px"></div><div class="mdbar s5-dbar-p" style="width:38px"></div><span class="mdtxt s5-dp">+299</span></div>
+      <div class="mbl" style="color:#3A4560">10:00 B↑</div>
+    </div>
+
+  </div>
+  <div class="legend-strip s5-bg">
+    <div class="ls"><div class="lc" style="background:rgba(0,212,255,.60)"></div>Cyan buy stack</div>
+    <div class="ls"><div class="lc" style="background:rgba(255,110,0,.60)"></div>Orange sell stack</div>
+    <div class="ls"><div class="lc" style="background:rgba(255,210,63,.15);outline:2px solid #FFD23F;outline-offset:-2px"></div>POC</div>
+    <div class="ls"><span style="color:#00DDFF;font-size:8px">311</span>&nbsp;Ask imb</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     STYLE 6 — Classic Red/Green
+     ════════════════════════════════════════════ -->
+<div class="card s6-bg">
+  <div class="card-title s6-bar" style="border-color:#242424">
+    Style 6 — Classic Red/Green
+    <span class="card-sub">Standard retail · Pure green/red · Simple and familiar</span>
+  </div>
+  <div class="mini-chart s6-bg">
+
+    <div class="mb">
+      <div class="mbadge s6-badge-as">A 88</div>
+      <div class="mbar">
+        <div class="mds s6-ds-r"></div>
+        <div class="mcol">
+          <div class="mc s6-cbm"><span class="mn mnl" style="color:#B88888">41</span><span class="mn mnr" style="color:#707070">18</span></div>
+          <div class="mc s6-cbm2"><span class="mn mnl" style="color:#CAAAAA">78</span><span class="mn mnr" style="color:#707070">24</span></div>
+          <div class="mc s6-cbs s6-poc"><span class="mn mnl s6-white">144</span><span class="mn mnr s6-white">38</span></div>
+          <div class="mc s6-cbs"><span class="mn mnl s6-white">112</span><span class="mn mnr s6-bi">19</span></div>
+          <div class="mc s6-cbs"><span class="mn mnl s6-white">98</span><span class="mn mnr s6-bi">14</span></div>
+          <div class="mc s6-cbs"><span class="mn mnl s6-white">211</span><span class="mn mnr s6-white">42</span></div>
+          <div class="mc s6-cbm"><span class="mn mnl" style="color:#B88888">66</span><span class="mn mnr" style="color:#888888">71</span></div>
+          <div class="mc s6-cn"><span class="mn mnl s6-dim">22</span><span class="mn mnr s6-dim">28</span></div>
+        </div>
+      </div>
+      <div class="mdb s6-dbar-bg"><div style="width:6px"></div><div class="mdbar s6-dbar-n" style="width:52px"></div><span class="mdtxt s6-dn">-588</span></div>
+      <div class="mbl">09:50 A↓</div>
+    </div>
+
+    <div class="mb">
+      <div class="mbadge s6-badge-al">A 93</div>
+      <div class="mbar">
+        <div class="mds s6-ds-b"></div>
+        <div class="mcol">
+          <div class="mc s6-cam"><span class="mn mnl" style="color:#888888">44</span><span class="mn mnr" style="color:#88B888">98</span></div>
+          <div class="mc s6-cam2"><span class="mn mnl" style="color:#888888">38</span><span class="mn mnr" style="color:#AACAAA">88</span></div>
+          <div class="mc s6-cam2"><span class="mn mnl" style="color:#888888">31</span><span class="mn mnr" style="color:#AACAAA">77</span></div>
+          <div class="mc s6-cas s6-poc"><span class="mn mnl s6-white">122</span><span class="mn mnr s6-white">166</span></div>
+          <div class="mc s6-cas"><span class="mn mnl s6-white">188</span><span class="mn mnr s6-ai">311</span></div>
+          <div class="mc s6-cas"><span class="mn mnl s6-white">144</span><span class="mn mnr s6-ai">388</span></div>
+          <div class="mc s6-cam"><span class="mn mnl" style="color:#888888">66</span><span class="mn mnr" style="color:#88B888">98</span></div>
+          <div class="mc s6-cn"><span class="mn mnl s6-dim">22</span><span class="mn mnr s6-dim">31</span></div>
+        </div>
+      </div>
+      <div class="mdb s6-dbar-bg"><div style="width:14px"></div><div class="mdbar s6-dbar-p" style="width:50px"></div><span class="mdtxt s6-dp">+488</span></div>
+      <div class="mbl">09:55 A↑</div>
+    </div>
+
+    <div class="mb">
+      <div class="mbadge" style="color:#44BB44;border-color:#44BB44;background:rgba(68,187,68,.07)">B 71</div>
+      <div class="mbar">
+        <div class="mds s6-ds-b"></div>
+        <div class="mcol">
+          <div class="mc s6-cam"><span class="mn mnl s6-dim">22</span><span class="mn mnr" style="color:#88B888">38</span></div>
+          <div class="mc s6-cam2"><span class="mn mnl s6-dim">31</span><span class="mn mnr" style="color:#AACAAA">71</span></div>
+          <div class="mc s6-cam"><span class="mn mnl s6-dim">27</span><span class="mn mnr" style="color:#88B888">62</span></div>
+          <div class="mc s6-cas s6-poc"><span class="mn mnl s6-white">55</span><span class="mn mnr s6-white">77</span></div>
+          <div class="mc s6-cam"><span class="mn mnl s6-dim">44</span><span class="mn mnr" style="color:#88B888">58</span></div>
+          <div class="mc s6-cn"><span class="mn mnl s6-dim">28</span><span class="mn mnr s6-dim">31</span></div>
+          <div class="mc s6-cn"><span class="mn mnl s6-dim">14</span><span class="mn mnr s6-dim">18</span></div>
+          <div class="mc s6-cn"><span class="mn mnl s6-dim">—</span><span class="mn mnr s6-dim">—</span></div>
+        </div>
+      </div>
+      <div class="mdb s6-dbar-bg"><div style="width:18px"></div><div class="mdbar s6-dbar-p" style="width:38px"></div><span class="mdtxt s6-dp">+299</span></div>
+      <div class="mbl">10:00 B↑</div>
+    </div>
+
+  </div>
+  <div class="legend-strip s6-bg">
+    <div class="ls"><div class="lc" style="background:#1A4A1A"></div>Ask fills</div>
+    <div class="ls"><div class="lc" style="background:#4A1A1A"></div>Bid fills</div>
+    <div class="ls"><div class="lc" style="outline:2px solid #FFD700;outline-offset:-2px"></div>POC</div>
+    <div class="ls"><span style="color:#44FF44;font-size:8px">311</span>&nbsp;Ask imb</div>
+    <div class="ls"><span style="color:#FF4444;font-size:8px">98</span>&nbsp;Bid imb</div>
+  </div>
+</div>
+
+</div><!-- end gallery -->
+
+<div style="padding:14px 20px;border-top:1px solid #1A1D28;background:#0A0C14;font-size:9px;color:#3A3D52">
+  All 6 styles show the same bar data: bearish bar → TYPE_A reversal → follow-through &nbsp;|&nbsp;
+  <strong style="color:#5A6080">Pick the one that feels right — we implement it in the NT8 ChartStyle in one pass.</strong>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,11 @@
+{"task": "21", "status": "PASS", "date": "2026-05-27",
+ "tests_passed": 23, "tests_total": 23,
+ "golden_files": ["golden_quiet_rth.json", "golden_volatile.json", "golden_disconnect.json"],
+ "parity_checks": {
+   "deterministic_replay": "PASS — identical event counts and detector_ids across two runs",
+   "direction_mismatch": "0 mismatches across all 3 golden sessions",
+   "confidence_diff": "≤0.10 (actually 0.0 — deterministic replay)",
+   "price_grid": "all prices on NQ 0.25 tick grid",
+   "live_only_excluded": "PASS — no LIVE_ONLY detectors in REPLAY_SAFE set",
+   "replay_degraded_excluded": "PASS — no REPLAY_DEGRADED detectors in REPLAY_SAFE set"
+ }}

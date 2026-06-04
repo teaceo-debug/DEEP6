@@ -3,7 +3,7 @@
 
 Usage:
     python scripts/deep6_healthcheck.py
-    python scripts/deep6_healthcheck.py --backend-url http://localhost:8000
+    python scripts/deep6_healthcheck.py --backend-url http://localhost:8765
     python scripts/deep6_healthcheck.py --timeout 10 --verbose
     python scripts/deep6_healthcheck.py --skip-frontend
 
@@ -190,11 +190,24 @@ def _recv_exactly(s: socket.socket, n: int) -> bytes:
 # ---------------------------------------------------------------------------
 # Schema drift check
 # ---------------------------------------------------------------------------
-_PROJECT_ROOT = "/Users/teaceo/DEEP6"
+_PROJECT_ROOT = None
+
+
+def _repo_root() -> str | None:
+    if _PROJECT_ROOT is not None:
+        return _PROJECT_ROOT
+    try:
+        from pathlib import Path
+        return str(Path(__file__).resolve().parents[1])
+    except Exception:
+        return None
 
 def _extract_python_live_types() -> set[str]:
     """Parse LiveMessage union members from schemas.py via regex."""
-    path = f"{_PROJECT_ROOT}/deep6/api/schemas.py"
+    root = _repo_root()
+    if not root:
+        return set()
+    path = f"{root}/deep6/api/schemas.py"
     try:
         with open(path) as f:
             src = f.read()
@@ -210,7 +223,10 @@ def _extract_python_live_types() -> set[str]:
 
 def _extract_ts_live_types() -> set[str]:
     """Parse LiveMessage union members from deep6.ts via regex."""
-    path = f"{_PROJECT_ROOT}/dashboard/types/deep6.ts"
+    root = _repo_root()
+    if not root:
+        return set()
+    path = f"{root}/dashboard/types/deep6.ts"
     try:
         with open(path) as f:
             src = f.read()
@@ -615,14 +631,14 @@ def run_checks(backend_url: str, frontend_url: str, timeout: float,
 # Entry point
 # ---------------------------------------------------------------------------
 
-def main() -> None:
+def main() -> int:
     parser = argparse.ArgumentParser(
-        description="DEEP6 end-to-end pipeline health check",
+        description="DEEP6 health check for backend, websocket, frontend, and schema alignment",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
-    parser.add_argument("--backend-url",  default="http://localhost:8000",
-                        help="FastAPI backend base URL (default: http://localhost:8000)")
+    parser.add_argument("--backend-url", default="http://localhost:8765",
+                        help="FastAPI base URL (default: http://localhost:8765)")
     parser.add_argument("--frontend-url", default="http://localhost:3000",
                         help="Next.js frontend base URL (default: http://localhost:3000)")
     parser.add_argument("--timeout", type=float, default=5.0,

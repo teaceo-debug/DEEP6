@@ -1,0 +1,56 @@
+{
+  "name": "ENG_05_naive_bayes_composite",
+  "description": "Naïve Bayes probability from composite signal history. Multiple prior signals build a conditional probability for direction.",
+  "bar": {
+    "open": 21500.0,
+    "high": 21515.0,
+    "low": 21498.0,
+    "close": 21512.0,
+    "delta": 300,
+    "total_volume": 2800,
+    "bid_volumes": {
+      "21498.0": 100,
+      "21500.0": 200,
+      "21503.0": 250,
+      "21505.0": 300,
+      "21508.0": 200
+    },
+    "ask_volumes": {
+      "21500.0": 200,
+      "21503.0": 300,
+      "21505.0": 350,
+      "21508.0": 300,
+      "21510.0": 250,
+      "21512.0": 200,
+      "21515.0": 100
+    },
+    "poc_price": 21505.0,
+    "poc_volume": 650,
+    "vah": 21512.0,
+    "val": 21501.0,
+    "cvd": 600.0,
+    "bar_index": 55,
+    "timestamp": "2026-05-13T10:40:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 600.0,
+    "vah": 21512.0,
+    "val": 21501.0,
+    "poc": 21505.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "signal_history": {
+      "ABS_01": {"count": 3, "win_rate": 0.72},
+      "IMB_03": {"count": 2, "win_rate": 0.80},
+      "DELT_01": {"count": 4, "win_rate": 0.65}
+    }
+  },
+  "expected_signal": {
+    "signal_id": "ENG_05",
+    "direction": "BULLISH",
+    "strength_min": 0.35,
+    "strength_max": 0.55
+  }
+}

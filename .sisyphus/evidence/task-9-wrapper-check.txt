@@ -1,0 +1,3 @@
+knowledge.md lines: 22 (should be under 80)
+DEEP6 workflow: 11
+Builder-doctor cross-ref: 1

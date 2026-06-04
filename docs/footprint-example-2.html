@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DEEP6 Footprint — Example 2: Bearish Flush → TYPE_A Reversal</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: #13151F;
+  font-family: 'Consolas','Courier New',monospace;
+  color: #E0E4F0;
+  user-select: none;
+}
+
+/* ─── Top bar ─── */
+.topbar {
+  background: #0D0F1A;
+  border-bottom: 1px solid #242840;
+  padding: 6px 16px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 10px;
+}
+.sym { font-size: 14px; font-weight: bold; color: #E0E4F0; }
+.chip { padding: 2px 7px; border-radius: 2px; font-size: 9px; font-weight: bold; }
+.chip-5m  { background: #1A2040; color: #4A90D9; }
+.chip-live { background: #1A3A1E; color: #00C040; }
+.meta { color: #4A5070; margin-left: auto; }
+.vwap-chip { color: #C8A84A; }
+
+/* ─── Chart wrapper ─── */
+.chart {
+  display: flex;
+  padding: 52px 16px 16px;
+  gap: 0;
+  align-items: flex-end;
+  overflow-x: auto;
+  position: relative;
+  min-height: 420px;
+}
+
+/* ─── Horizontal price lines ─── */
+.h-line {
+  position: absolute;
+  left: 0; right: 0;
+  height: 1px;
+  pointer-events: none;
+  z-index: 5;
+}
+.h-line-vwap  { background: rgba(200,168,74,0.7); }
+.h-line-ib-h  { border-top: 1px dashed rgba(160,110,0,0.5); }
+.h-line-ib-l  { border-top: 1px dashed rgba(160,110,0,0.5); }
+.h-line-pdpoc { border-top: 1px dotted rgba(123,82,204,0.5); }
+.h-label {
+  position: absolute;
+  right: 6px;
+  top: -9px;
+  font-size: 7.5px;
+  font-family: 'Consolas', monospace;
+}
+
+/* ─── Price axis (left) ─── */
+.axis-l {
+  width: 58px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  padding-top: 0;
+  border-right: 1px solid #1A1E30;
+}
+.px { height: 20px; display: flex; align-items: center; justify-content: flex-end;
+  padding-right: 6px; font-size: 8.5px; color: #3D4260; }
+
+/* ─── Bar wrapper ─── */
+.bw {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 2px;
+}
+.badge {
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  font-weight: bold;
+  border-radius: 2px;
+  border: 1px solid;
+  padding: 0 5px;
+  margin-bottom: 3px;
+  min-width: 38px;
+  letter-spacing: .3px;
+}
+.b-al { color:#00FF88; border-color:#00FF88; background:rgba(0,255,136,.07); }
+.b-bl { color:#00CC66; border-color:#00CC66; background:rgba(0,204,102,.07); }
+.b-as { color:#FF2962; border-color:#FF2962; background:rgba(255,41,98,.07); }
+.b-bs { color:#CC2244; border-color:#CC2244; background:rgba(204,34,68,.07); }
+.b-q  { visibility:hidden; }
+
+/* ─── Bar ─── */
+.bar { display:flex; }
+
+/* Direction strip */
+.ds { width:4px; border-radius:1px 0 0 1px; flex-shrink:0; }
+.ds-bull { background:#00C040; }
+.ds-bear { background:#C02000; }
+.ds-neut { background:#28293A; }
+
+/* Cell column */
+.col { display:flex; flex-direction:column; position:relative; }
+
+/* Center wick */
+.col::before {
+  content:'';
+  position:absolute;
+  left:50%; top:0; bottom:0;
+  width:1px;
+  background:#353752;
+  transform:translateX(-50%);
+  z-index:0;
+  pointer-events:none;
+}
+
+/* Individual cell */
+.c {
+  height:20px;
+  width:106px;
+  display:flex;
+  align-items:center;
+  position:relative;
+  border-bottom:1px solid rgba(26,30,48,.8);
+  z-index:1;
+}
+
+/* Cell fill types */
+.cn  { background:transparent; }
+.cam { background:#182A18; }          /* ask mild  */
+.cam2{ background:#1C5A1C; }          /* ask medium*/
+.cas { background:#1E7A28; }          /* ask strong*/
+.cbm { background:#2A1818; }          /* bid mild  */
+.cbm2{ background:#5A1C1C; }          /* bid medium*/
+.cbs { background:#7A2018; }          /* bid strong*/
+.csk { background:rgba(0,195,255,.52); }   /* stack buy */
+.css_{ background:rgba(255,115,0,.52); }   /* stack sell*/
+.cpoc{ outline:2px solid #FFD700; outline-offset:-2px; z-index:2; }
+.cabs{ background:linear-gradient(90deg,transparent 50%,rgba(0,191,165,.55) 50%); }
+.cent{ background:rgba(0,210,255,.06); border:1px solid rgba(0,210,255,.6) !important; z-index:3; }
+.cclm{ border-bottom:2.5px solid #FFD23F !important; }
+.cunf{ background:rgba(100,200,216,.3); }
+.ctrp::after { content:'◁'; position:absolute; right:2px; color:#FFB300; font-size:8px; z-index:4; }
+.cage::after { content:'A'; position:absolute; left:3px; color:#00BFA5; font-size:7px; font-weight:bold; z-index:4; }
+
+/* Number text */
+.n { flex:1; font-size:8.5px; padding:0 3px; white-space:nowrap; position:relative; z-index:2; }
+.nl { text-align:right; }
+.nr { text-align:left; }
+.nw  { color:#FFFFFF; }
+.ng  { color:#ABAEB8; }
+.nd  { color:#505470; }
+.nai { color:#00FFAA; font-weight:bold; }
+.nbi { color:#FF4466; font-weight:bold; }
+
+/* Zone tier label */
+.zt {
+  position:absolute; left:2px;
+  font-size:7px; font-weight:bold; z-index:5;
+}
+.zt-b { color:rgba(0,220,255,.9); }
+.zt-s { color:rgba(255,130,0,.9); }
+
+/* Entry label */
+.cent-lbl {
+  position:absolute; right:-44px;
+  font-size:7px; color:rgba(0,210,255,.7);
+  white-space:nowrap; z-index:10;
+}
+
+/* Delta bar */
+.db {
+  height:22px; width:106px;
+  display:flex; align-items:center;
+  padding:0 4px; gap:4px;
+  background:#0D0F1A;
+  border-top:1px solid #1A1E30;
+  margin-left:4px;
+}
+.db-bar { height:7px; border-radius:1px; min-width:2px; }
+.db-p { background:#00C040; }
+.db-n { background:#C02000; }
+.db-txt { font-size:7.5px; }
+.dp { color:#00C878; }
+.dn { color:#C84040; }
+.dg { color:#3D4260; margin-left:auto; }
+
+/* Bar label */
+.bl { font-size:7.5px; color:#3D4260; text-align:center; margin-top:3px; margin-left:4px; }
+
+/* Right axis */
+.axis-r {
+  width:72px; flex-shrink:0;
+  display:flex; flex-direction:column;
+  border-left:1px solid #1A1E30;
+}
+.pxr {
+  height:20px; display:flex; align-items:center;
+  padding-left:6px; font-size:8.5px; color:#3D4260;
+}
+.pxr.cur { color:#E0E4F0; font-weight:bold; }
+.pxr.vwaplbl { color:#C8A84A; }
+.pxr.iblbl  { color:#8A6010; }
+
+/* ─── Legend ─── */
+.leg { display:flex; flex-wrap:wrap; gap:10px; padding:14px 16px;
+  border-top:1px solid #1A1E30; background:#0D0F1A; }
+.li { display:flex; align-items:center; gap:5px; font-size:8.5px; color:#6B7094; }
+.lc { width:14px; height:11px; border-radius:1px; flex-shrink:0; }
+
+.footer { padding:8px 16px; font-size:8px; color:#282C40; border-top:1px solid #161A28; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="sym">NQ 06-26</span>
+  <span class="chip chip-5m">5 MIN</span>
+  <span class="chip chip-live">● LIVE</span>
+  <span>Scenario: Bearish flush → exhaustion → TYPE_A reversal</span>
+  <span class="meta">
+    VWAP <span class="vwap-chip">21,432.00</span> &nbsp;|&nbsp;
+    IB 21,448 / 21,415 &nbsp;|&nbsp;
+    PD POC 21,420
+  </span>
+</div>
+
+<div class="chart" id="ch">
+
+  <!-- Horizontal levels -->
+  <div class="h-line h-line-ib-h"  style="top:72px">
+    <span class="h-label" style="color:#8A6010">IBH 21448</span></div>
+  <div class="h-line h-line-vwap"  style="top:192px">
+    <span class="h-label" style="color:#C8A84A">VWAP 21432</span></div>
+  <div class="h-line h-line-pdpoc" style="top:252px">
+    <span class="h-label" style="color:#7B52CC">PD POC 21420</span></div>
+  <div class="h-line h-line-ib-l"  style="top:332px">
+    <span class="h-label" style="color:#8A6010">IBL 21415</span></div>
+
+  <!-- Left price axis -->
+  <div class="axis-l">
+    <div class="px">21452</div>
+    <div class="px">21450</div>
+    <div class="px">21448</div>
+    <div class="px">21446</div>
+    <div class="px">21444</div>
+    <div class="px">21442</div>
+    <div class="px">21440</div>
+    <div class="px">21438</div>
+    <div class="px">21436</div>
+    <div class="px">21434</div>
+    <div class="px">21432</div>
+    <div class="px">21430</div>
+    <div class="px">21428</div>
+    <div class="px">21426</div>
+    <div class="px">21424</div>
+    <div class="px">21422</div>
+    <div class="px">21420</div>
+    <div class="px">21418</div>
+    <div class="px">21416</div>
+    <div class="px">21414</div>
+  </div>
+
+  <!-- ══ BAR 1 — Bearish, TYPE_B short ══ -->
+  <div class="bw">
+    <div class="badge b-bs">B 76</div>
+    <div class="bar">
+      <div class="ds ds-bear"></div>
+      <div class="col">
+        <div class="c cn"><span class="n nl nd">7</span><span class="n nr nd">4</span></div>
+        <div class="c cn"><span class="n nl nd">14</span><span class="n nr nd">11</span></div>
+        <div class="c cbm"><span class="n nl ng">38</span><span class="n nr ng">24</span></div>
+        <div class="c cbm"><span class="n nl ng">52</span><span class="n nr ng">31</span></div>
+        <div class="c cbm2 cpoc"><span class="n nl nw">88</span><span class="n nr nw">41</span></div>
+        <div class="c css_"><span class="n nl nw">71</span><span class="n nr nw">18</span></div>
+        <div class="c css_" style="position:relative"><span class="zt zt-s" style="top:3px">T2</span><span class="n nl nw" style="padding-left:12px">64</span><span class="n nr nw">14</span></div>
+        <div class="c css_"><span class="n nl nw">58</span><span class="n nr nw">11</span></div>
+        <div class="c cbm"><span class="n nl ng">33</span><span class="n nr ng">22</span></div>
+        <div class="c cn"><span class="n nl nd">18</span><span class="n nr nd">19</span></div>
+        <div class="c cn"><span class="n nl nd">9</span><span class="n nr nd">12</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn" style="border:none"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn" style="border:none"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+      </div>
+    </div>
+    <div class="db">
+      <div style="width:22px"></div>
+      <div class="db-bar db-n" style="width:44px"></div>
+      <span class="db-txt dn">-312</span>
+      <span class="db-txt dg">9.1K</span>
+    </div>
+    <div class="bl">09:40<br>B↓ 76</div>
+  </div>
+
+  <!-- ══ BAR 2 — Strong bearish, no signal ══ -->
+  <div class="bw">
+    <div class="badge b-q">—</div>
+    <div class="bar">
+      <div class="ds ds-bear"></div>
+      <div class="col">
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">9</span><span class="n nr nd">6</span></div>
+        <div class="c cbm"><span class="n nl ng">29</span><span class="n nr ng">18</span></div>
+        <div class="c cbm2"><span class="n nl ng">61</span><span class="n nr ng">28</span></div>
+        <div class="c cbm2 cpoc"><span class="n nl nw">94</span><span class="n nr nw">37</span></div>
+        <div class="c css_"><span class="n nl nw">88</span><span class="n nr nw">19</span></div>
+        <div class="c css_" style="position:relative"><span class="zt zt-s" style="top:3px">T1</span><span class="n nl nw" style="padding-left:12px">77</span><span class="n nr nw">16</span></div>
+        <div class="c css_"><span class="n nl nw">66</span><span class="n nr nw">12</span></div>
+        <div class="c cbm2"><span class="n nl ng">55</span><span class="n nr ng">24</span></div>
+        <div class="c cbm"><span class="n nl ng">44</span><span class="n nr ng">31</span></div>
+        <div class="c cbm"><span class="n nl ng">38</span><span class="n nr ng">27</span></div>
+        <div class="c cn"><span class="n nl nd">21</span><span class="n nr nd">18</span></div>
+        <div class="c cn"><span class="n nl nd">11</span><span class="n nr nd">14</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn" style="border:none"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn" style="border:none"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+      </div>
+    </div>
+    <div class="db">
+      <div style="width:16px"></div>
+      <div class="db-bar db-n" style="width:62px"></div>
+      <span class="db-txt dn">-498</span>
+      <span class="db-txt dg">12.4K</span>
+    </div>
+    <div class="bl">09:45<br>Quiet ↓</div>
+  </div>
+
+  <!-- ══ BAR 3 — Climax / Exhaustion, TYPE_A short ══ -->
+  <div class="bw">
+    <div class="badge b-as">A 89</div>
+    <div class="bar">
+      <div class="ds ds-bear"></div>
+      <div class="col">
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">7</span><span class="n nr nd">5</span></div>
+        <div class="c cbm"><span class="n nl ng">24</span><span class="n nr ng">16</span></div>
+        <div class="c cbm2"><span class="n nl ng">67</span><span class="n nr ng">24</span></div>
+        <div class="c css_"><span class="n nl nw">112</span><span class="n nr nw">19</span></div>
+        <div class="c css_" style="position:relative"><span class="zt zt-s" style="top:3px">T3</span><span class="n nl nw" style="padding-left:12px">144</span><span class="n nr nw">22</span></div>
+        <div class="c css_"><span class="n nl nw">131</span><span class="n nr nw">18</span></div>
+        <div class="c css_"><span class="n nl nw">118</span><span class="n nr nw">14</span></div>
+        <div class="c css_"><span class="n nl nw">99</span><span class="n nr nw">11</span></div>
+        <div class="c cbm2 cpoc"><span class="n nl nw">188</span><span class="n nr nw">44</span></div>
+        <div class="c cbs"><span class="n nl nw">241</span><span class="n nr nw">38</span></div>
+        <div class="c cbs cclm"><span class="n nl nw">289</span><span class="n nr nw">42</span></div>
+        <div class="c cbs"><span class="n nl nw">211</span><span class="n nr nw">58</span></div>
+        <div class="c cbm2"><span class="n nl ng">88</span><span class="n nr ng">71</span></div>
+        <div class="c cbm"><span class="n nl ng">44</span><span class="n nr ng">61</span></div>
+        <div class="c cunf"><span class="n nl ng">31</span><span class="n nr ng">28</span></div>
+        <div class="c cn"><span class="n nl nd">14</span><span class="n nr nd">17</span></div>
+        <div class="c cn" style="border:none"><span class="n nl nd">8</span><span class="n nr nd">11</span></div>
+      </div>
+    </div>
+    <div class="db">
+      <div style="width:8px"></div>
+      <div class="db-bar db-n" style="width:78px"></div>
+      <span class="db-txt dn">-788</span>
+      <span class="db-txt dg">22.1K</span>
+    </div>
+    <div class="bl">09:50<br>A↓ CLMX</div>
+  </div>
+
+  <!-- ══ BAR 4 — Reversal, TYPE_A LONG ══ -->
+  <div class="bw">
+    <div class="badge b-al">A 93</div>
+    <div class="bar">
+      <div class="ds ds-bull"></div>
+      <div class="col">
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">8</span><span class="n nr nd">11</span></div>
+        <div class="c cam"><span class="n nl ng">22</span><span class="n nr ng">34</span></div>
+        <div class="c cam2"><span class="n nl ng">44</span><span class="n nr ng">78</span></div>
+        <div class="c csk"><span class="n nl nw">58</span><span class="n nr nw">122</span></div>
+        <div class="c csk" style="position:relative"><span class="zt zt-b" style="top:3px">T3</span><span class="n nl nw" style="padding-left:12px">48</span><span class="n nr nw">104</span></div>
+        <div class="c csk"><span class="n nl nw">41</span><span class="n nr nw">97</span></div>
+        <div class="c csk"><span class="n nl nw">38</span><span class="n nr nw">88</span></div>
+        <div class="c csk"><span class="n nl nw">33</span><span class="n nr nw">79</span></div>
+        <div class="c cabs cage cpoc"><span class="n nl nw" style="padding-left:12px">144</span><span class="n nr nw">188</span></div>
+        <div class="c cent" style="position:relative">
+          <span class="n nl nw">211</span><span class="n nr nai">334</span>
+          <span class="cent-lbl">← ENTRY</span>
+        </div>
+        <div class="c cas"><span class="n nl nw">181</span><span class="n nr nai">412</span></div>
+        <div class="c cam2"><span class="n nl ng">88</span><span class="n nr ng">131</span></div>
+        <div class="c cam"><span class="n nl ng">44</span><span class="n nr ng">62</span></div>
+        <div class="c cn"><span class="n nl nd">22</span><span class="n nr nd">28</span></div>
+        <div class="c cn"><span class="n nl nd">11</span><span class="n nr nd">14</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn" style="border:none"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+      </div>
+    </div>
+    <div class="db">
+      <div style="width:22px"></div>
+      <div class="db-bar db-p" style="width:66px"></div>
+      <span class="db-txt dp">+541</span>
+      <span class="db-txt dg">18.8K</span>
+    </div>
+    <div class="bl">09:55<br>A↑ REV</div>
+  </div>
+
+  <!-- ══ BAR 5 — Follow-through bull ══ -->
+  <div class="bw">
+    <div class="badge b-bl">B 71</div>
+    <div class="bar">
+      <div class="ds ds-bull"></div>
+      <div class="col">
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cam"><span class="n nl ng">11</span><span class="n nr ng">19</span></div>
+        <div class="c cam"><span class="n nl ng">28</span><span class="n nr ng">44</span></div>
+        <div class="c cam2"><span class="n nl ng">41</span><span class="n nr ng">67</span></div>
+        <div class="c csk"><span class="n nl nw">38</span><span class="n nr nw">91</span></div>
+        <div class="c csk" style="position:relative"><span class="zt zt-b" style="top:3px">T2</span><span class="n nl nw" style="padding-left:12px">31</span><span class="n nr nw">77</span></div>
+        <div class="c csk"><span class="n nl nw">27</span><span class="n nr nw">68</span></div>
+        <div class="c cam2 cpoc"><span class="n nl nw">61</span><span class="n nr nw">88</span></div>
+        <div class="c cam"><span class="n nl ng">48</span><span class="n nr ng">61</span></div>
+        <div class="c cam"><span class="n nl ng">38</span><span class="n nr ng">49</span></div>
+        <div class="c cn"><span class="n nl nd">22</span><span class="n nr nd">28</span></div>
+        <div class="c cn"><span class="n nl nd">14</span><span class="n nr nd">18</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn" style="border:none"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn" style="border:none"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+      </div>
+    </div>
+    <div class="db">
+      <div style="width:22px"></div>
+      <div class="db-bar db-p" style="width:44px"></div>
+      <span class="db-txt dp">+312</span>
+      <span class="db-txt dg">11.2K</span>
+    </div>
+    <div class="bl">10:00<br>B↑ 71</div>
+  </div>
+
+  <!-- ══ BAR 6 — Consolidation ══ -->
+  <div class="bw">
+    <div class="badge b-q">—</div>
+    <div class="bar">
+      <div class="ds ds-neut"></div>
+      <div class="col">
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">9</span><span class="n nr nd">11</span></div>
+        <div class="c cam"><span class="n nl ng">22</span><span class="n nr ng">31</span></div>
+        <div class="c cn"><span class="n nl ng">44</span><span class="n nr ng">41</span></div>
+        <div class="c cpoc cn"><span class="n nl nw">67</span><span class="n nr nw">71</span></div>
+        <div class="c cam"><span class="n nl ng">52</span><span class="n nr ng">58</span></div>
+        <div class="c cbm"><span class="n nl ng">48</span><span class="n nr ng">38</span></div>
+        <div class="c cn"><span class="n nl nd">31</span><span class="n nr nd">28</span></div>
+        <div class="c cn"><span class="n nl nd">19</span><span class="n nr nd">22</span></div>
+        <div class="c cn"><span class="n nl nd">11</span><span class="n nr nd">14</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn" style="border:none"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+        <div class="c cn" style="border:none"><span class="n nl nd">—</span><span class="n nr nd">—</span></div>
+      </div>
+    </div>
+    <div class="db">
+      <div style="width:30px"></div>
+      <div class="db-bar db-p" style="width:12px"></div>
+      <span class="db-txt dp">+44</span>
+      <span class="db-txt dg">6.8K</span>
+    </div>
+    <div class="bl">10:05<br>Quiet</div>
+  </div>
+
+  <!-- Right price axis -->
+  <div class="axis-r">
+    <div class="pxr">21452</div>
+    <div class="pxr">21450</div>
+    <div class="pxr iblbl">21448 IBH</div>
+    <div class="pxr">21446</div>
+    <div class="pxr">21444</div>
+    <div class="pxr">21442</div>
+    <div class="pxr">21440</div>
+    <div class="pxr">21438</div>
+    <div class="pxr">21436</div>
+    <div class="pxr">21434</div>
+    <div class="pxr vwaplbl">21432 VWAP</div>
+    <div class="pxr">21430</div>
+    <div class="pxr">21428</div>
+    <div class="pxr">21426</div>
+    <div class="pxr">21424</div>
+    <div class="pxr">21422</div>
+    <div class="pxr">21420 PD POC</div>
+    <div class="pxr">21418</div>
+    <div class="pxr iblbl">21416 IBL</div>
+    <div class="pxr cur">21414 ▼</div>
+  </div>
+
+</div>
+
+<!-- Legend -->
+<div class="leg">
+  <div class="li"><div class="lc" style="background:transparent;border:1px solid #282C40"></div>Neutral — quiet</div>
+  <div class="li"><div class="lc" style="background:#182A18"></div>Ask mild (buyers)</div>
+  <div class="li"><div class="lc" style="background:#1C5A1C"></div>Ask medium</div>
+  <div class="li"><div class="lc" style="background:#1E7A28"></div>Ask strong (5×+)</div>
+  <div class="li"><div class="lc" style="background:#2A1818"></div>Bid mild (sellers)</div>
+  <div class="li"><div class="lc" style="background:#5A1C1C"></div>Bid medium</div>
+  <div class="li"><div class="lc" style="background:#7A2018"></div>Bid strong (5×+)</div>
+  <div class="li"><div class="lc" style="background:rgba(0,195,255,.52)"></div>Stacked BUY zone</div>
+  <div class="li"><div class="lc" style="background:rgba(255,115,0,.52)"></div>Stacked SELL zone</div>
+  <div class="li"><div class="lc" style="outline:2px solid #FFD700;outline-offset:-2px"></div>POC row</div>
+  <div class="li"><div class="lc" style="background:linear-gradient(90deg,transparent 50%,rgba(0,191,165,.55) 50%)"></div>Absorption</div>
+  <div class="li"><div class="lc" style="background:rgba(100,200,216,.3)"></div>Unfinished auction</div>
+  <div class="li"><div class="lc" style="background:rgba(0,210,255,.06);border:1px solid rgba(0,210,255,.6)"></div>Entry price</div>
+  <div class="li"><div style="width:14px;height:2.5px;background:#FFD23F;margin:4px 0"></div>Volume climax</div>
+  <div class="li"><div style="color:#00FFAA;font-size:9px;width:14px">334</div>Ask imbalance highlight</div>
+  <div class="li"><div style="color:#FFB300;font-size:9px;width:14px">◁</div>Trapped trader</div>
+</div>
+
+<div class="footer">
+  DEEP6 Footprint Design Example 2 — Scenario: Bearish flush (09:40–09:50) → Volume climax at PD POC → TYPE_A reversal (09:55) → Follow-through
+</div>
+
+</body>
+</html>

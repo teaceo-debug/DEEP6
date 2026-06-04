@@ -1,0 +1,58 @@
+Task: Continuous Claude cadence + standalone DEEP6 bias fallback
+Date: 2026-06-01
+
+Changed files
+- gex_terminal/engine/interpreter.py
+- gex_terminal/engine/orchestrator.py
+- gex_terminal/ui/app/page.tsx
+- gex_terminal/ui/components/Deep6BiasPanel.tsx
+- gex_terminal/tests/test_interpreter.py
+- gex_terminal/tests/test_orchestrator.py
+
+Implemented
+- Claude interpreter now accepts cycle_count and schedules fresh calls on:
+  - any material change
+  - every 3rd cycle during market hours
+  - every 5th cycle regardless
+- Prompt now includes live cycle context and instructs Claude to provide fresh, current-state analysis.
+- Orchestrator now passes cycle_count into interpreter.interpret(...).
+- DEEP6 bridge reads are wrapped in 2.0s timeout handling and degrade to STANDALONE when unavailable.
+- UI now renders missing DEEP6 bridge state as STANDALONE / N/A instead of DISCONNECTED.
+
+Static verification
+- LSP diagnostics clean on changed Python and TS/TSX files.
+
+HERMES verification attempts
+1) HERMES session 20260601_163321_84007e
+   - pytest failed to start in WSL fallback environment: missing python command / missing deps.
+   - python3 pytest collection failed: ModuleNotFoundError: pydantic_settings.
+   - temp venv creation failed: ensurepip / python3.12-venv unavailable.
+
+2) HERMES session 20260601_163837_6194c0
+   - requested repo venv executables not present at tested WSL paths.
+   - python3 -m pytest gex_terminal/tests/test_interpreter.py gex_terminal/tests/test_orchestrator.py gex_terminal/tests/test_deep6_bridge.py -q
+     failed during collection: ModuleNotFoundError: pydantic_settings.
+   - python3 -m gex_terminal --dry-run
+     failed: ModuleNotFoundError: pydantic_settings.
+   - HERMES code inspection confirmed:
+     - cycle_count is passed from orchestrator to interpreter
+     - should_call fires on every 3rd cycle during market hours
+     - should_call fires every 5th cycle regardless
+     - DEEP6 fallback label is STANDALONE when bridge is unavailable
+
+Verification status
+- Code changes complete.
+- Static diagnostics complete.
+- Runtime verification completed after switching HERMES to Windows Python 3.11.
+
+Final HERMES verification
+3) HERMES session 20260601_164410_2a7705
+   - Found usable interpreter: C:\Users\Tea\AppData\Local\Programs\Python\Python311\python.exe via `py -3.11`.
+   - pytest initially failed with 25 passed / 1 failed due to stale test expectation in `test_full_cycle_with_mock_adapters`.
+   - `py -3.11 -m gex_terminal --dry-run` passed.
+
+4) HERMES session 20260601_165017_7530bd
+   - `py -3.11 -m pytest gex_terminal/tests/test_interpreter.py gex_terminal/tests/test_orchestrator.py gex_terminal/tests/test_deep6_bridge.py -q`
+     -> PASS, 26 passed in 84.18s
+   - `py -3.11 -m gex_terminal --dry-run`
+     -> PASS, exit_code 0, config validated

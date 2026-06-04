@@ -1,0 +1,52 @@
+{
+  "name": "EXH_01_zero_print_at_high",
+  "description": "Zero print at bar high: price level with 0 bid + 0 ask volume at top of bar. Auction reached exhaustion — BEARISH.",
+  "bar": {
+    "open": 21500.0,
+    "high": 21520.0,
+    "low": 21495.0,
+    "close": 21502.0,
+    "delta": 300,
+    "total_volume": 2800,
+    "bid_volumes": {
+      "21495.0": 200,
+      "21500.0": 400,
+      "21505.0": 350,
+      "21510.0": 300,
+      "21515.0": 200
+    },
+    "ask_volumes": {
+      "21500.0": 250,
+      "21505.0": 300,
+      "21510.0": 350,
+      "21515.0": 250,
+      "21518.0": 100,
+      "21519.0": 50,
+      "21519.5": 20,
+      "21519.75": 10
+    },
+    "poc_price": 21505.0,
+    "poc_volume": 650,
+    "vah": 21515.0,
+    "val": 21500.0,
+    "cvd": 400.0,
+    "bar_index": 35,
+    "timestamp": "2026-05-13T10:20:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 400.0,
+    "vah": 21515.0,
+    "val": 21500.0,
+    "poc": 21505.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0
+  },
+  "expected_signal": {
+    "signal_id": "EXH_01",
+    "direction": "BEARISH",
+    "strength_min": 0.40,
+    "strength_max": 0.60
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "task": 14,
+  "name": "pull-replace-detector",
+  "detector_id": "dom.pull_replace.v1",
+  "signal_id": "REGIME_CHANGE",
+  "status": "passed",
+  "verified_at": "2026-05-27",
+  "files": {
+    "detector": "deep6v2/signals/dom/detectors/pull_replace.py",
+    "tests": "tests_v2/dom_intelligence/test_pull_replace.py"
+  },
+  "coverage": [
+    "repeated nearby pull/replace emits only after confirmation threshold is reached",
+    "pull without nearby replacement stays silent",
+    "single pull/replace without repetition stays silent",
+    "heuristic event metadata includes pull_ratio and replacement_speed"
+  ],
+  "thresholds": {
+    "cancel_threshold": 50,
+    "price_range": 1.0,
+    "look_ahead": 2,
+    "confirmation_threshold": 2,
+    "ratio_tolerance": 0.35
+  },
+  "verification": {
+    "lsp_diagnostics": "clean on changed files",
+    "pytest_command": "python3 -m pytest tests_v2/dom_intelligence/test_pull_replace.py -v",
+    "pytest_result": "4 passed, 1 warning in 0.69s",
+    "warning": "PytestConfigWarning: Unknown config option: asyncio_mode.",
+    "notes": [
+      "SignalId.REGIME_CHANGE is used as the required placeholder marker for heuristic-only DOM events.",
+      "Hermes executed pytest with python3 because python was unavailable in WSL."
+    ]
+  }
+}

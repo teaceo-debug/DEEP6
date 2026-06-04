@@ -1,0 +1,10 @@
+Task 13 — budget checkpoint test
+
+Setup:
+- Seeded 50 fake iteration rows into temp discovery DuckDB
+
+Observed result:
+- stdout contained: === CHECKPOINT - budget exhausted (50 iterations) ===
+- script exited without creating a new iteration
+
+Status: PASS

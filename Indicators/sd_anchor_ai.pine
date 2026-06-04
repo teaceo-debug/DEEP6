@@ -1,0 +1,378 @@
+//@version=6
+indicator("StdDev Anchor AI", overlay=true, max_bars_back=200, max_lines_count=20, max_boxes_count=10, max_labels_count=20)
+
+// ===== Inputs =====
+groupDetection = "Detection"
+swingLeft = input.int(3, "Swing Bars Left", minval=1, maxval=20, group=groupDetection)
+swingRight = input.int(3, "Swing Bars Right", minval=1, maxval=20, group=groupDetection)
+minRangeTicks = input.int(12, "Minimum Leg Range (ticks)", minval=1, maxval=200, group=groupDetection)
+confirmationRatio = input.float(0.5, "Confirmation Ratio", minval=0.1, maxval=2.0, step=0.1, tooltip="How far past the swing extreme price must move to confirm the displacement, as a multiple of the leg range", group=groupDetection)
+
+groupMTF = "MTF Context"
+useMTFContext = input.bool(true, "Use 5m / 15m Confidence Context", group=groupMTF)
+
+// ===== Core Detection Inputs =====
+pivotHighValue = ta.pivothigh(high, swingLeft, swingRight)
+pivotLowValue = ta.pivotlow(low, swingLeft, swingRight)
+pivotHighFound = not na(pivotHighValue)
+pivotLowFound = not na(pivotLowValue)
+
+// Buffer allocation for dynamic historical references used in helper functions
+max_bars_back(open, 200)
+max_bars_back(high, 200)
+max_bars_back(low, 200)
+max_bars_back(close, 200)
+max_bars_back(time, 200)
+max_bars_back(pivotHighValue, 200)
+max_bars_back(pivotLowValue, 200)
+max_bars_back(pivotHighFound, 200)
+max_bars_back(pivotLowFound, 200)
+
+// ===== Helpers =====
+f_body(_offset) =>
+    math.abs(close[_offset] - open[_offset])
+
+f_avgBodyPrior(_len) =>
+    nz(ta.sma(math.abs(close[1] - open[1]), _len), math.abs(close - open))
+
+f_prevPivotHighBefore(_beforeIndex) =>
+    int foundIndex = na
+    float foundPrice = na
+    int foundTime = na
+    int scanBars = 200
+    for barsAgo = swingRight to scanBars
+        if barsAgo >= bar_index
+            break
+        if pivotHighFound[barsAgo]
+            int idx = bar_index - barsAgo - swingRight
+            if idx < _beforeIndex
+                foundIndex := idx
+                foundPrice := pivotHighValue[barsAgo]
+                foundTime := int(time[barsAgo + swingRight])
+                break
+    [foundIndex, foundPrice, foundTime]
+
+f_prevPivotLowBefore(_beforeIndex) =>
+    int foundIndex = na
+    float foundPrice = na
+    int foundTime = na
+    int scanBars = 200
+    for barsAgo = swingRight to scanBars
+        if barsAgo >= bar_index
+            break
+        if pivotLowFound[barsAgo]
+            int idx = bar_index - barsAgo - swingRight
+            if idx < _beforeIndex
+                foundIndex := idx
+                foundPrice := pivotLowValue[barsAgo]
+                foundTime := int(time[barsAgo + swingRight])
+                break
+    [foundIndex, foundPrice, foundTime]
+
+f_highestBetween(_startIndex, _endIndex) =>
+    float bestPrice = na
+    int bestIndex = na
+    int bestTime = na
+    if _endIndex >= _startIndex
+        for absIndex = _startIndex to _endIndex
+            int barsAgo = bar_index - absIndex
+            if barsAgo >= 0
+                float candidate = high[barsAgo]
+                if na(bestPrice) or candidate > bestPrice
+                    bestPrice := candidate
+                    bestIndex := absIndex
+                    bestTime := int(time[barsAgo])
+    [bestPrice, bestIndex, bestTime]
+
+f_lowestBetween(_startIndex, _endIndex) =>
+    float bestPrice = na
+    int bestIndex = na
+    int bestTime = na
+    if _endIndex >= _startIndex
+        for absIndex = _startIndex to _endIndex
+            int barsAgo = bar_index - absIndex
+            if barsAgo >= 0
+                float candidate = low[barsAgo]
+                if na(bestPrice) or candidate < bestPrice
+                    bestPrice := candidate
+                    bestIndex := absIndex
+                    bestTime := int(time[barsAgo])
+    [bestPrice, bestIndex, bestTime]
+
+f_mtfScore(_bullish) =>
+    bool tf5Support = request.security(syminfo.tickerid, "5", _bullish ? close > open and close >= close[1] : close < open and close <= close[1], lookahead=barmerge.lookahead_off)
+    bool tf15Support = request.security(syminfo.tickerid, "15", _bullish ? close > open and close >= close[1] : close < open and close <= close[1], lookahead=barmerge.lookahead_off)
+    int score = useMTFContext and tf5Support and tf15Support ? 15 : 0
+    [score, tf5Support, tf15Support]
+
+f_fmt(_value) =>
+    str.tostring(_value, format.mintick)
+
+f_unixSeconds(_timeMs) =>
+    int(math.floor(_timeMs / 1000))
+
+f_anchorId(_direction, _anchorLowTime, _anchorHighTime) =>
+    syminfo.tickerid + "|" + timeframe.period + "|" + _direction + "|" + str.tostring(f_unixSeconds(_anchorLowTime)) + "|" + str.tostring(f_unixSeconds(_anchorHighTime))
+
+f_candidatePayload(_direction, _confidence, _anchorLow, _anchorHigh, _anchorLowTime, _anchorHighTime, _level2, _level2_5, _level4) =>
+    float _range = _anchorHigh - _anchorLow
+    int _anchorLowBarTime = f_unixSeconds(_anchorLowTime)
+    int _anchorHighBarTime = f_unixSeconds(_anchorHighTime)
+    string _anchorId = f_anchorId(_direction, _anchorLowTime, _anchorHighTime)
+    '{"event":"sd_anchor_candidate","anchor_id":"' + _anchorId + '","symbol":"' + syminfo.tickerid + '","timeframe_primary":"' + timeframe.period + '","timeframe":"' + timeframe.period + '","direction":"' + _direction + '","anchor_low_price":' + f_fmt(_anchorLow) + ',"anchor_high_price":' + f_fmt(_anchorHigh) + ',"anchor_low_bar_time":' + str.tostring(_anchorLowBarTime) + ',"anchor_high_bar_time":' + str.tostring(_anchorHighBarTime) + ',"pine_confidence_score":' + str.tostring(_confidence) + ',"confidence":' + str.tostring(_confidence) + ',"pine_state":"candidate","range":' + f_fmt(_range) + ',"level_minus2":' + f_fmt(_level2) + ',"level_minus2_5":' + f_fmt(_level2_5) + ',"level_minus4":' + f_fmt(_level4) + ',"level2":' + f_fmt(_level2) + ',"level2_5":' + f_fmt(_level2_5) + ',"level4":' + f_fmt(_level4) + ',"anchorLow":' + f_fmt(_anchorLow) + ',"anchorHigh":' + f_fmt(_anchorHigh) + ',"barTime":' + str.tostring(time) + '}'
+
+minRangePrice = syminfo.mintick * minRangeTicks
+
+// ===== Candidate State =====
+var string state = "none"
+var string candidateDirection = ""
+var float candidateConfidence = na
+var float candidateAnchorLow = na
+var float candidateAnchorHigh = na
+var float candidateLevel2 = na
+var float candidateLevel2_5 = na
+var float candidateLevel4 = na
+var int candidateAnchorLowTime = na
+var int candidateAnchorHighTime = na
+var string candidateReason = "No valid manipulation leg detected."
+var string candidatePayload = ""
+var bool newCandidate = false
+var string prevBarState = "none"
+var bool prevInZone = false
+var label statusLabel = na
+
+// ===== Drawing State =====
+var line anchorLegLine = na
+var line level2Line = na
+var line level2_5Line = na
+var line level4Line = na
+var box zoneBox = na
+var label endpointLowLbl = na
+var label endpointHighLbl = na
+var label level2Lbl = na
+var label level2_5Lbl = na
+var label level4Lbl = na
+
+newCandidate := false
+bool candidateSignal = false
+bool activeSignal = false
+bool invalidatedSignal = false
+bool zoneEntrySignal = false
+bool noLegSignal = false
+
+// ===== Pivot Lookups (must run every bar for ta.valuewhen consistency) =====
+float _recentPivotLowIdxRaw = ta.valuewhen(pivotLowFound, bar_index - swingRight, 0)
+float _recentPivotLowPrice = ta.valuewhen(pivotLowFound, pivotLowValue, 0)
+int _recentPivotLowIndex = na(_recentPivotLowIdxRaw) ? na : int(_recentPivotLowIdxRaw)
+int _recentPivotLowTime = na(_recentPivotLowIdxRaw) ? na : int(ta.valuewhen(pivotLowFound, time[swingRight], 0))
+float _recentPivotHighIdxRaw = ta.valuewhen(pivotHighFound, bar_index - swingRight, 0)
+float _recentPivotHighPrice = ta.valuewhen(pivotHighFound, pivotHighValue, 0)
+int _recentPivotHighIndex = na(_recentPivotHighIdxRaw) ? na : int(_recentPivotHighIdxRaw)
+int _recentPivotHighTime = na(_recentPivotHighIdxRaw) ? na : int(ta.valuewhen(pivotHighFound, time[swingRight], 0))
+[bullSwingHighIndexRaw, bullSwingHighPriceRaw, bullSwingHighTimeRaw] = f_prevPivotHighBefore(nz(_recentPivotLowIndex, bar_index + 1))
+[bearSwingLowIndexRaw, bearSwingLowPriceRaw, bearSwingLowTimeRaw] = f_prevPivotLowBefore(nz(_recentPivotHighIndex, bar_index + 1))
+
+// ===== Detection Logic =====
+if barstate.isconfirmed
+    // Check if current candidate should invalidate (price returned through anchor range)
+    bool shouldInvalidate = false
+    if state == "candidate"
+        if candidateDirection == "bullish" and not na(candidateAnchorLow) and close < candidateAnchorLow
+            shouldInvalidate := true
+        if candidateDirection == "bearish" and not na(candidateAnchorHigh) and close > candidateAnchorHigh
+            shouldInvalidate := true
+    if shouldInvalidate
+        state := "none"
+        candidateDirection := ""
+        candidateConfidence := na
+        candidateAnchorLow := na
+        candidateAnchorHigh := na
+        candidateLevel2 := na
+        candidateLevel2_5 := na
+        candidateLevel4 := na
+        candidateAnchorLowTime := na
+        candidateAnchorHighTime := na
+        candidateReason := "No valid manipulation leg detected."
+        candidatePayload := ""
+
+    // Try to find a new/better candidate
+    int confirmIndex = bar_index
+    bool bullAccepted = false
+    bool bearAccepted = false
+    string existingAnchorId = state == "candidate" and not na(candidateAnchorLowTime) and not na(candidateAnchorHighTime) ? f_anchorId(candidateDirection, candidateAnchorLowTime, candidateAnchorHighTime) : ""
+    int existingAnchorLastTime = state == "candidate" and not na(candidateAnchorLowTime) and not na(candidateAnchorHighTime) ? math.max(candidateAnchorLowTime, candidateAnchorHighTime) : na
+
+    int recentPivotLowIndex = _recentPivotLowIndex
+    float recentPivotLowPrice = _recentPivotLowPrice
+    int recentPivotLowTime = _recentPivotLowTime
+    int bullSwingHighIndex = bullSwingHighIndexRaw
+    float bullSwingHighPrice = bullSwingHighPriceRaw
+    int bullSwingHighTime = bullSwingHighTimeRaw
+
+    bool bullHasLeg = not na(recentPivotLowIndex) and not na(bullSwingHighIndex) and recentPivotLowIndex > bullSwingHighIndex
+    if bullHasLeg
+        float bullRange = bullSwingHighPrice - recentPivotLowPrice
+        float bullDisplacement = close - bullSwingHighPrice
+        bool bullRangeValid = bullRange >= minRangePrice
+        bool bullDisplacementConfirmed = bullDisplacement > bullRange * confirmationRatio
+        int bullRangeScore = bullRange > minRangePrice * 2.0 ? 30 : bullRange >= minRangePrice ? 20 : 0
+        int bullDisplacementScore = bullDisplacement > bullRange * 1.0 ? 30 : bullDisplacementConfirmed ? 25 : 0
+        int bullSwingHighBarsAgo = bar_index - bullSwingHighIndex
+        int bullPivotLowBarsAgo = bar_index - recentPivotLowIndex
+        bool bullCleanWicks = bullSwingHighBarsAgo >= 0 and bullPivotLowBarsAgo >= 0 and bullSwingHighPrice > math.max(open[bullSwingHighBarsAgo], close[bullSwingHighBarsAgo]) and recentPivotLowPrice < math.min(open[bullPivotLowBarsAgo], close[bullPivotLowBarsAgo])
+        int bullWickScore = bullCleanWicks ? 15 : 0
+        [bullMTFScore, bull5mSupport, bull15mSupport] = f_mtfScore(true)
+        int bullConfidence = bullRangeScore + bullDisplacementScore + bullWickScore + bullMTFScore
+        string bullAnchorId = f_anchorId("bullish", recentPivotLowTime, bullSwingHighTime)
+        int bullAnchorLastTime = math.max(recentPivotLowTime, bullSwingHighTime)
+        bool bullIsNewer = state != "candidate" or bullAnchorId != existingAnchorId and (na(existingAnchorLastTime) or bullAnchorLastTime > existingAnchorLastTime)
+
+        if bullRangeValid and bullDisplacementConfirmed and bullConfidence >= 55 and bullIsNewer
+            candidateDirection := "bullish"
+            candidateConfidence := bullConfidence
+            candidateAnchorLow := recentPivotLowPrice
+            candidateAnchorHigh := bullSwingHighPrice
+            candidateAnchorLowTime := recentPivotLowTime
+            candidateAnchorHighTime := bullSwingHighTime
+            float bullProjectedRange = candidateAnchorHigh - candidateAnchorLow
+            candidateLevel2 := candidateAnchorHigh + bullProjectedRange * 2.0
+            candidateLevel2_5 := candidateAnchorHigh + bullProjectedRange * 2.5
+            candidateLevel4 := candidateAnchorHigh + bullProjectedRange * 4.0
+            state := "candidate"
+            candidateReason := "valid bullish retrospective candidate"
+            candidatePayload := f_candidatePayload(candidateDirection, candidateConfidence, candidateAnchorLow, candidateAnchorHigh, candidateAnchorLowTime, candidateAnchorHighTime, candidateLevel2, candidateLevel2_5, candidateLevel4)
+            newCandidate := true
+            bullAccepted := true
+
+    if not bullAccepted
+        int recentPivotHighIndex = _recentPivotHighIndex
+        float recentPivotHighPrice = _recentPivotHighPrice
+        int recentPivotHighTime = _recentPivotHighTime
+        int bearSwingLowIndex = bearSwingLowIndexRaw
+        float bearSwingLowPrice = bearSwingLowPriceRaw
+        int bearSwingLowTime = bearSwingLowTimeRaw
+
+        bool bearHasLeg = not na(recentPivotHighIndex) and not na(bearSwingLowIndex) and recentPivotHighIndex > bearSwingLowIndex
+        if bearHasLeg
+            float bearRange = recentPivotHighPrice - bearSwingLowPrice
+            float bearDisplacement = bearSwingLowPrice - close
+            bool bearRangeValid = bearRange >= minRangePrice
+            bool bearDisplacementConfirmed = bearDisplacement > bearRange * confirmationRatio
+            int bearRangeScore = bearRange > minRangePrice * 2.0 ? 30 : bearRange >= minRangePrice ? 20 : 0
+            int bearDisplacementScore = bearDisplacement > bearRange * 1.0 ? 30 : bearDisplacementConfirmed ? 25 : 0
+            int bearSwingLowBarsAgo = bar_index - bearSwingLowIndex
+            int bearPivotHighBarsAgo = bar_index - recentPivotHighIndex
+            bool bearCleanWicks = bearSwingLowBarsAgo >= 0 and bearPivotHighBarsAgo >= 0 and bearSwingLowPrice < math.min(open[bearSwingLowBarsAgo], close[bearSwingLowBarsAgo]) and recentPivotHighPrice > math.max(open[bearPivotHighBarsAgo], close[bearPivotHighBarsAgo])
+            int bearWickScore = bearCleanWicks ? 15 : 0
+            [bearMTFScore, bear5mSupport, bear15mSupport] = f_mtfScore(false)
+            int bearConfidence = bearRangeScore + bearDisplacementScore + bearWickScore + bearMTFScore
+            string bearAnchorId = f_anchorId("bearish", bearSwingLowTime, recentPivotHighTime)
+            int bearAnchorLastTime = math.max(bearSwingLowTime, recentPivotHighTime)
+            bool bearIsNewer = state != "candidate" or bearAnchorId != existingAnchorId and (na(existingAnchorLastTime) or bearAnchorLastTime > existingAnchorLastTime)
+
+            if bearRangeValid and bearDisplacementConfirmed and bearConfidence >= 55 and bearIsNewer
+                candidateDirection := "bearish"
+                candidateConfidence := bearConfidence
+                candidateAnchorHigh := recentPivotHighPrice
+                candidateAnchorLow := bearSwingLowPrice
+                candidateAnchorHighTime := recentPivotHighTime
+                candidateAnchorLowTime := bearSwingLowTime
+                float bearProjectedRange = candidateAnchorHigh - candidateAnchorLow
+                candidateLevel2 := candidateAnchorLow - bearProjectedRange * 2.0
+                candidateLevel2_5 := candidateAnchorLow - bearProjectedRange * 2.5
+                candidateLevel4 := candidateAnchorLow - bearProjectedRange * 4.0
+                state := "candidate"
+                candidateReason := "valid bearish retrospective candidate"
+                candidatePayload := f_candidatePayload(candidateDirection, candidateConfidence, candidateAnchorLow, candidateAnchorHigh, candidateAnchorLowTime, candidateAnchorHighTime, candidateLevel2, candidateLevel2_5, candidateLevel4)
+                newCandidate := true
+                bearAccepted := true
+
+    if not bullAccepted and not bearAccepted and state == "none"
+        candidateReason := "No valid manipulation leg detected."
+
+    if newCandidate
+        alert(candidatePayload, alert.freq_once_per_bar_close)
+
+    // ===== State Transition Signals =====
+    candidateSignal := newCandidate and prevBarState == "none"
+    activeSignal := newCandidate and candidateConfidence >= 70 and prevBarState == "none"
+    invalidatedSignal := shouldInvalidate
+    noLegSignal := state == "none" and prevBarState == "candidate"
+    bool curInZone = false
+    if state == "candidate" and not na(candidateLevel2) and not na(candidateLevel2_5)
+        if candidateDirection == "bullish"
+            curInZone := close >= candidateLevel2 and close <= candidateLevel2_5
+        else if candidateDirection == "bearish"
+            curInZone := close <= candidateLevel2 and close >= candidateLevel2_5
+    zoneEntrySignal := curInZone and not prevInZone
+    prevInZone := curInZone
+    prevBarState := state
+
+    // ===== Visual Rendering =====
+    // Delete previous drawings
+    line.delete(anchorLegLine)
+    line.delete(level2Line)
+    line.delete(level2_5Line)
+    line.delete(level4Line)
+    box.delete(zoneBox)
+    label.delete(endpointLowLbl)
+    label.delete(endpointHighLbl)
+    label.delete(level2Lbl)
+    label.delete(level2_5Lbl)
+    label.delete(level4Lbl)
+
+    if state == "candidate" and not na(candidateAnchorLow) and not na(candidateAnchorHigh) and not na(candidateLevel2)
+        color mainColor = candidateDirection == "bullish" ? #00BCD4 : #FF5722
+        color dimColor = candidateDirection == "bullish" ? color.new(#00BCD4, 50) : color.new(#FF5722, 50)
+        color zoneColor = candidateDirection == "bullish" ? color.new(#00BCD4, 85) : color.new(#FF5722, 85)
+        int barInterval = int(nz(time - time[1], 60000))
+        int extendTime = time + barInterval * 50
+
+        // Anchor leg (wick-to-wick)
+        anchorLegLine := line.new(x1=candidateAnchorLowTime, y1=candidateAnchorLow, x2=candidateAnchorHighTime, y2=candidateAnchorHigh, xloc=xloc.bar_time, color=mainColor, width=3, style=line.style_solid)
+
+        // Endpoint markers
+        endpointLowLbl := label.new(x=candidateAnchorLowTime, y=candidateAnchorLow, xloc=xloc.bar_time, style=label.style_diamond, color=mainColor, textcolor=color.white, size=size.tiny, text="")
+        endpointHighLbl := label.new(x=candidateAnchorHighTime, y=candidateAnchorHigh, xloc=xloc.bar_time, style=label.style_diamond, color=mainColor, textcolor=color.white, size=size.tiny, text="")
+
+        // -2 level
+        level2Line := line.new(x1=time, y1=candidateLevel2, x2=extendTime, y2=candidateLevel2, xloc=xloc.bar_time, color=mainColor, width=2, style=line.style_solid)
+        level2Lbl := label.new(x=extendTime, y=candidateLevel2, xloc=xloc.bar_time, style=label.style_none, textcolor=mainColor, size=size.small, text="-2")
+
+        // -2.5 level
+        level2_5Line := line.new(x1=time, y1=candidateLevel2_5, x2=extendTime, y2=candidateLevel2_5, xloc=xloc.bar_time, color=mainColor, width=1, style=line.style_dashed)
+        level2_5Lbl := label.new(x=extendTime, y=candidateLevel2_5, xloc=xloc.bar_time, style=label.style_none, textcolor=mainColor, size=size.small, text="-2.5")
+
+        // -4 level
+        level4Line := line.new(x1=time, y1=candidateLevel4, x2=extendTime, y2=candidateLevel4, xloc=xloc.bar_time, color=dimColor, width=1, style=line.style_dotted)
+        level4Lbl := label.new(x=extendTime, y=candidateLevel4, xloc=xloc.bar_time, style=label.style_none, textcolor=dimColor, size=size.small, text="-4")
+
+        // Zone fill between -2 and -2.5
+        zoneBox := box.new(left=time, top=math.max(candidateLevel2, candidateLevel2_5), right=extendTime, bottom=math.min(candidateLevel2, candidateLevel2_5), xloc=xloc.bar_time, bgcolor=zoneColor, border_color=color.new(mainColor, 70), border_width=0)
+
+// ===== Hidden Outputs For Alerts / Extensions =====
+plot(candidateConfidence, "Candidate Confidence", display=display.none)
+plot(candidateAnchorLow, "Candidate Anchor Low", display=display.none)
+plot(candidateAnchorHigh, "Candidate Anchor High", display=display.none)
+plot(candidateLevel2, "Candidate -2", display=display.none)
+plot(candidateLevel2_5, "Candidate -2.5", display=display.none)
+plot(candidateLevel4, "Candidate -4", display=display.none)
+
+// ===== Alert Conditions =====
+alertcondition(candidateSignal, "SD Anchor — New Candidate", '{{ticker}} {{interval}}: New manipulation leg candidate detected. Confidence: {{plot("Candidate Confidence")}}. Anchor: {{plot("Candidate Anchor Low")}} → {{plot("Candidate Anchor High")}}')
+alertcondition(activeSignal, "SD Anchor — Active Setup", '{{ticker}} {{interval}}: Anchor ACTIVE. -2: {{plot("Candidate -2")}} | -2.5: {{plot("Candidate -2.5")}} | -4: {{plot("Candidate -4")}}')
+alertcondition(invalidatedSignal, "SD Anchor — Invalidated", '{{ticker}} {{interval}}: Anchor invalidated. No active setup.')
+alertcondition(zoneEntrySignal, "SD Anchor — Zone Entry", '{{ticker}} {{interval}}: Price entering -2 to -2.5 reversal zone.')
+alertcondition(noLegSignal, "SD Anchor — No Valid Leg", '{{ticker}} {{interval}}: No valid manipulation leg detected.')
+
+// ===== Status Label =====
+if barstate.islast
+    label.delete(statusLabel)
+    if state == "candidate"
+        string arrow = candidateDirection == "bullish" ? "▲" : "▼"
+        string dirName = candidateDirection == "bullish" ? "Bullish" : "Bearish"
+        string statusText = arrow + " " + dirName + " -2σ\n" + timeframe.period + " │ " + str.tostring(candidateConfidence, "#") + "%"
+        color statusBg = candidateDirection == "bullish" ? color.new(#00BCD4, 80) : color.new(#FF5722, 80)
+        statusLabel := label.new(x=time, y=nz(candidateLevel2, close), text=statusText, xloc=xloc.bar_time, style=label.style_label_left, color=statusBg, textcolor=color.white, size=size.small)
+    else
+        statusLabel := label.new(x=time, y=close, text="— No Valid Leg", xloc=xloc.bar_time, style=label.style_label_left, color=color.new(#9E9E9E, 70), textcolor=color.white, size=size.small)

@@ -1,0 +1,9 @@
+﻿{
+    "result":  "SUCCESS",
+    "iterations":  1,
+    "final_error_count":  0,
+    "total_fixes":  0,
+    "total_rollbacks":  0,
+    "run_dir":  "C:\\Users\\Tea\\DEEP6\\artifacts\\bv-20260515-135835-3c40\\bv-20260515-135837-b3b6",
+    "elapsed_ms":  47222
+}

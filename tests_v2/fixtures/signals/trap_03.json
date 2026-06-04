@@ -1,0 +1,54 @@
+{
+  "name": "TRAP_03_breakout_failure",
+  "description": "Price breaks prior bar high then reverses back inside range. False breakout traps breakout buyers.",
+  "bar": {
+    "open": 21508.0,
+    "high": 21522.0,
+    "low": 21500.0,
+    "close": 21503.0,
+    "delta": -180,
+    "total_volume": 2800,
+    "bid_volumes": {
+      "21500.0": 300,
+      "21503.0": 350,
+      "21505.0": 250,
+      "21508.0": 200,
+      "21510.0": 150,
+      "21515.0": 100
+    },
+    "ask_volumes": {
+      "21505.0": 150,
+      "21508.0": 200,
+      "21510.0": 250,
+      "21515.0": 200,
+      "21518.0": 150,
+      "21520.0": 100,
+      "21522.0": 50
+    },
+    "poc_price": 21503.0,
+    "poc_volume": 500,
+    "vah": 21515.0,
+    "val": 21502.0,
+    "cvd": 250.0,
+    "bar_index": 68,
+    "timestamp": "2026-05-13T10:53:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 250.0,
+    "vah": 21515.0,
+    "val": 21502.0,
+    "poc": 21503.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "prior_bar_high": 21518.0,
+    "prior_bar_low": 21500.0
+  },
+  "expected_signal": {
+    "signal_id": "TRAP_03",
+    "direction": "BEARISH",
+    "strength_min": 0.35,
+    "strength_max": 0.55
+  }
+}

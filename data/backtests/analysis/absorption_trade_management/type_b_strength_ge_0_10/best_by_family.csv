@@ -1,0 +1,5 @@
+family,trade_count,win_rate,profit_factor,expectancy_ticks,median_ticks,net_ticks,sharpe,max_consecutive_losses,sl_ticks,tp_ticks,r_multiple,sl_mult,tp_mult,avg_sl_ticks,avg_tp_ticks,n_bars,trigger_ticks,trail_ticks
+fixed,16.0,0.5,2.250996015936255,39.25,35.5,628.0,0.36345604898897804,3.0,75.0,150.0,2.0,,,,,,,
+atr,16.0,0.6875,3.0598086124401913,53.8125,74.0,861.0,0.5219573378661122,2.0,,,1.0,1.5,1.5,112.25,112.25,,,
+time,16.0,0.6875,3.2439759036144578,46.5625,43.5,745.0,0.44920852014016677,2.0,,,,,,,,3.0,,
+trailing,16.0,0.4375,1.538888888888889,6.0625,-20.0,97.0,0.17983499066011507,3.0,,,,,,,,,20.0,20.0

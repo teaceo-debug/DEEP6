@@ -1,0 +1,1 @@
+2026-05-31: `python -m gex_terminal` on Windows hit an existing PID-lock startup bug (`os.kill(existing_pid, 0)` raised `SystemError`), so endpoint verification used `uvicorn gex_terminal.server:app` instead.

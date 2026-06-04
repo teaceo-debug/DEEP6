@@ -1,0 +1,7 @@
+QA evidence for nt8-build-verify skill files
+
+Test-Path .claude/skills/nt8-build-verify/SKILL.md => True
+Test-Path .claude/skills/nt8-build-verify/knowledge.md => True
+SKILL.md references knowledge.md => yes
+knowledge.md contains C:\Users\Tea\Documents\NinjaTrader 8 => yes
+knowledge.md contains compile strategies A/B/C => yes

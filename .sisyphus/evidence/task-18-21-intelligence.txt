@@ -1,0 +1,48 @@
+T18-T21 Intelligence Layer — Evidence
+======================================
+Date: 2026-05-12
+Tasks: T18 (Scoring Engine), T19 (Setup Classifier), T20 (Market Context), T21 (Trade Decision)
+
+FILES MODIFIED
+--------------
+- ninjatrader/Custom/Indicators/DEEP6/MADConfluenceAI/MADConfluenceAI.Scoring.cs
+  - Added 3 enums: MADTier, MADAction, MADSetupType
+  - Added 3 classes: MADScorerResult, MADMarketContext, MADDecision
+  - Replaced 4 stub methods with full implementations:
+    - RunScoringEngine: weighted confluence scoring with direction majority, category weights,
+      category agreement bonus (+10 for ≥3 categories), level proximity bonus (+5),
+      regime modifiers (Trending/Ranging +10, Volatile -5, Thin -15), score clamping 0-100,
+      tier classification (Elite≥90, High≥75, Moderate≥60, Wait≥40, DNT<40)
+    - ClassifySetup: 7 setup types (Reversal, Breakout, FailedBreakout, AbsorptionBounce,
+      TrendContinuation, ExhaustionReversal, LiquiditySweepReversal, None) with priority ordering
+    - BuildMarketContext: trend from HTF bias, time-of-day modifier (ET),
+      session type inference (TrendDay, RotationalDay, BreakoutDay, ChopDay)
+    - MakeDecision: time-adjusted scoring, midday suppression (unless Elite), SL/TP from nearby
+      levels with 2-tick buffer, R:R calculation with <1.5 tier downgrade
+
+- ninjatrader/tests/MADConfluenceAI/IndicatorStub.cs
+  - Added stubs for MADSignalDirection, MADSignalResult, MADConfig (from Data.cs / MADConfluenceAI.cs)
+    so Scoring.cs compiles in test project without NT8 dependency
+
+FILES CREATED
+-------------
+- ninjatrader/tests/MADConfluenceAI/ScoringEngineTests.cs (15 tests)
+- ninjatrader/tests/MADConfluenceAI/SetupClassifierTests.cs (10 tests)
+- ninjatrader/tests/MADConfluenceAI/MarketContextTests.cs (10 tests)
+- ninjatrader/tests/MADConfluenceAI/DecisionTests.cs (14 tests)
+
+TEST RESULTS
+------------
+dotnet test --filter "ScoringEngine|SetupClassifier|MarketContext|Decision"
+Total tests: 49
+     Passed: 49
+     Failed: 0
+Test Run Successful.
+
+CONSTRAINTS VERIFIED
+--------------------
+- No imports from DEEP6 AddOns namespace
+- Score always clamped 0-100
+- No order placement
+- All test types are test-local copies (no NT8 dependency)
+- System.Math shadowing handled via SysMath alias in test files

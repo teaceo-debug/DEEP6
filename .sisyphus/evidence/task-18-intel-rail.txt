@@ -1,0 +1,14 @@
+Task 18: Intelligence Rail + Wall State — PASS
+Date: 2026-05-27
+Tests: 9/9 pass (vitest)
+
+Component: dashboard/components/dom/IntelligenceRail.tsx
+Test: dashboard/components/dom/IntelligenceRail.test.tsx
+
+Features:
+- Renders signal count, active detectors, score summary
+- Input: IntelligenceRailState from API SSE endpoint (not detector imports)
+- Tier badges (M=Mechanical, H=Heuristic, D=Discretionary)
+- Direction/confidence display per detector
+- Mechanical and heuristic counts in header
+- Empty state message when no active detectors

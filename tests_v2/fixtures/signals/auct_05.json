@@ -1,0 +1,51 @@
+{
+  "name": "AUCT_05_sweep_declining_volume",
+  "description": "Rapid price movement with declining volume — sweep. Price ran up quickly on thin volume, likely a stop hunt / liquidity sweep.",
+  "bar": {
+    "open": 21500.0,
+    "high": 21525.0,
+    "low": 21498.0,
+    "close": 21505.0,
+    "delta": 80,
+    "total_volume": 1400,
+    "bid_volumes": {
+      "21498.0": 40,
+      "21500.0": 80,
+      "21502.0": 60,
+      "21505.0": 100,
+      "21510.0": 50
+    },
+    "ask_volumes": {
+      "21500.0": 100,
+      "21505.0": 150,
+      "21510.0": 200,
+      "21515.0": 150,
+      "21520.0": 100,
+      "21522.0": 60,
+      "21525.0": 30
+    },
+    "poc_price": 21510.0,
+    "poc_volume": 250,
+    "vah": 21518.0,
+    "val": 21502.0,
+    "cvd": 300.0,
+    "bar_index": 58,
+    "timestamp": "2026-05-13T10:43:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 300.0,
+    "vah": 21518.0,
+    "val": 21502.0,
+    "poc": 21510.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0
+  },
+  "expected_signal": {
+    "signal_id": "AUCT_05",
+    "direction": "BEARISH",
+    "strength_min": 0.30,
+    "strength_max": 0.50
+  }
+}

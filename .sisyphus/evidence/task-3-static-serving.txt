@@ -1,0 +1,5 @@
+Health: degraded
+HTML length: 5703 chars
+Contains GEX: True
+Shutdown status: shutting down
+Process alive after shutdown: False

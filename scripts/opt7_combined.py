@@ -21,8 +21,9 @@ COMM_RT = 0.35 * 2  # round-trip commission
 SLIPPAGE_TICKS = 1
 SLIPPAGE_PTS = SLIPPAGE_TICKS * TICK_SIZE  # 0.25 pts
 
-CSV_PATH = Path("/Users/teaceo/DEEP6/data/backtests/nq_3mo_1m.csv")
-OUT_PATH = Path("/Users/teaceo/DEEP6/scripts/opt7_combined.txt")
+ROOT = Path(__file__).resolve().parents[1]
+CSV_PATH = ROOT / "data/backtests/nq_3mo_1m.csv"
+OUT_PATH = ROOT / "scripts/opt7_combined.txt"
 
 
 # ── Feature Flags ──────────────────────────────────────────────────────────

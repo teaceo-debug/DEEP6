@@ -1,0 +1,3 @@
+Command: $env:NQ_ATLAS_MASSIVE_API_KEY='test'; $env:NQ_ATLAS_ANTHROPIC_API_KEY='test'; $env:PYTHONPATH='.'; pytest tests_nq_atlas/ -v --tb=short
+
+Result: 31 passed in 2.12s

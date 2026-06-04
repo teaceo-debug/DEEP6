@@ -1,0 +1,20 @@
+Task 16 QA Evidence
+===================
+
+Syntax parse:
+- Result: SYNTAX_OK
+- Parsed file: C:\Users\Tea\DEEP6\.claude\skills\nt8-build-verify\scripts\fix_loop.ps1
+
+Manual logic verification from created file:
+- Iteration loop: lines 162-388
+- Modal detect -> deploy -> compile_headless sequence: lines 170-205
+- Headless-success devaddon/editor branching: lines 206-221 and 369-384
+- Error enrichment + fix_router invocation: lines 272-324
+- Backup before fix: lines 297-300
+- Diff artifact save: lines 326-329
+- Rollback when error count increases: lines 352-366
+- fix-loop-log.json + sentinel + JSON summary + exit codes: lines 394-430
+
+Interface confirmation:
+- fix_router.py in this repo requires --errors <path>; it does not accept stdin directly in main().
+- Implementation writes enriched errors to run artifact JSON and passes that file path to fix_router.py.

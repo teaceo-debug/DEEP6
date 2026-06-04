@@ -1,0 +1,291 @@
+==================================================================
+  INSTITUTIONAL ZONES + WICK — 1-YEAR BACKTEST
+  NQ Futures  |  2025-01-01 to 2026-04-25
+  RTH bars: 132,481
+  Improvements: trend(1h EMA) | first-touch | time-filter | confluence
+  Min departure ratio: 0.0x  |  Wick threshold: 35%
+==================================================================
+──────────────────────────────────────────────────────────────────
+  BASELINE_PROXIMAL  TF=15m  TP=2.0x
+──────────────────────────────────────────────────────────────────
+  Trades: 102  |  Wins: 42  Losses: 60
+  Win Rate: 41.2%  |  Profit Factor: 0.72
+  Net PnL: $   -10,336  |  Avg Risk: 82.7 ticks
+  Avg Win: $     637  |  Avg Loss: $    -618
+  Exits → TP: 40  SL: 58  Expire: 4
+    Supply  :  37   40.5% WR  $  -6,546
+    Demand  :  31   41.9% WR  $  -3,117
+    RBR     :  19   42.1% WR  $     107
+    DBD     :  15   40.0% WR  $    -781
+    1st touch:  70   41.4% WR  $  -9,509
+
+──────────────────────────────────────────────────────────────────
+  EXHAUST_WICK  TF=15m  TP=1.5x
+──────────────────────────────────────────────────────────────────
+  Trades: 37  |  Wins: 16  Losses: 21
+  Win Rate: 43.2%  |  Profit Factor: 0.77
+  Net PnL: $    -3,298  |  Avg Risk: 87.8 ticks
+  Avg Win: $     694  |  Avg Loss: $    -686
+  Exits → TP: 15  SL: 20  Expire: 2
+    Supply  :  11   36.4% WR  $    -335
+    Demand  :  12   41.7% WR  $  -4,433
+    RBR     :   9   55.6% WR  $   1,721
+    DBD     :   5   40.0% WR  $    -251
+    Trend✓:     15   40.0% WR  $   1,959
+    1st touch:  20   45.0% WR  $  -5,349
+
+──────────────────────────────────────────────────────────────────
+  EXHAUST_WICK  TF=15m  TP=2.0x
+──────────────────────────────────────────────────────────────────
+  Trades: 37  |  Wins: 13  Losses: 24
+  Win Rate: 35.1%  |  Profit Factor: 0.72
+  Net PnL: $    -4,621  |  Avg Risk: 87.8 ticks
+  Avg Win: $     897  |  Avg Loss: $    -678
+  Exits → TP: 11  SL: 22  Expire: 4
+    Supply  :  11   18.2% WR  $  -2,403
+    Demand  :  12   41.7% WR  $  -3,393
+    RBR     :   9   55.6% WR  $   2,339
+    DBD     :   5   20.0% WR  $  -1,164
+    Trend✓:     15   40.0% WR  $   2,930
+    1st touch:  20   35.0% WR  $  -6,509
+
+──────────────────────────────────────────────────────────────────
+  EXHAUST_WICK  TF=15m  TP=3.0x
+──────────────────────────────────────────────────────────────────
+  Trades: 37  |  Wins: 10  Losses: 27
+  Win Rate: 27.0%  |  Profit Factor: 0.65
+  Net PnL: $    -7,441  |  Avg Risk: 87.8 ticks
+  Avg Win: $   1,369  |  Avg Loss: $    -783
+  Exits → TP: 7  SL: 24  Expire: 6
+    Supply  :  11    0.0% WR  $  -8,618
+    Demand  :  12   41.7% WR  $    -103
+    RBR     :   9   44.4% WR  $   2,094
+    DBD     :   5   20.0% WR  $    -814
+    Trend✓:     15   33.3% WR  $    -140
+    1st touch:  20   25.0% WR  $  -6,169
+
+──────────────────────────────────────────────────────────────────
+  +TREND  TF=15m  TP=2.0x
+──────────────────────────────────────────────────────────────────
+  Trades: 15  |  Wins: 6  Losses: 9
+  Win Rate: 40.0%  |  Profit Factor: 1.82
+  Net PnL: $     2,930  |  Avg Risk: 87.0 ticks
+  Avg Win: $   1,080  |  Avg Loss: $    -395
+  Exits → TP: 4  SL: 9  Expire: 2
+    Supply  :   3   33.3% WR  $     168
+    Demand  :   8   37.5% WR  $     929
+    RBR     :   3   33.3% WR  $   1,133
+    DBD     :   1  100.0% WR  $     699
+    Trend✓:     15   40.0% WR  $   2,930
+    1st touch:   3   33.3% WR  $    -582
+
+──────────────────────────────────────────────────────────────────
+  +FIRST_TOUCH  TF=15m  TP=2.0x
+──────────────────────────────────────────────────────────────────
+  Trades: 20  |  Wins: 7  Losses: 13
+  Win Rate: 35.0%  |  Profit Factor: 0.45
+  Net PnL: $    -6,509  |  Avg Risk: 89.5 ticks
+  Avg Win: $     765  |  Avg Loss: $    -913
+  Exits → TP: 7  SL: 11  Expire: 2
+    Supply  :   6   16.7% WR  $  -1,839
+    Demand  :   5   40.0% WR  $  -5,014
+    RBR     :   6   50.0% WR  $      96
+    DBD     :   3   33.3% WR  $     248
+    Trend✓:      3   33.3% WR  $    -582
+    1st touch:  20   35.0% WR  $  -6,509
+
+──────────────────────────────────────────────────────────────────
+  +TIME_FILTER  TF=15m  TP=2.0x
+──────────────────────────────────────────────────────────────────
+  Trades: 28  |  Wins: 11  Losses: 17
+  Win Rate: 39.3%  |  Profit Factor: 0.71
+  Net PnL: $    -4,095  |  Avg Risk: 92.8 ticks
+  Avg Win: $     894  |  Avg Loss: $    -820
+  Exits → TP: 9  SL: 15  Expire: 4
+    Supply  :   7   28.6% WR  $  -1,260
+    Demand  :  11   36.4% WR  $  -4,373
+    RBR     :   7   71.4% WR  $   3,060
+    DBD     :   3    0.0% WR  $  -1,522
+    Trend✓:     11   45.5% WR  $   3,642
+    1st touch:  12   41.7% WR  $  -5,998
+
+──────────────────────────────────────────────────────────────────
+  +CONFLUENCE  TF=15m  TP=2.0x
+──────────────────────────────────────────────────────────────────
+  Trades: 36  |  Wins: 13  Losses: 23
+  Win Rate: 36.1%  |  Profit Factor: 0.72
+  Net PnL: $    -4,445  |  Avg Risk: 89.2 ticks
+  Avg Win: $     897  |  Avg Loss: $    -700
+  Exits → TP: 11  SL: 21  Expire: 4
+    Supply  :  11   18.2% WR  $  -2,403
+    Demand  :  11   45.5% WR  $  -3,218
+    RBR     :   9   55.6% WR  $   2,339
+    DBD     :   5   20.0% WR  $  -1,164
+    Confluent:  36   36.1% WR  $  -4,445
+    Trend✓:     14   42.9% WR  $   3,105
+    1st touch:  20   35.0% WR  $  -6,509
+
+──────────────────────────────────────────────────────────────────
+  +TREND+FIRST  TF=15m  TP=2.0x
+──────────────────────────────────────────────────────────────────
+  Trades: 3  |  Wins: 1  Losses: 2
+  Win Rate: 33.3%  |  Profit Factor: 0.55
+  Net PnL: $      -582  |  Avg Risk: 108.7 ticks
+  Avg Win: $     699  |  Avg Loss: $    -641
+  Exits → TP: 1  SL: 2  Expire: 0
+    Demand  :   1    0.0% WR  $    -691
+    RBR     :   1    0.0% WR  $    -591
+    DBD     :   1  100.0% WR  $     699
+    Trend✓:      3   33.3% WR  $    -582
+    1st touch:   3   33.3% WR  $    -582
+
+──────────────────────────────────────────────────────────────────
+  +TREND+TIME  TF=15m  TP=2.0x
+──────────────────────────────────────────────────────────────────
+  Trades: 11  |  Wins: 5  Losses: 6
+  Win Rate: 45.5%  |  Profit Factor: 2.70
+  Net PnL: $     3,642  |  Avg Risk: 86.6 ticks
+  Avg Win: $   1,156  |  Avg Loss: $    -357
+  Exits → TP: 3  SL: 6  Expire: 2
+    Supply  :   3   33.3% WR  $     168
+    Demand  :   7   42.9% WR  $   1,620
+    RBR     :   1  100.0% WR  $   1,854
+    Trend✓:     11   45.5% WR  $   3,642
+
+──────────────────────────────────────────────────────────────────
+  +TREND+CONF  TF=15m  TP=2.0x
+──────────────────────────────────────────────────────────────────
+  Trades: 14  |  Wins: 6  Losses: 8
+  Win Rate: 42.9%  |  Profit Factor: 1.92
+  Net PnL: $     3,105  |  Avg Risk: 90.7 ticks
+  Avg Win: $   1,080  |  Avg Loss: $    -422
+  Exits → TP: 4  SL: 8  Expire: 2
+    Supply  :   3   33.3% WR  $     168
+    Demand  :   7   42.9% WR  $   1,105
+    RBR     :   3   33.3% WR  $   1,133
+    DBD     :   1  100.0% WR  $     699
+    Confluent:  14   42.9% WR  $   3,105
+    Trend✓:     14   42.9% WR  $   3,105
+    1st touch:   3   33.3% WR  $    -582
+
+  +ALL_FILTERS  TF=15m  TP=1.5x: — no trades —
+
+  +ALL_FILTERS  TF=15m  TP=2.0x: — no trades —
+
+  +ALL_FILTERS  TF=15m  TP=3.0x: — no trades —
+
+──────────────────────────────────────────────────────────────────
+  EXHAUST_WICK  TF=5m  TP=2.0x
+──────────────────────────────────────────────────────────────────
+  Trades: 116  |  Wins: 35  Losses: 81
+  Win Rate: 30.2%  |  Profit Factor: 1.01
+  Net PnL: $       219  |  Avg Risk: 99.7 ticks
+  Avg Win: $   1,114  |  Avg Loss: $    -478
+  Exits → TP: 35  SL: 80  Expire: 1
+    Supply  :  33   42.4% WR  $     327
+    Demand  :  52   23.1% WR  $  -4,191
+    RBR     :  22   22.7% WR  $   1,245
+    DBD     :   9   44.4% WR  $   2,839
+    Trend✓:     61   26.2% WR  $     152
+    1st touch:  59   35.6% WR  $   5,494
+
+──────────────────────────────────────────────────────────────────
+  +TREND  TF=5m  TP=2.0x
+──────────────────────────────────────────────────────────────────
+  Trades: 62  |  Wins: 17  Losses: 45
+  Win Rate: 27.4%  |  Profit Factor: 1.26
+  Net PnL: $     4,952  |  Avg Risk: 99.7 ticks
+  Avg Win: $   1,422  |  Avg Loss: $    -427
+  Exits → TP: 17  SL: 44  Expire: 1
+    Supply  :  11   54.5% WR  $   1,172
+    Demand  :  32   18.8% WR  $  -1,107
+    RBR     :  18   27.8% WR  $   5,317
+    DBD     :   1    0.0% WR  $    -431
+    Trend✓:     62   27.4% WR  $   4,952
+    1st touch:  35   31.4% WR  $    -540
+
+──────────────────────────────────────────────────────────────────
+  +TREND+FIRST  TF=5m  TP=2.0x
+──────────────────────────────────────────────────────────────────
+  Trades: 35  |  Wins: 11  Losses: 24
+  Win Rate: 31.4%  |  Profit Factor: 0.95
+  Net PnL: $      -540  |  Avg Risk: 82.9 ticks
+  Avg Win: $     869  |  Avg Loss: $    -421
+  Exits → TP: 11  SL: 23  Expire: 1
+    Supply  :   9   44.4% WR  $    -226
+    Demand  :  19   21.1% WR  $  -1,973
+    RBR     :   7   42.9% WR  $   1,660
+    Trend✓:     35   31.4% WR  $    -540
+    1st touch:  35   31.4% WR  $    -540
+
+──────────────────────────────────────────────────────────────────
+  +ALL_FILTERS  TF=5m  TP=2.0x
+──────────────────────────────────────────────────────────────────
+  Trades: 26  |  Wins: 7  Losses: 19
+  Win Rate: 26.9%  |  Profit Factor: 0.69
+  Net PnL: $    -2,788  |  Avg Risk: 89.3 ticks
+  Avg Win: $     876  |  Avg Loss: $    -470
+  Exits → TP: 7  SL: 18  Expire: 1
+    Supply  :   6   33.3% WR  $  -2,329
+    Demand  :  15   20.0% WR  $  -1,521
+    RBR     :   5   40.0% WR  $   1,061
+    Trend✓:     26   26.9% WR  $  -2,788
+    1st touch:  26   26.9% WR  $  -2,788
+
+========================================================================
+  SUMMARY TABLE (sorted by Net PnL)
+========================================================================
+  Label                             N     WR%     PF        Net$   $/trade
+  ───────────────────────────────────────────────────────────────────
+  +TREND  TF=5m  TP=2.0x           62    27.4   1.26       4,952        80
+  +TREND+TIME  TF=15m  TP=2.0x     11    45.5   2.70       3,642       331
+  +TREND+CONF  TF=15m  TP=2.0x     14    42.9   1.92       3,105       222
+  +TREND  TF=15m  TP=2.0x          15    40.0   1.82       2,930       195
+  EXHAUST_WICK  TF=5m  TP=2.0x    116    30.2   1.01         219         2
+  +TREND+FIRST  TF=5m  TP=2.0x     35    31.4   0.95        -540       -15
+  +TREND+FIRST  TF=15m  TP=2.0x      3    33.3   0.55        -582      -194
+  +ALL_FILTERS  TF=5m  TP=2.0x     26    26.9   0.69      -2,788      -107
+  EXHAUST_WICK  TF=15m  TP=1.5x     37    43.2   0.77      -3,298       -89
+  +TIME_FILTER  TF=15m  TP=2.0x     28    39.3   0.71      -4,095      -146
+  +CONFLUENCE  TF=15m  TP=2.0x     36    36.1   0.72      -4,445      -123
+  EXHAUST_WICK  TF=15m  TP=2.0x     37    35.1   0.72      -4,621      -125
+  +FIRST_TOUCH  TF=15m  TP=2.0x     20    35.0   0.45      -6,509      -325
+  EXHAUST_WICK  TF=15m  TP=3.0x     37    27.0   0.65      -7,441      -201
+  BASELINE_PROXIMAL  TF=15m  TP=2.0x    102    41.2   0.72     -10,336      -101
+
+==================================================================
+  QUARTERLY REGIME BREAKDOWN
+  (EXHAUST_WICK 15m TP=2.0x  vs  EXHAUST_WICK 5m TP=2.0x)
+==================================================================
+
+  Q1-2025  (2025-01-01 to 2025-04-01)  bars=24,374
+    15m TP=2.0x:    8 trades   50.0% WR  PF 2.55  $   2,174
+    5m TP=2.0x:   28 trades   32.1% WR  PF 0.99  $     -60
+    15m +TREND TP=2.0x:   2 trades   50.0% WR  PF 2.05  $     394
+    5m +TREND TP=2.0x:  11 trades   27.3% WR  PF 1.01  $      37
+
+  Q2-2025  (2025-04-01 to 2025-07-01)  bars=25,182
+    15m TP=2.0x:    7 trades   42.9% WR  PF 6.47  $  14,920
+    5m TP=2.0x:   37 trades   27.0% WR  PF 1.28  $   4,494
+    15m +TREND TP=2.0x:   4 trades   25.0% WR  PF 9.38  $  13,962
+    5m +TREND TP=2.0x:  24 trades   20.8% WR  PF 1.94  $   9,053
+
+  Q3-2025  (2025-07-01 to 2025-10-01)  bars=25,817
+    15m TP=2.0x:    9 trades   55.6% WR  PF 4.30  $   2,914
+    5m TP=2.0x:   31 trades   22.6% WR  PF 0.67  $  -2,547
+    15m +TREND TP=2.0x:   5 trades   40.0% WR  PF 3.17  $   1,272
+    5m +TREND TP=2.0x:  19 trades   15.8% WR  PF 0.26  $  -3,358
+
+  Q4-2025  (2025-10-01 to 2026-01-01)  bars=25,426
+    15m TP=2.0x:   11 trades   18.2% WR  PF 0.49  $  -4,658
+    5m TP=2.0x:   23 trades   43.5% WR  PF 2.16  $   4,919
+    15m +TREND TP=2.0x:   4 trades   25.0% WR  PF 1.42  $     547
+    5m +TREND TP=2.0x:  10 trades   50.0% WR  PF 2.88  $   2,728
+
+  Q1-2026  (2026-01-01 to 2026-04-25)  bars=31,682
+    15m TP=2.0x:    7 trades   14.3% WR  PF 0.38  $  -2,120
+    5m TP=2.0x:   33 trades   30.3% WR  PF 0.96  $    -533
+    15m +TREND TP=2.0x:   2 trades   50.0% WR  PF 2.26  $     724
+    5m +TREND TP=2.0x:  16 trades   31.2% WR  PF 0.90  $    -726
+
+  Completed in 12.4s

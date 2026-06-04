@@ -1,0 +1,23 @@
+﻿Task 7 - Feature Gauges Panel
+==============================
+File: depth_radar_desktop/live/feature_gauges.py
+LSP diagnostics: 0 errors
+Import test: PASS
+
+Classes:
+  - GaugeWidget(QWidget) — arc gauge with threshold coloring
+  - FeatureGaugesPanel(QWidget) — horizontal panel with 4 gauges
+
+Gauges:
+  1. Absorption (0-1.0, thresholds 0.3/0.6)
+  2. Delta (0-200, thresholds 50/100)
+  3. Approach (0-5.0, thresholds 1.0/2.0)
+  4. Walls Near (0-10, thresholds 2/5)
+
+Design tokens used:
+  - COLORS["border"] for arc background
+  - COLORS["green"/"amber"/"red"] for threshold colors
+  - COLORS["text_primary"/"text_secondary"] for text
+  - TICK_SIZE from constants.py for wall proximity calc
+
+Verification: python -c "from depth_radar_desktop.live.feature_gauges import FeatureGaugesPanel, GaugeWidget; print('OK')" → OK

@@ -1,0 +1,55 @@
+{
+  "name": "type_b_no_zone_bonus",
+  "description": "Moderate score (72-79), no zone bonus. Good signal confluence but price not at key level — TYPE_B tier.",
+  "bar": {
+    "open": 21500.0,
+    "high": 21518.0,
+    "low": 21495.0,
+    "close": 21515.0,
+    "delta": 400,
+    "total_volume": 3200,
+    "bid_volumes": {
+      "21495.0": 100,
+      "21498.0": 200,
+      "21500.0": 300,
+      "21505.0": 350,
+      "21508.0": 250,
+      "21510.0": 200
+    },
+    "ask_volumes": {
+      "21500.0": 250,
+      "21505.0": 350,
+      "21508.0": 400,
+      "21510.0": 300,
+      "21513.0": 250,
+      "21515.0": 200,
+      "21518.0": 150
+    },
+    "poc_price": 21508.0,
+    "poc_volume": 650,
+    "vah": 21514.0,
+    "val": 21500.0,
+    "cvd": 500.0,
+    "bar_index": 38,
+    "timestamp": "2026-05-13T10:23:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 500.0,
+    "vah": 21514.0,
+    "val": 21500.0,
+    "poc": 21508.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0
+  },
+  "active_signals": [
+    {"signal_id": "ABS_01", "direction": "BULLISH", "strength": 0.45},
+    {"signal_id": "IMB_03", "direction": "BULLISH", "strength": 0.50},
+    {"signal_id": "DELT_01", "direction": "BULLISH", "strength": 0.45},
+    {"signal_id": "VOLP_03", "direction": "BULLISH", "strength": 0.40}
+  ],
+  "expected_tier": "TYPE_B",
+  "expected_score_range": [72, 79],
+  "zone_bonus": false
+}

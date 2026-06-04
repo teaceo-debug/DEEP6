@@ -259,6 +259,40 @@ class VolPatternConfig:
     surge_mult: float = 3.0             # Bar vol > vol_ema * this
     surge_delta_min_ratio: float = 0.15 # Min |delta|/vol for directional surge
 
+
+@dataclass(frozen=True)
+class BiasHysteresisConfig:
+    enter_strong_threshold: int = 7
+    degrade_strong_threshold: int = 4
+    enter_lean_threshold: int = 3
+    degrade_lean_threshold: int = 1
+    emergency_delta: int = 10
+
+
+@dataclass(frozen=True)
+class KillSwitchConfig:
+    event_day_mode: str = "STOP"
+    lunch_start_hour: int = 12
+    lunch_end_hour: int = 13
+    cutoff_hour: int = 15
+    vix_crisis_threshold: float = 35.0
+    vix_elevated_threshold: float = 25.0
+    min_domains_for_go: int = 2
+
+
+@dataclass(frozen=True)
+class IntermarketConfig:
+    staleness_sec: int = 300
+    bar_interval_sec: int = 60
+    symbols: tuple = ("ZN", "DXY", "VIX", "RTY", "TICK", "VOLD", "AD")
+
+
+@dataclass(frozen=True)
+class KronosDomainConfig:
+    max_range: int = 3
+    high_conf_threshold: float = 70.0
+    low_conf_threshold: float = 30.0
+
     # VOLP-04: POC momentum wave — consecutive bars of POC migration
     poc_wave_bars: int = 3              # Consecutive bars of POC migration
 
@@ -458,3 +492,45 @@ class KronosConfig:
 
     # Device selection: "auto" probes mps → cuda → cpu; or explicit "cpu"/"mps"/"cuda"
     device: str = "auto"
+
+
+@dataclass(frozen=True)
+class IntradayFlowConfig:
+    cvd_slope_threshold: float = 50.0
+    tick_thrust_threshold: int = 800
+    stale_threshold_sec: float = 60.0
+
+
+@dataclass(frozen=True)
+class IntermarketBiasConfig:
+    vix_low_threshold: float = 20.0
+    vix_high_threshold: float = 25.0
+    stale_threshold_sec: float = 300.0
+
+
+@dataclass(frozen=True)
+class SessionBiasConfig:
+    stale_threshold_sec: float = 60.0
+
+
+@dataclass(frozen=True)
+class KronosDomainConfig:
+    max_range: int = 3
+    high_conf_threshold: float = 70.0
+    low_conf_threshold: float = 30.0
+    stale_threshold_sec: float = 300.0
+
+
+@dataclass(frozen=True)
+class GEXOptionsDomainConfig:
+    """Configuration for GEXOptionsDomain — GEX/options bias scoring.
+
+    stale_threshold_sec: GEX data older than this = stale (NQ Atlas polls every 10-15s,
+        so 120s gives 8-12 missed cycles before marking stale).
+    wall_proximity_threshold: Fraction of wall range for "near wall" scoring.
+        0.25 means within 25% of call or put wall = near.
+    atlas_url: NQ Atlas endpoint for out-of-process fallback.
+    """
+    stale_threshold_sec: float = 120.0
+    wall_proximity_threshold: float = 0.25
+    atlas_url: str = "http://localhost:8766"

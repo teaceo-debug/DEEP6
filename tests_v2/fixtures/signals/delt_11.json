@@ -1,0 +1,52 @@
+{
+  "name": "DELT_11_rate_of_delta_change",
+  "description": "Rate of delta change exceeds threshold. Delta acceleration — the rate of change between consecutive deltas is extreme.",
+  "bar": {
+    "open": 21505.0,
+    "high": 21520.0,
+    "low": 21503.0,
+    "close": 21518.0,
+    "delta": 600,
+    "total_volume": 3200,
+    "bid_volumes": {
+      "21503.0": 60,
+      "21505.0": 100,
+      "21508.0": 150,
+      "21510.0": 200,
+      "21513.0": 180
+    },
+    "ask_volumes": {
+      "21505.0": 250,
+      "21508.0": 350,
+      "21510.0": 400,
+      "21513.0": 380,
+      "21515.0": 300,
+      "21518.0": 250,
+      "21520.0": 180
+    },
+    "poc_price": 21510.0,
+    "poc_volume": 600,
+    "vah": 21517.0,
+    "val": 21506.0,
+    "cvd": 900.0,
+    "bar_index": 48,
+    "timestamp": "2026-05-13T10:33:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 900.0,
+    "vah": 21517.0,
+    "val": 21506.0,
+    "poc": 21510.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "delta_history": [50, 80, 120, 200, 600]
+  },
+  "expected_signal": {
+    "signal_id": "DELT_11",
+    "direction": "BULLISH",
+    "strength_min": 0.35,
+    "strength_max": 0.55
+  }
+}

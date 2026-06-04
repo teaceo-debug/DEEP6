@@ -1,0 +1,5 @@
+pytest tests/confluence_system/ -v
+26 passed, 0 failed
+Verified files:
+- tests/confluence_system/test_scoring.py
+- tests/confluence_system/test_equilibrium.py

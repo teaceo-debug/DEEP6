@@ -1,0 +1,87 @@
+TASK 15 — V8 Regression Analysis (All Toggles ON)
+===================================================
+Date: 2026-05-24
+Method: Static code analysis
+
+QUESTION: Does V8 with all toggles ON detect the same signals as V7?
+
+ANSWER: YES — detection is identical. Rendering differs.
+
+PROOF — Detection Layer (upstream of rendering)
+================================================
+
+The signal detection pipeline runs BEFORE any Draw* method:
+
+1. OnMarketData → FootprintBar.AddTrade (trade accumulation)
+   V7 = V8: IDENTICAL
+
+2. OnBarUpdate → prev.Finalize(_priorCvd) (bar finalization)
+   V7 = V8: IDENTICAL
+
+3. AbsorptionDetector.Detect(prev, _atr, _volEma, _absCfg, va.vah, va.val, TickSize)
+   V7 = V8: IDENTICAL call, same static method, same config defaults (AbsorbWickMinPct=30.0)
+
+4. _exhDetector.Detect(prev, truePriorBar, prevIdx, _atr, _exhCfg)
+   V7 = V8: IDENTICAL call, same config defaults (ExhaustWickMinPct=35.0)
+
+5. _scorerRegistry.EvaluateBar(prev, _scorerSession)
+   V7 = V8: IDENTICAL — same 12 detectors registered in same order
+
+6. ConfluenceScorer.Score(signals, ...) — all 12 parameters identical
+   V7 = V8: IDENTICAL
+
+7. ApplyVersionTwoSetupMetadata(scored, prevIdx, prev.Close)
+   V7 = V8: IDENTICAL logic
+
+8. DrawScorerTierMarker(prevIdx, scored)
+   V7 = V8: IDENTICAL logic (no V8-specific gates)
+
+
+PROOF — V8 Gates Are Rendering-Only
+=====================================
+
+All V8-new gates live inside Draw* methods, AFTER detection has already occurred:
+
+DrawAbsorptionMarker (V8 line 980-1007):
+  - Part A switch gate: happens INSIDE Draw, after abs list already computed
+  - Part B confluence gate: checks _lastScorerResult.CategoryCount (rendering filter)
+  - Part C frequency limiter: rendering cap only
+
+DrawExhaustionMarker (V8 line 1009-1069):
+  - Part A switch gate: happens INSIDE Draw, after exh list already computed
+  - Part B strength gate: s.Strength < MinExhaustionStrength (rendering filter)
+  - Part B confluence gate: same as absorption
+  - Part C frequency limiter: rendering cap only
+
+DrawTriggeredMarker (V8 line 771-794):
+  - ShowTriggeredArrows toggle (rendering only)
+  - Part C frequency limiter (rendering only)
+
+
+V8 WITH ALL TOGGLES ON — What Changes vs V7?
+=============================================
+
+If all 10 per-variant toggles are set to ON:
+  ShowClassicAbsorption=true, ShowPassiveAbsorption=true, ShowStoppingVolume=true, ShowEffortVsResult=true
+  ShowZeroPrint=true, ShowExhaustionPrint=true, ShowThinPrint=true, ShowFatPrint=true
+  ShowFadingMomentum=true, ShowBidAskFade=true
+
+Remaining V8 gates that still differ from V7:
+  1. MinArrowConfluence=4 → Set to 0 to disable
+  2. MinExhaustionStrength=0.504331 → Set to 0.0 to disable
+  3. MaxSignalsPerSession=23 → Set to 0 to disable (0 = unlimited)
+  4. ShowBiasBox / ShowRawPercentage → Affects direction=0 exhaustion visual only
+  5. ShowTriggeredArrows=true → Same as V7 behavior when ON
+
+With ALL toggles ON + MinArrowConfluence=0 + MinExhaustionStrength=0.0 + MaxSignalsPerSession=0:
+  → V8 renders the SAME signals as V7 except:
+    a) Tag prefix is "V8_TRIGGER_" vs "V7_TRIGGER_" (cosmetic)
+    b) Direction=0 exhaustion shows bias box (ShowBiasBox=true) instead of diamond+percentage
+    c) V8 calls TrackRecentSignalDirection() to build bias history (no effect on detection)
+    d) V8 increments _sessionSignalCount (no effect when MaxSignalsPerSession=0)
+
+CONCLUSION: V8 with all toggles ON and thresholds zeroed produces IDENTICAL detections.
+           Visual rendering has minor cosmetic differences (bias box vs diamond, tag prefix).
+           Detection logic is NOT regressed.
+
+REGRESSION STATUS: PASS

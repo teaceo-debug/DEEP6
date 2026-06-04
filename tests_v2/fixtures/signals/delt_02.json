@@ -1,0 +1,53 @@
+{
+  "name": "DELT_02_delta_concentrated_in_wick",
+  "description": "Delta concentrated in wick zone. Most positive delta at low prices (wick) but close near high — buying at lows pushed price up.",
+  "bar": {
+    "open": 21500.0,
+    "high": 21510.0,
+    "low": 21485.0,
+    "close": 21508.0,
+    "delta": 400,
+    "total_volume": 3000,
+    "bid_volumes": {
+      "21485.0": 50,
+      "21488.0": 60,
+      "21490.0": 80,
+      "21495.0": 200,
+      "21500.0": 300,
+      "21505.0": 250
+    },
+    "ask_volumes": {
+      "21485.0": 300,
+      "21488.0": 350,
+      "21490.0": 280,
+      "21495.0": 250,
+      "21500.0": 200,
+      "21505.0": 150,
+      "21508.0": 100,
+      "21510.0": 80
+    },
+    "poc_price": 21488.0,
+    "poc_volume": 410,
+    "vah": 21505.0,
+    "val": 21488.0,
+    "cvd": 500.0,
+    "bar_index": 40,
+    "timestamp": "2026-05-13T10:25:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 500.0,
+    "vah": 21505.0,
+    "val": 21488.0,
+    "poc": 21488.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0
+  },
+  "expected_signal": {
+    "signal_id": "DELT_02",
+    "direction": "BULLISH",
+    "strength_min": 0.30,
+    "strength_max": 0.50
+  }
+}

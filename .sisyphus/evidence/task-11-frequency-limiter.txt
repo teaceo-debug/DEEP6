@@ -1,0 +1,9 @@
+﻿[COMPILE-RESULT] SUCCESS 2026-05-24 11:44:44.801
+
+Task 11: Signal frequency limiter added to DEEP6FootprintV8.cs
+- MaxSignalsPerSession (int, range 0-50, default 15) — Group "3. Signals"
+- Private counter: _sessionSignalCount
+- Reset: on session boundary (isNewSessionBar block, equivalent to IsFirstBarOfSession)
+- Gate: in DrawAbsorptionMarker, DrawExhaustionMarker, DrawTriggeredMarker
+  -> if (MaxSignalsPerSession > 0 && _sessionSignalCount >= MaxSignalsPerSession) return;
+- Counter incremented after each successful marker draw

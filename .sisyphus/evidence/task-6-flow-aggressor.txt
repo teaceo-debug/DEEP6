@@ -1,0 +1,2 @@
+﻿bullish call buy -> signed_premium > 0: True
+signed_premium_5m: 5250

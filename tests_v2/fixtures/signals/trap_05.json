@@ -1,0 +1,53 @@
+{
+  "name": "TRAP_05_cvd_vs_price_reversal",
+  "description": "CVD trending one direction while price reverses. CVD still positive but price dropping — late buyers trapped.",
+  "bar": {
+    "open": 21520.0,
+    "high": 21522.0,
+    "low": 21498.0,
+    "close": 21500.0,
+    "delta": -100,
+    "total_volume": 2600,
+    "bid_volumes": {
+      "21498.0": 250,
+      "21500.0": 300,
+      "21505.0": 280,
+      "21510.0": 200,
+      "21515.0": 150,
+      "21520.0": 120
+    },
+    "ask_volumes": {
+      "21500.0": 150,
+      "21505.0": 200,
+      "21510.0": 180,
+      "21515.0": 120,
+      "21520.0": 100,
+      "21522.0": 50
+    },
+    "poc_price": 21500.0,
+    "poc_volume": 450,
+    "vah": 21515.0,
+    "val": 21499.0,
+    "cvd": 600.0,
+    "bar_index": 76,
+    "timestamp": "2026-05-13T11:01:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 600.0,
+    "vah": 21515.0,
+    "val": 21499.0,
+    "poc": 21500.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "price_history": [21510.0, 21518.0, 21525.0, 21520.0, 21500.0],
+    "cvd_history": [400.0, 500.0, 650.0, 700.0, 600.0]
+  },
+  "expected_signal": {
+    "signal_id": "TRAP_05",
+    "direction": "BEARISH",
+    "strength_min": 0.30,
+    "strength_max": 0.50
+  }
+}

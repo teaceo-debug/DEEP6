@@ -1,0 +1,32 @@
+Depth Radar Desktop — Three Fixes Verification
+================================================
+Date: 2026-06-01
+
+Fix 1: NT8 JSON Output Path
+----------------------------
+Config loads NT8 path correctly:
+  NT8 path: C:\Users\Tea\Documents\NinjaTrader 8\templates\DEEP6\depth_radar_walls.json
+
+Files changed:
+  - depth_radar_desktop/config.py: Added nt8_output_path field
+  - depth_radar_desktop/engine_bridge.py: Added output_path param, passes to LiveMBORadar
+  - depth_radar_desktop/live/engine_worker.py: Passes config.nt8_output_path to bridge
+
+Fix 2: Consoleless Launcher
+----------------------------
+  - depth_radar_desktop/launch.pyw: EXISTS ✓
+  - depth_radar_desktop/create_shortcut.py: EXISTS ✓
+
+Fix 3: App Icon
+---------------
+  - depth_radar_desktop/assets/icon.png: EXISTS ✓
+  - __main__.py: _create_app_icon() generates radar icon programmatically
+  - app.setWindowIcon() called after QApplication creation
+
+Verification
+------------
+  python -m depth_radar_desktop --dry-run: OK
+  LSP diagnostics (config.py): 0 errors
+  LSP diagnostics (engine_bridge.py): 0 errors
+  LSP diagnostics (engine_worker.py): 0 errors
+  LSP diagnostics (__main__.py): 0 errors

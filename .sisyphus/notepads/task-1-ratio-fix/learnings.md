@@ -1,0 +1,2 @@
+- Dynamic NQ/QQQ ratio can be updated safely inside analyzer() by extracting spots from existing raw adapter payloads, keeping the old call signature intact.
+- VIX modifiers should be applied after the base confidence score and before direction/grade mapping so downstream verdicts stay consistent.

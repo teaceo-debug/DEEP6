@@ -1,0 +1,53 @@
+{
+  "name": "IMB_05_counter_trend_buy_imbalance",
+  "description": "Buy imbalance in a red (down) bar. Despite close < open, aggressive buying at mid-bar levels — counter-trend demand.",
+  "bar": {
+    "open": 21510.0,
+    "high": 21515.0,
+    "low": 21495.0,
+    "close": 21498.0,
+    "delta": -100,
+    "total_volume": 2800,
+    "bid_volumes": {
+      "21495.0": 200,
+      "21498.0": 150,
+      "21500.0": 80,
+      "21502.0": 100,
+      "21505.0": 200,
+      "21508.0": 250,
+      "21510.0": 180
+    },
+    "ask_volumes": {
+      "21498.0": 100,
+      "21500.0": 350,
+      "21502.0": 380,
+      "21505.0": 300,
+      "21508.0": 200,
+      "21510.0": 120,
+      "21515.0": 60
+    },
+    "poc_price": 21502.0,
+    "poc_volume": 480,
+    "vah": 21508.0,
+    "val": 21498.0,
+    "cvd": 180.0,
+    "bar_index": 55,
+    "timestamp": "2026-05-13T10:40:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 180.0,
+    "vah": 21508.0,
+    "val": 21498.0,
+    "poc": 21502.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0
+  },
+  "expected_signal": {
+    "signal_id": "IMB_05",
+    "direction": "BULLISH",
+    "strength_min": 0.30,
+    "strength_max": 0.50
+  }
+}

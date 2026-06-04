@@ -1,0 +1,14 @@
+﻿{
+  "bias_label": "LEAN BEAR",
+  "bias_score": -5,
+  "confidence": 0.72,
+  "confidence_pct": 72,
+  "mode": "GO",
+  "mode_reason": "trend, flow, and macro aligned bearish",
+  "session_label": "MID-AM",
+  "xamd_phase": "DISTRIBUTION",
+  "domain_scores": {"ict": -3, "macro": -2, "flow": -1, "kronos": -2},
+  "setup_quality": 4,
+  "updated_ts": 1777569158,
+  "version": "v3"
+}

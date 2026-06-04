@@ -1,0 +1,159 @@
+==========================================================================================
+  DEEP6 Zone Entry Optimizer — 15m EXHAUST_EDGE
+  NQ Futures  |  Jan 2 – Apr 10, 2026  |  RTH 1m bars
+==========================================================================================
+
+  1m bars: 27,675   |   15m bars: 1,845
+
+  Zones detected (15m): 122
+
+  Walk-forward split:  train 2026-01-02 → 2026-02-27  (41 sessions)
+                        test  2026-03-02 → 2026-04-10  (28 sessions)
+
+══════════════════════════════════════════════════════════════════════════════════════════
+  PHASE 1 — Wick threshold × TP multiple × Zone score gate
+  Fixed: close_reject=0.55, vol_mult=1.0, first_touch=False, tod=09:30-16:15
+══════════════════════════════════════════════════════════════════════════════════════════
+
+  Qualifying combos (n≥15, net>0): 108
+
+  Rank   wick    cr   vl   tp   sc  ft      tod  │     N    WR%     PF  Sharpe       net$     exp$
+  ──────────────────────────────────────────────────────────────────────────────────────
+     1    wk=0.35 cr=0.55 vl=1.0 tp=1.0 sc≥0 ft=0 tod=09-16  │ n= 29 WR= 82.8% PF= 7.88 Sharpe=10.77 net=$   18,980 exp=$    654
+     2    wk=0.35 cr=0.55 vl=1.0 tp=1.0 sc≥4 ft=0 tod=09-16  │ n= 29 WR= 82.8% PF= 7.88 Sharpe=10.77 net=$   18,980 exp=$    654
+     3    wk=0.50 cr=0.55 vl=1.0 tp=1.0 sc≥0 ft=0 tod=09-16  │ n= 23 WR= 78.3% PF= 4.08 Sharpe=10.04 net=$    8,494 exp=$    369
+     4    wk=0.50 cr=0.55 vl=1.0 tp=1.0 sc≥4 ft=0 tod=09-16  │ n= 23 WR= 78.3% PF= 4.08 Sharpe=10.04 net=$    8,494 exp=$    369
+     5    wk=0.35 cr=0.55 vl=1.0 tp=1.0 sc≥6 ft=0 tod=09-16  │ n= 21 WR= 81.0% PF= 5.74 Sharpe=10.02 net=$   12,650 exp=$    602
+     6    wk=0.40 cr=0.55 vl=1.0 tp=1.0 sc≥0 ft=0 tod=09-16  │ n= 26 WR= 80.8% PF= 6.03 Sharpe= 9.77 net=$   13,882 exp=$    534
+     7    wk=0.40 cr=0.55 vl=1.0 tp=1.0 sc≥4 ft=0 tod=09-16  │ n= 26 WR= 80.8% PF= 6.03 Sharpe= 9.77 net=$   13,882 exp=$    534
+     8    wk=0.25 cr=0.55 vl=1.0 tp=1.0 sc≥0 ft=0 tod=09-16  │ n= 33 WR= 81.8% PF= 5.98 Sharpe= 9.72 net=$   19,367 exp=$    587
+     9    wk=0.25 cr=0.55 vl=1.0 tp=1.0 sc≥4 ft=0 tod=09-16  │ n= 33 WR= 81.8% PF= 5.98 Sharpe= 9.72 net=$   19,367 exp=$    587
+    10    wk=0.40 cr=0.55 vl=1.0 tp=1.0 sc≥6 ft=0 tod=09-16  │ n= 20 WR= 80.0% PF= 5.42 Sharpe= 9.58 net=$   11,801 exp=$    590
+    11    wk=0.30 cr=0.55 vl=1.0 tp=1.0 sc≥0 ft=0 tod=09-16  │ n= 31 WR= 80.6% PF= 5.66 Sharpe= 9.40 net=$   18,123 exp=$    585
+    12    wk=0.30 cr=0.55 vl=1.0 tp=1.0 sc≥4 ft=0 tod=09-16  │ n= 31 WR= 80.6% PF= 5.66 Sharpe= 9.40 net=$   18,123 exp=$    585
+    13    wk=0.45 cr=0.55 vl=1.0 tp=1.0 sc≥0 ft=0 tod=09-16  │ n= 26 WR= 76.9% PF= 5.27 Sharpe= 9.03 net=$   13,052 exp=$    502
+    14    wk=0.45 cr=0.55 vl=1.0 tp=1.0 sc≥4 ft=0 tod=09-16  │ n= 26 WR= 76.9% PF= 5.27 Sharpe= 9.03 net=$   13,052 exp=$    502
+    15    wk=0.50 cr=0.55 vl=1.0 tp=1.0 sc≥6 ft=0 tod=09-16  │ n= 17 WR= 76.5% PF= 3.40 Sharpe= 8.99 net=$    6,413 exp=$    377
+    16    wk=0.35 cr=0.55 vl=1.0 tp=1.5 sc≥0 ft=0 tod=09-16  │ n= 29 WR= 72.4% PF= 4.90 Sharpe= 8.96 net=$   21,252 exp=$    733
+    17    wk=0.35 cr=0.55 vl=1.0 tp=1.5 sc≥4 ft=0 tod=09-16  │ n= 29 WR= 72.4% PF= 4.90 Sharpe= 8.96 net=$   21,252 exp=$    733
+    18    wk=0.25 cr=0.55 vl=1.0 tp=1.5 sc≥0 ft=0 tod=09-16  │ n= 33 WR= 72.7% PF= 4.57 Sharpe= 8.88 net=$   23,499 exp=$    712
+    19    wk=0.25 cr=0.55 vl=1.0 tp=1.5 sc≥4 ft=0 tod=09-16  │ n= 33 WR= 72.7% PF= 4.57 Sharpe= 8.88 net=$   23,499 exp=$    712
+    20    wk=0.25 cr=0.55 vl=1.0 tp=2.0 sc≥0 ft=0 tod=09-16  │ n= 33 WR= 66.7% PF= 4.20 Sharpe= 8.83 net=$   25,992 exp=$    788
+    21    wk=0.25 cr=0.55 vl=1.0 tp=2.0 sc≥4 ft=0 tod=09-16  │ n= 33 WR= 66.7% PF= 4.20 Sharpe= 8.83 net=$   25,992 exp=$    788
+    22    wk=0.35 cr=0.55 vl=1.0 tp=2.0 sc≥0 ft=0 tod=09-16  │ n= 29 WR= 65.5% PF= 4.32 Sharpe= 8.75 net=$   23,165 exp=$    799
+    23    wk=0.35 cr=0.55 vl=1.0 tp=2.0 sc≥4 ft=0 tod=09-16  │ n= 29 WR= 65.5% PF= 4.32 Sharpe= 8.75 net=$   23,165 exp=$    799
+    24    wk=0.45 cr=0.55 vl=1.0 tp=1.0 sc≥6 ft=0 tod=09-16  │ n= 20 WR= 75.0% PF= 4.70 Sharpe= 8.73 net=$   10,971 exp=$    549
+    25    wk=0.25 cr=0.55 vl=1.0 tp=1.0 sc≥6 ft=0 tod=09-16  │ n= 23 WR= 78.3% PF= 4.27 Sharpe= 8.72 net=$   12,404 exp=$    539
+    26    wk=0.30 cr=0.55 vl=1.0 tp=1.0 sc≥6 ft=0 tod=09-16  │ n= 22 WR= 77.3% PF= 4.03 Sharpe= 8.30 net=$   11,520 exp=$    524
+    27    wk=0.30 cr=0.55 vl=1.0 tp=1.5 sc≥0 ft=0 tod=09-16  │ n= 31 WR= 71.0% PF= 4.12 Sharpe= 8.10 net=$   20,533 exp=$    662
+    28    wk=0.30 cr=0.55 vl=1.0 tp=1.5 sc≥4 ft=0 tod=09-16  │ n= 31 WR= 71.0% PF= 4.12 Sharpe= 8.10 net=$   20,533 exp=$    662
+    29    wk=0.45 cr=0.55 vl=1.0 tp=1.5 sc≥0 ft=0 tod=09-16  │ n= 26 WR= 69.2% PF= 3.65 Sharpe= 8.04 net=$   13,834 exp=$    532
+    30    wk=0.45 cr=0.55 vl=1.0 tp=1.5 sc≥4 ft=0 tod=09-16  │ n= 26 WR= 69.2% PF= 3.65 Sharpe= 8.04 net=$   13,834 exp=$    532
+
+  → Best Phase-1 params: wick=0.35 tp=1.0 score≥0
+
+══════════════════════════════════════════════════════════════════════════════════════════
+  PHASE 2 — Rejection close × Volume gate × First-touch × Time-of-day
+  Fixed: wick=0.35 tp=1.0 score≥0
+══════════════════════════════════════════════════════════════════════════════════════════
+
+  Qualifying combos (n≥15, net>0): 29
+
+  Rank   wick    cr   vl   tp   sc  ft      tod  │     N    WR%     PF  Sharpe       net$     exp$
+  ──────────────────────────────────────────────────────────────────────────────────────
+     1    wk=0.35 cr=0.40 vl=1.0 tp=1.0 sc≥0 ft=0 tod=09-16  │ n= 23 WR= 91.3% PF=18.70 Sharpe=15.02 net=$   15,599 exp=$    678
+     2    wk=0.35 cr=0.40 vl=1.0 tp=1.0 sc≥0 ft=0 tod=10-15  │ n= 19 WR= 89.5% PF=16.19 Sharpe=14.37 net=$   13,392 exp=$    705
+     3    wk=0.35 cr=0.50 vl=1.0 tp=1.0 sc≥0 ft=0 tod=09-13  │ n= 17 WR= 88.2% PF=14.37 Sharpe=13.90 net=$   11,788 exp=$    693
+     4    wk=0.35 cr=0.55 vl=1.0 tp=1.0 sc≥0 ft=0 tod=09-13  │ n= 17 WR= 88.2% PF=14.37 Sharpe=13.90 net=$   11,788 exp=$    693
+     5    wk=0.35 cr=0.40 vl=1.0 tp=1.0 sc≥0 ft=0 tod=09-13  │ n= 16 WR= 87.5% PF=13.78 Sharpe=13.68 net=$   11,264 exp=$    704
+     6    wk=0.35 cr=0.45 vl=1.0 tp=1.0 sc≥0 ft=0 tod=09-13  │ n= 16 WR= 87.5% PF=13.78 Sharpe=13.68 net=$   11,264 exp=$    704
+     7    wk=0.35 cr=0.60 vl=1.0 tp=1.0 sc≥0 ft=1 tod=10-14  │ n= 15 WR= 86.7% PF= 6.49 Sharpe=13.53 net=$    7,580 exp=$    505
+     8    wk=0.35 cr=0.40 vl=1.0 tp=1.0 sc≥0 ft=0 tod=10-14  │ n= 18 WR= 88.9% PF=15.03 Sharpe=13.51 net=$   12,367 exp=$    687
+     9    wk=0.35 cr=0.60 vl=1.0 tp=1.0 sc≥0 ft=1 tod=10-15  │ n= 17 WR= 82.4% PF= 5.68 Sharpe=12.53 net=$    7,923 exp=$    466
+    10    wk=0.35 cr=0.45 vl=1.0 tp=1.0 sc≥0 ft=0 tod=09-16  │ n= 25 WR= 84.0% PF= 9.24 Sharpe=12.36 net=$   14,698 exp=$    588
+    11    wk=0.35 cr=0.45 vl=1.0 tp=1.0 sc≥0 ft=1 tod=09-16  │ n= 16 WR= 81.2% PF= 5.41 Sharpe=12.07 net=$    7,469 exp=$    467
+    12    wk=0.35 cr=0.50 vl=1.0 tp=1.0 sc≥0 ft=0 tod=10-14  │ n= 20 WR= 85.0% PF= 9.36 Sharpe=11.97 net=$   12,301 exp=$    615
+    13    wk=0.35 cr=0.55 vl=1.0 tp=1.0 sc≥0 ft=0 tod=10-14  │ n= 20 WR= 85.0% PF= 9.36 Sharpe=11.97 net=$   12,301 exp=$    615
+    14    wk=0.35 cr=0.50 vl=1.0 tp=1.0 sc≥0 ft=0 tod=10-15  │ n= 22 WR= 81.8% PF= 8.30 Sharpe=11.77 net=$   13,015 exp=$    592
+    15    wk=0.35 cr=0.55 vl=1.0 tp=1.0 sc≥0 ft=0 tod=10-15  │ n= 22 WR= 81.8% PF= 8.30 Sharpe=11.77 net=$   13,015 exp=$    592
+    16    wk=0.35 cr=0.45 vl=1.0 tp=1.0 sc≥0 ft=0 tod=10-14  │ n= 19 WR= 84.2% PF= 9.00 Sharpe=11.75 net=$   11,777 exp=$    620
+    17    wk=0.35 cr=0.50 vl=1.0 tp=1.0 sc≥0 ft=1 tod=10-15  │ n= 16 WR= 81.2% PF= 5.12 Sharpe=11.60 net=$    6,974 exp=$    436
+    18    wk=0.35 cr=0.55 vl=1.0 tp=1.0 sc≥0 ft=1 tod=10-15  │ n= 16 WR= 81.2% PF= 5.12 Sharpe=11.60 net=$    6,974 exp=$    436
+    19    wk=0.35 cr=0.45 vl=1.0 tp=1.0 sc≥0 ft=0 tod=10-15  │ n= 21 WR= 81.0% PF= 8.01 Sharpe=11.55 net=$   12,490 exp=$    595
+    20    wk=0.35 cr=0.45 vl=1.0 tp=1.0 sc≥0 ft=1 tod=10-15  │ n= 15 WR= 80.0% PF= 4.81 Sharpe=11.07 net=$    6,450 exp=$    430
+    21    wk=0.35 cr=0.60 vl=1.0 tp=1.0 sc≥0 ft=0 tod=09-13  │ n= 19 WR= 84.2% PF= 6.86 Sharpe=10.80 net=$   10,947 exp=$    576
+    22    wk=0.35 cr=0.55 vl=1.0 tp=1.0 sc≥0 ft=0 tod=09-16  │ n= 29 WR= 82.8% PF= 7.88 Sharpe=10.77 net=$   18,980 exp=$    654
+    23    wk=0.35 cr=0.50 vl=1.0 tp=1.0 sc≥0 ft=0 tod=09-16  │ n= 27 WR= 81.5% PF= 6.16 Sharpe=10.66 net=$   14,246 exp=$    528
+    24    wk=0.35 cr=0.60 vl=1.0 tp=1.0 sc≥0 ft=0 tod=10-14  │ n= 23 WR= 82.6% PF= 6.56 Sharpe=10.58 net=$   12,599 exp=$    548
+    25    wk=0.35 cr=0.60 vl=1.0 tp=1.0 sc≥0 ft=0 tod=10-15  │ n= 25 WR= 80.0% PF= 6.16 Sharpe=10.51 net=$   13,312 exp=$    532
+    26    wk=0.35 cr=0.50 vl=1.0 tp=1.0 sc≥0 ft=1 tod=09-16  │ n= 18 WR= 77.8% PF= 3.63 Sharpe= 9.24 net=$    7,017 exp=$    390
+    27    wk=0.35 cr=0.55 vl=1.0 tp=1.0 sc≥0 ft=1 tod=09-16  │ n= 18 WR= 77.8% PF= 3.63 Sharpe= 9.24 net=$    7,017 exp=$    390
+    28    wk=0.35 cr=0.60 vl=1.0 tp=1.0 sc≥0 ft=0 tod=09-16  │ n= 36 WR= 75.0% PF= 4.47 Sharpe= 8.20 net=$   17,920 exp=$    498
+    29    wk=0.35 cr=0.60 vl=1.0 tp=1.0 sc≥0 ft=1 tod=09-16  │ n= 21 WR= 71.4% PF= 2.51 Sharpe= 6.65 net=$    6,405 exp=$    305
+
+  → Best overall: wick=0.35 cr=0.4 vl=1.0 tp=1.0 sc≥0 ft=0 tod=09-16
+     TRAIN: n=23 WR=91.3% PF=18.7 Sharpe=15.02 net=$15,599
+
+══════════════════════════════════════════════════════════════════════════════════════════
+  PHASE 3 — Walk-forward Validation (best combo on held-out test data)
+══════════════════════════════════════════════════════════════════════════════════════════
+
+  Validating top 5 Phase-2 combos on test set (2026-03-02 → 2026-04-10)…
+
+  Rank-1  wick=0.35 cr=0.4 vl=1.0 tp=1.0 sc≥0 ft=0 tod=09-16
+    TRAIN: n= 23 WR= 91.3% PF=18.70 Sharpe=15.02 net=$   15,599   MaxDD=$     791   LL=1
+    TEST:  n= 12 WR= 83.3% PF= 3.31 Sharpe= 7.84 net=$    5,432   MaxDD=$   1,366   LL=1
+    Sharpe decay: -47.8%   ✓ HOLD
+
+  Rank-2  wick=0.35 cr=0.4 vl=1.0 tp=1.0 sc≥0 ft=0 tod=10-15
+    TRAIN: n= 19 WR= 89.5% PF=16.19 Sharpe=14.37 net=$   13,392   MaxDD=$     791   LL=1
+    TEST:  n= 10 WR= 90.0% PF= 5.31 Sharpe=10.62 net=$    5,888   MaxDD=$   1,366   LL=1
+    Sharpe decay: -26.1%   ✓ HOLD
+
+  Rank-3  wick=0.35 cr=0.5 vl=1.0 tp=1.0 sc≥0 ft=0 tod=09-13
+    TRAIN: n= 17 WR= 88.2% PF=14.37 Sharpe=13.90 net=$   11,788   MaxDD=$     791   LL=1
+    TEST:  n=  8 WR= 87.5% PF= 2.89 Sharpe= 6.79 net=$    2,579   MaxDD=$   1,366   LL=1
+    Sharpe decay: -51.2%   ✓ HOLD
+
+  Rank-4  wick=0.35 cr=0.55 vl=1.0 tp=1.0 sc≥0 ft=0 tod=09-13
+    TRAIN: n= 17 WR= 88.2% PF=14.37 Sharpe=13.90 net=$   11,788   MaxDD=$     791   LL=1
+    TEST:  n=  9 WR= 88.9% PF= 3.07 Sharpe= 7.12 net=$    2,869   MaxDD=$   1,386   LL=1
+    Sharpe decay: -48.8%   ✓ HOLD
+
+  Rank-5  wick=0.35 cr=0.4 vl=1.0 tp=1.0 sc≥0 ft=0 tod=09-13
+    TRAIN: n= 16 WR= 87.5% PF=13.78 Sharpe=13.68 net=$   11,264   MaxDD=$     791   LL=1
+    TEST:  n=  6 WR= 83.3% PF= 2.40 Sharpe= 5.72 net=$    1,911   MaxDD=$   1,366   LL=1
+    Sharpe decay: -58.2%   ✓ HOLD
+
+──────────────────────────────────────────────────────────────────────────────────────────
+  PHASE 3b — Best combo, full period (train + test combined)
+──────────────────────────────────────────────────────────────────────────────────────────
+
+  Winner: wick=0.35 cr=0.4 vl=1.0 tp=1.0 sc≥0 ft=0 tod=09-16
+
+  Full period (all 69 sessions):
+    Trades:       35
+    Win Rate:     88.6%
+    Profit Factor:7.51
+    Sharpe:       12.16
+    Net PnL:      $21,030.50
+    Avg per trade:$600.87
+    Max DrawDown: $1,365.70
+    Longest Streak:1 losses
+    Expectancy:   $600.87
+
+  Zone-type breakdown:
+    Supply  :   7 trades  WR  85.7%  PF 44.33  net $    3,930
+    Demand  :   5 trades  WR 100.0%  PF 999.00  net $    4,906
+    RBR     :  11 trades  WR  81.8%  PF 3.09  net $    4,917
+    DBD     :  12 trades  WR  91.7%  PF 10.20  net $    7,277
+
+  Zone-score breakdown:
+    score≥0:  35 trades  WR  88.6%  PF 7.51  net $   21,030
+    score≥4:  35 trades  WR  88.6%  PF 7.51  net $   21,030
+    score≥6:  28 trades  WR  92.9%  PF 8.98  net $   17,210
+    score≥8:   8 trades  WR  87.5%  PF 3.43  net $    3,324
+    score≥10:   1 trades  WR 100.0%  PF 999.00  net $      824
+
+  Completed in 6.3s
+==========================================================================================

@@ -1,0 +1,12 @@
+Task 16 / 17 verification
+
+- Updated `deep6/execution/trade_decision_machine.py` to store the latest `MarketBiasSnapshot` via `update_bias()` and apply additive v3 bias gates.
+- T2 (`WATCHING -> ARMED`) now exits early when `_bias_snapshot.mode == BiasMode.STOP.value`.
+- T3 (`ARMED -> TRIGGERED`) now exits early when `_bias_snapshot.mode` is `BiasMode.CAUTION.value` or `BiasMode.STOP.value`.
+- Existing TDM regression suite and new v3 bias tests passed:
+
+```text
+pytest tests/execution/test_trade_decision_machine.py tests/test_tdm_bias_v3.py -q
+..............................                                           [100%]
+30 passed in 0.56s
+```

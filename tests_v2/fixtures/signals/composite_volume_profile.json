@@ -1,0 +1,61 @@
+{
+  "name": "composite_volume_profile_multiple_signals",
+  "description": "Multiple volume profile signals: VOLP_01 + VOLP_03 + VOLP_04. Increasing volume + surge + POC migration — all confirm trending market.",
+  "bar": {
+    "open": 21510.0,
+    "high": 21535.0,
+    "low": 21508.0,
+    "close": 21532.0,
+    "delta": 450,
+    "total_volume": 5500,
+    "bid_volumes": {
+      "21508.0": 100,
+      "21510.0": 200,
+      "21515.0": 300,
+      "21520.0": 400,
+      "21525.0": 350,
+      "21530.0": 250
+    },
+    "ask_volumes": {
+      "21510.0": 300,
+      "21515.0": 450,
+      "21520.0": 600,
+      "21525.0": 550,
+      "21530.0": 450,
+      "21532.0": 350,
+      "21535.0": 200
+    },
+    "poc_price": 21520.0,
+    "poc_volume": 1000,
+    "vah": 21531.0,
+    "val": 21513.0,
+    "cvd": 800.0,
+    "bar_index": 58,
+    "timestamp": "2026-05-13T10:43:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 12.0,
+    "cvd": 800.0,
+    "vah": 21531.0,
+    "val": 21513.0,
+    "poc": 21520.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "vol_history": [2000, 2500, 3200, 4000, 5500],
+    "poc_history": [21500.0, 21505.0, 21510.0, 21515.0, 21520.0],
+    "vol_ema": 2200,
+    "surge_mult": 2.5
+  },
+  "expected_signals": [
+    {"signal_id": "VOLP_01", "direction": "BULLISH", "strength_min": 0.25, "strength_max": 0.45},
+    {"signal_id": "VOLP_03", "direction": "BULLISH", "strength_min": 0.35, "strength_max": 0.55},
+    {"signal_id": "VOLP_04", "direction": "BULLISH", "strength_min": 0.25, "strength_max": 0.45}
+  ],
+  "expected_signal": {
+    "signal_id": "VOLP_03",
+    "direction": "BULLISH",
+    "strength_min": 0.35,
+    "strength_max": 0.55
+  }
+}

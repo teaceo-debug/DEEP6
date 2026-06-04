@@ -1,0 +1,40 @@
+{
+  "anchor_id": "1f8fb1df-6c63-4f1f-ab22-150d673e1c91",
+  "captured_at": "2026-05-21T16:12:00Z",
+  "mode": "replay",
+  "label_timing": "decision_time",
+  "symbol": "NQ1!",
+  "timeframe_primary": "1",
+  "timeframe_context": null,
+  "direction": "bullish",
+  "anchor_low_price": 21402.0,
+  "anchor_high_price": 21410.0,
+  "anchor_low_bar_time": 1779378900,
+  "anchor_high_bar_time": 1779379020,
+  "range": 8.0,
+  "level_minus2": 21426.0,
+  "level_minus2_5": 21430.0,
+  "level_minus4": 21442.0,
+  "pine_confidence_score": 41,
+  "pine_state": "invalidated",
+  "screenshot_path": "data/sd_anchor/screenshots/2026-05-21/1f8fb1df-6c63-4f1f-ab22-150d673e1c91.png",
+  "chart_metadata": {
+    "zoom_level": 175,
+    "visible_bar_range_start": 1779378300,
+    "visible_bar_range_end": 1779379500,
+    "candle_style": "candles",
+    "theme": "dark",
+    "chart_width_px": 1920,
+    "chart_height_px": 1080
+  },
+  "hermes_verdict": "veto",
+  "hermes_reasons": [
+    "Pre-break candles are heavily overlapping",
+    "Multiple equally defensible opposite endpoint wicks"
+  ],
+  "hermes_version": "hermes-sd-anchor-1.0.0",
+  "human_override": false,
+  "human_override_reason": null,
+  "outcome_label": null,
+  "outcome_resolved_at": null
+}

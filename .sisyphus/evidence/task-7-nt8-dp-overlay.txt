@@ -1,0 +1,21 @@
+Task 7 NT8 DEEP6DarkPoolOverlay evidence
+
+Copy:
+- Source: /mnt/c/Users/Tea/DEEP6/ninjatrader/Custom/Indicators/DEEP6/DEEP6DarkPoolOverlay.cs
+- Destination: /mnt/c/Users/Tea/Documents/NinjaTrader 8/bin/Custom/Indicators/DEEP6/DEEP6DarkPoolOverlay.cs
+- Verification: copied successfully; source and destination SHA256 matched: f19e78a4a50f52c7bec1c1332288ec3460c24d4ed61e73d97973ddeed82b0806
+
+NinjaScript compile:
+- NT8 process verified running/responding: Control Center - Accounts, PID 39864.
+- First DEEP6DevAddon compile trigger could not run because no NinjaScript Editor window was open: editor_window_not_found.
+- Then used nt8-compile.ps1 to open NinjaScript Editor and send F5.
+- Result: [COMPILE-RESULT] SUCCESS 2026-06-01 11:47:13.339; NinjaTrader.Custom.dll updated (observed LastWriteTime 2026-06-01 11:47:17).
+
+Errors / warnings:
+- NT8 compile script reported no runtime log errors after the compile.
+- nt8-dev-api.ps1 -Action errors found 0 estimated compile errors and 0 warnings; returned only older account/order rejection log entries unrelated to DEEP6DarkPoolOverlay.
+- nt8-errors.ps1 returned a generic single Output Window item raw="Error" with no CS code, file, line, or message despite the DLL update/success result.
+- Diagnostic dotnet build of NinjaTrader.Custom.csproj, with obj/bin redirected outside Custom, completed with 0 errors and existing unrelated warnings; no errors referenced DEEP6DarkPoolOverlay.cs.
+
+Conclusion:
+- DEEP6DarkPoolOverlay.cs was copied to the live NT8 Custom indicator path and the NT8 NinjaScript compile completed successfully. No DEEP6DarkPoolOverlay compile errors were found.

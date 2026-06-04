@@ -1,0 +1,53 @@
+{
+  "name": "IMB_04_contested_level_both_sides",
+  "description": "Both buy AND sell imbalance at same price. Heavy two-sided battle — contested level indicates high-importance price.",
+  "bar": {
+    "open": 21500.0,
+    "high": 21512.0,
+    "low": 21488.0,
+    "close": 21501.0,
+    "delta": 10,
+    "total_volume": 4200,
+    "bid_volumes": {
+      "21488.0": 40,
+      "21490.0": 100,
+      "21495.0": 200,
+      "21498.0": 600,
+      "21500.0": 400,
+      "21502.0": 150,
+      "21505.0": 80
+    },
+    "ask_volumes": {
+      "21495.0": 100,
+      "21498.0": 150,
+      "21500.0": 500,
+      "21502.0": 600,
+      "21505.0": 400,
+      "21508.0": 200,
+      "21512.0": 80
+    },
+    "poc_price": 21500.0,
+    "poc_volume": 900,
+    "vah": 21505.0,
+    "val": 21496.0,
+    "cvd": 50.0,
+    "bar_index": 52,
+    "timestamp": "2026-05-13T10:37:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 50.0,
+    "vah": 21505.0,
+    "val": 21496.0,
+    "poc": 21500.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0
+  },
+  "expected_signal": {
+    "signal_id": "IMB_04",
+    "direction": "NEUTRAL",
+    "strength_min": 0.30,
+    "strength_max": 0.50
+  }
+}

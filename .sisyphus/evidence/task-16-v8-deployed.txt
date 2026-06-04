@@ -1,0 +1,19 @@
+Task 16 V8 deployment evidence
+
+Deploy: SUCCESS
+- Source deployed with nt8-deploy.ps1 -Target Indicators -Force
+- DEEP6FootprintV8.cs copied to C:\Users\Tea\Documents\NinjaTrader 8\bin\Custom\Indicators\DEEP6\DEEP6FootprintV8.cs
+
+Compile: SUCCESS
+- [COMPILE-RESULT] SUCCESS 2026-05-24 12:35:20.459
+- NT8 log reported no runtime errors
+
+Screenshot: PARTIAL
+- Primary-screen capture was not NT8
+- DISPLAY3 capture shows NT8 with chart background, but NinjaScript Editor windows obscure most of the chart
+- Evidence screenshots:
+  - task-16-v8-clean-chart.png
+  - task-16-v8-clean-chart-display3.png
+
+Notes:
+- No source code or deployment scripts were modified.

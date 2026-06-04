@@ -1,0 +1,49 @@
+{
+  "task": "Task 11: Iceberg/Refill Detector",
+  "wave": 3,
+  "completed": "2026-05-27T00:00:00Z",
+  "files_created": [
+    "deep6v2/signals/dom/detectors/iceberg.py",
+    "tests_v2/dom_intelligence/test_iceberg_refill.py"
+  ],
+  "files_modified": [
+    "deep6v2/signals/dom/detectors/__init__.py"
+  ],
+  "detector": {
+    "class": "IcebergRefillDetector",
+    "detector_id": "dom.iceberg.v1",
+    "tier": "MECHANICAL",
+    "replay_safety": "REPLAY_SAFE",
+    "signal_id": "ENG_04",
+    "thresholds": {
+      "min_trade_size": 30,
+      "min_refill_size": 25,
+      "confirmation_count": 2,
+      "max_refill_window": 4
+    },
+    "max_tracked_levels": 20
+  },
+  "tests": {
+    "count": 9,
+    "all_passed": true,
+    "cases": [
+      "test_positive_two_refills_fire_event",
+      "test_negative_single_refill_no_event",
+      "test_negative_window_expired_no_event",
+      "test_direction_bid_is_bullish",
+      "test_direction_ask_is_bearish",
+      "test_multi_level_two_events",
+      "test_reset_clears_state",
+      "test_confidence_increases_with_more_refills",
+      "test_tracked_levels_bounded"
+    ]
+  },
+  "lsp_diagnostics": "clean",
+  "design_notes": [
+    "Adapted V1 IcebergEngine synthetic detection pattern for DOMSnapshot input",
+    "Does NOT import V1 — independent implementation using same depletion/refill cycle logic",
+    "State bounded to 20 tracked levels via LRU-style eviction",
+    "Confidence scales with refill_count: min(0.3 + 0.2 * count, 1.0)",
+    "Direction: bid-side iceberg → BULLISH, ask-side → BEARISH"
+  ]
+}

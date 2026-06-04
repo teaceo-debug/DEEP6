@@ -1,0 +1,1 @@
+- 2026-05-31: Electron sidecar lifecycle in `gex_terminal/desktop/main.js` now gates UI loading behind `/health` polling every 500ms for up to 15s while keeping the tray-first loading screen flow intact.

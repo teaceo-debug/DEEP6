@@ -1,0 +1,51 @@
+{
+  "name": "ENG_06_poc_vwap_zone_context",
+  "description": "POC/VWAP zone context: price near VAH. Price is at the value area high boundary — potential resistance/breakout level.",
+  "bar": {
+    "open": 21510.0,
+    "high": 21520.0,
+    "low": 21508.0,
+    "close": 21518.0,
+    "delta": 200,
+    "total_volume": 2400,
+    "bid_volumes": {
+      "21508.0": 100,
+      "21510.0": 200,
+      "21512.0": 180,
+      "21515.0": 250,
+      "21518.0": 200
+    },
+    "ask_volumes": {
+      "21510.0": 150,
+      "21512.0": 200,
+      "21515.0": 250,
+      "21518.0": 300,
+      "21520.0": 170
+    },
+    "poc_price": 21515.0,
+    "poc_volume": 500,
+    "vah": 21518.0,
+    "val": 21510.0,
+    "cvd": 400.0,
+    "bar_index": 60,
+    "timestamp": "2026-05-13T10:45:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 400.0,
+    "vah": 21518.0,
+    "val": 21510.0,
+    "poc": 21515.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "vwap": 21516.0,
+    "price_near_zone": "VAH"
+  },
+  "expected_signal": {
+    "signal_id": "ENG_06",
+    "direction": "NEUTRAL",
+    "strength_min": 0.20,
+    "strength_max": 0.40
+  }
+}

@@ -1,0 +1,5 @@
+- 2026-05-27: EquiGEX SharpDX rendering should allocate all brushes, fonts, and stroke styles in `InitDx()` and only rehydrate them lazily from `OnRender()` after `OnRenderTargetChanged()` calls `DisposeDx()`.
+- 2026-05-27: The render split that matched the Phase 1 dashboard spec was: full-width zone fills from current premium/discount bands, dashed horizontal band borders, SFV history polyline, in-zone labels, top header bar, top-right bias chip, and a stale/no-data badge.
+- 2026-05-27: Copying `_sfvHistory` into a local dictionary inside a try/catch avoids render-thread failures while `OnBarUpdate()` mutates the live history map.
+- 2026-05-27: Final F4 audit confirmed EquiGEX keeps all GEX sourcing externalized to JSON DTO fields only; no strike aggregation or in-indicator gamma math was added.
+- 2026-05-27: Final verification passed with clean LSP diagnostics on all four EquiGEX C# files and NT8 compile output containing `[COMPILE-RESULT] SUCCESS` after deploy.

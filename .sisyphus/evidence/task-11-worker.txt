@@ -1,0 +1,10 @@
+Task 11 verification evidence
+
+File: depth_radar_desktop/live/engine_worker.py
+LSP diagnostics: clean
+
+Command:
+python -c "from depth_radar_desktop.live.engine_worker import EngineWorker; print('engine_worker OK')"
+
+Output:
+engine_worker OK

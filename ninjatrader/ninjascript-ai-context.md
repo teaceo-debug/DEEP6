@@ -1,3 +1,5 @@
+> ⚠️ ARCHIVED: Content absorbed into opencode skills `ninjatrader-machine-profile` and `ninjatrader-builder-doctor`. This file is preserved for reference but is no longer the authoritative version. Do not edit.
+
 # NinjaScript AI Generation Context
 
 Inject this file into Claude's context whenever generating NinjaScript C# code for NT8.

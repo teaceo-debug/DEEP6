@@ -1,0 +1,34 @@
+﻿=== DRY RUN ===
+{
+    "run_id":  "bv-20260513-215352-7319",
+    "source_file":  "C:\\Users\\Tea\\DEEP6\\ninjatrader\\Custom\\Indicators\\DEEP6\\DEEP6Signal.cs",
+    "class_name":  "DEEP6Signal",
+    "chart_title":  "NQ",
+    "panel":  "price",
+    "parameters":  {
+
+                   },
+    "spec":  "",
+    "max_iterations":  8,
+    "timeout_seconds":  60,
+    "settle_ms":  1500,
+    "skip_visual":  false,
+    "artifacts_dir":  "C:\\Users\\Tea\\DEEP6\\artifacts",
+    "run_dir":  "C:\\Users\\Tea\\DEEP6\\artifacts\\bv-20260513-215352-7319",
+    "pipeline":  [
+                     "1. VALIDATE: python .claude/skills/nt8-build-verify/lib/nt8_paths.py",
+                     "2. DEPLOY: deploy.ps1 -SourceFile \u0027C:\\Users\\Tea\\DEEP6\\ninjatrader\\Custom\\Indicators\\DEEP6\\DEEP6Signal.cs\u0027",
+                     "3. COMPILE+FIX: fix_loop.ps1 -SourceFile \u0027C:\\Users\\Tea\\DEEP6\\ninjatrader\\Custom\\Indicators\\DEEP6\\DEEP6Signal.cs\u0027 -MaxIterations 8 -TimeoutSeconds 60",
+                     "4. INSTALL: install_indicator.ps1 -ClassName \u0027DEEP6Signal\u0027 -ChartTitle \u0027NQ\u0027 -Panel \u0027price\u0027",
+                     "5. SETTLE: Start-Sleep -Milliseconds 1500",
+                     "6. RUNTIME CHECK: runtime_check.ps1 -ClassName \u0027DEEP6Signal\u0027 -WindowSeconds 10",
+                     "7. SCREENSHOT: screenshot_chart.ps1 -ChartTitle \u0027NQ\u0027 -OutputPath \u0027\u003crunDir\u003e\\\\screenshot-{HHMMSS}.png\u0027",
+                     "8. VERIFY: verify_visual.py --screenshot \u0027\u003cpng\u003e\u0027 --spec \u0027\u0027 --artifacts-dir \u0027C:\\Users\\Tea\\DEEP6\\artifacts\\bv-20260513-215352-7319\u0027 --max-attempts 2",
+                     "9. REPORT: save timing.json + verdict-{HHMMSS}.json in \u0027C:\\Users\\Tea\\DEEP6\\artifacts\\bv-20260513-215352-7319\u0027"
+                 ],
+    "dry_run":  true
+}
+
+
+=== SYNTAX PARSE ===
+ParseErrorsCount=0

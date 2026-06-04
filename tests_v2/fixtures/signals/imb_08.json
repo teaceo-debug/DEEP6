@@ -1,0 +1,54 @@
+{
+  "name": "IMB_08_diagonal_imbalance",
+  "description": "Diagonal imbalance: ask[price] vs bid[price - 0.25] comparison. Aggressive buying lifting offers vs passive sellers one tick below.",
+  "bar": {
+    "open": 21502.0,
+    "high": 21518.0,
+    "low": 21500.0,
+    "close": 21515.0,
+    "delta": 350,
+    "total_volume": 3000,
+    "bid_volumes": {
+      "21500.0": 60,
+      "21500.25": 50,
+      "21502.0": 70,
+      "21505.0": 100,
+      "21508.0": 120,
+      "21510.0": 150,
+      "21512.0": 180
+    },
+    "ask_volumes": {
+      "21500.25": 250,
+      "21502.25": 300,
+      "21505.25": 350,
+      "21508.25": 280,
+      "21510.25": 250,
+      "21512.25": 220,
+      "21515.0": 200,
+      "21518.0": 150
+    },
+    "poc_price": 21510.0,
+    "poc_volume": 400,
+    "vah": 21515.0,
+    "val": 21503.0,
+    "cvd": 450.0,
+    "bar_index": 38,
+    "timestamp": "2026-05-13T10:23:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 450.0,
+    "vah": 21515.0,
+    "val": 21503.0,
+    "poc": 21510.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0
+  },
+  "expected_signal": {
+    "signal_id": "IMB_08",
+    "direction": "BULLISH",
+    "strength_min": 0.30,
+    "strength_max": 0.50
+  }
+}

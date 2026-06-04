@@ -1,0 +1,22 @@
+Task 6: Active Walls QTableView — VERIFIED
+============================================
+Date: 2026-06-01
+File: depth_radar_desktop/live/walls_table.py
+
+Import verification:
+  python -c "from depth_radar_desktop.live.walls_table import WallsTableView, WallsTableModel; print('walls_table import OK')"
+  Result: walls_table import OK
+
+Checklist:
+  [x] WallsTableModel(QAbstractTableModel) with data/headerData/rowCount/columnCount
+  [x] WallsTableView(QWidget) wrapping QTableView with column sizing and alternating rows
+  [x] update_walls(walls: list[dict]) on both model and view
+  [x] Color coding: bid=green-tinted bg, ask=red-tinted bg, SPOOF_LIKE=amber fg, UNDER_ATTACK=red fg
+  [x] Empty state "No Active Walls" overlay label
+  [x] 8 columns: Price, Side, Size, Max, Intent, State, Conf%, Age
+  [x] Uses COLORS from theme.py for text_secondary, green, red, amber
+  [x] Pre-built QBrush instances to avoid per-cell allocation
+  [x] No deep6 imports — pure Qt widget
+  [x] No EngineBridge connection
+  [x] No QStyledItemDelegate — color logic in model data()
+  [x] No sorting proxy model — just setSortingEnabled(True)

@@ -1,0 +1,4 @@
+﻿Line 1: ---
+Line 2: name: "ninjatrader-builder-doctor"
+Line 3: description: "Complete NinjaScript developer reference for NinjaTrader 8. Builds indicators, strategies, AddOns, drawing tools, Market Analyzer columns, SuperDOM columns, and custom bar types. Covers SharpDX rendering, threading, order management, ATM strategies, multi-timeframe, performance, and Pine Script conversion. Triggers: 'build indicator', 'build strategy', 'NinjaScript', 'SharpDX', 'Draw.*', 'OnBarUpdate', 'OnStateChange', 'order management', 'multi-timeframe', 'Pine Script convert', 'create NinjaScript', 'add indicator to chart', 'NinjaTrader indicator', 'NinjaTrader strategy', 'footprint chart', 'volume profile', 'CVD', 'delta analysis', 'imbalance detection', 'absorption', 'iceberg detection'."
+Line 4: ---

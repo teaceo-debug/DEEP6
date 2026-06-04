@@ -37,6 +37,11 @@ from deep6.api.routes import ws as ws_router_module
 from deep6.api.routes import backtest as backtest_router_module
 from deep6.api.routes import live as live_router
 from deep6.api.routes import replay as replay_router
+from deep6.api.routes import bias as bias_router
+from deep6.api.routes import bias_v3 as bias_v3_router
+from deep6.api.routes.gex_ingest import router as gex_ingest_router
+from deep6.api.routes.depthradar import router as depthradar_router
+from deep6.sd_anchor.webhook import router as sd_anchor_router
 
 
 @asynccontextmanager
@@ -90,6 +95,11 @@ def create_app() -> FastAPI:
     application.include_router(backtest_router_module.router)
     application.include_router(live_router.router)
     application.include_router(replay_router.router)
+    application.include_router(bias_router.router)
+    application.include_router(bias_v3_router.router)
+    application.include_router(gex_ingest_router)
+    application.include_router(depthradar_router)
+    application.include_router(sd_anchor_router)
 
     @application.get("/health", tags=["health"])
     async def health() -> dict:

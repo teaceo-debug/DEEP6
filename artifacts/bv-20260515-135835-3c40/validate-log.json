@@ -1,0 +1,62 @@
+﻿{
+    "message":  "NT8 paths detected",
+    "paths":  {
+                  "nt8_root":  "C:\\Users\\Tea\\Documents\\NinjaTrader 8",
+                  "custom_source":  "C:\\Users\\Tea\\Documents\\NinjaTrader 8\\bin\\Custom",
+                  "custom_dll":  "C:\\Users\\Tea\\Documents\\NinjaTrader 8\\bin\\Custom\\NinjaTrader.Custom.dll",
+                  "indicators_dir":  "C:\\Users\\Tea\\Documents\\NinjaTrader 8\\bin\\Custom\\Indicators",
+                  "strategies_dir":  "C:\\Users\\Tea\\Documents\\NinjaTrader 8\\bin\\Custom\\Strategies",
+                  "log_dir":  "C:\\Users\\Tea\\Documents\\NinjaTrader 8\\log",
+                  "workspaces_dir":  "C:\\Users\\Tea\\Documents\\NinjaTrader 8\\workspaces",
+                  "install_xml":  "C:\\Users\\Tea\\Documents\\NinjaTrader 8\\log\\Install.xml",
+                  "repo_source":  "C:\\Users\\Tea\\DEEP6\\ninjatrader\\Custom",
+                  "ninjascript_exe":  "C:\\Program Files\\NinjaTrader 8\\bin\\NinjaScript.exe"
+              },
+    "validation":  {
+                       "nt8_root":  {
+                                        "path":  "C:\\Users\\Tea\\Documents\\NinjaTrader 8",
+                                        "exists":  true
+                                    },
+                       "custom_source":  {
+                                             "path":  "C:\\Users\\Tea\\Documents\\NinjaTrader 8\\bin\\Custom",
+                                             "exists":  true
+                                         },
+                       "custom_dll":  {
+                                          "path":  "C:\\Users\\Tea\\Documents\\NinjaTrader 8\\bin\\Custom\\NinjaTrader.Custom.dll",
+                                          "exists":  true
+                                      },
+                       "indicators_dir":  {
+                                              "path":  "C:\\Users\\Tea\\Documents\\NinjaTrader 8\\bin\\Custom\\Indicators",
+                                              "exists":  true
+                                          },
+                       "strategies_dir":  {
+                                              "path":  "C:\\Users\\Tea\\Documents\\NinjaTrader 8\\bin\\Custom\\Strategies",
+                                              "exists":  true
+                                          },
+                       "log_dir":  {
+                                       "path":  "C:\\Users\\Tea\\Documents\\NinjaTrader 8\\log",
+                                       "exists":  true
+                                   },
+                       "workspaces_dir":  {
+                                              "path":  "C:\\Users\\Tea\\Documents\\NinjaTrader 8\\workspaces",
+                                              "exists":  true
+                                          },
+                       "install_xml":  {
+                                           "path":  "C:\\Users\\Tea\\Documents\\NinjaTrader 8\\log\\Install.xml",
+                                           "exists":  true
+                                       },
+                       "repo_source":  {
+                                           "path":  "C:\\Users\\Tea\\DEEP6\\ninjatrader\\Custom",
+                                           "exists":  true
+                                       },
+                       "ninjascript_exe":  {
+                                               "path":  "C:\\Program Files\\NinjaTrader 8\\bin\\NinjaScript.exe",
+                                               "exists":  false
+                                           }
+                   },
+    "available_compile_paths":  [
+                                    "devaddon_http",
+                                    "editor_uia"
+                                ],
+    "latest_log":  "C:\\Users\\Tea\\Documents\\NinjaTrader 8\\log\\log.20260515.00000.en.txt"
+}

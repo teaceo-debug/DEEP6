@@ -63,5 +63,29 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Scoring
         /// Null when not populated (e.g., legacy code paths).
         /// </summary>
         public SignalResult[] Signals;
+
+        /// <summary>
+        /// Version Two setup lifecycle state. Defaults to Setup when a result first becomes
+        /// chart-visible and progresses to Armed / Triggered / Invalid / Expired in the indicator.
+        /// </summary>
+        public TradeSetupState SetupState;
+
+        /// <summary>Bar index after which an untriggered setup expires.</summary>
+        public int ExpireAfterBarIndex;
+
+        /// <summary>Bar index where the setup transitioned to Triggered. -1 when not triggered yet.</summary>
+        public int TriggerBarIndex = -1;
+
+        /// <summary>Confidence scalar used by Version Two chart annotations.</summary>
+        public double Confidence;
+
+        /// <summary>Kind of linked structural level, e.g. CALL_WALL / PUT_WALL / GAMMA_FLIP.</summary>
+        public string LinkedLevelKind;
+
+        /// <summary>Price of the linked structural level after instrument mapping.</summary>
+        public double LinkedLevelPrice;
+
+        /// <summary>Absolute distance from EntryPrice/setup to the linked level, measured in ticks.</summary>
+        public double LinkedLevelDistanceTicks;
     }
 }

@@ -1,0 +1,32 @@
+FlashAlpha MCP enrichment evidence
+
+Files changed:
+- gex_terminal/engine/flashalpha_mcp.py
+- gex_terminal/engine/interpreter.py
+- gex_terminal/engine/orchestrator.py
+- gex_terminal/config.py
+- gex_terminal/tests/test_interpreter.py
+
+LSP diagnostics:
+- flashalpha_mcp.py: clean
+- interpreter.py: clean
+- orchestrator.py: clean
+- config.py: clean
+- test_interpreter.py: clean
+
+Pytest verification:
+Command:
+/mnt/c/Users/Tea/DEEP6/.venv-gex-terminal-test/bin/python -m pytest gex_terminal/tests/test_interpreter.py gex_terminal/tests/test_orchestrator.py -v
+
+Result:
+- 17 tests collected
+- 17 passed
+- 0 failed
+- Duration: 44.21s
+
+Import smoke test:
+Command:
+./.venv-gex-terminal-test/bin/python -c 'from gex_terminal.engine.flashalpha_mcp import FlashAlphaMCPClient; c = FlashAlphaMCPClient(api_key="test"); print("MCP client created OK")'
+
+Output:
+MCP client created OK

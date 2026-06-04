@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
-# deep6_up.sh — Bring up the entire DEEP6 stack
+# deep6_up.sh — Bring up the DEEP6 backend + dashboard development stack
 # Usage: ./scripts/deep6_up.sh [--demo] [--force]
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PID_DIR="$REPO_ROOT/.deep6"
 LOG_DIR="$REPO_ROOT/logs"
+# Default backend port for this helper. Keep aligned with .env.example unless
+# intentionally overriding the runtime choice.
+BACKEND_PORT=8765
 DEMO=0
 FORCE=0
 
@@ -30,9 +33,9 @@ die()  { err "$*"; exit 1; }
 pid_running() { [ -f "$1" ] && kill -0 "$(cat "$1")" 2>/dev/null; }
 
 wait_http() {
-  local url="$1" max="$2" i=0
+  local url="$1" max="$2" timeout="${3:-1}" i=0
   while [ $i -lt "$max" ]; do
-    if curl -fsS --max-time 1 "$url" >/dev/null 2>&1; then return 0; fi
+    if curl -fsS --max-time "$timeout" "$url" >/dev/null 2>&1; then return 0; fi
     sleep 1; i=$((i+1))
   done
   return 1
@@ -111,7 +114,7 @@ fi
 # ports free / clearable
 echo ""
 echo -e "${BLD}Port checks${RST}"
-kill_port 8000
+kill_port "$BACKEND_PORT"
 kill_port 3000
 
 # ── idempotency — already running? ──────────────────────────────────────────
@@ -125,7 +128,7 @@ if pid_running "$PID_DIR/backend.pid" && pid_running "$PID_DIR/frontend.pid"; th
   echo -e "${BLD} DEEP6 ALREADY UP${RST}"
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo ""
-  echo -e "  Backend   :8000  (PID $BE_PID)"
+  echo -e "  Backend   :$BACKEND_PORT  (PID $BE_PID)"
   echo -e "  Frontend  :3000  (PID $FE_PID)"
   echo ""
   echo -e "  Dashboard → http://localhost:3000"
@@ -139,13 +142,16 @@ fi
 echo ""
 echo -e "${BLD}Starting backend${RST}"
 cd "$REPO_ROOT"
-"$UVICORN" deep6.api.app:app --port 8000 \
+"$UVICORN" deep6.api.app:app --port "$BACKEND_PORT" \
   > "$LOG_DIR/uvicorn.log" 2>&1 &
 BE_PID=$!
 echo "$BE_PID" > "$PID_DIR/backend.pid"
 
-echo -n "  Waiting for :8000"
-if wait_http "http://localhost:8000/api/session/status" 10; then
+echo -n "  Waiting for :$BACKEND_PORT"
+# WSL on this machine serves localhost noticeably slower than 127.0.0.1 for
+# HTTP readiness probes; keep health checks on the explicit loopback IP so the
+# curl timeout does not false-negative while the service is actually up.
+if wait_http "http://127.0.0.1:$BACKEND_PORT/api/session/status" 30 2; then
   echo ""
   ok "Backend up (PID $BE_PID)"
 else
@@ -166,7 +172,7 @@ echo "$FE_PID" > "$PID_DIR/frontend.pid"
 cd "$REPO_ROOT"
 
 echo -n "  Waiting for :3000"
-if wait_http "http://localhost:3000/" 20; then
+if wait_http "http://127.0.0.1:3000/" 20 5; then
   echo ""
   ok "Frontend up (PID $FE_PID)"
 else
@@ -174,6 +180,41 @@ else
   err "Frontend did not respond in 20s — check $LOG_DIR/next.log"
   tail -20 "$LOG_DIR/next.log" | sed 's/^/    /'
   die "Frontend startup failed"
+fi
+
+# ── start NQ Atlas (GEX/options bias data) ──────────────────────────────────
+echo ""
+echo -e "${BLD}Starting NQ Atlas (GEX engine)${RST}"
+ATLAS_PORT=8766
+kill_port "$ATLAS_PORT"
+cd "$REPO_ROOT"
+"$VENV_PYTHON" run_atlas.py \
+  > "$LOG_DIR/atlas.log" 2>&1 &
+ATLAS_PID=$!
+echo "$ATLAS_PID" > "$PID_DIR/atlas.pid"
+
+echo -n "  Waiting for :$ATLAS_PORT"
+if wait_http "http://127.0.0.1:$ATLAS_PORT/health" 20 2; then
+  echo ""
+  ok "NQ Atlas up (PID $ATLAS_PID)"
+else
+  echo ""
+  warn "NQ Atlas did not respond in 20s — check $LOG_DIR/atlas.log"
+fi
+
+# ── start Bias Bridge (writes bias_v3.json for NT8) ─────────────────────────
+echo ""
+echo -e "${BLD}Starting Bias Bridge${RST}"
+cd "$REPO_ROOT"
+"$VENV_PYTHON" scripts/bias_bridge.py \
+  > "$LOG_DIR/bias_bridge.log" 2>&1 &
+BRIDGE_PID=$!
+echo "$BRIDGE_PID" > "$PID_DIR/bias_bridge.pid"
+sleep 2
+if kill -0 "$BRIDGE_PID" 2>/dev/null; then
+  ok "Bias Bridge up (PID $BRIDGE_PID)"
+else
+  err "Bias Bridge exited immediately — check $LOG_DIR/bias_bridge.log"
 fi
 
 # ── start demo broadcaster (optional) ───────────────────────────────────────
@@ -200,17 +241,20 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo -e "${BLD}${GRN} DEEP6 IS UP${RST}"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
-echo -e "  Backend   :8000  (PID $BE_PID)"
-echo -e "  Frontend  :3000  (PID $FE_PID)"
+echo -e "  Backend    :$BACKEND_PORT  (PID $BE_PID)"
+echo -e "  Frontend   :3000  (PID $FE_PID)"
+echo -e "  NQ Atlas   :$ATLAS_PORT  (PID $ATLAS_PID)"
+echo -e "  Bias Bridge:      (PID $BRIDGE_PID)"
 if [ -n "$DEMO_PID" ]; then
-  echo -e "  Demo      :      (PID $DEMO_PID)"
+  echo -e "  Demo       :      (PID $DEMO_PID)"
 else
-  echo -e "  Demo      :      (not started — use --demo)"
+  echo -e "  Demo       :      (not started — use --demo)"
 fi
 echo ""
-echo -e "  Dashboard → http://localhost:3000"
-echo -e "  Stop      → ./scripts/deep6_down.sh"
-echo -e "  Status    → ./scripts/deep6_status.sh"
-echo -e "  Logs      → tail -f logs/*.log"
+echo -e "  Dashboard  → http://localhost:3000"
+echo -e "  NQ Atlas   → http://localhost:$ATLAS_PORT/dashboard"
+echo -e "  Stop       → ./scripts/deep6_down.sh"
+echo -e "  Status     → ./scripts/deep6_status.sh"
+echo -e "  Logs       → tail -f logs/*.log"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""

@@ -7,6 +7,7 @@ opt8_sltp_sweep.py — Exhaustive SL/TP/bounce/session-window sweep for ChNavy6 
 import csv
 import sys
 import time
+from pathlib import Path
 from collections import defaultdict
 from datetime import datetime, timedelta
 from itertools import product
@@ -30,8 +31,9 @@ BOUNCE_CONFIRM_TICKS = [10, 20, 40]
 START_HOURS = [9.0, 9.5, 10.0]
 END_HOURS = [11.0, 12.0, 13.0, 14.0, 14.5]
 
-DATA_PATH = "/Users/teaceo/DEEP6/data/backtests/nq_3mo_1m.csv"
-OUT_PATH  = "/Users/teaceo/DEEP6/scripts/opt8_sltp_sweep.txt"
+ROOT = Path(__file__).resolve().parents[1]
+DATA_PATH = ROOT / "data/backtests/nq_3mo_1m.csv"
+OUT_PATH  = ROOT / "scripts/opt8_sltp_sweep.txt"
 
 
 def load_1m_bars():

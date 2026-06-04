@@ -1,0 +1,49 @@
+NT8 line rendering fix evidence
+Date: 2026-06-01
+
+Files reviewed completely:
+- C:\Users\Tea\DEEP6\ninjatrader\Custom\Indicators\GEXDoctor.cs
+- C:\Users\Tea\DEEP6\ninjatrader\Custom\Indicators\DEEP6\GEXTerminal.cs
+- C:\Users\Tea\DEEP6\ninjatrader\Custom\Indicators\DEEP6\DEEP6DarkPoolOverlay.cs
+- C:\Users\Tea\DEEP6\ninjatrader\Custom\Indicators\DEEP6\DEEP6TestLine.cs
+
+Root cause found:
+- Old working GEXDoctor draws levels with: Draw.HorizontalLine(this, lineTag, false, price.Value, color, dashStyle, width)
+- Broken indicators used a different overload missing the false isAutoScale parameter.
+
+Code fixes applied:
+1) GEXTerminal.cs
+- Changed line drawing to: Draw.HorizontalLine(this, tag, false, price.Value, brush, dashStyle, width)
+- Changed SnapshotDto.primary_magnet from object to double?
+- Removed object-to-double conversion path for primary_magnet and now read it directly as a numeric field
+
+2) DEEP6DarkPoolOverlay.cs
+- Changed line drawing to: Draw.HorizontalLine(this, tag, false, price.Value, brush, dashStyle, width)
+- Changed DPOverlayDto.primary_magnet from double to double?
+
+Checks performed:
+- CurrentBar guard already present in both new indicators: if (BarsInProgress != 0 || CurrentBar < 1) return;
+- NormalizePrice only rejects NaN, Infinity, and <= 0; it does not zero valid NQ levels
+- Level fields used for drawing are numeric doubles
+- LSP diagnostics on changed files: clean / no diagnostics found
+
+Deployment evidence:
+- Live deploy target verified:
+  C:\Users\Tea\Documents\NinjaTrader 8\bin\Custom\Indicators\DEEP6\
+- Deployed files hash-matched repo source files:
+  - GEXTerminal.cs SHA256: fc33fe4594f2c0ad4a5e4059a145e986cc0495d7c881e22e51774f64a206dde9
+  - DEEP6DarkPoolOverlay.cs SHA256: 2d47169021f8d2ec85dc9195238b05b8285d52a8d17357e085c0ef07313e976b
+
+Compile evidence from HERMES:
+- NinjaScript compile triggered with F5
+- Result: SUCCESS
+- NinjaTrader.Custom.dll timestamp changed:
+  - Before: 2026-06-01 15:30:57
+  - After: 2026-06-01 15:34:39.479
+- Post-compile scan:
+  - CompileErrorCount: 0
+  - No CS#### compile errors found after compile timestamp
+
+Non-blocking post-compile log item:
+- ERROR: Multiple Bartypes with the same BarsPeriodType were found. Ignoring NinjaTrader.NinjaScript.BarsTypes.MinuteBarsType
+- This was not reported as a DEEP6 indicator compile error for the deployed files.

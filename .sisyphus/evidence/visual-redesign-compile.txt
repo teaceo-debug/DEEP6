@@ -1,0 +1,29 @@
+DEEP6FootprintV8 Visual Redesign — Compile Evidence
+=====================================================
+Date: 2026-05-26 22:59:49
+Result: COMPILE SUCCEEDED (DLL updated at 22:59:49.574)
+
+Changes Applied:
+1. DrawAbsorptionMarker() — Replaced TriangleUp/Down + Text labels with Diamond only
+   - Removed: Cyan/Magenta brushes, Draw.Text with CLA/STO/PAS/EFF tags
+   - Added: Draw.Diamond at inner lane (±2 ticks), LimeGreen/Crimson brushes
+
+2. DrawExhaustionMarker() — Replaced ArrowUp/Down with TriangleUp/Down
+   - Removed: Yellow/OrangeRed brushes, ArrowUp/ArrowDown
+   - Added: Draw.TriangleUp/Down at outer lane (±4 ticks), LimeGreen/Crimson brushes
+   - Kept: Neutral exhaustion block (BiasBox/RawPercentage) unchanged
+   - Fixed: Neutral Diamond brush from undefined 'brush' var to Brushes.DimGray
+
+3. RT Absorption (RunRealtimeDetection) — Replaced Draw.Text with Draw.Diamond
+   - Removed: kind3 text label, Cyan/Magenta brushes
+   - Added: Draw.Diamond at inner lane (±2 ticks), LimeGreen/Crimson
+
+4. RT Exhaustion (RunRealtimeDetection) — Replaced ArrowUp/Down with TriangleUp/Down
+   - Removed: Yellow/OrangeRed brushes, ArrowUp/ArrowDown
+   - Added: Draw.TriangleUp/Down at outer lane (±4 ticks), LimeGreen/Crimson
+
+NOT Changed:
+- Toggle logic, gating, signal detection — untouched
+- OnRender/SharpDX code — untouched
+- Bias box text ("LONG"/"SHORT"/"—") — kept as-is
+- RT Bias Box rendering — untouched

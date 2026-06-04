@@ -1,3 +1,4 @@
+from pathlib import Path
 """
 ChNavy6 VWAP Bounce — ATR-Scaled Dynamic Stops Optimization
 Compare ATR-scaled SL/TP vs baseline fixed SL=160t TP=560t
@@ -20,8 +21,9 @@ SESSION_START_H = 9.5   # 09:30 ET
 SESSION_END_H = 14.5    # 14:30 ET
 FLATTEN_H = 16.0        # 16:00 ET
 
-CSV_PATH = "/Users/teaceo/DEEP6/data/backtests/nq_3mo_1m.csv"
-OUT_PATH = "/Users/teaceo/DEEP6/scripts/opt1_atr_stops.txt"
+ROOT = Path(__file__).resolve().parents[1]
+CSV_PATH = ROOT / "data/backtests/nq_3mo_1m.csv"
+OUT_PATH = ROOT / "scripts/opt1_atr_stops.txt"
 
 # ── Load & prep ──
 print("Loading data...")

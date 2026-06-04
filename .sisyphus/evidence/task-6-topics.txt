@@ -1,0 +1,7 @@
+﻿OnStateChange : 6
+OnBarUpdate : 18
+SharpDX : 54
+OnRender : 13
+NinjaScriptProperty : 11
+AddDataSeries : 8
+Draw\. : 24

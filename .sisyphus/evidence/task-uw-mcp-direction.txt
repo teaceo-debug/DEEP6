@@ -1,0 +1,21 @@
+Verification evidence for UW MCP + direction engine task
+
+LSP diagnostics:
+- gex_terminal/engine/uw_mcp.py: clean
+- gex_terminal/engine/direction_engine.py: clean
+- gex_terminal/engine/interpreter.py: clean
+- gex_terminal/engine/orchestrator.py: clean
+- gex_terminal/schemas.py: clean
+- gex_terminal/tests/test_direction_engine.py: clean
+- gex_terminal/tests/test_orchestrator.py: clean
+
+Python import / smoke check:
+UW MCP client OK
+Direction: LONG 80% reason: GEX positive + flow bullish + DP bullish
+Votes: 6 long / 0 short / 6 total
+
+Test command:
+python -m pytest gex_terminal/tests -q
+
+Result:
+106 passed in 78.02s (0:01:18)

@@ -1,0 +1,26 @@
+REPLAY-SAFETY AUDIT REPORT
+============================================================
+
+dom.absorption.v1              tier=MECHANICAL               safety=REPLAY_SAFE        release=YES
+dom.cvd.v1                     tier=MECHANICAL               safety=REPLAY_SAFE        release=YES
+dom.failed_auction.v1          tier=DISCRETIONARY_OVERLAY     safety=LIVE_ONLY          release=NO
+dom.iceberg.v1                 tier=MECHANICAL               safety=REPLAY_SAFE        release=YES
+dom.imbalance.v1               tier=MECHANICAL               safety=REPLAY_SAFE        release=YES
+dom.large_burst.v1             tier=HEURISTIC                safety=REPLAY_DEGRADED    release=YES
+dom.micro_momentum.v1          tier=HEURISTIC                safety=REPLAY_DEGRADED    release=YES
+dom.micro_vol.v1               tier=HEURISTIC                safety=REPLAY_DEGRADED    release=YES
+dom.pull_replace.v1            tier=HEURISTIC                safety=REPLAY_DEGRADED    release=YES
+dom.queue_nuance.v1            tier=DISCRETIONARY_OVERLAY     safety=LIVE_ONLY          release=NO
+dom.regime_shift.v1            tier=DISCRETIONARY_OVERLAY     safety=LIVE_ONLY          release=NO
+dom.stacked_imbalance.v1       tier=DISCRETIONARY_OVERLAY     safety=LIVE_ONLY          release=NO
+dom.sweep_reload.v1            tier=MECHANICAL               safety=REPLAY_SAFE        release=YES
+dom.thinness.v1                tier=MECHANICAL               safety=REPLAY_SAFE        release=YES
+dom.tps.v1                     tier=HEURISTIC                safety=REPLAY_DEGRADED    release=YES
+dom.wall_persistence.v1        tier=DISCRETIONARY_OVERLAY     safety=LIVE_ONLY          release=NO
+
+Total detectors: 16
+Tier 1 (MECHANICAL): 6 — all REPLAY_SAFE, all first_release=True
+Tier 2 (HEURISTIC): 5 — all REPLAY_DEGRADED, all first_release=True
+Tier 3 (DISCRETIONARY_OVERLAY): 5 — all LIVE_ONLY, all first_release=False
+
+AUDIT: PASS

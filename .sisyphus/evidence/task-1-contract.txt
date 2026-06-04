@@ -1,0 +1,31 @@
+TASK-1 CONTRACT EVIDENCE
+========================
+Tests run: python -m pytest tests_v2/dom_intelligence/test_contract.py -v
+Result: PASS
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.3, pluggy-1.6.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /mnt/c/Users/Tea/DEEP6
+configfile: pyproject.toml
+plugins: xdist-3.8.0, timeout-2.4.0, anyio-4.13.0
+collecting ... collected 8 items
+
+tests_v2/dom_intelligence/test_contract.py::test_dom_intelligence_event_has_required_fields PASSED [ 12%]
+tests_v2/dom_intelligence/test_contract.py::test_replay_safety_enum_contract PASSED [ 25%]
+tests_v2/dom_intelligence/test_contract.py::test_detector_tier_enum_contract PASSED [ 37%]
+tests_v2/dom_intelligence/test_contract.py::test_dom_intelligence_output_contract PASSED [ 50%]
+tests_v2/dom_intelligence/test_contract.py::test_dom_intelligence_feature_row_aligns_feature_names_and_values PASSED [ 62%]
+tests_v2/dom_intelligence/test_contract.py::test_dom_intelligence_feature_row_rejects_length_mismatch PASSED [ 75%]
+tests_v2/dom_intelligence/test_contract.py::test_dom_ownership_docstring_is_present PASSED [ 87%]
+tests_v2/dom_intelligence/test_contract.py::test_dom_intelligence_event_round_trip_access PASSED [100%]
+
+=============================== warnings summary ===============================
+../../../../../home/tea/.local/lib/python3.12/site-packages/_pytest/config/__init__.py:1434
+  /home/tea/.local/lib/python3.12/site-packages/_pytest/config/__init__.py:1434: PytestConfigWarning: Unknown config option: asyncio_mode
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+========================= 8 passed, 1 warning in 0.88s =========================
+DOM ownership rule: CONFIRMED
+Required enums: ReplaySafety(3 values), DetectorTier(3 values) CONFIRMED

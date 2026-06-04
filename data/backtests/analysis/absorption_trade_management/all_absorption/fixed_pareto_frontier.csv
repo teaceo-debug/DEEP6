@@ -1,0 +1,2 @@
+trade_count,win_rate,profit_factor,expectancy_ticks,median_ticks,net_ticks,sharpe,max_consecutive_losses,sl_ticks,tp_ticks,r_multiple
+901.0,0.06659267480577137,1.3976218787158146,1.8557158712541622,-5.0,1672.0,0.07196234184288736,70.0,5.0,100.0,20.0

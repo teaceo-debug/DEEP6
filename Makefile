@@ -1,16 +1,16 @@
-.PHONY: up down status logs health
+.PHONY: test lint typecheck run run-dry
 
-up:
-	@./scripts/deep6_up.sh --demo
+test:
+	pytest tests_v2/
 
-down:
-	@./scripts/deep6_down.sh
+lint:
+	python -m compileall deep6v2 tests_v2
 
-status:
-	@./scripts/deep6_status.sh
+typecheck:
+	python -m py_compile deep6v2/__init__.py deep6v2/__main__.py
 
-logs:
-	@tail -f logs/*.log
+run:
+	python -m deep6v2
 
-health:
-	@.venv/bin/python scripts/deep6_healthcheck.py
+run-dry:
+	python -m deep6v2

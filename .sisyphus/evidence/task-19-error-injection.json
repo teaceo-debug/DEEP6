@@ -1,0 +1,64 @@
+{
+  "task": "T19 — E2E Error Injection Test (CS0246)",
+  "timestamp": "2026-05-13T22:30:00-04:00",
+  "test_file": "C:\\Users\\Tea\\AppData\\Local\\Temp\\opencode\\TestSMA_Error.cs",
+  "injected_error": "using FakeNamespace.DoesNotExist; (line 22 — CS0246)",
+  "fix_loop_result": "FALSE_SUCCESS",
+  "fix_loop_exit_code": 0,
+  "fix_loop_reported": {
+    "result": "SUCCESS",
+    "iterations": 1,
+    "final_error_count": 0,
+    "total_fixes": 0,
+    "total_rollbacks": 0,
+    "elapsed_ms": 205943
+  },
+  "actual_outcome": {
+    "file_fixed": false,
+    "bad_using_still_present": true,
+    "error_parsing_reached": false,
+    "fix_router_reached": false
+  },
+  "root_cause": "compile_editor.ps1 returns success=true even when compile errors exist",
+  "bug_chain": [
+    {
+      "id": "BUG-1",
+      "file": ".claude/skills/nt8-build-verify/scripts/compile_editor.ps1",
+      "lines": "103-105",
+      "description": "compileSuccess is overridden to true when nt8-compile.ps1 exit code is 0, regardless of whether compile errors exist. The exit code reflects script execution success, not compilation success.",
+      "code": "if (-not $compileSuccess -and $compileRun.ExitCode -eq 0) { $compileSuccess = $true }",
+      "fix": "Change to: $compileSuccess = ($compileSuccess -or $compileRun.ExitCode -eq 0) -and $errorCount -eq 0"
+    },
+    {
+      "id": "BUG-2",
+      "file": ".claude/skills/nt8-build-verify/scripts/compile_editor.ps1",
+      "lines": "148-156",
+      "description": "compile_editor does not include path_used in its return JSON. fix_loop.ps1 checks path_used != 'devaddon' to decide whether to run a verification compile. Missing path_used (null) always triggers the extra verification compile, adding ~70s of unnecessary delay.",
+      "fix": "Add path_used = 'editor' to the result hashtable"
+    },
+    {
+      "id": "BUG-3",
+      "file": ".claude/skills/nt8-build-verify/scripts/fix_loop.ps1",
+      "lines": "235-251",
+      "description": "fix_loop trusts compileJson.success without cross-checking error_count. When compile_editor falsely reports success=true with error_count=1, fix_loop skips the entire error-parse → fix-route → apply cycle and exits as SUCCESS.",
+      "fix": "Add guard: if ($compileJson.success -and $compileJson.error_count -eq 0)"
+    }
+  ],
+  "compile_paths_available": {
+    "devaddon": false,
+    "ninjascript_exe": false,
+    "msbuild": false,
+    "compile_editor": true
+  },
+  "individual_step_results": {
+    "modal_detect": "OK — no modals blocking",
+    "deploy": "OK — hash_match=true, target=Indicators\\TestSMA_Error.cs",
+    "compile_headless": "INFRASTRUCTURE_FAILURE — no paths (no DevAddon, no NinjaScript.exe, no MSBuild)",
+    "compile_editor": "Returned success=true, error_count=1, errors=[CS0246 FakeNamespace line 22], elapsed_ms=70754"
+  },
+  "cleanup": {
+    "deployed_file_removed": true,
+    "artifacts_preserved": "C:\\Users\\Tea\\AppData\\Local\\Temp\\opencode\\e2e-error-artifacts\\bv-20260513-222519-84b1"
+  },
+  "verdict": "FAIL — fix loop has a false-positive bug that prevents it from entering the fix cycle when compile_editor is the only available compile path"
+}

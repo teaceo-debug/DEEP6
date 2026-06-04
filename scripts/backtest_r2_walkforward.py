@@ -10,6 +10,7 @@ import numpy as np
 from itertools import product
 from datetime import datetime, time
 import os
+from pathlib import Path
 
 # ── Constants ──
 TICK_SIZE = 0.25
@@ -19,8 +20,9 @@ SLIPPAGE_TICKS = 1
 TOTAL_COMMISSION = COMMISSION_PER_SIDE * 2  # round trip
 SLIPPAGE_COST = SLIPPAGE_TICKS * TICK_VALUE * 2  # entry + exit
 
-DB_PATH = "/Users/teaceo/DEEP6/data/backtests/replay_full_5sessions.duckdb"
-OUTPUT_PATH = "/Users/teaceo/DEEP6/scripts/results_r2_walkforward.txt"
+ROOT = Path(__file__).resolve().parents[1]
+DB_PATH = ROOT / "data/backtests/replay_full_5sessions.duckdb"
+OUTPUT_PATH = ROOT / "scripts/results_r2_walkforward.txt"
 
 SESSION_DATES = ["2026-04-08", "2026-04-09", "2026-04-10"]
 

@@ -27,7 +27,7 @@ if ($proc) {
 Write-Host ""
 Write-Host "-- Deployed Files -------------------------------------"
 
-foreach ($type in "Indicators","Strategies","AddOns") {
+foreach ($type in "Indicators","Strategies","AddOns","BarsTypes","ChartStyles") {
     $dst = "$NT8Custom\$type\DEEP6"
     $src = "$RepoSrc\$type\DEEP6"
 
@@ -40,7 +40,8 @@ foreach ($type in "Indicators","Strategies","AddOns") {
     Write-Host "  [$type\DEEP6]  $($dstFiles.Count) file(s)" -ForegroundColor Cyan
 
     foreach ($f in $dstFiles) {
-        $srcFile = Join-Path "$src" $f.Name
+        $rel = $f.FullName.Substring($dst.Length).TrimStart('\\')
+        $srcFile = Join-Path $src $rel
         $sync = "no-src"
         if (Test-Path $srcFile) {
             $h1 = (Get-FileHash $f.FullName).Hash
@@ -48,7 +49,7 @@ foreach ($type in "Indicators","Strategies","AddOns") {
             if ($h1 -eq $h2) { $sync = "in-sync" } else { $sync = "DRIFT" }
         }
         $color = if ($sync -eq "in-sync") { "Gray" } else { "Yellow" }
-        Write-Host "    $($f.Name)  [$sync]" -ForegroundColor $color
+        Write-Host "    $rel  [$sync]" -ForegroundColor $color
     }
 }
 
@@ -106,7 +107,9 @@ if ($ShowErrors -or $ShowLog -gt 0) {
         }
 
         if ($ShowErrors) {
-            $errors = $lines | Select-String -Pattern "\berror\b|CS\d{4}|compile.*fail|failed.*compile" -CaseSensitive:$false
+            $errors = $lines |
+                Where-Object { $_ -notmatch "(?i)no error" } |
+                Select-String -Pattern "CS\d{4}|compile.*fail|failed.*compile|Unhandled exception|Exception:|strategy.*failed|indicator.*failed" -CaseSensitive:$false
             if ($errors) {
                 Write-Host "  Errors found ($($errors.Count)):" -ForegroundColor Red
                 $errors | Select-Object -Last 30 | ForEach-Object { Write-Host "    $_" -ForegroundColor Red }

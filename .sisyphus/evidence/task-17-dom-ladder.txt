@@ -1,0 +1,15 @@
+Task 17: DOM Ladder Component — PASS
+Date: 2026-05-27
+Tests: 9/9 pass (vitest)
+
+Component: dashboard/components/dom/DOMLadder.tsx
+Test: dashboard/components/dom/DOMLadder.test.tsx
+
+Features:
+- Renders bid/ask vertical ladder from DOMLadderState
+- WebSocket schema: { bids: [{price, volume}], asks: [{price, volume}], version: int }
+- Prices sorted descending (highest at top)
+- Volume bars proportional to max visible volume
+- maxRows prop limits visible rows (default 20)
+- Empty state handled gracefully
+- No detector logic imported — pure structured state consumer

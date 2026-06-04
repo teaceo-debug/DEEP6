@@ -1,0 +1,50 @@
+{
+  "name": "ENG_07_regime_change_trend_to_range",
+  "description": "Regime change detection: transition from trending to ranging. Price was trending up, now oscillating in tight range — regime shift.",
+  "bar": {
+    "open": 21510.0,
+    "high": 21514.0,
+    "low": 21508.0,
+    "close": 21511.0,
+    "delta": 20,
+    "total_volume": 1800,
+    "bid_volumes": {
+      "21508.0": 150,
+      "21510.0": 250,
+      "21511.0": 200,
+      "21512.0": 180
+    },
+    "ask_volumes": {
+      "21510.0": 180,
+      "21511.0": 220,
+      "21512.0": 200,
+      "21514.0": 150
+    },
+    "poc_price": 21511.0,
+    "poc_volume": 420,
+    "vah": 21513.0,
+    "val": 21509.0,
+    "cvd": 380.0,
+    "bar_index": 80,
+    "timestamp": "2026-05-13T11:05:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 380.0,
+    "vah": 21513.0,
+    "val": 21509.0,
+    "poc": 21511.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "price_history": [21480.0, 21490.0, 21500.0, 21510.0, 21512.0, 21511.0, 21510.0, 21511.0, 21512.0, 21511.0],
+    "regime_prior": "TRENDING_UP",
+    "regime_current": "RANGING"
+  },
+  "expected_signal": {
+    "signal_id": "ENG_07",
+    "direction": "NEUTRAL",
+    "strength_min": 0.25,
+    "strength_max": 0.45
+  }
+}

@@ -1,0 +1,2 @@
+Verified:
+- `python -c "from depth_radar_desktop.constants import APP_NAME, TICK_SIZE, UPDATE_INTERVAL_MS; assert TICK_SIZE == 0.25; assert UPDATE_INTERVAL_MS == 500; print('constants OK')"` -> `constants OK`

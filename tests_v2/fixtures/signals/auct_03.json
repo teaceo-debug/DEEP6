@@ -1,0 +1,52 @@
+{
+  "name": "AUCT_03_poor_high_rejection",
+  "description": "Extreme price level has volume > 2× avg — poor high/low indicating rejection. Heavy activity at high = institutional rejection.",
+  "bar": {
+    "open": 21500.0,
+    "high": 21520.0,
+    "low": 21498.0,
+    "close": 21503.0,
+    "delta": -50,
+    "total_volume": 3400,
+    "bid_volumes": {
+      "21498.0": 100,
+      "21500.0": 200,
+      "21503.0": 250,
+      "21505.0": 200,
+      "21510.0": 150,
+      "21515.0": 200,
+      "21520.0": 600
+    },
+    "ask_volumes": {
+      "21500.0": 150,
+      "21503.0": 200,
+      "21505.0": 250,
+      "21510.0": 200,
+      "21515.0": 150,
+      "21520.0": 250
+    },
+    "poc_price": 21520.0,
+    "poc_volume": 850,
+    "vah": 21518.0,
+    "val": 21501.0,
+    "cvd": 200.0,
+    "bar_index": 50,
+    "timestamp": "2026-05-13T10:35:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 200.0,
+    "vah": 21518.0,
+    "val": 21501.0,
+    "poc": 21520.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0
+  },
+  "expected_signal": {
+    "signal_id": "AUCT_03",
+    "direction": "BEARISH",
+    "strength_min": 0.35,
+    "strength_max": 0.55
+  }
+}

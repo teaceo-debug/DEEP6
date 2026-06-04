@@ -1,0 +1,28 @@
+﻿=== T1: V4 MODEL TRAINING VERIFICATION ===
+Date: 2026-06-01 16:26:24
+
+Intent Model: deep6/models/intent_classifier_v4.joblib
+  Version: v4
+  Features: 44
+  Weighted F1: 0.4735
+  Precision: 0.4938
+  Recall: 0.4869
+  Accuracy: 0.4869
+  Classes: PASSIVE_REAL (train=9282), SPOOF_LIKE (train=419), RESERVE_REFRESH (train=10324), MIGRATORY (train=0)
+
+Interaction Model: deep6/models/interaction_predictor_v4.joblib
+  Version: v4
+  Weighted F1: 0.8520
+  Precision: 0.8879
+  Recall: 0.8421
+  Classes: BOUNCE (train=136), BREAK (train=92), CHURN (train=0)
+
+CausalClassifier: Intent loaded=True, Interaction loaded=True
+
+Training Data:
+  Source: data/depth_radar_v4/ (cached 3-day parquet)
+  Episodes: 3070 (508 unique)
+  Snapshots: 25032
+  Touches: 858
+
+VERIFIED OK

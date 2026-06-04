@@ -1,0 +1,33 @@
+Task 16: Research Tab Integration + Error Handling
+===================================================
+Date: 2026-06-01
+
+Files Modified:
+  - depth_radar_desktop/__main__.py (rewired with research tab + error handling)
+
+Files Verified (already existed):
+  - depth_radar_desktop/research/research_tab.py (correct from prior task)
+
+Changes to __main__.py:
+  1. Added ResearchTab import
+  2. Added global exception handler (sys.excepthook) before app.exec()
+  3. Wrapped EngineWorker creation in try/except — app continues if engine fails
+  4. Live tab + signal wiring only runs if worker is not None
+  5. Research tab always wired (ResearchTab.load_data with fallback dir search)
+  6. Model status bar always shown regardless of engine state
+  7. worker.stop() in finally only called if worker is not None
+
+LSP diagnostics:
+  - depth_radar_desktop/__main__.py: 0 errors
+  - depth_radar_desktop/research/research_tab.py: 0 errors
+
+Verification:
+  1. python -c "from depth_radar_desktop.research.research_tab import ResearchTab; print('research_tab OK')"
+     -> research_tab OK
+  2. python -m depth_radar_desktop --dry-run
+     -> Depth Radar Desktop v0.1.0 -- Dry-run OK
+
+Graceful degradation:
+  --source none: App launches, engine may fail gracefully, research tab loads
+  Missing models: Status bar shows "Models: X", app continues
+  Missing training data: EpisodeBrowser shows empty state internally

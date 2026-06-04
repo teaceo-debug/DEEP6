@@ -1,0 +1,25 @@
+{
+  "verdict": "PASS_WITH_NOTES",
+  "auto_checks": {
+    "file_size_bytes": 117516,
+    "file_size_check": "pass",
+    "image_size": {
+      "width": 1848,
+      "height": 2026
+    },
+    "pixel_stddev": 42.54,
+    "blank_check": "pass"
+  },
+  "llm_result": {
+    "verdict": "SKIPPED",
+    "reason": "ANTHROPIC_API_KEY not set",
+    "attempt": 1,
+    "attempts_used": 1,
+    "max_attempts": 2
+  },
+  "screenshot": "C:\\Users\\Tea\\DEEP6\\artifacts\\bv-20260515-135835-3c40\\screenshot-135929.png",
+  "spec": "Dark institutional options decision surface with semantic right-edge pill labels for defend, reject, attract, and flip levels over the main price chart.",
+  "timestamp": "135934",
+  "artifacts_dir": "C:\\Users\\Tea\\DEEP6\\artifacts\\bv-20260515-135835-3c40",
+  "verdict_path": "C:\\Users\\Tea\\DEEP6\\artifacts\\bv-20260515-135835-3c40\\bv-20260515-135934-8b66\\verdict-135934.json"
+}

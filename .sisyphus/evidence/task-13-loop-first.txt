@@ -1,0 +1,13 @@
+Task 13 — first iteration smoke test
+
+Command pattern:
+- python scripts/backtest_loop.py --db <temp>.duckdb --data-dir <empty-temp-dir> --vault <temp-vault> --action generate
+
+Observed result:
+- stdout contained: === ITERATION 1 COMPLETE ===
+- DuckDB iterations row count: 1
+- Obsidian files written:
+  - 02-strategies/strategy-<hash8>.md
+  - 04-backtests/backtest-YYYYMMDD-iter-001.md
+
+Status: PASS

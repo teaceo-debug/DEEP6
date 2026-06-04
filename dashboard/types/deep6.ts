@@ -115,3 +115,113 @@ export type LiveMessage =
   | LiveScoreMessage
   | LiveStatusMessage
   | LiveTapeMessage;
+
+// === DOM Intelligence types ===
+
+export interface DOMLadderLevel {
+  price: number;
+  volume: number;
+}
+
+/** WebSocket schema for DOM ladder updates. */
+export interface DOMLadderState {
+  bids: DOMLadderLevel[];
+  asks: DOMLadderLevel[];
+  version: number;
+}
+
+/** Detector tier classification. */
+export type DetectorTier = 'MECHANICAL' | 'HEURISTIC' | 'DISCRETIONARY_OVERLAY';
+
+/** Single active detector summary. */
+export interface ActiveDetectorSummary {
+  detector_id: string;
+  name: string;
+  tier: DetectorTier;
+  fire_count: number;
+  last_direction: -1 | 0 | 1;
+  last_confidence: number;
+}
+
+/** Intelligence rail state from API SSE endpoint. */
+export interface IntelligenceRailState {
+  total_events: number;
+  active_detectors: ActiveDetectorSummary[];
+  score_summary: {
+    mechanical_score: number;
+    heuristic_score: number;
+    overall_direction: -1 | 0 | 1;
+  };
+  updated_at: number;
+}
+
+// === DepthRadar types (LiveMBORadar wall classification + episodes + touches) ===
+
+export type WallIntent =
+  | 'PASSIVE_REAL'
+  | 'RESERVE_REFRESH'
+  | 'SPOOF_LIKE'
+  | 'MIGRATORY'
+  | 'UNKNOWN';
+
+export type WallState =
+  | 'FRESH'
+  | 'ESTABLISHED'
+  | 'UNDER_ATTACK'
+  | 'DEFENDING'
+  | 'EXHAUSTED'
+  | 'STALE';
+
+export type WallSide = 'BID' | 'ASK';
+
+export type TouchOutcome = 'BOUNCE' | 'BREAK' | 'CHURN';
+
+/** Active wall from GET /api/depthradar/walls */
+export interface DepthRadarWall {
+  id: string;
+  price: number;
+  side: WallSide;
+  size: number;
+  max_size: number;
+  intent: WallIntent;
+  state: WallState;
+  confidence: number;
+  age_seconds: number;
+  first_seen_ts: number;
+}
+
+/** Episode from GET /api/depthradar/episodes */
+export interface DepthRadarEpisode {
+  id: string;
+  wall_id: string;
+  price: number;
+  side: WallSide;
+  intent: WallIntent;
+  final_state: WallState;
+  duration_seconds: number;
+  max_size: number;
+  touch_count: number;
+  started_at: number;
+  ended_at: number;
+}
+
+/** Touch event from GET /api/depthradar/touches */
+export interface DepthRadarTouch {
+  id: string;
+  episode_id: string;
+  price: number;
+  outcome: TouchOutcome;
+  aggressor_volume: number;
+  defender_volume: number;
+  ts: number;
+}
+
+/** Aggregated metrics from GET /api/depthradar/metrics */
+export interface DepthRadarMetrics {
+  total_walls_classified: number;
+  total_episodes: number;
+  total_touches: number;
+  intent_distribution: Record<WallIntent, number>;
+  outcome_distribution: Record<TouchOutcome, number>;
+  avg_episode_duration_seconds: number;
+}

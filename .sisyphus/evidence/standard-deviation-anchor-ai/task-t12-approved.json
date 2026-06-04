@@ -1,0 +1,54 @@
+{
+  "task_id": "T12",
+  "task_name": "Pine-Sidecar Synchronization + Disagreement Handling",
+  "status": "approved",
+  "timestamp": "2026-05-21T00:00:00Z",
+  "deliverables": [
+    {
+      "file": "deep6/sd_anchor/sync.py",
+      "type": "module",
+      "description": "AnchorSyncManager class mapping HERMES verdicts to Pine state transitions with disagreement detection"
+    }
+  ],
+  "classes": [
+    {
+      "name": "AnchorSyncManager",
+      "methods": [
+        "apply_verdict(anchor_id, verdict, store) -> SyncResult",
+        "get_pine_alert_payload(sync_result) -> dict",
+        "disagreement_log (property)"
+      ]
+    },
+    {
+      "name": "SyncResult",
+      "type": "frozen dataclass",
+      "fields": ["anchor_id", "pine_state_transition", "chart_action", "disagreement", "log_entry"]
+    }
+  ],
+  "state_transitions": {
+    "approve": {"pine_state": "active", "chart_action": "promote_to_active"},
+    "veto": {"pine_state": "invalidated", "chart_action": "mark_invalidated"},
+    "abstain": {"pine_state": "candidate", "chart_action": "hold_candidate"}
+  },
+  "disagreement_rule": "Pine confidence >= 70 in confirmed/active state AND HERMES veto",
+  "pine_alert_payload_schema": {
+    "anchor_id": "str",
+    "action": "promote_active | mark_invalidated | hold_candidate",
+    "reason": "str"
+  },
+  "contracts_honored": [
+    ".sisyphus/contracts/hermes-authority.md",
+    ".sisyphus/contracts/anchor-contract.md"
+  ],
+  "invariants_enforced": [
+    "Pine is the ONLY chart drawer",
+    "HERMES governs state but never draws",
+    "Disagreements always logged, never silent",
+    "Human override always wins"
+  ],
+  "verification": {
+    "lsp_diagnostics": "clean (0 errors)",
+    "import_test": "pass",
+    "existing_tests": "8 passed, 0 failed (tests_v2/sd_anchor)"
+  }
+}

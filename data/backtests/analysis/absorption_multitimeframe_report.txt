@@ -1,0 +1,50 @@
+DEEP6 absorption multi-timeframe study
+====================================
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+Primary metric: 5-bar forward P&L from absorption observation (1 unique 1m timestamp + direction)
+
+Absorption observations: 901
+All absorption observations: N=901 | WR=46.3% | PF=0.95 | Avg$=-16.90 | Med$=-30.70 | Net$=-15,230.70 | AvgMove=-0.81 pts
+
+Higher-timeframe bars built from 1m OHLCV:
+- 5m bars: 92,201
+- 15m bars: 30,745
+- 30m bars: 15,375
+- 60m bars: 7,693
+
+All aggregated TF rows retained for audit: 146,014
+
+1) 1-min absorption inside a high-delta 5-min bar
+Thresholds: bullish delta >= 1,502.50, bearish delta <= -1,459.00
+Aligned high-delta 5m: N=70 | WR=54.3% | PF=1.06 | Avg$=42.01 | Med$=279.30 | Net$=2,941.00 | AvgMove=2.14 pts
+Everything else: N=831 | WR=45.6% | PF=0.93 | Avg$=-21.87 | Med$=-35.70 | Net$=-18,171.70 | AvgMove=-1.06 pts
+
+2) Multiple 1-min absorptions inside one 5-min bar
+Count uses unique 1-min absorption timestamps within the same 5m bucket and direction.
+2+ absorption minutes in same 5m + direction: N=65 | WR=40.0% | PF=0.96 | Avg$=-31.62 | Med$=-265.70 | Net$=-2,055.50 | AvgMove=-1.55 pts
+Single absorption minute in same 5m + direction: N=836 | WR=46.8% | PF=0.95 | Avg$=-15.76 | Med$=-25.70 | Net$=-13,175.20 | AvgMove=-0.75 pts
+
+3) 5-min bar range context
+Thresholds: tight <= 9.25 pts, wide >= 26.00 pts
+Tight 5m range (bottom quartile): N=13 | WR=53.8% | PF=1.65 | Avg$=14.68 | Med$=14.30 | Net$=190.90 | AvgMove=0.77 pts
+Wide 5m range (top quartile): N=622 | WR=45.7% | PF=0.97 | Avg$=-13.18 | Med$=-48.20 | Net$=-8,195.40 | AvgMove=-0.62 pts
+
+4) 15-min trend alignment
+Trend sign = sign(15m close - 15m open).
+15m trend aligned: N=490 | WR=58.2% | PF=1.15 | Avg$=42.95 | Med$=69.30 | Net$=21,047.00 | AvgMove=2.18 pts
+15m trend disagrees: N=406 | WR=32.3% | PF=0.78 | Avg$=-88.15 | Med$=-130.70 | Net$=-35,789.20 | AvgMove=-4.37 pts
+15m trend flat/doji: N=5 | WR=20.0% | PF=0.30 | Avg$=-97.70 | Med$=-135.70 | Net$=-488.50 | AvgMove=-4.85 pts
+
+5) 60-min structure positioning
+Bullish uses the 1m bar low inside the 60m range; bearish uses the 1m bar high.
+Near favorable 60m extreme: N=122 | WR=71.3% | PF=3.91 | Avg$=462.87 | Med$=211.80 | Net$=56,469.60 | AvgMove=23.18 pts
+Near 60m middle: N=216 | WR=42.1% | PF=0.63 | Avg$=-141.26 | Med$=-53.20 | Net$=-30,511.20 | AvgMove=-7.03 pts
+Neither extreme nor middle: N=563 | WR=42.5% | PF=0.80 | Avg$=-73.16 | Med$=-60.70 | Net$=-41,189.10 | AvgMove=-3.62 pts
+
+Conclusions (only treat N>=30 comparisons as actionable):
+- High-delta 5m context: Aligned high-delta 5m performed better by $63.88 avg P&L per signal (PF 1.06 vs 0.93).
+- Multiple absorptions in 5m: Single absorption minute in same 5m + direction performed better by $15.86 avg P&L per signal (PF 0.96 vs 0.95).
+- 5m range regime: insufficient sample for one side; no hard conclusion.
+- 15m trend alignment: 15m trend aligned performed better by $131.10 avg P&L per signal (PF 1.15 vs 0.78).
+- 60m location: Near favorable 60m extreme performed better by $604.12 avg P&L per signal (PF 3.91 vs 0.63).

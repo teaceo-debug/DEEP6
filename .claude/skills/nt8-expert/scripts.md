@@ -46,6 +46,24 @@ Actions:
   Screenshot          Capture NT8 window to file
 ```
 
+## nt8-replay-download.ps1 — Download NT8 Market Replay data
+
+```
+Usage: nt8-replay-download.ps1 [-Instrument <root>] [-Contract <MM-yy>] [-StartDate <date>] [-EndDate <date>] [-ListContracts] [-Force] [-WhatIf]
+
+Examples:
+  nt8-replay-download.ps1                                         # MNQ 06-26, today only
+  nt8-replay-download.ps1 -StartDate 2026-04-21 -EndDate 2026-04-25
+  nt8-replay-download.ps1 -Instrument NQ -Contract 06-26 -StartDate 2026-04-24
+  nt8-replay-download.ps1 -ListContracts                          # inspect available contract menu items
+```
+
+Uses UI Automation to open `Tools > Historical Data`, expand `Get Market Replay data`, select an instrument contract, set the replay date, click download, and verify the `.nrd` file appears under `Documents\\NinjaTrader 8\\db\\replay\\<contract>\\YYYYMMDD.nrd`.
+
+It now skips Saturdays with a `skipped_weekend` status because CME futures replay downloads for Saturday dates can hang or produce stub files.
+
+If the download button remains disabled, the script returns a diagnostic summary instead of silently failing.
+
 ## nt8-status.ps1 — Check NT8 state and recent errors
 
 ```

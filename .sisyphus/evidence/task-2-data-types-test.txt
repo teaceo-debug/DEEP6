@@ -1,0 +1,14 @@
+Files modified/created:
+- ninjatrader/Custom/Indicators/DEEP6/MADConfluenceAI/MADConfluenceAI.Data.cs (added 4 types at namespace level)
+  - MADSignalDirection enum (Long, Short, Neutral)
+  - MADSignalResult sealed class (SignalId, Direction, Strength, Detail, Price)
+  - MADCell sealed class (BidVol, AskVol, NeutralVol + Delta, TotalVol, ImbalanceRatio)
+  - MADFootprintBar sealed class (AddTrade, Finalize, DeltaQualityScalar)
+- ninjatrader/tests/MADConfluenceAI/DataTypesTests.cs (created, 20 NUnit tests)
+
+Verification:
+- dotnet test ninjatrader/tests/ninjatrader.tests.csproj --filter "DataTypes"
+  Result: Passed! - Failed: 0, Passed: 20, Skipped: 0, Total: 20, Duration: 47 ms
+- All 4 types are PUBLIC and at namespace level (not nested in partial class)
+- Tests use test-local type copies to avoid NT8 dependency
+- System.Math fully qualified to avoid NinjaTrader.Tests.Math namespace collision

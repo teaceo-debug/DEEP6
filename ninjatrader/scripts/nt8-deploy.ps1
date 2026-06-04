@@ -2,7 +2,7 @@
 # Usage: nt8-deploy.ps1 [-Target All|Indicators|Strategies|AddOns] [-Force] [-DryRun]
 
 param(
-    [ValidateSet("All","Indicators","Strategies","AddOns")]
+    [ValidateSet("All","Indicators","Strategies","AddOns","BarsTypes","ChartStyles")]
     [string]$Target = "All",
     [switch]$Force,
     [switch]$DryRun
@@ -26,13 +26,19 @@ if (!(Test-Path $NT8Custom)) {
 function Deploy-Folder {
     param([string]$Type)
 
-    $src = "$RepoCustom\$Type\DEEP6"
-    $dst = "$NT8Custom\$Type\DEEP6"
+    $srcRaw = "$RepoCustom\$Type\DEEP6"
+    $dst    = "$NT8Custom\$Type\DEEP6"
 
-    if (!(Test-Path $src)) {
-        Write-Host "  [$Type] Source not found -- skipping: $src" -ForegroundColor Yellow
+    if (!(Test-Path $srcRaw)) {
+        Write-Host "  [$Type] Source not found -- skipping: $srcRaw" -ForegroundColor Yellow
         return
     }
+
+    # Resolve the source path so $src.Length matches $_.FullName lengths from Get-ChildItem.
+    # Without this, the unresolved ".." in $RepoCustom makes $src.Length longer than
+    # the resolved $_.FullName prefix, causing relative paths to be computed with the wrong
+    # offset and deployed files to have truncated names (e.g. "don.cs" instead of "DEEP6DevAddon.cs").
+    $src = (Resolve-Path $srcRaw).Path
 
     $srcFiles = Get-ChildItem $src -Recurse -Filter "*.cs" |
                 Where-Object { $NT8_EXCLUDE -notcontains $_.Name }
@@ -46,7 +52,8 @@ function Deploy-Folder {
 
     if (!$Force -and (Test-Path $dst)) {
         $changed = $srcFiles | Where-Object {
-            $dstFile = Join-Path $dst $_.Name
+            $rel     = $_.FullName.Substring($src.Length)
+            $dstFile = Join-Path $dst $rel
             !(Test-Path $dstFile) -or
             (Get-FileHash $_.FullName).Hash -ne (Get-FileHash $dstFile).Hash
         }
@@ -77,10 +84,12 @@ Write-Host "Target: $Target | Source: $RepoCustom"
 Write-Host "---------------------------------------------"
 
 switch ($Target) {
-    "All"        { "Indicators","Strategies","AddOns" | ForEach-Object { Deploy-Folder $_ } }
-    "Indicators" { Deploy-Folder "Indicators" }
-    "Strategies" { Deploy-Folder "Strategies" }
-    "AddOns"     { Deploy-Folder "AddOns" }
+    "All"         { "Indicators","Strategies","AddOns","BarsTypes","ChartStyles" | ForEach-Object { Deploy-Folder $_ } }
+    "Indicators"  { Deploy-Folder "Indicators" }
+    "Strategies"  { Deploy-Folder "Strategies" }
+    "AddOns"      { Deploy-Folder "AddOns" }
+    "BarsTypes"   { Deploy-Folder "BarsTypes" }
+    "ChartStyles" { Deploy-Folder "ChartStyles" }
 }
 
 if (!$DryRun) {

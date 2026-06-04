@@ -1,0 +1,25 @@
+Task: FlowEngine integration into gex_terminal
+Date: 2026-05-31
+
+Changed files:
+- gex_terminal/engine/adapters/massive.py
+- gex_terminal/engine/analyzer.py
+- gex_terminal/engine/orchestrator.py
+- gex_terminal/schemas.py
+- gex_terminal/tests/test_analyzer.py
+- gex_terminal/tests/test_massive_adapter.py
+- gex_terminal/tests/test_orchestrator.py
+- gex_terminal/tests/test_signal_quality.py
+
+What changed:
+- Massive adapter now instantiates and reuses `nq_atlas.flow.FlowEngine`.
+- Each Massive chain poll feeds contract last/bid/ask/volume/call_put into FlowEngine and stores the computed `flow_result` on `MassiveResult`.
+- `FlowSummary` now exposes `z_score` and `raw_direction`.
+- Analyzer now supports flow-regime interaction scoring and only applies it when real flow data is present.
+- Analyzer flow summary uses real flow direction/z-score/intensity when available and preserves neutral fallback behavior otherwise.
+
+Verification:
+- LSP diagnostics: clean for changed files.
+- Test command:
+  `py -3 -m pytest gex_terminal/tests/test_analyzer.py gex_terminal/tests/test_massive_adapter.py gex_terminal/tests/test_orchestrator.py gex_terminal/tests/test_signal_quality.py -v`
+- Result: 25 passed in 67.54s.

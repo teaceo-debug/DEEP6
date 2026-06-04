@@ -1,0 +1,83 @@
+Task T15+T16+T17 Evidence — Remaining 6 Detectors
+==================================================
+Date: 2026-05-12
+Status: COMPLETE
+
+## What was done
+
+Replaced 6 stub detectors in MADConfluenceAI.Signals.cs with full implementations:
+
+### T15: IMB-01 Stacked Imbalance
+- Scans bar levels low→high, counts consecutive levels with ImbalanceRatio ≥ threshold AND TotalVol ≥ 5
+- Requires 3+ consecutive same-direction imbalances
+- Direction: ask-dominant → Long, bid-dominant → Short
+- Strength: Min(1.0, (consecutiveLevels - 2) / 5)
+- Signature: DetectImb01(MADFootprintBar bar, double imbalanceRatio)
+
+### T15: ICE-01 Iceberg Detection
+- Checks refill count at each price level via Func<double,int> callback
+- Fires when refillCount ≥ 3 at any price
+- Direction: bid-side iceberg → Long, ask-side → Short
+- Strength: Min(1.0, refillCount / 10)
+- Guard: returns null immediately if isDomAvailable == false
+- Signature: DetectIce01(MADFootprintBar bar, bool isDomAvailable, Func<double,int> getRefillCount)
+
+### T16: LIQSW-01 Liquidity Sweep
+- Checks if bar broke a key level then reversed back
+- Volume gate: TotalVol > 2× avgBarVol
+- Sweep above (High > level, Close < level) → Short
+- Sweep below (Low < level, Close > level) → Long
+- Strength: reversal distance / bar range
+- Returns strongest signal if multiple levels swept
+- Signature: DetectLiqSw01(MADFootprintBar bar, List<MADLevel> nearbyLevels, double avgBarVol)
+
+### T16: FAIL-01 Failed Auction
+- POC at bar High or Low (within 1 tick)
+- Close > 50% away from extreme
+- Single print check: ≤ 2 levels within 1 tick of extreme
+- Direction: POC at High → Short, at Low → Long
+- Strength: Min(1.0, pocVol / (avgLevelVol × 3))
+- Signature: DetectFail01(MADFootprintBar bar)
+
+### T17: TRAP-01 False Breakout Trap
+- Prior bar broke level, current bar reversed inside
+- Trapped longs (broke above, closed below) → Short
+- Trapped shorts (broke below, closed above) → Long
+- Strength: Min(1.0, breakoutBarVol / (avgBarVol × 2))
+- Signature: DetectTrap01(MADFootprintBar bar, List<MADFootprintBar> bars, List<MADLevel> nearbyLevels, double avgBarVol)
+
+### T17: REG-01 Regime Classifier
+- 4 regimes: Thin (vol < 0.5× VolEma), Volatile (ATR >75th pctl), Ranging, Trending
+- Trending: ATR 25-75th pctl + 7+ same-sign deltas + HTF aligned
+- Direction: always Neutral (context signal)
+- Output: regime name in Detail field
+- Signature: DetectReg01(MADMarketState state, MADDeltaPipeline deltaPipeline, List<MADFootprintBar> bars)
+
+## Files Modified
+- ninjatrader/Custom/Indicators/DEEP6/MADConfluenceAI/MADConfluenceAI.Signals.cs
+  - Replaced 6 stubs (lines 286-304) with ~250 lines of detector implementations
+  - Updated header comment
+
+## Files Created
+- ninjatrader/tests/MADConfluenceAI/LiquidityDetectorTests.cs
+  - 18 tests across 6 test fixtures (3 per detector)
+  - Test-local type copies (no NT8 dependency)
+  - Static detector methods for isolated testing
+
+## Test Results
+```
+dotnet test --filter "MADConfluenceAI" 
+Passed! - Failed: 0, Passed: 146, Skipped: 0, Total: 146, Duration: 170 ms
+```
+
+All 146 tests pass (128 existing from T12-T14 + 18 new from T15-T17).
+
+## Must NOT violations: None
+- No DEEP6 AddOn imports
+- No deletion of existing 6 detectors (ABS-01, ABS-02, EXH-01, EXH-02, DELT-01, DELT-02)
+
+## Signal Coverage Complete
+All 12 detectors now implemented:
+- Order Flow: ABS-01, ABS-02, EXH-01, EXH-02, DELT-01, DELT-02, IMB-01
+- Liquidity: ICE-01, LIQSW-01, FAIL-01, TRAP-01
+- Context: REG-01

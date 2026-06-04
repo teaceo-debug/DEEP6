@@ -1,0 +1,23 @@
+StdDev Anchor AI candidate engine evidence
+=========================================
+
+Task: T6 valid candidate detection engine
+File: indicators/sd_anchor_ai.pine
+
+Implemented:
+- Pine v6 indicator declaration with required object limits
+- Bullish candidate detection: prior swing high -> pivot low manipulation wick -> confirmed close above structure with impulsive bullish body
+- Bearish candidate detection: prior swing low -> pivot high manipulation wick -> confirmed close below structure with impulsive bearish body
+- Confidence model: 25 manipulation + 25 displacement + 20 structure + 15 wick obvious + 15 MTF context
+- Chop rejection: ambiguity counts, manipulation cleanliness, midpoint overlap, confirmation staleness, minimum range threshold
+- Candidate payload/hidden outputs emitted only on confirmed bar close
+- No chart objects drawn in this task
+
+Validation:
+- tradingview_pine_check: compiled successfully (0 errors)
+- tradingview_pine_analyze: 0 issues
+- lsp_diagnostics: no .pine LSP server configured in workspace, so no file-level LSP diagnostics were available
+
+Notes:
+- TradingView compile returned advisory warnings about ta.valuewhen consistency/shadowing in tuple assignments, but server-side compilation succeeded.
+- Detection logic was built from the anchor contract/spec only and does not reference prior deep6 anchor/fib/bias logic.

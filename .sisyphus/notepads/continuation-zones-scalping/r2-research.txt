@@ -1,0 +1,41 @@
+R2 Zone Dissipation Design Research - 2026-05-25
+
+PROFESSIONAL ZONE LIFECYCLE PATTERNS:
+- Fresh (Untested): 80% reaction probability
+- Tested (1st touch): 66% probability
+- Delivered (3+ touches): 33% probability
+- Decaying/Expired: Removed from chart
+
+RECOMMENDED DISSIPATION SYSTEM:
+1. Touch-Based (Primary): Remove after 3 touches
+2. Age-Based (Secondary): Hard cap 300 bars (5m) or 100 bars (15m)
+3. Score-Based (Tertiary): Remove when opacity < 0.05
+4. Zone Cap (Quaternary): Max 8 zones visible
+
+NQ-SPECIFIC PARAMETERS:
+- 5m bars per day: 78 (390 min / 5)
+- 15m bars per day: 26 (390 min / 15)
+- 5m Fresh threshold: 0-20 bars
+- 15m Fresh threshold: 0-6 bars
+- Decay half-life: 50 bars (5m), 17 bars (15m)
+- Opacity formula: 1.0 * (0.98 ^ ageInBars) * (1.0 - touchCount * 0.20)
+
+KEY INSIGHTS:
+1. Probability decay is non-linear (80% -> 66% -> 33%)
+2. Age and touches are independent variables
+3. Conversion to Tested state ? deletion
+4. Chart clutter threshold: 8 zones max
+5. Decay half-life tuning is critical
+
+PROFESSIONAL INDICATORS STUDIED:
+- SDC Pro, Supply/Demand Discovery, ICT Order Blocks
+- ProjectSyndicate Ultimate S&D, BackQuant Time-Decay
+- Skylit Node Lifecycle Framework
+
+NEXT STEPS:
+1. Implement zone state machine in NinjaScript
+2. Test decay parameters on live 5m/15m NQ charts
+3. Verify zone cap prevents chart clutter
+4. Validate touch-count tracking accuracy
+5. Integrate with RBR/DBD zone creation logic
+

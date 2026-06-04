@@ -1,0 +1,30 @@
+Task 7: screenshot_chart.ps1 - QA Evidence
+============================================
+Date: 2026-05-13
+Script: .claude/skills/nt8-build-verify/scripts/screenshot_chart.ps1
+
+Test: -MainWindow -OutputPath test-screenshot.png
+Result: SUCCESS (exit code 0)
+
+JSON output:
+{"capture_method":"printwindow","width":680,"path":"C:\\Users\\Tea\\AppData\\Local\\Temp\\opencode\\test-screenshot.png","blank_check":"pass","window_title":"Control Center - Accounts","height":462}
+
+Verification:
+- PNG file exists: True
+- File size: 81724 bytes (81KB)
+- Capture method: printwindow (primary, not fallback)
+- Blank check: pass (image has pixel variance)
+- Window dimensions: 680x462
+- Window title resolved: "Control Center - Accounts"
+
+Features implemented:
+- [x] -ChartTitle <string> parameter (EnumWindows + title substring match)
+- [x] -MainWindow switch
+- [x] PrintWindow Win32 API with PW_RENDERFULLCONTENT=2
+- [x] CopyFromScreen fallback on PrintWindow failure
+- [x] -SettleMs wait before capture (default 1500)
+- [x] Pixel variance blank detection (stddev < 5.0 = warn)
+- [x] PNG output with timestamped default filename
+- [x] JSON output: path, width, height, blank_check, capture_method, window_title
+- [x] Exit codes: 0=success, 1=chart not found, 2=NT8 not running
+- [x] Proper bitmap disposal in all code paths

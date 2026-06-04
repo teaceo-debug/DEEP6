@@ -1,0 +1,40 @@
+Task 7: KillSwitch — GO/CAUTION/STOP entry permission system
+=============================================================
+
+Files created:
+  - deep6/engines/kill_switch.py  (KillSwitch class)
+  - tests/test_kill_switch.py     (25 tests)
+
+Implementation:
+  - evaluate(bias_score, vix, domains_available, now) → (mode, reason)
+  - Priority-ordered rules (first match wins):
+    1. STOP:    Lunch window (12:00-13:00 CT)
+    2. STOP:    After cutoff (15:00 CT)
+    3. STOP:    VIX crisis (≥35.0)
+    4. CAUTION: VIX elevated (≥25.0)
+    5. CAUTION: VIX unavailable (None → safety fallback)
+    6. STOP:    Insufficient domains (<2)
+    7. STOP:    Event day (when event_day_mode="STOP")
+    8. GO:      All clear
+  - All thresholds from KillSwitchConfig (frozen dataclass)
+  - set_event_day(bool) for external calendar adapter
+  - CT timezone via zoneinfo.ZoneInfo("America/Chicago")
+
+Test results:
+  25 passed in 0.14s
+
+  Test classes:
+    TestLunchWindow         (3 tests) - start, mid, boundary
+    TestCutoff              (2 tests) - at cutoff, late evening
+    TestVIXCrisis           (2 tests) - at threshold, extreme
+    TestVIXElevated         (2 tests) - at threshold, between
+    TestVIXUnavailable      (1 test)  - None → CAUTION
+    TestInsufficientDomains (3 tests) - 0, 1, at-min
+    TestEventDay            (3 tests) - on, off, CAUTION mode passthrough
+    TestGO                  (2 tests) - standard, early morning
+    TestPriorityOrder       (4 tests) - lunch>vix, cutoff>vix, vix>domains, domains>event
+    TestCustomConfig        (3 tests) - custom lunch, vix, domains
+
+LSP diagnostics: 0 errors
+
+Verification: PASS

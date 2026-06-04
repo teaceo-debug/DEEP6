@@ -1,0 +1,69 @@
+Evidence: T14 Calibration Loop
+Date: 2026-05-21
+File: deep6/sd_anchor/calibration.py
+
+## What was built
+
+CalibrationManager class implementing the versioned calibration review loop
+for HERMES SD Anchor AI. Provides iterative review of HERMES judgment quality
+without touching the frozen core anchor doctrine.
+
+## Components
+
+### CalibrationReport (frozen dataclass)
+- version_id: str — HERMES skill version under evaluation
+- reviewed_count: int — total resolved records evaluated
+- false_approve_count: int — HERMES approved, outcome was invalidated_before_target
+- false_veto_count: int — HERMES vetoed, outcome reached a target (minus2 or better)
+- ambiguous_count: int — HERMES abstained or human override was used
+- promotion_eligible: bool — whether this version passes the gate
+- timestamp: str — ISO 8601 generation time
+- to_dict() / from_dict() for JSON serialization
+
+### CalibrationManager
+- run_calibration_pass(version_id, store) -> CalibrationReport
+  Queries LabelStore for all records with both hermes_verdict and outcome_label
+  non-null. Classifies each record into false_approve, false_veto, or ambiguous.
+  Auto-checks promotion gate against baseline.
+
+- check_promotion_gate(report, baseline_report) -> bool
+  Gate logic: new.false_approve_count <= baseline AND new.false_veto_count <= baseline.
+  First version (no baseline) is auto-promoted.
+
+- save_report(report, path) -> None
+  Persists versioned JSON to data/sd_anchor/calibration/{version_id}.json.
+
+- load_baseline(path) -> CalibrationReport | None
+  Loads most recent report from the calibration directory.
+
+## Classification Rules
+
+| Condition | Classification |
+|-----------|---------------|
+| verdict=approve, outcome=invalidated_before_target | false_approve |
+| verdict=veto, outcome in {reached_minus2, reached_minus2_5, reached_minus4} | false_veto |
+| verdict=abstain OR human_override=true | ambiguous |
+| verdict=approve, outcome in success set | correct approve (not counted as error) |
+| verdict=veto, outcome=invalidated_before_target | correct veto (not counted as error) |
+
+## Promotion Gate Logic
+
+new.false_approve_count <= baseline.false_approve_count
+  AND new.false_veto_count <= baseline.false_veto_count
+
+If either metric worsens, promotion is rejected. The prior version stays active.
+No baseline (first version) = auto-eligible.
+
+## Doctrine Integrity
+
+- Core anchor doctrine remains frozen at v1.0.0
+- Calibration refines judgment quality only (how HERMES applies checklist steps)
+- Checklist items, point values, 70-point threshold, rejection triggers are untouched
+- No self-training can rewrite rules autonomously
+- Evaluation data and training data are versioned separately
+
+## Verification
+
+- LSP diagnostics: 0 errors on calibration.py
+- Existing tests: 8 passed, 0 failed (no regressions in sd_anchor test suite)
+- Reports directory: data/sd_anchor/calibration/{version_id}.json

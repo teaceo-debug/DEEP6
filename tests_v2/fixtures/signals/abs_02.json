@@ -1,0 +1,53 @@
+{
+  "name": "ABS_02_large_volume_at_extreme",
+  "description": "Large volume at bar extreme price level, price holds away from extreme. Absorption evident — buyers defended the low.",
+  "bar": {
+    "open": 21500.0,
+    "high": 21505.0,
+    "low": 21475.0,
+    "close": 21498.0,
+    "delta": -80,
+    "total_volume": 4100,
+    "bid_volumes": {
+      "21475.0": 1200,
+      "21475.25": 400,
+      "21480.0": 300,
+      "21485.0": 200,
+      "21490.0": 150,
+      "21495.0": 100,
+      "21500.0": 80
+    },
+    "ask_volumes": {
+      "21475.0": 40,
+      "21480.0": 200,
+      "21485.0": 250,
+      "21490.0": 280,
+      "21495.0": 300,
+      "21500.0": 200,
+      "21505.0": 100
+    },
+    "poc_price": 21475.0,
+    "poc_volume": 1240,
+    "vah": 21498.0,
+    "val": 21477.0,
+    "cvd": 50.0,
+    "bar_index": 42,
+    "timestamp": "2026-05-13T10:27:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 11.0,
+    "cvd": 50.0,
+    "vah": 21498.0,
+    "val": 21477.0,
+    "poc": 21475.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0
+  },
+  "expected_signal": {
+    "signal_id": "ABS_02",
+    "direction": "BULLISH",
+    "strength_min": 0.30,
+    "strength_max": 0.50
+  }
+}

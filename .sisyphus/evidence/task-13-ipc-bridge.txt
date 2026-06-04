@@ -1,0 +1,44 @@
+Task 13: DepthRadarBridge IPC Bridge
+=====================================
+
+Date: 2026-05-22
+File modified: ninjatrader/Custom/Indicators/DEEP6/DEEP6DepthRadarV2.cs
+
+What was added:
+- Private inner class `DepthRadarBridge` (~120 lines)
+- `SendWallSnapshots()` method - outbound NDJSON wall snapshots
+- `FormatWallSnapshot()` - manual JSON string building (no System.Text.Json)
+- `ProcessInboundClassification()` - inbound ML classification handler
+- `ParseJsonString()` / `ParseJsonDouble()` - lightweight JSON field extractors
+- Fields: `_bridge`, `_bridgeConnected` (volatile), `_lastIpcLatencyMs`
+
+Bridge architecture:
+- TcpListener on 127.0.0.1:9201 (separate from DataBridgeServer on 9200)
+- Accepts ONE client (Python ML classification service)
+- Background thread: AcceptLoop -> ReadLoop (auto-restarts on disconnect)
+- Heartbeat: every 5s, {"type":"heartbeat","timestamp":<ms>}
+- Outbound: wall_snapshot NDJSON per significant wall, sent during 30s prune cycle
+- Inbound: wall_classification NDJSON parsed and applied to L2LevelStateV2
+- Inbound: heartbeat_ack for IPC latency tracking
+
+Thread safety:
+- Bridge runs on dedicated background thread (IsBackground=true)
+- _clientLock protects socket read/write/close
+- _l2Lock used in ProcessInboundClassification for wall updates
+- Lock ordering: _l2Lock -> _clientLock (no deadlock)
+- volatile bool for IsConnected, _bridgeConnected
+
+Lifecycle:
+- Start: State.Realtime in OnStateChange
+- Stop: State.Terminated in OnStateChange (bridge.Dispose())
+
+NDJSON protocol:
+- Outbound: {"type":"wall_snapshot","price":...,"side":"bid|ask","current_size":...,...}
+- Inbound: {"type":"wall_classification","price":...,"side":"bid|ask","classification":"GENUINE|SPOOF|ICEBERG|STALE","confidence":0.92}
+- Heartbeat: {"type":"heartbeat","timestamp":<unix_ms>}
+- Heartbeat ack: {"type":"heartbeat_ack","echo_timestamp":<unix_ms>}
+
+Verification:
+- LSP diagnostics: 0 errors
+- git diff DEEP6DepthRadar.cs (v1): empty (untouched)
+- git diff DataBridgeServer.cs: empty (untouched)

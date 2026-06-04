@@ -1,0 +1,35 @@
+{
+  "description": "Classic absorption at prior day low support level",
+  "bar": {
+    "open": 20002.0,
+    "high": 20005.0,
+    "low": 19998.0,
+    "close": 20001.5,
+    "totalVol": 380,
+    "barDelta": -110,
+    "levels": {
+      "20000.00": { "bid": 150, "ask": 25 },
+      "20000.25": { "bid": 80, "ask": 15 },
+      "20000.50": { "bid": 60, "ask": 10 },
+      "20001.00": { "bid": 20, "ask": 20 }
+    }
+  },
+  "session": {
+    "atr20": 45.0,
+    "volEma": 12000,
+    "prevDayHigh": 20150.0,
+    "prevDayLow": 20000.0,
+    "prevDayClose": 20085.0,
+    "sessionHigh": 20100.0,
+    "sessionLow": 19998.0,
+    "regimeName": "Ranging"
+  },
+  "expected": [
+    {
+      "signalId": "ABS-01",
+      "direction": "Long",
+      "strengthMin": 0.6,
+      "strengthMax": 1.0
+    }
+  ]
+}

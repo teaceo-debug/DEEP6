@@ -1,0 +1,52 @@
+{
+  "name": "DELT_08_delta_compression_then_explosion",
+  "description": "Delta compressed then explodes. Prior bars had near-zero delta, current bar shows massive delta — breakout from balance.",
+  "bar": {
+    "open": 21500.0,
+    "high": 21525.0,
+    "low": 21498.0,
+    "close": 21522.0,
+    "delta": 700,
+    "total_volume": 4000,
+    "bid_volumes": {
+      "21498.0": 50,
+      "21500.0": 100,
+      "21505.0": 150,
+      "21510.0": 200,
+      "21515.0": 250
+    },
+    "ask_volumes": {
+      "21500.0": 350,
+      "21505.0": 500,
+      "21510.0": 600,
+      "21515.0": 500,
+      "21520.0": 400,
+      "21522.0": 300,
+      "21525.0": 200
+    },
+    "poc_price": 21510.0,
+    "poc_volume": 800,
+    "vah": 21520.0,
+    "val": 21502.0,
+    "cvd": 750.0,
+    "bar_index": 82,
+    "timestamp": "2026-05-13T11:07:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 750.0,
+    "vah": 21520.0,
+    "val": 21502.0,
+    "poc": 21510.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "delta_history": [10, -15, 20, -5, 700]
+  },
+  "expected_signal": {
+    "signal_id": "DELT_08",
+    "direction": "BULLISH",
+    "strength_min": 0.40,
+    "strength_max": 0.60
+  }
+}

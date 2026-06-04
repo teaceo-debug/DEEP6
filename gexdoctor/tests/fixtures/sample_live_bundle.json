@@ -1,0 +1,21 @@
+{
+  "as_of": "2026-05-28T14:30:00Z",
+  "underlying_price": 480.50,
+  "live_gex": 3200000000.0,
+  "live_gex_delta": -500000000.0,
+  "live_gamma_flip": 475.0,
+  "live_call_wall": 485.0,
+  "live_put_wall": 470.0,
+  "live_max_pain": 478.0,
+  "live_pin_risk": 45.0,
+  "oi_delta_confidence": 0.72,
+  "contracts_with_flow": 15000,
+  "flow_adjusted_dealer_risk": {
+    "flow_direction": "amplifying",
+    "flow_gex_pct_shift": 0.032,
+    "live_net_dex": -300000000.0,
+    "settled_net_gex": 3000000000.0,
+    "settled_net_dex": -280000000.0,
+    "description": "Dealers long gamma, flow amplifying"
+  }
+}

@@ -1,0 +1,29 @@
+Task 12 — V8 optimization configuration evidence
+Date: 2026-05-24
+
+Files created:
+- deep6/backtest/v8_config.py
+- data/backtests/v8_parent0.json
+
+Validation commands:
+1) python -c "from deep6.backtest.v8_config import V8_PARAM_BOUNDS; assert len(V8_PARAM_BOUNDS) >= 16; print('bounds OK')"
+   -> bounds OK
+
+2) python -c "import json; p=json.load(open('data/backtests/v8_parent0.json')); assert 0.40 <= p['BiasLongThreshold'] <= 0.85; print('parent0 OK')"
+   -> parent0 OK
+
+3) python -c "import dataclasses, json, py_compile; from deep6.engines import signal_config as sc; from deep6.backtest.v8_config import V8_CONVERGENCE, validate_v8_params, load_v8_parent0; py_compile.compile('deep6/backtest/v8_config.py', doraise=True); p=load_v8_parent0(); assert V8_CONVERGENCE == {'patience': 20, 'max_iterations': 200, 'max_hours': 4}; assert validate_v8_params(p) == []; expected={};\
+for name in dir(sc):\
+    obj=getattr(sc, name);\
+    expected[name]={f.name:getattr(obj(), f.name) for f in dataclasses.fields(obj)} if dataclasses.is_dataclass(obj) else expected.get(name);\
+expected=json.loads(json.dumps({k:v for k,v in expected.items() if v is not None})); assert p['v7_signal_thresholds'] == expected; print('compile OK'); print('convergence OK'); print('v7 defaults snapshot OK')"
+   -> compile OK
+   -> convergence OK
+   -> v7 defaults snapshot OK
+
+Diagnostics:
+- lsp_diagnostics deep6/backtest/v8_config.py -> No diagnostics found
+
+Notes:
+- V8 bounds are registered locally via V8_PARAM_SPECS/V8_PARAM_REGISTRY without modifying shared param_bounds.py.
+- Parent-0 stores top-level V8 optimization knobs plus a JSON-normalized snapshot of every current V7 signal_config dataclass default.

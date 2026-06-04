@@ -1,0 +1,8 @@
+pandas>=2.0
+databento>=0.28
+pyarrow>=14.0
+optuna>=3.0
+plotly>=5.0
+scipy>=1.14
+numpy>=1.26
+pytest>=8.0

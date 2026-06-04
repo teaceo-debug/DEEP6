@@ -1,0 +1,4 @@
+- 2026-05-27: Implemented EquiGEX zone fills from the current `CurrentPremiumBand` and `CurrentDiscountBand` values across the full chart width instead of per-bar fills, because the task spec explicitly required current-zone overlays spanning the entire panel.
+- 2026-05-27: Kept `OnRenderTargetChanged()` minimal (`DisposeDx()` only) and moved resource initialization to lazy `OnRender()` recovery to match the requested lifecycle structure.
+- 2026-05-27: Used the exact requested color palette and font families/sizes for SFV, bands, labels, dashboard panel, bias chip, and stale badge so the phase stays aligned with the EquiGEX visual contract.
+- 2026-05-27: Treated the README Phase 2 roadmap as documentation-only and not scope creep, because no corresponding implementation hooks, alerts, AddDataSeries, or extra bias factors exist in the shipping C# code.

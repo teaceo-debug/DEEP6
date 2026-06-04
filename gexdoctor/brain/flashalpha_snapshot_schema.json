@@ -1,0 +1,98 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "FlashAlphaSnapshot",
+  "description": "Contract between the data adapter and the interpreter agent. Maps almost 1:1 onto GET /v1/flow/live/{symbol}, plus a few enrichments the bundle doesn't carry (profile shape, VEX/CHEX regime, IV/VIX, session phase). The adapter's job is: call the live bundle, derive profile_shape from the per-strike GEX, attach vol context + session phase, emit this.",
+  "type": "object",
+  "required": ["timestamp", "symbol", "underlying_price", "session_phase", "regime"],
+  "properties": {
+    "timestamp": { "type": "string", "format": "date-time", "description": "bundle.as_of" },
+    "symbol": { "type": "string", "examples": ["SPY", "SPX", "QQQ", "NDX"] },
+    "underlying_price": { "type": "number", "description": "bundle.underlying_price" },
+    "expiry": { "type": ["string", "null"], "description": "bundle.expiry (null = aggregated across all expiries)" },
+    "session_phase": { "enum": ["pre_market", "open", "intraday", "into_close"] },
+    "dte": { "type": ["integer", "null"], "description": "days to the nearest tracked expiry; drives pin/charm heuristics" },
+
+    "regime": {
+      "type": "object",
+      "description": "The live (flow-adjusted) gamma picture. Source: bundle.live_*",
+      "required": ["net_gex", "gex_sign", "gamma_flip"],
+      "properties": {
+        "net_gex": { "type": "number", "description": "bundle.live_gex" },
+        "gex_sign": { "enum": ["positive", "negative"], "description": "long gamma vs short gamma" },
+        "net_dex": { "type": ["number", "null"], "description": "bundle.flow_adjusted_dealer_risk.live_net_dex (note: top-level live_gex_delta is the same flattened net DEX — use the dealer_risk field to avoid the naming trap)" },
+        "gamma_flip": { "type": "number", "description": "bundle.live_gamma_flip" },
+        "call_wall": { "type": ["number", "null"], "description": "bundle.live_call_wall" },
+        "put_wall": { "type": ["number", "null"], "description": "bundle.live_put_wall" },
+        "max_pain": { "type": ["number", "null"], "description": "bundle.live_max_pain" }
+      }
+    },
+
+    "dealer_risk": {
+      "type": "object",
+      "description": "Settled-vs-live join. Source: bundle.flow_adjusted_dealer_risk. This is the engine of the interpretation.",
+      "properties": {
+        "flow_direction": { "enum": ["amplifying", "dampening", "regime flip", "neutral"] },
+        "flow_gex_pct_shift": { "type": ["number", "null"], "description": "fraction, e.g. 0.094 = +9.4% vs settled -> stale_anchor heuristic" },
+        "flow_dex_pct_shift": { "type": ["number", "null"] },
+        "settled_net_gex": { "type": ["number", "null"] },
+        "settled_net_dex": { "type": ["number", "null"] },
+        "total_abs_delta_contracts": { "type": ["number", "null"] },
+        "description": { "type": ["string", "null"], "description": "FlashAlpha's human description; useful as a cross-check, do not just echo it" }
+      }
+    },
+
+    "pin": {
+      "type": "object",
+      "properties": {
+        "pin_risk": { "type": ["number", "null"], "description": "bundle.live_pin_risk, 0-100" },
+        "magnet_strike": { "type": ["number", "null"] }
+      }
+    },
+
+    "oi_simulator": {
+      "type": "object",
+      "description": "Confidence inputs. Source: bundle.* OI fields.",
+      "properties": {
+        "contracts_with_flow": { "type": ["integer", "null"] },
+        "intraday_oi_delta": { "type": ["number", "null"] },
+        "oi_delta_confidence": { "type": ["number", "null"], "description": "0-1; low -> low_confidence heuristic, defer to settled" }
+      }
+    },
+
+    "profile_shape": {
+      "type": "object",
+      "description": "Derived from the per-strike GEX profile (/v1/flow/gex or /v1/exposure/gex strikes[]). Not in the bundle; the adapter computes it.",
+      "properties": {
+        "distribution": { "enum": ["spread_even", "concentrated"] },
+        "dominant_strike": { "type": ["number", "null"] },
+        "dominant_side": { "enum": ["call", "put", "none"] }
+      }
+    },
+
+    "higher_order": {
+      "type": "object",
+      "description": "Optional. From /v1/exposure/vex and /chex. Second-order; only material on IV moves / into expiry.",
+      "properties": {
+        "vex_sign": { "enum": ["positive", "negative", "neutral", null] },
+        "chex_sign": { "enum": ["positive", "negative", "neutral", null] }
+      }
+    },
+
+    "vol_context": {
+      "type": "object",
+      "properties": {
+        "vix": { "type": ["number", "null"] },
+        "iv_rank": { "type": ["number", "null"], "description": "from /v1/volatility, 0-100" }
+      }
+    },
+
+    "feed_quality": {
+      "type": "object",
+      "properties": {
+        "plan": { "enum": ["basic", "growth", "alpha", null], "description": "flow/live is Alpha+; settled+DEX/VEX/CHEX is Basic+" },
+        "latency_seconds": { "type": ["number", "null"] },
+        "missing_fields": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

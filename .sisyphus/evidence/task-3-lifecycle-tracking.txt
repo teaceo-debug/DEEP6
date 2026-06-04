@@ -1,0 +1,41 @@
+Task: Switch DEEP6DepthRadarV2 to L2LevelStateV2 and add lifecycle tracking
+Date: 2026-05-22
+
+Files read:
+- ninjatrader/Custom/Indicators/DEEP6/DEEP6DepthRadarV2.cs
+- ninjatrader/Custom/Indicators/DEEP6/DEEP6DepthRadarV2Types.cs
+- ninjatrader/Custom/Indicators/DEEP6/DEEP6DepthRadar.cs (lines 140-190)
+
+Changes made in DEEP6DepthRadarV2.cs:
+- Removed inner L2LevelState class.
+- Switched _l2Bids/_l2Asks to Dictionary<double, L2LevelStateV2>.
+- Updated OnMarketDepth to populate:
+  - FirstSeenTime on first appearance
+  - OriginalSize on first appearance
+  - ModificationCount on existing non-zero size changes
+  - CancellationEvents on zero-to-nonzero reappearance after remove
+  - cancelRatio local computed inline
+- Preserved existing RefillCount iceberg logic.
+- Updated RenderWalls deep clone to copy all L2LevelStateV2 fields.
+- Updated DrawWallsForSide generic types to L2LevelStateV2 while preserving MaxSize/LastUpdate filtering and ICE label logic.
+
+Hot path allocation verification (grep evidence):
+- OnMarketDepth contains one acceptable first-seen allocation:
+  - line 151: st = new L2LevelStateV2();
+- No string.Format inside OnMarketDepth.
+- No LINQ usage inside OnMarketDepth.
+
+LSP diagnostics:
+- C:\Users\Tea\DEEP6\ninjatrader\Custom\Indicators\DEEP6\DEEP6DepthRadarV2.cs
+- Result: No diagnostics found
+
+Git verification:
+- Command: git diff HEAD -- ninjatrader/Custom/Indicators/DEEP6/DEEP6DepthRadar.cs
+- Result: no output
+- Follow-up status:
+  - ?? ninjatrader/Custom/Indicators/DEEP6/DEEP6DepthRadar.cs
+  - ?? ninjatrader/Custom/Indicators/DEEP6/DEEP6DepthRadarV2.cs
+
+Interpretation:
+- v1 was not edited during this task.
+- Repository currently reports both v1 and v2 as untracked, so HEAD diff is empty.

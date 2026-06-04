@@ -1,0 +1,29 @@
+Task 14: Update DEEP6FootprintV8.cs defaults from v8_optimal_params.json
+========================================================================
+Date: 2026-05-24 12:15 ET
+Source: data/backtests/v8_optimal_params.json (iteration 67)
+Target: ninjatrader/Custom/Indicators/DEEP6/DEEP6FootprintV8.cs
+
+Parameters updated (8 changes):
+  ShowClassicAbsorption:  false → true   (int 1 → bool)
+  ShowEffortVsResult:     false → true   (int 1 → bool)
+  ShowFatPrint:           false → true   (int 1 → bool)
+  MinExhaustionStrength:  0.60  → 0.504331
+  BiasLongThreshold:      0.60  → 0.59481
+  BiasShortThreshold:    -0.60  → -0.649336
+  BiasLookback:           3     → 4
+  MaxSignalsPerSession:   15    → 23
+
+Parameters unchanged (8 confirmed matching):
+  MinArrowConfluence:     4     (already correct)
+  ShowBidAskFade:         true  (already correct)
+  ShowExhaustionPrint:    true  (already correct)
+  ShowFadingMomentum:     false (already correct)
+  ShowPassiveAbsorption:  false (already correct)
+  ShowStoppingVolume:     false (already correct)
+  ShowThinPrint:          false (already correct)
+  ShowZeroPrint:          false (already correct)
+
+All values remain as [NinjaScriptProperty] inputs — no hardcoding.
+
+Compile result: [COMPILE-RESULT] SUCCESS 2026-05-24 12:15:03.086

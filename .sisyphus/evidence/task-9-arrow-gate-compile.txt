@@ -1,0 +1,13 @@
+﻿[COMPILE-RESULT] SUCCESS 2026-05-24 11:44:44.801
+
+Task 9: Arrow gating inputs added to DEEP6FootprintV8.cs
+- MinArrowConfluence (int, range 1-7, default 4) — Group "3. Signals"
+- MinExhaustionStrength (double, range 0.0-1.0, default 0.60) — Group "3. Signals"
+- ShowTriggeredArrows (bool, default true) — Group "2. Display"
+- ShowTier1Overlay (bool, default false) — Group "10. Signal Tiers"
+
+Gates wired:
+- DrawAbsorptionMarker: CategoryCount < MinArrowConfluence -> return
+- DrawExhaustionMarker: s.Strength < MinExhaustionStrength -> return; CategoryCount < MinArrowConfluence -> return
+- DrawTriggeredMarker: !ShowTriggeredArrows -> return
+- RenderTier1Overlay: already gated by caller; default changed to false

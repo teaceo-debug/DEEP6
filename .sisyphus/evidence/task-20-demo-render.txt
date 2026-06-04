@@ -1,0 +1,17 @@
+Task 20: Demo State + Rendering — PASS
+Date: 2026-05-27
+Tests: 13/13 pass (vitest)
+
+Mock state: dashboard/lib/dom-mock-state.ts
+Test: dashboard/lib/dom-mock-state.test.ts
+
+Features:
+- MOCK_DOM_LADDER_STATE: NQ prices around 20000, 0.25 tick increments
+- MOCK_INTELLIGENCE_RAIL_STATE: 6 active detectors (5 MECHANICAL, 1 HEURISTIC)
+- Derived from golden_quiet_rth.json fixture price/volume structure
+- EMPTY_* variants for edge case testing
+- No DISCRETIONARY_OVERLAY tier in mock data (Phase 4 scope)
+- All confidences validated between 0 and 1
+- All demo fixtures are NQ-only
+
+Full dashboard test suite: 39/39 pass

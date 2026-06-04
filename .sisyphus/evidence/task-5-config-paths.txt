@@ -1,0 +1,3 @@
+Model dir: C:\Users\Tea\DEEP6\deep6\models
+Intent model: C:\Users\Tea\DEEP6\deep6\models\intent_classifier_v4.joblib
+Rithmic configured: False

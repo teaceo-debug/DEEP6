@@ -1,0 +1,33 @@
+﻿
+[DEEP6LiquidityLevels] DOM callbacks/sec: 81
+[DEEP6LiquidityLevels] DOM callbacks/sec: 0
+[DEEP6LiquidityLevels] DOM callbacks/sec: 72
+[DEEP6LiquidityLevels] DOM callbacks/sec: 899
+[DEEP6LiquidityLevels] DOM callbacks/sec: 585
+[DEEP6LiquidityLevels] DOM callbacks/sec: 420
+[DEEP6LiquidityLevels] DOM callbacks/sec: 706
+[DEEP6LiquidityLevels] DOM callbacks/sec: 567
+[DEEP6LiquidityLevels] DOM callbacks/sec: 612
+[DEEP6LiquidityLevels] DOM callbacks/sec: 735
+[DEEP6LiquidityLevels] DOM callbacks/sec: 573
+[DEEP6LiquidityLevels] DOM callbacks/sec: 593
+[DEEP6LiquidityLevels] DOM callbacks/sec: 536
+[DEEP6LiquidityLevels] DOM callbacks/sec: 591
+[DEEP6LiquidityLevels] DOM callbacks/sec: 462
+[DEEP6LiquidityLevels] DOM callbacks/sec: 614
+[DEEP6LiquidityLevels] DOM callbacks/sec: 440
+[DEEP6LiquidityLevels] DOM callbacks/sec: 567
+[DEEP6LiquidityLevels] DOM callbacks/sec: 512
+[DEEP6LiquidityLevels] DOM callbacks/sec: 597
+[DEEP6LiquidityLevels] DOM callbacks/sec: 683
+[DEEP6LiquidityLevels] DOM callbacks/sec: 708
+[DEEP6LiquidityLevels] DOM callbacks/sec: 583
+[DEEP6LiquidityLevels] DOM callbacks/sec: 578
+[DEEP6LiquidityLevels] DOM callbacks/sec: 585
+[DEEP6LiquidityLevels] DOM callbacks/sec: 534
+[DEEP6LiquidityLevels] DOM callbacks/sec: 916
+[DEEP6LiquidityLevels] DOM callbacks/sec: 711
+[DEEP6LiquidityLevels] DOM callbacks/sec: 697
+[DEEP6LiquidityLevels] DOM callbacks/sec: 669
+
+

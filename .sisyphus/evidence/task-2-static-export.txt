@@ -1,0 +1,10 @@
+Build verification for gex_terminal/ui static export.
+
+Result: PASS
+
+Checks:
+- next.config.ts updated for static export
+- useGEXStream.ts switched API_URL to nullish coalescing
+- npm run build succeeded
+- out/index.html exists
+- out/_next/ exists

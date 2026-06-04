@@ -1,0 +1,54 @@
+{
+  "name": "AUCT_04_volume_void",
+  "description": "Volume void: 2+ consecutive levels with <5% of max volume. Gap in the volume profile suggests price will snap through this zone.",
+  "bar": {
+    "open": 21500.0,
+    "high": 21520.0,
+    "low": 21495.0,
+    "close": 21518.0,
+    "delta": 250,
+    "total_volume": 2800,
+    "bid_volumes": {
+      "21495.0": 100,
+      "21498.0": 200,
+      "21500.0": 400,
+      "21505.0": 10,
+      "21505.25": 8,
+      "21510.0": 250,
+      "21515.0": 200
+    },
+    "ask_volumes": {
+      "21498.0": 150,
+      "21500.0": 350,
+      "21505.0": 12,
+      "21505.25": 6,
+      "21510.0": 300,
+      "21515.0": 350,
+      "21518.0": 250,
+      "21520.0": 150
+    },
+    "poc_price": 21500.0,
+    "poc_volume": 750,
+    "vah": 21516.0,
+    "val": 21498.0,
+    "cvd": 400.0,
+    "bar_index": 55,
+    "timestamp": "2026-05-13T10:40:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 400.0,
+    "vah": 21516.0,
+    "val": 21498.0,
+    "poc": 21500.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0
+  },
+  "expected_signal": {
+    "signal_id": "AUCT_04",
+    "direction": "BULLISH",
+    "strength_min": 0.30,
+    "strength_max": 0.50
+  }
+}

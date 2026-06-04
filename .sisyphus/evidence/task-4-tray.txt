@@ -1,0 +1,19 @@
+const { app, BrowserWindow, Tray, Menu, nativeImage, shell } = require('electron');
+let tray = null;
+function updateTrayMenu() {
+  if (!tray) return;
+        updateTrayMenu();
+        updateTrayMenu();
+        tray = null;
+  tray.setContextMenu(menu);
+function createTray() {
+  const trayIcon = icon.resize({ width: 16, height: 16 });
+  tray = new Tray(trayIcon);
+  tray.setToolTip('GEX Doctor v2.0');
+  updateTrayMenu();
+  tray.on('click', () => {
+    updateTrayMenu();
+  // Hide to tray instead of closing
+      updateTrayMenu();
+  createTray();
+

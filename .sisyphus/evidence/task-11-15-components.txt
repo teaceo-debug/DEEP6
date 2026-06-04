@@ -1,0 +1,32 @@
+﻿Task T11-15: Terminal Panel Components
+Date: 2026-05-29 19:12
+Status: COMPLETE
+
+Files Created:
+  - components/DealerPanel.tsx   - components/Deep6BiasPanel.tsx   - components/FlowPanel.tsx   - components/format.ts   - components/LevelsPanel.tsx   - components/NarrativePanel.tsx   - components/StatusFooter.tsx   - components/TerminalFrame.tsx   - components/VannaCharmPanel.tsx   - components/VerdictPanel.tsx   - components/ZeroDTEPanel.tsx
+
+Files Modified:
+  - app/globals.css (added panel-section, panel-row classes + glow tokens)
+  - app/page.tsx (composing all panels with mock data)
+
+LSP Diagnostics: 0 errors (components/ + page.tsx)
+
+Component Summary:
+  VerdictPanel.tsx    - BULLISH/BEARISH/NEUTRAL verdict + confidence bar + grade
+  LevelsPanel.tsx     - GEX price levels (gamma flip, walls, exp moves)
+  DealerPanel.tsx     - Dealer positioning (GEX/DEX/VEX/CHEX + regime)
+  FlowPanel.tsx       - Options flow direction + intensity bar + sweeps
+  VannaCharmPanel.tsx - Vanna/charm exposures + net hedge direction
+  ZeroDTEPanel.tsx    - 0DTE analytics (pct, pin risk, gamma accel)
+  NarrativePanel.tsx  - AI interpretation text + model badge
+  Deep6BiasPanel.tsx  - DEEP6 bidirectional bias + connection status
+  StatusFooter.tsx    - Source health dots + cost + countdown
+  format.ts           - Shared formatters (fmtPrice, fmtGex, signColor, signGlow)
+
+Design System Compliance:
+  - All colors via CSS variables (--terminal-green, --terminal-dim, --terminal-red, --terminal-amber)
+  - Added --terminal-glow-red, --terminal-glow-amber tokens for color-matched text shadows
+  - Monospace font (JetBrains Mono 11px) via inherited --font-mono
+  - All components use data-testid attributes
+  - Fixed line heights via white-space: pre + line-height: 1.4
+  - Props-based (no store connection — deferred to T16)

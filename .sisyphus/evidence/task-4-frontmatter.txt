@@ -1,0 +1,4 @@
+Line 1: ---
+Line 2: name: "ninjatrader-machine-profile"
+Line 3: description: "NinjaTrader 8 platform knowledge base. Covers NT8 installation, uninstallation, clean reinstall, NinjaScript Editor features, compilation, Output Window, workspace management, NT8 file system, state machine lifecycle, namespace rules, class hierarchy, calculate modes, bar types, instrument specs, and connection setup. Load FIRST before any NT8 task. Triggers: 'Install NinjaTrader', 'uninstall NT8', 'open NinjaScript Editor', 'compile NinjaScript', 'NT8 state machine', 'NT8 namespace rules', 'NinjaTrader setup', 'NT8 file structure', 'NinjaTrader workspace', 'NT8 runtime', 'NinjaScript lifecycle', 'NT8 connection', 'NinjaTrader instrument specs'."
+Line 4: ---

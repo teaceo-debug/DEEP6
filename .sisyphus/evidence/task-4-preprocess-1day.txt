@@ -1,0 +1,66 @@
+﻿  Γöè review diff
+a//mnt/c/Users/Tea/AppData/Local/Temp/opencode/check_imports.ps1 ΓåÆ b//mnt/c/Users/Tea/AppData/Local/Temp/opencode/check_imports.ps1
+@@ -0,0 +1,3 @@
++Set-Location 'C:\Users\Tea\DEEP6'
++py -3 -c "import importlib.util; mods=['tqdm','databento']; [print(f'{m}={bool(importlib.util.find_spec(m))}') for m in mods]"
++exit $LASTEXITCODE
+  Γöè review diff
+a//mnt/c/Users/Tea/AppData/Local/Temp/opencode/run_preprocess_test.ps1 ΓåÆ b//mnt/c/Users/Tea/AppData/Local/Temp/opencode/run_preprocess_test.ps1
+@@ -0,0 +1,6 @@
++$ErrorActionPreference = 'Stop'
++Set-Location 'C:\Users\Tea\DEEP6'
++$out = 'C:\Users\Tea\AppData\Local\Temp\opencode\preprocess_test'
++if (Test-Path $out) { Remove-Item -Recurse -Force $out }
++py -3 scripts\preprocess_mbo.py --input 'data\databento\nq_mbo\raw_dbn\NQ_c_0_mbo_2026-04-08_2026-04-11.dbn.zst' --output-dir $out --start-date 2026-04-08 --end-date 2026-04-08
++exit $LASTEXITCODE
+  Γöè review diff
+a//mnt/c/Users/Tea/AppData/Local/Temp/opencode/run_preprocess_test.ps1 ΓåÆ b//mnt/c/Users/Tea/AppData/Local/Temp/opencode/run_preprocess_test.ps1
+@@ -1,5 +1,6 @@
+ $ErrorActionPreference = 'Stop'
+ Set-Location 'C:\Users\Tea\DEEP6'
++$env:PYTHONPATH = 'C:\Users\Tea\DEEP6'
+ $out = 'C:\Users\Tea\AppData\Local\Temp\opencode\preprocess_test'
+ if (Test-Path $out) { Remove-Item -Recurse -Force $out }
+ py -3 scripts\preprocess_mbo.py --input 'data\databento\nq_mbo\raw_dbn\NQ_c_0_mbo_2026-04-08_2026-04-11.dbn.zst' --output-dir $out --start-date 2026-04-08 --end-date 2026-04-08
+  Γöè review diff
+a//mnt/c/Users/Tea/AppData/Local/Temp/opencode/verify_preprocess_pickle.ps1 ΓåÆ b//mnt/c/Users/Tea/AppData/Local/Temp/opencode/verify_preprocess_pickle.ps1
+@@ -0,0 +1,5 @@
++$ErrorActionPreference = 'Stop'
++Set-Location 'C:\Users\Tea\DEEP6'
++$env:PYTHONPATH = 'C:\Users\Tea\DEEP6'
++py -3 -c "import pickle; p=r'C:\Users\Tea\AppData\Local\Temp\opencode\preprocess_test\session_2026-04-08.pkl'; data=pickle.load(open(p,'rb')); bars=len(data.get('footprint_bars',[])); walls=len(data.get('wall_events',[])); zones=len(data.get('vp_zones',[])); print(f'Bars={bars} Walls={walls} Zones={zones} ' + ('PASS' if bars else 'FAIL'))"
++exit $LASTEXITCODE
+
+session_id: 20260523_143228_c2a070
+ΓÜá∩╕Å  Reached maximum iterations (12). Requesting summary...
+Windows Python package check:
+tqdm=True
+databento=True
+
+Packages installed:
+None. Both required packages were already importable with py -3.
+
+Preprocess run:
+Command was run from C:\Users\Tea\DEEP6 using Windows py -3 against:
+data\databento\nq_mbo\raw_dbn\NQ_c_0_mbo_2026-04-08_2026-04-11.dbn.zst
+
+Output dir:
+C:\Users\Tea\AppData\Local\Temp\opencode\preprocess_test
+
+Note:
+The script initially failed with:
+ModuleNotFoundError: No module named 'deep6'
+
+I reran it with:
+PYTHONPATH=C:\Users\Tea\DEEP6
+
+Then preprocessing completed successfully:
+Saved session_2026-04-08.pkl (bars=1380, walls=1707, zones=200)
+Summary: sessions=1 bars=1380 walls=1707 zones=200 processing_time_sec=636.90
+
+Pickle verification:
+Bars=1380 Walls=1707 Zones=200 PASS
+
+Not completed due to tool-call limit:
+I did not get to rerun the preprocess command a second time to confirm the output includes:
+Skipping session_2026-04-08 (already exists)

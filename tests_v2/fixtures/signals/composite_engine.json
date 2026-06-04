@@ -1,0 +1,78 @@
+{
+  "name": "composite_engine_multiple_signals",
+  "description": "Multiple engine signals: ENG_02 + ENG_04 + ENG_06. DOM depth imbalance + iceberg detection + POC zone context — institutional activity confirmed.",
+  "bar": {
+    "open": 21500.0,
+    "high": 21518.0,
+    "low": 21498.0,
+    "close": 21515.0,
+    "delta": 350,
+    "total_volume": 3800,
+    "bid_volumes": {
+      "21498.0": 100,
+      "21500.0": 200,
+      "21503.0": 250,
+      "21505.0": 800,
+      "21508.0": 300,
+      "21510.0": 200
+    },
+    "ask_volumes": {
+      "21500.0": 150,
+      "21503.0": 200,
+      "21505.0": 300,
+      "21508.0": 350,
+      "21510.0": 300,
+      "21513.0": 250,
+      "21515.0": 200,
+      "21518.0": 150
+    },
+    "poc_price": 21505.0,
+    "poc_volume": 1100,
+    "vah": 21514.0,
+    "val": 21502.0,
+    "cvd": 600.0,
+    "bar_index": 62,
+    "timestamp": "2026-05-13T10:47:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 600.0,
+    "vah": 21514.0,
+    "val": 21502.0,
+    "poc": 21505.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "dom_snapshot": {
+      "bids": [
+        {"price": 21515.0, "volume": 300},
+        {"price": 21514.75, "volume": 250},
+        {"price": 21514.50, "volume": 200},
+        {"price": 21514.25, "volume": 180},
+        {"price": 21514.0, "volume": 160}
+      ],
+      "asks": [
+        {"price": 21515.25, "volume": 50},
+        {"price": 21515.50, "volume": 40},
+        {"price": 21515.75, "volume": 35},
+        {"price": 21516.0, "volume": 30},
+        {"price": 21516.25, "volume": 25}
+      ]
+    },
+    "fill_volume_at_level": 800,
+    "displayed_size": 50,
+    "vwap": 21506.0,
+    "price_near_zone": "POC"
+  },
+  "expected_signals": [
+    {"signal_id": "ENG_02", "direction": "BULLISH", "strength_min": 0.30, "strength_max": 0.50},
+    {"signal_id": "ENG_04", "direction": "BULLISH", "strength_min": 0.40, "strength_max": 0.60},
+    {"signal_id": "ENG_06", "direction": "NEUTRAL", "strength_min": 0.20, "strength_max": 0.40}
+  ],
+  "expected_signal": {
+    "signal_id": "ENG_04",
+    "direction": "BULLISH",
+    "strength_min": 0.40,
+    "strength_max": 0.60
+  }
+}

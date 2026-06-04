@@ -1,0 +1,17 @@
+﻿Task 10 - Main Window Verification
+===================================
+Date: 2026-06-01 16:22:45
+
+Test 1: Import verification
+> python -c "from depth_radar_desktop.main_window import DepthRadarMainWindow; print('main_window import OK')"
+Result: main_window import OK
+
+Test 2: Dry-run
+> python -m depth_radar_desktop --dry-run
+Result: Depth Radar Desktop v0.1.0 -- Dry-run OK
+
+Files created/modified:
+- depth_radar_desktop/main_window.py (NEW)
+- depth_radar_desktop/__main__.py (UPDATED)
+
+Status: PASS

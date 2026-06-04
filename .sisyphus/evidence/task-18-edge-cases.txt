@@ -1,0 +1,37 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.0.3, pluggy-1.6.0 -- C:\Users\Tea\AppData\Local\Programs\Python\Python311\python.exe
+cachedir: .pytest_cache
+benchmark: 5.2.3 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: C:\Users\Tea\DEEP6
+configfile: pyproject.toml
+plugins: anyio-4.13.0, asyncio-1.3.0, benchmark-5.2.3
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 25 items
+
+gex_terminal/tests/test_edge_cases.py::test_market_open_during_hours PASSED [  4%]
+gex_terminal/tests/test_edge_cases.py::test_market_closed_before_open PASSED [  8%]
+gex_terminal/tests/test_edge_cases.py::test_market_closed_after_close PASSED [ 12%]
+gex_terminal/tests/test_edge_cases.py::test_market_closed_on_weekend PASSED [ 16%]
+gex_terminal/tests/test_edge_cases.py::test_market_open_at_exactly_930 PASSED [ 20%]
+gex_terminal/tests/test_edge_cases.py::test_market_closed_at_exactly_4pm PASSED [ 24%]
+gex_terminal/tests/test_edge_cases.py::test_stale_detection_fresh PASSED [ 28%]
+gex_terminal/tests/test_edge_cases.py::test_stale_detection_stale PASSED [ 32%]
+gex_terminal/tests/test_edge_cases.py::test_stale_detection_none PASSED  [ 36%]
+gex_terminal/tests/test_edge_cases.py::test_stale_detection_custom_multiplier PASSED [ 40%]
+gex_terminal/tests/test_edge_cases.py::test_0dte_on_monday PASSED        [ 44%]
+gex_terminal/tests/test_edge_cases.py::test_0dte_on_wednesday PASSED     [ 48%]
+gex_terminal/tests/test_edge_cases.py::test_0dte_on_friday PASSED        [ 52%]
+gex_terminal/tests/test_edge_cases.py::test_no_0dte_on_tuesday PASSED    [ 56%]
+gex_terminal/tests/test_edge_cases.py::test_no_0dte_on_thursday PASSED   [ 60%]
+gex_terminal/tests/test_edge_cases.py::test_opex_third_friday PASSED     [ 64%]
+gex_terminal/tests/test_edge_cases.py::test_not_opex_second_friday PASSED [ 68%]
+gex_terminal/tests/test_edge_cases.py::test_not_opex_on_thursday PASSED  [ 72%]
+gex_terminal/tests/test_edge_cases.py::test_classify_auth_error PASSED   [ 76%]
+gex_terminal/tests/test_edge_cases.py::test_classify_rate_limit PASSED   [ 80%]
+gex_terminal/tests/test_edge_cases.py::test_classify_server_error PASSED [ 84%]
+gex_terminal/tests/test_edge_cases.py::test_classify_other_error PASSED  [ 88%]
+gex_terminal/tests/test_edge_cases.py::test_market_status_badge_live PASSED [ 92%]
+gex_terminal/tests/test_edge_cases.py::test_market_status_badge_after_hours PASSED [ 96%]
+gex_terminal/tests/test_edge_cases.py::test_market_status_badge_weekend PASSED [100%]
+
+============================= 25 passed in 0.17s ==============================

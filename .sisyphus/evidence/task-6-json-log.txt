@@ -1,0 +1,1 @@
+{"module": "test", "bar_index": 42, "event": "test_event", "level": "info", "timestamp": "2026-05-14T06:21:19.304521Z"}

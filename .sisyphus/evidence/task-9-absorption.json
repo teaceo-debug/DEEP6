@@ -1,0 +1,15 @@
+{
+  "task": "task-9-absorption",
+  "test_command": "python -m pytest tests_v2/dom_intelligence/test_absorption_dom.py -v",
+  "hermes_command": "python3 -m pytest tests_v2/dom_intelligence/test_absorption_dom.py -v",
+  "result": "PASS",
+  "tests_run": 6,
+  "tests_passed": 6,
+  "detector_id": "dom.absorption.v1",
+  "signal_id": "ABS_01",
+  "notes": [
+    "Bid-wall absorption emits Direction.BULLISH; ask-wall absorption emits Direction.BEARISH.",
+    "Detector requires a prior snapshot and resets hit-count state on rollover.",
+    "Pytest emitted an existing config warning: Unknown config option asyncio_mode."
+  ]
+}

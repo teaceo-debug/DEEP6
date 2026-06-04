@@ -1,0 +1,83 @@
+== T12 + T13 + T14: Order Flow Detectors — Evidence ==
+Date: 2026-05-12
+Status: COMPLETE
+
+== Files Modified ==
+1. ninjatrader/Custom/Indicators/DEEP6/MADConfluenceAI/MADConfluenceAI.Signals.cs
+   - Replaced 12 stub methods with 6 real implementations + 6 updated stubs
+   - All methods now take proper parameters (MADFootprintBar, List<MADFootprintBar>, MADMarketState)
+   - All return MADSignalResult (or null)
+
+2. ninjatrader/tests/MADConfluenceAI/OrderFlowDetectorTests.cs (NEW)
+   - 22 tests across 6 detector test fixtures
+   - Uses test-local type copies (avoids NT8 dependency)
+   - Sub-namespace NinjaTrader.Tests.MADConfluenceAI.OrderFlowDetectors
+
+== Detectors Implemented ==
+
+T12: Absorption Detectors
+  ABS-01 (Classic Absorption):
+    - Scans bar levels for volume > AbsorptionVolumeMultiplier × avgLevelVol
+    - Gate: bar range ≤ 0.5 points (2 ticks for NQ)
+    - Direction: BidVol dominant → Long (sellers absorbed), AskVol → Short
+    - Strength: min(1.0, vol / (multiplier * 2 * avg))
+    - Tests: 3 (fire, no-fire normal volume, no-fire wide range)
+
+  ABS-02 (Passive Absorption):
+    - Looks back 3 bars: cumulative |delta| > 3 × avgBarDelta AND price range < 0.75
+    - Direction: opposite to delta direction
+    - Strength: min(1.0, |cumDelta| / (avgBarDelta * 5.0))
+    - Tests: 3 (fire, no-fire too few bars, no-fire wide price range)
+
+T13: Exhaustion Detectors
+  EXH-01 (Exhaustion Print):
+    - Finds highest-volume level at bar High or Low
+    - Gate: volume > 2 × avgLevelVol AND close > 50% from extreme AND DeltaQualityScalar > 0.5
+    - Direction: volume at High + close below midpoint → Short (buying exhaustion)
+    - Strength: distanceFromExtreme / barRange
+    - Tests: 4 (buying exhaustion at high, selling exhaustion at low, no-fire close near extreme, no-fire low delta quality)
+
+  EXH-02 (Fading Momentum):
+    - 3 bars: |delta[0]| < decay × |delta[1]| < decay × |delta[2]|
+    - All deltas same sign, price still pushing same direction
+    - Direction: opposite to fading direction
+    - Strength: 1.0 - (|delta[0]| / |delta[2]|)
+    - Tests: 4 (fading bullish, fading bearish, no-fire constant delta, no-fire sign change)
+
+T14: Delta Detectors
+  DELT-01 (Delta Divergence):
+    - Uses MADDeltaPipeline.CheckDivergence(lookback=10)
+    - Positive → bullish divergence → Long, Negative → bearish → Short
+    - Strength: min(1.0, |divergence| / 500.0)
+    - Gate: ≥ 10 bars history
+    - Tests: 4 (bearish divergence, bullish divergence, no-fire agreement, no-fire insufficient history)
+
+  DELT-02 (CVD Acceleration):
+    - Uses MADDeltaPipeline.DeltaAccel and DeltaRoC
+    - accel > 0 AND roc < 0 → Long (decelerating decline)
+    - accel < 0 AND roc > 0 → Short (decelerating rise)
+    - Strength: min(1.0, |accel| / 100.0)
+    - Gate: ≥ 11 bars history, |accel| > 1.0
+    - Tests: 4 (controlled pipeline state, acceleration reversal, no-fire insufficient history, no-fire same sign)
+
+== Test Results ==
+dotnet test --filter "FullyQualifiedName~OrderFlowDetectors" → ALL PASS
+Total tests: 22
+Passed: 22
+Failed: 0
+
+== Remaining Stubs ==
+6 methods remain as stubs (returning null) for T15-T17:
+  - DetectImb01 (IMB-01: Stacked Imbalance)
+  - DetectIce01 (ICE-01: Iceberg Detection)
+  - DetectLiqSw01 (LIQSW-01: Liquidity Sweep)
+  - DetectFail01 (FAIL-01: Failed Auction)
+  - DetectTrap01 (TRAP-01: False Breakout Trap)
+  - DetectReg01 (REG-01: Regime Classifier)
+
+== Guardrails Verified ==
+- No imports from DEEP6 AddOns ✓
+- All detectors in single Signals.cs file ✓
+- No separate files per detector ✓
+- Remaining 6 stubs preserved ✓
+- Test-local type copy pattern followed ✓

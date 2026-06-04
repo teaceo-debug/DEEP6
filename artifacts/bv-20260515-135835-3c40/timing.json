@@ -1,0 +1,12 @@
+﻿{
+    "validate_ms":  1225,
+    "deploy_ms":  258,
+    "compile_fix_ms":  47340,
+    "install_ms":  3203,
+    "settle_ms":  1514,
+    "runtime_check_ms":  314,
+    "screenshot_ms":  1902,
+    "visual_verify_ms":  2695,
+    "total_ms":  58743,
+    "report_ms":  10
+}

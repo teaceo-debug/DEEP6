@@ -1,0 +1,46 @@
+Task: T13 — Status UX and Alert System
+Date: 2026-05-21
+File: Indicators/sd_anchor_ai.pine
+Lines added: 37 (202→205 tracking vars, 207→212 signal declarations, 339→352 transition logic, 362→379 alerts + status label)
+Compile: PASS (0 errors, 28 pre-existing warnings from detection engine)
+
+== Alert Conditions Added ==
+1. candidateSignal  → "SD Anchor — New Candidate"   — fires on first bar of new setup (transition from none)
+2. activeSignal     → "SD Anchor — Active Setup"     — fires when candidate has confidence >= 70 (same bar as #1 by construction)
+3. invalidatedSignal→ "SD Anchor — Invalidated"      — fires on first bar after setup is lost
+4. zoneEntrySignal  → "SD Anchor — Zone Entry"       — fires when price enters -2 to -2.5 zone (first bar only, not continuation)
+5. noLegSignal      → "SD Anchor — No Valid Leg"     — fires on transition from active to no-setup
+
+Alert messages reference hidden plots via {{plot("Candidate Confidence")}}, {{plot("Candidate -2")}}, etc.
+Dynamic JSON payload alert (alert.freq_once_per_bar_close) preserved from T6 for programmatic consumers.
+
+== Status Label UX ==
+- When state == "candidate": Shows "▲ Bullish -2σ\n5m │ 82%" (or ▼ Bearish) at -2σ level
+  - Background: directional color (teal bullish / coral bearish) at 80% transparency
+  - Text: white, size.small
+  - Style: label.style_label_left (extends left from current bar)
+  - Position: y = candidateLevel2 (primary reversal target)
+
+- When state == "none": Shows "— No Valid Leg" at close price
+  - Background: gray (#9E9E9E) at 70% transparency
+  - Text: white, size.small
+  - Only one label exists at any time (var + delete/recreate on barstate.islast)
+
+== State Transition Logic ==
+Tracking variables:
+- prevBarState (var string): holds previous bar's final state for transition detection
+- prevInZone (var bool): tracks whether previous bar was in the -2 to -2.5 zone
+
+Zone entry detection:
+- Bullish: close >= candidateLevel2 AND close <= candidateLevel2_5
+- Bearish: close <= candidateLevel2 AND close >= candidateLevel2_5
+- zoneEntrySignal = curInZone AND NOT prevInZone (fires only on first entry bar)
+
+== Contract Compliance ==
+- "No valid manipulation leg detected." appears as chart label when no setup active: YES
+- All labels readable at a glance (no dense diagnostics): YES
+- Direction arrow (▲/▼) + state + confidence + timeframe in status label: YES
+- Alert texts are explicit and map to chart-visible states: YES
+- No visual objects outside visual spec: YES
+- Pine is the ONLY drawer: YES
+- HERMES draws nothing: YES

@@ -1,0 +1,55 @@
+## Evidence: Wire MADConfluenceAI Runtime Pipeline
+Date: 2026-05-12
+
+### Task
+Wire the MADConfluenceAI indicator's runtime pipeline — 4 gaps fixed.
+
+### Files Modified
+1. MADConfluenceAI.Data.cs — DOM arrays, query methods, OnMarketData, OnMarketDepth, _deltaPipeline
+2. MADConfluenceAI.cs — state fields, State.DataLoaded init, HTF bias uncommented, OnBarUpdate orchestration
+
+### FIX 1: DOM Arrays + Query Methods (Data.cs)
+- Added: _domBidPrices[50], _domBidVolumes[50], _domAskPrices[50], _domAskVolumes[50]
+- Added: _domBidCount, _domAskCount
+- Added: _refillCounts, _refillTimestamps (iceberg detection)
+- Added: GetLiquidityWalls(threshold), GetDomImbalance(), GetRefillCount(price)
+- InitDataPipeline() updated to reset all DOM state
+
+### FIX 2: OnMarketData Body (Data.cs)
+- BBO tracking: Bid/Ask updates → _bestBid/_bestAsk
+- Trade classification: price >= _bestAsk → aggressor=1 (buy), price <= _bestBid → aggressor=2 (sell)
+- Routes to _currentBar.AddTrade(price, volume, aggressor)
+- Follows DEEP6FootprintV7.cs gold standard pattern
+
+### FIX 3: OnMarketDepth Body (Data.cs)
+- Position bounds check (0-49)
+- Bid/Ask array updates with price and volume
+- Operation.Remove: zeros volume, records timestamp for refill tracking
+- Refill detection: volume reappears within 30s window → increment _refillCounts
+- _domBidCount/_domAskCount tracking
+
+### FIX 4: OnBarUpdate Orchestration (MADConfluenceAI.cs)
+- Added state fields: _marketState, _levelEngine, _config, _lastSignals, _scorerResult, _decision, _marketContext
+- State.DataLoaded: initializes all state objects
+- Added _deltaPipeline field + integrated into FinalizeCurrentBar
+- Fixed FinalizeCurrentBar: always creates new _currentBar (was never creating first bar)
+- Uncommented HTF bias: _marketState.HtfBias and _marketState.HtfMomentum now active
+- Full orchestration pipeline:
+  1. _marketState.Update() — ATR20, VolEma, session tracking
+  2. _levelEngine updates — session extremes, prior day, VWAP, psychological levels
+  3. All 12 detectors called with correct signatures
+  4. RunScoringEngine → ClassifySetup → BuildMarketContext → MakeDecision
+  5. Plot values set: Values[0][0]=Score, Values[1][0]=Direction
+
+### Bug Fixes Beyond Plan
+1. DetectDelt01/DetectDelt02: Plan passed 2 args, actual signature has 4 (bar, bars, state, deltaPipeline) — corrected
+2. FinalizeCurrentBar: Original returned early on null _currentBar without creating new one — _currentBar was NEVER initialized, all ticks were dropped. Fixed to always create new bar.
+3. _deltaPipeline: Not in plan but required by detectors — added field, init, and FinalizeCurrentBar integration
+4. HTF bias code: Was commented out as stubs — uncommented now that _marketState is initialized
+
+### Verification
+- dotnet test --filter "MADConfluenceAI": 217/217 PASSED
+- 0 warnings, 0 errors
+- Build succeeded
+- No new NuGet packages
+- No AddOns.DEEP6 references

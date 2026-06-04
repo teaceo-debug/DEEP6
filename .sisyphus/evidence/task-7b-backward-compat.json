@@ -1,0 +1,43 @@
+{
+  "task": "task-7b-backward-compat",
+  "test_command": "python -m pytest tests_v2/dom_intelligence/test_backward_compat.py -v",
+  "result": "PASS",
+  "tests_collected": 50,
+  "tests_passed": 50,
+  "tests_failed": 0,
+  "payload_shape_compatibility": true,
+  "no_silent_drift": true,
+  "scorer_accepts_tier1": true,
+  "tier2_not_scored": true,
+  "registry_interface_compat": true,
+  "signal_id_freeze_verified": true,
+  "test_classes": {
+    "TestSignalResultShapeCompatibility": "3 tests — DOMIntelligenceEvent -> SignalResult conversion preserves all fields scorer needs",
+    "TestScorerAcceptsTier1": "15 tests — all 6 Tier-1 DOM detectors route to correct categories with nonzero weights",
+    "TestTier2NotScored": "13 tests — all 10 None-mapped detectors excluded from scoring pipeline",
+    "TestRegistryInterfaceCompat": "4 tests — on_depth(DOMSnapshot) and evaluate_bar(bar, ctx) signatures verified",
+    "TestSignalIdFreeze": "4 tests — MVP_NEW_SIGNAL_IDS_ALLOWED=False, enum unchanged, no DOM_ prefixed IDs",
+    "TestAggregateContract": "1 test — old-path vs DOM-path produce structurally identical ScorerResult"
+  },
+  "tier1_mappings_verified": [
+    "dom.imbalance.v1 -> IMB_01 -> IMBALANCE (weight=25.0)",
+    "dom.absorption.v1 -> ABS_01 -> ABSORPTION (weight=20.0)",
+    "dom.sweep_reload.v1 -> ABS_02 -> ABSORPTION (weight=20.0)",
+    "dom.iceberg.v1 -> ENG_04 -> ABSORPTION (weight=20.0)",
+    "dom.cvd.v1 -> DELT_01 -> DELTA (weight=14.3)",
+    "dom.thinness.v1 -> IMB_02 -> IMBALANCE (weight=25.0)"
+  ],
+  "tier2_none_mapped": [
+    "dom.pull_replace.v1",
+    "dom.micro_momentum.v1",
+    "dom.large_burst.v1",
+    "dom.micro_vol.v1",
+    "dom.tps.v1",
+    "dom.stacked_imbalance.v1",
+    "dom.wall_persistence.v1",
+    "dom.failed_auction.v1",
+    "dom.queue_nuance.v1",
+    "dom.regime_shift.v1"
+  ],
+  "timestamp": "2026-05-27"
+}

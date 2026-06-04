@@ -1,0 +1,51 @@
+{
+  "name": "EXH_05_delta_diverges_from_price",
+  "description": "Delta diverges from price over last 3 bars. Price making higher highs but delta declining — buying exhaustion.",
+  "bar": {
+    "open": 21520.0,
+    "high": 21530.0,
+    "low": 21518.0,
+    "close": 21528.0,
+    "delta": 40,
+    "total_volume": 1800,
+    "bid_volumes": {
+      "21518.0": 100,
+      "21520.0": 200,
+      "21522.0": 180,
+      "21525.0": 150,
+      "21528.0": 120
+    },
+    "ask_volumes": {
+      "21520.0": 150,
+      "21522.0": 200,
+      "21525.0": 180,
+      "21528.0": 160,
+      "21530.0": 160
+    },
+    "poc_price": 21522.0,
+    "poc_volume": 380,
+    "vah": 21528.0,
+    "val": 21520.0,
+    "cvd": 550.0,
+    "bar_index": 58,
+    "timestamp": "2026-05-13T10:43:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 550.0,
+    "vah": 21528.0,
+    "val": 21520.0,
+    "poc": 21522.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "price_history": [21500.0, 21510.0, 21520.0, 21528.0],
+    "delta_history": [350, 200, 100, 40]
+  },
+  "expected_signal": {
+    "signal_id": "EXH_05",
+    "direction": "BEARISH",
+    "strength_min": 0.30,
+    "strength_max": 0.50
+  }
+}

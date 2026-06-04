@@ -1,0 +1,3 @@
+- Hermes QA on WSL initially failed because Linux `python` was unavailable and Linux `python3` lacked `tqdm`; a follow-up Windows-Python Hermes run exceeded the 300s shell timeout before producing evidence or output files.
+- `.sisyphus/evidence/task-4-preprocess-1day.txt` was written in a non-plain-text format by the PowerShell tee step, so `read` could not inspect it directly afterward.
+- `get_best_strategies()` only returns strategies with non-null best OOS fitness, so an early all-fail population leaves `best_hash=None`; the loop script must account for that when mutating manually.

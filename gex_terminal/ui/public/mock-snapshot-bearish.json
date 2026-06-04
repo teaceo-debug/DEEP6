@@ -1,0 +1,70 @@
+{
+  "timestamp": 1748527200.0,
+  "bias": {
+    "direction": "BEARISH",
+    "confidence": 74,
+    "grade": "B",
+    "regime_name": "Negative Below Flip"
+  },
+  "levels": {
+    "gamma_flip": 21380.0,
+    "call_wall": 21500.0,
+    "put_wall": 20900.0,
+    "hvl": 21200.0,
+    "zero_dte_magnet": 21100.0,
+    "expected_move_up": 21520.0,
+    "expected_move_down": 21080.0
+  },
+  "dealer": {
+    "net_gex": -2800000000,
+    "net_dex": 900000000,
+    "net_vex": -380000000,
+    "net_chex": 150000000,
+    "regime": "negative",
+    "hedge_direction": "selling"
+  },
+  "flow": {
+    "direction": "bearish",
+    "intensity": 0.72,
+    "sweep_count": 22,
+    "block_count": 5,
+    "z_score": -2.1
+  },
+  "vanna_charm": {
+    "vanna_exposure": -620000000,
+    "charm_exposure": 280000000,
+    "net_hedge_direction": "headwind"
+  },
+  "zero_dte": {
+    "gex_pct_of_total": 0.41,
+    "pin_risk": "high",
+    "gamma_acceleration": -0.68
+  },
+  "narrative": {
+    "text": "Negative gamma regime below flip. Dealers amplifying moves. Put wall 20,900 is downside target. Elevated 0DTE gamma.",
+    "model": "claude-haiku-4-5-20251001",
+    "timestamp": 1748527200.0,
+    "cached": false,
+    "cost_usd": 0.004
+  },
+  "sources": {
+    "flashalpha": {
+      "name": "flashalpha",
+      "status": "ok",
+      "last_update": 1748527200.0,
+      "ttl_sec": 60,
+      "error_msg": ""
+    },
+    "massive": {
+      "name": "massive",
+      "status": "stale",
+      "last_update": 1748527100.0,
+      "ttl_sec": 60,
+      "error_msg": ""
+    }
+  },
+  "deep6_bias_score": -3,
+  "deep6_bias_label": "LEAN_BEAR",
+  "deep6_confidence": 0.68,
+  "cost_today_usd": 3.87
+}

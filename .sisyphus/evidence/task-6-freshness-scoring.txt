@@ -1,0 +1,6 @@
+Task 6 evidence
+
+File: ninjatrader/Custom/Indicators/DEEP6/DEEP6DepthRadarV2.cs
+Change: Added ComputeFreshnessScore and updated FreshnessScore in ScoreAllWalls() for bids and asks.
+Verification: lsp_diagnostics clean.
+Verification: git diff HEAD -- ninjatrader/Custom/Indicators/DEEP6/DEEP6DepthRadar.cs produced no output.

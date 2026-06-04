@@ -1,0 +1,52 @@
+{
+  "name": "VOLP_05_delta_rate_change_exceeds_prior",
+  "description": "Rate of delta change exceeds 2× prior bar's rate. Delta acceleration — momentum building rapidly.",
+  "bar": {
+    "open": 21505.0,
+    "high": 21525.0,
+    "low": 21503.0,
+    "close": 21522.0,
+    "delta": 550,
+    "total_volume": 3200,
+    "bid_volumes": {
+      "21503.0": 60,
+      "21505.0": 100,
+      "21508.0": 150,
+      "21510.0": 200,
+      "21515.0": 250
+    },
+    "ask_volumes": {
+      "21505.0": 200,
+      "21508.0": 300,
+      "21510.0": 400,
+      "21515.0": 450,
+      "21520.0": 350,
+      "21522.0": 280,
+      "21525.0": 200
+    },
+    "poc_price": 21515.0,
+    "poc_volume": 700,
+    "vah": 21522.0,
+    "val": 21507.0,
+    "cvd": 800.0,
+    "bar_index": 50,
+    "timestamp": "2026-05-13T10:35:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 800.0,
+    "vah": 21522.0,
+    "val": 21507.0,
+    "poc": 21515.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "delta_history": [50, 100, 200, 550]
+  },
+  "expected_signal": {
+    "signal_id": "VOLP_05",
+    "direction": "BULLISH",
+    "strength_min": 0.30,
+    "strength_max": 0.50
+  }
+}

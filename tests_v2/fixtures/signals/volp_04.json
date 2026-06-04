@@ -1,0 +1,50 @@
+{
+  "name": "VOLP_04_poc_migration",
+  "description": "POC moves in same direction for 3+ bars. Persistent POC migration upward — value area rotating higher.",
+  "bar": {
+    "open": 21520.0,
+    "high": 21530.0,
+    "low": 21518.0,
+    "close": 21528.0,
+    "delta": 200,
+    "total_volume": 2600,
+    "bid_volumes": {
+      "21518.0": 80,
+      "21520.0": 150,
+      "21522.0": 200,
+      "21525.0": 300,
+      "21528.0": 250
+    },
+    "ask_volumes": {
+      "21520.0": 200,
+      "21522.0": 250,
+      "21525.0": 350,
+      "21528.0": 300,
+      "21530.0": 200
+    },
+    "poc_price": 21525.0,
+    "poc_volume": 650,
+    "vah": 21529.0,
+    "val": 21521.0,
+    "cvd": 450.0,
+    "bar_index": 55,
+    "timestamp": "2026-05-13T10:40:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 450.0,
+    "vah": 21529.0,
+    "val": 21521.0,
+    "poc": 21525.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "poc_history": [21505.0, 21510.0, 21515.0, 21520.0, 21525.0]
+  },
+  "expected_signal": {
+    "signal_id": "VOLP_04",
+    "direction": "BULLISH",
+    "strength_min": 0.25,
+    "strength_max": 0.45
+  }
+}

@@ -1,0 +1,10 @@
+HERMES authority contract created at .sisyphus/contracts/hermes-authority.md
+
+Verification points present:
+- Authority matrix explicitly states Pine draws/detects/renders/alerts.
+- Authority matrix explicitly states HERMES observes/approves/vetoes/logs/ranks/explains only.
+- Contract forbids HERMES chart-drawing authority.
+- Audit schema includes: anchor_id, timestamp_decision, symbol, timeframe, pine_candidate_state, hermes_verdict, hermes_reasons[], pine_final_state, human_override, disagreement.
+- Disagreement policy requires every disagreement to be logged and forbids silent vetoes.
+- Human override policy states force-approve and force-invalidate always win and are always logged.
+- Latency policy states HERMES is advisory/asynchronous and Pine must not block indefinitely waiting on HERMES.

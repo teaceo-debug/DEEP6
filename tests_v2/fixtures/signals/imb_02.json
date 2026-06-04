@@ -1,0 +1,56 @@
+{
+  "name": "IMB_02_repeated_imbalance_at_price",
+  "description": "3+ imbalances at same price across recent bars. Persistent buying pressure at 21480 level.",
+  "bar": {
+    "open": 21478.0,
+    "high": 21490.0,
+    "low": 21475.0,
+    "close": 21488.0,
+    "delta": 200,
+    "total_volume": 2400,
+    "bid_volumes": {
+      "21475.0": 50,
+      "21478.0": 80,
+      "21480.0": 90,
+      "21483.0": 120,
+      "21485.0": 180,
+      "21488.0": 200
+    },
+    "ask_volumes": {
+      "21478.0": 250,
+      "21480.0": 380,
+      "21483.0": 300,
+      "21485.0": 250,
+      "21488.0": 150,
+      "21490.0": 70
+    },
+    "poc_price": 21480.0,
+    "poc_volume": 470,
+    "vah": 21487.0,
+    "val": 21478.0,
+    "cvd": 280.0,
+    "bar_index": 45,
+    "timestamp": "2026-05-13T10:30:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 280.0,
+    "vah": 21487.0,
+    "val": 21478.0,
+    "poc": 21480.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "imbalance_history": [
+      {"21480.0": 3.5},
+      {"21480.0": 4.2},
+      {"21480.0": 4.0}
+    ]
+  },
+  "expected_signal": {
+    "signal_id": "IMB_02",
+    "direction": "BULLISH",
+    "strength_min": 0.35,
+    "strength_max": 0.55
+  }
+}

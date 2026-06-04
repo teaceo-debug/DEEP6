@@ -1,0 +1,6 @@
+2026-05-31
+- Files changed: gex_terminal/engine/analyzer.py, gex_terminal/schemas.py, gex_terminal/tests/test_analyzer.py, gex_terminal/engine/adapters/flashalpha.py, gex_terminal/engine/adapters/massive.py
+- Added analyzer confidence modifiers for VEX/CHEX alignment, FlashAlpha 0DTE pin-risk penalties, Massive by-expiry 0DTE divergence, and last-hour charm drift.
+- Enriched ZeroDTEState with pin_risk_score and analyzer-side normalization.
+- Verification: lsp_diagnostics clean for changed files.
+- Verification: `python3 -m pytest gex_terminal/tests/test_analyzer.py -v` via HERMES -> 14 passed, 1 warning (`asyncio_mode` unknown config option in pyproject.toml).

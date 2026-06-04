@@ -1,0 +1,48 @@
+Task 10: Wire UW Dark Pool into Analyzer + NT8 GEXTerminal
+===========================================================
+Date: 2026-05-31
+
+## Part A: Analyzer Dark Pool Modifier — DONE
+
+File: gex_terminal/engine/analyzer.py
+
+Changes:
+1. Added `dp_bias: str = "neutral"` and `dp_levels_nq: Optional[list[float]] = None` 
+   params to `analyze()` method signature.
+2. Added `_apply_dark_pool_modifier()` method:
+   - Institutional bias confirmation: +5 if DP bias confirms regime direction
+   - Institutional bias contradiction: -5 if DP bias contradicts direction
+   - Level confluence: +3 per DP level within 100 NQ pts of GEX key level (gamma_flip, call_wall, put_wall)
+   - No-op when dp_bias=="neutral" and no levels provided
+3. Method called after flow-regime interaction, before HMM tradability gate.
+
+## Part B: NT8 GEXTerminal.cs — DONE
+
+File: ninjatrader/Custom/Indicators/DEEP6/GEXTerminal.cs
+
+Changes:
+1. Added SnapshotDto fields: `primary_magnet` (object), `magnet_confidence` (object)
+2. Added `ShowMagnet` property (bool, default true, Display group)
+3. Added `PrimaryMagnetLineTag`/`PrimaryMagnetLabelTag` constants
+4. Added `SafeDouble()` helper for nullable JSON deserialization
+5. Added DrawLevel call for primary magnet: Yellow, Solid, width 2, label "⚡ MAGNET"
+6. Updated ClearDrawings() to include new tags
+7. Deployed to: C:\Users\Tea\Documents\NinjaTrader 8\bin\Custom\Indicators\DEEP6\GEXTerminal.cs
+
+## Part C: Bridge Verification — DONE
+
+- Bridge output JSON verified at: C:\Users\Tea\Documents\NinjaTrader 8\templates\DEEP6\gex_terminal_nt8.json
+- JSON age: 6s (fresh, actively being written)
+- Fields confirmed present: primary_magnet, magnet_confidence, dark_pool_levels_nq
+- Bridge is being driven by an existing process (not standalone script)
+
+## Verification
+
+- LSP diagnostics: 0 errors on analyzer.py
+- LSP diagnostics: 0 errors on GEXTerminal.cs
+- Tests: 16/16 passed (gex_terminal/tests/test_analyzer.py)
+- No existing test breakage
+
+## UW API Key
+
+Active in .env.gex_terminal: 258917e6-c161-4860-ba73-9f0d5b27d1a2

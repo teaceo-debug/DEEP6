@@ -1,168 +1,235 @@
-# DEEP6 Operational Runbook
+# DEEP6 Runbook
 
-Operator procedures for running DEEP6 v2.0 in paper and live mode. Keep this
-document next to the trading workstation.
+This runbook covers implemented and currently intended operator workflows for DEEP6.
 
----
+Important:
+If a workflow here is marked “planned,” do not treat it as production-ready until the code and verification artifacts support it.
 
-## 1. Starting the system
+For overall project truth, read:
+- `README.md`
+- `docs/CURRENT-STATE.md`
+- `docs/VERIFICATION-LADDER.md`
 
-```bash
-cd /path/to/DEEP6
-source .venv/bin/activate
-python -m deep6
-```
+## 1. Purpose
 
-Pre-flight checklist:
+This runbook exists to answer:
+- how to start the relevant DEEP6 subsystem
+- how to verify health
+- how to stop it safely
+- how to investigate failures
+- what should block promotion toward live trading
 
-- `.env` is populated (Rithmic user/password/system, DB paths, API keys)
-- Rithmic account is approved for API/plugin mode
-- R|Trader is signed out on other machines (concurrent connections will be kicked)
-- NQ front-month is current — check `config.instrument`
-- `deep6_session.db` and `deep6_ml.db` are writable
-- Clock is NTP-synced (Rithmic rejects drift > 5s)
+## 2. Scope
 
-Watch the startup log for:
-- `deep6.state_ready`
-- `deep6.rithmic_connected`
-- `deep6.subscribed` with `ORDER_BOOK`, `LAST_TRADE`, `BBO`
-- `deep6.running task_count=3`
+DEEP6 currently has multiple operational surfaces:
 
----
+1. Python/backend/reference engine
+2. Dashboard/replay UI
+3. NinjaTrader execution-oriented path
 
-## 2. Stopping the system
+This runbook is intentionally conservative:
+- only describe flows that are clearly represented in the repo
+- label planned workflows explicitly
+- do not imply live-readiness where verification is incomplete
 
-Send `SIGINT` (`Ctrl-C`) or `SIGTERM` (`kill <pid>`). DEEP6 handles both via
-asyncio signal handlers: all tasks are cancelled, persistence is closed, the
-SQLite WAL is checkpointed, and final metrics are logged.
+## 3. Pre-flight checklist
 
-Expected shutdown log sequence:
-`deep6.shutdown.begin` → `deep6.shutdown.tasks_cancelled` →
-`deep6.shutdown.wal_flushed` → `deep6.shutdown.complete`.
+Before running anything:
 
-Never `kill -9` unless DEEP6 is unresponsive — the WAL flush is skipped and
-open trades may be orphaned in Rithmic.
+- confirm which subsystem you are operating
+- confirm which port/endpoints are expected for that subsystem
+- confirm env/config values are present
+- confirm the intended data source is correct
+- confirm instrument/contract is current
+- confirm you are not treating a demo or replay path as a live path
 
----
+Minimum pre-flight:
+- project dependencies installed
+- dashboard dependencies installed if using UI
+- canonical env file reviewed
+- backend port and websocket URL verified
+- no conflicting stale docs being followed
 
-## 3. Enabling live mode (30-day paper gate)
+## 4. Startup modes
 
-Live execution is gated by two conditions:
+### Mode A: Dashboard-only demo / local UI validation
+Use when:
+- validating frontend behavior
+- checking replay/demo rendering
+- working without live backend connectivity
 
-1. **30 consecutive calendar days of paper trading** with `WalkForwardTracker`
-   reporting a positive rolling Sharpe on the most recent 20 sessions.
-2. The flag `EXECUTION_MODE=live` set in `.env` **and** confirmed by operator
-   at startup (DEEP6 prompts for `CONFIRM LIVE` on stdin).
+Expected:
+- dashboard starts
+- demo mode or mock data path is active
+- no claims of live signal or execution truth
 
-To promote:
+Verification:
+- UI renders
+- charts update
+- signal/score panels behave coherently
+- no websocket confusion if demo mode is intended
 
-```bash
-sed -i '' 's/EXECUTION_MODE=paper/EXECUTION_MODE=live/' .env
-python -m deep6    # answer CONFIRM LIVE at the prompt
-```
+### Mode B: Python backend/reference runtime
+Use when:
+- validating backend/API behavior
+- testing replay/reference behavior
+- checking integration with dashboard
 
-To revert: flip the flag back to `paper` and restart.
+Expected:
+- backend process starts cleanly
+- health endpoint responds
+- websocket endpoint responds if enabled
+- logging is coherent
+- no silent config ambiguity
 
----
+Verification:
+- health check passes
+- websocket connects
+- replay or synthetic/live path behaves as expected
+- dashboard receives data if connected
 
-## 4. Rolling back ML weights
+### Mode C: NinjaTrader execution-oriented runtime
+Use when:
+- validating NT8-based indicator/strategy/runtime behavior
+- testing paper-trade workflows
+- validating execution-facing behavior
 
-ML weights are versioned in `deep6_ml.db` under the `model_versions` table.
+Expected:
+- NT8-specific docs and setup are followed
+- runtime state is checked from NT8-side tooling and logs
+- parity/reference assumptions are documented, not guessed
 
-```bash
-sqlite3 deep6_ml.db "SELECT version_id, created_at, notes FROM model_versions ORDER BY created_at DESC LIMIT 10;"
-sqlite3 deep6_ml.db "UPDATE config SET active_version_id = '<version_id>';"
-```
+Verification:
+- NT8 loads expected components
+- relevant indicator/strategy state is visible
+- paper-trade behavior is logged and reviewable
 
-Restart DEEP6 to pick up the new active version. The WalkForwardTracker will
-re-prime for ~30 minutes before contributing to the confluence score.
+## 5. Safe startup procedure
 
----
+1. Identify the subsystem you are starting.
+2. Confirm its intended port, websocket route, and env values.
+3. Start only one canonical entrypoint for that subsystem.
+4. Capture startup logs immediately.
+5. Verify health before trusting behavior.
+6. Do not assume signal correctness from successful startup alone.
 
-## 5. Investigating drawdown
+## 6. Health checks
 
-1. Pull the session log: `sqlite3 deep6_session.db "SELECT * FROM trades WHERE session_id = '<id>';"`
-2. Export signal history: `GET http://localhost:8765/api/sessions/<id>/signals`
-3. Replay the session against Databento MBO:
-   ```bash
-   python -m deep6.tools.replay --session <id> --source databento
-   ```
-4. Compare live vs replay confluence scores per bar — divergence > 5 points
-   indicates a data-quality or timing issue, not a model issue.
-5. If drawdown exceeds **2 × daily stop**, execution is auto-disabled; re-enable
-   only after root-cause is identified.
+Minimum health signals DEEP6 should expose or verify:
 
----
+- process is running
+- health endpoint responds
+- websocket handshake succeeds if applicable
+- feed is not stale
+- expected instrument is loaded
+- no unresolved startup exceptions
+- no ambiguity about demo vs replay vs live-like mode
 
-## 6. Handling Rithmic disconnects
+If any of these are unclear, treat the system as degraded.
 
-`async-rithmic` reconnects automatically with exponential backoff + jitter.
+## 7. Safe shutdown
 
-Check for:
-- `rithmic.reconnect.attempt` log lines — these are expected
-- `rithmic.reconnect.failed` — after 10 failed attempts DEEP6 halts execution
-  and waits for manual recovery
+General shutdown rules:
 
-Manual recovery:
+- prefer graceful shutdown
+- preserve logs
+- do not kill processes abruptly unless already broken
+- document whether shutdown occurred during:
+  - idle
+  - replay
+  - paper execution
+  - reconnect state
 
-```bash
-# 1. Confirm Rithmic gateway status
-curl -sI https://rithmic.com/status
-# 2. Re-authenticate via R|Trader if creds have expired
-# 3. Restart DEEP6 — shutdown is graceful, open orders are left in Rithmic
-```
+Expected shutdown outcome:
+- process stops cleanly
+- no orphaned ambiguous operator state
+- last-known session status remains reviewable
 
-Any open orders at disconnect remain resting on the exchange. Inspect and
-flatten manually via the broker platform before restart if needed.
+## 8. Incident categories
 
----
+### Category A: Documentation incident
+Examples:
+- startup instructions conflict
+- port docs conflict
+- runbook disagrees with actual runtime
 
-## 7. Backing up SQLite DBs
+Action:
+- stop following assumptions
+- identify authoritative doc
+- record mismatch
+- update docs before proceeding further
 
-Nightly cron (macOS `launchd` or `crontab -e`):
+### Category B: Runtime incident
+Examples:
+- backend starts but websocket fails
+- dashboard connects but shows stale data
+- replay endpoint behaves inconsistently
+- startup path only partially works
 
-```bash
-0 2 * * * /usr/bin/sqlite3 /path/to/DEEP6/deep6_session.db ".backup '/backups/deep6_session_$(date +\%Y\%m\%d).db'"
-0 2 * * * /usr/bin/sqlite3 /path/to/DEEP6/deep6_ml.db      ".backup '/backups/deep6_ml_$(date +\%Y\%m\%d).db'"
-```
+Action:
+- capture exact command used
+- capture logs
+- confirm env/config values
+- verify whether behavior is expected, degraded, or broken
 
-Retain 30 days locally and replicate weekly to offsite storage. Verify a
-restore once per quarter:
+### Category C: Verification incident
+Examples:
+- replay does not match expected session behavior
+- score path drifts unexpectedly
+- parity assumptions fail
+- execution gate behavior is unclear
 
-```bash
-sqlite3 /backups/deep6_session_YYYYMMDD.db "PRAGMA integrity_check;"
-```
+Action:
+- block promotion
+- produce a verification artifact
+- treat as trust issue, not cosmetic issue
 
----
+### Category D: Execution/risk incident
+Examples:
+- unexpected enable/disable state
+- unclear order submission behavior
+- unclear flatten/cancel semantics
+- unresolved paper/live state confusion
 
-## 8. Rotating API keys
+Action:
+- halt promotion
+- review state transition logs
+- do not continue toward live deployment until resolved
 
-Quarterly rotation cadence:
+## 9. Paper-trading posture
 
-| Key | Source | How to rotate |
-|-----|--------|---------------|
-| Rithmic password | R\|Trader login | Change in R\|Trader, update `.env`, restart |
-| Databento API key | databento.com dashboard | Generate new key, revoke old, update `.env` |
-| Polygon API key | polygon.io dashboard | Generate new key, revoke old, update `.env` |
-| FlashAlpha API key | flashalpha dashboard | Generate new key, revoke old, update `.env` |
+Paper mode should be treated as mandatory validation, not as a formality.
 
-After rotation:
+Minimum expectations before promotion:
+- repeatable startup
+- stable health state
+- explainable signal behavior
+- explainable disable/reenable logic
+- reviewable sessions
+- no unresolved parity concerns
 
-```bash
-python -m deep6.tools.verify_credentials   # pings each provider
-python -m deep6                            # restart pipeline
-```
+## 10. Live trading posture
 
-Never commit `.env` — it is gitignored. If a key is leaked, revoke first,
-then rotate.
+Live trading should be treated as restricted and explicitly armed.
 
----
+Rules:
+- live mode must never be assumed from startup success
+- live mode should require deliberate operator acknowledgment
+- any unresolved verification or health issue blocks promotion
+- any major anomaly should downgrade the system back to paper-only
 
-## 9. Emergency flatten
+## 11. What this runbook does not claim
 
-```bash
-python -m deep6.tools.flatten --confirm
-```
+This runbook does not claim:
+- all DEEP6 modes are production-ready
+- all live-mode gates are already implemented exactly as desired
+- all docs in the repo are already aligned
+- all replay/live parity work is complete
 
-Cancels all working orders and market-closes any open position. Use only
-when the automated risk layer is suspected to be malfunctioning.
+## 12. Required companion docs
+
+Operate DEEP6 alongside:
+- `docs/CURRENT-STATE.md`
+- `docs/VERIFICATION-LADDER.md`
+- `docs/EVIDENCE.md`
+- `docs/PAPER-TO-LIVE-GATE.md`

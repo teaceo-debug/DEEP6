@@ -1,9 +1,18 @@
 # Phase 11 Smoke Test Checklist
 
-**Operator:** Run all 8 scenarios below. Check each box when confirmed. Return APPROVED when all pass.
+Operator: run all 8 scenarios below. Check each box when confirmed. Return APPROVED when all pass.
 
-**Start backend:** `cd /Users/teaceo/DEEP6 && uvicorn deep6.api.app:app --port 8000`
-**Start frontend:** `cd /Users/teaceo/DEEP6/dashboard && npm run dev`
+Start backend:
+- Start the DEEP6 backend on the host/port you intend to validate.
+- Example backend base used below: `http://localhost:8765`
+
+Start frontend:
+```bash
+cd <repo>/dashboard \
+  && NEXT_PUBLIC_API_BASE=http://localhost:8765 \
+     NEXT_PUBLIC_WS_URL=ws://localhost:8765/ws/live \
+     npm run dev
+```
 
 ---
 
@@ -11,8 +20,8 @@
 
 - [ ] Open http://localhost:3000 — header WebSocket dot is GREEN within 2s.
 - [ ] Post a test bar via:
-  ```
-  curl -X POST http://localhost:8000/api/live/test-broadcast \
+  ```bash
+  curl -X POST http://localhost:8765/api/live/test-broadcast \
     -H 'Content-Type: application/json' -d @test-bar.json
   ```
 - [ ] Chart renders a candle + footprint cells for the bar.
@@ -82,8 +91,8 @@
 ## 8. Unique 28px score number
 
 - [ ] Run:
-  ```
-  grep -rE "text-\[28px\]|text-3xl|text-4xl" /Users/teaceo/DEEP6/dashboard/components
+  ```bash
+  grep -rE "text-\[28px\]|text-3xl|text-4xl" <repo>/dashboard/components
   ```
 - [ ] Only `ScoreWidget.tsx` appears in results.
 
@@ -91,6 +100,6 @@
 
 ## Result
 
-**Status:** [ ] APPROVED / [ ] BLOCKED (list failures above)
+Status: [ ] APPROVED / [ ] BLOCKED (list failures above)
 
-**Operator sign-off:** _______________  **Date:** _______________
+Operator sign-off: _______________  Date: _______________

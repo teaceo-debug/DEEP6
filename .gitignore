@@ -77,6 +77,14 @@ nt8_*.png
 sa_*.png
 ninjatrader/captures/
 
+# Node modules (all subdirs)
+node_modules/
+
+# Large data files (exceed GitHub 100MB limit)
+data/backtests/signal_events.csv
+*.duckdb
+*.duckdb.wal
+
 # Databento downloads (large binary data files)
 data/databento/**/*.dbn
 data/databento/**/*.dbn.zst

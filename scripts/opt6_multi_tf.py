@@ -26,8 +26,9 @@ FLATTEN_H = 16.0        # 16:00 ET
 BASELINE_SL = 160 * TICK_SIZE  # 40 pts
 BASELINE_TP = 560 * TICK_SIZE  # 140 pts
 
-CSV_PATH = "/Users/teaceo/DEEP6/data/backtests/nq_3mo_1m.csv"
-OUT_PATH = "/Users/teaceo/DEEP6/scripts/opt6_multi_tf.txt"
+ROOT = Path(__file__).resolve().parents[1]
+CSV_PATH = ROOT / "data/backtests/nq_3mo_1m.csv"
+OUT_PATH = ROOT / "scripts/opt6_multi_tf.txt"
 
 # === Load & prep ===
 print("Loading data...")

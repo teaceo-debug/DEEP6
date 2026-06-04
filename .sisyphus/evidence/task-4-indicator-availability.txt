@@ -1,0 +1,12 @@
+Task 4 indicator availability check - 2026-05-13
+
+Observed facts:
+- DEEP6BiasV3.cs deploys to Documents\\NinjaTrader 8\\bin\\Custom\\Indicators\\DEEP6 successfully.
+- NT8 global compile never completed successfully; NinjaTrader.Custom.dll timestamp never advanced.
+- Because the assembly did not rebuild, indicator-list / chart-attach verification cannot be proven cleanly from the current environment.
+- Provided NT8 automation scripts can trigger AddIndicator guidance and screenshots, but they do not deterministically inspect the indicator chooser contents.
+- Current compile blockers are unrelated to DEEP6BiasV3.cs based on nt8-errors-full.ps1 results.
+
+Conclusion:
+- DEEP6BiasV3 availability on chart is NOT decisively verifiable in the current NT8 environment.
+- The reason is unrelated NT8 compile drift, not a surfaced compile error in DEEP6BiasV3.cs.

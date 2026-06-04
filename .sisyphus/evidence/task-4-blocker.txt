@@ -1,0 +1,19 @@
+Task 4 blocker conclusion - 2026-05-13
+
+Outcome: BLOCKER PATH
+
+Decisive evidence:
+1. With the normal environment, current full compile errors point to:
+   - non-repo NT8 file: AA_DEEP6NQBiasEngineV2.cs
+   - repo-owned unrelated file: DEEP6GexLevels.cs
+2. After temporarily sidelining AA_DEEP6NQBiasEngineV2.cs, current full compile errors moved to:
+   - DEEP6MarketInternals.cs
+   - DEEP6GexLevelsV2.cs
+   - DEEP6GexLevels.cs
+3. DEEP6BiasV3.cs did not appear in the current full error list in either run.
+4. DLL timestamp never updated, so chart attach/HUD proof cannot be completed honestly.
+
+Blocker classification:
+- Primary blocker: unrelated repo-owned NT8 compile drift
+- Secondary blocker: unrelated non-repo NT8 environment file drift (AA_DEEP6NQBiasEngineV2.cs)
+- Not the blocker: DEEP6BiasV3.cs

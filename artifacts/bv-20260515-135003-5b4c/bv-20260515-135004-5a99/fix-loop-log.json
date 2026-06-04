@@ -1,0 +1,22 @@
+﻿{
+    "run_id":  "bv-20260515-135004-5a99",
+    "result":  "PARTIAL",
+    "iterations":  1,
+    "final_error_count":  5,
+    "total_fixes":  0,
+    "total_rollbacks":  0,
+    "iteration_details":  [
+                              {
+                                  "iteration":  1,
+                                  "errors_before":  5,
+                                  "errors_after":  5,
+                                  "fixes":  [
+
+                                            ],
+                                  "rollbacks":  [
+
+                                                ],
+                                  "elapsed_ms":  74657
+                              }
+                          ]
+}

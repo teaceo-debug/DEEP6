@@ -1,0 +1,90 @@
+{
+  "task_id": "T8",
+  "task_name": "HERMES Sidecar Observation Bridge",
+  "status": "complete",
+  "completed_at": "2026-05-21T00:00:00Z",
+  "files_created": [
+    "deep6/sd_anchor/__init__.py",
+    "deep6/sd_anchor/sidecar.py"
+  ],
+  "deliverables": {
+    "sd_sidecar_class": {
+      "file": "deep6/sd_anchor/sidecar.py",
+      "class": "SDSidecar",
+      "methods": [
+        "run() -> async main observation loop",
+        "start_background() -> launch as asyncio task",
+        "stop() -> graceful shutdown",
+        "receive_candidate(payload) -> queue Pine candidate for review",
+        "capture_chart_state() -> TradingView chart snapshot (graceful degradation)",
+        "capture_screenshot(anchor_id) -> decision-time screenshot path",
+        "route_to_hermes(candidate, screenshot_path) -> HermesVerdict with timeout",
+        "log_audit(candidate, verdict, ...) -> append-only JSONL audit record",
+        "log_disagreement(candidate, verdict, ...) -> append-only JSONL disagreement record",
+        "set_tv_connected(connected) -> update TradingView connection status"
+      ]
+    },
+    "hermes_verdict_dataclass": {
+      "file": "deep6/sd_anchor/sidecar.py",
+      "class": "HermesVerdict",
+      "fields": ["verdict: str", "reasons: list[str]", "version: str", "timestamp: str"],
+      "frozen": true,
+      "validation": "verdict must be approve|veto|abstain, reasons must be non-empty"
+    },
+    "chart_snapshot_dataclass": {
+      "file": "deep6/sd_anchor/sidecar.py",
+      "class": "ChartSnapshot",
+      "fields": ["symbol", "timeframe", "visible_bar_range_start", "visible_bar_range_end", "indicators", "screenshot_path", "captured_at"]
+    },
+    "validate_candidate_function": {
+      "file": "deep6/sd_anchor/sidecar.py",
+      "function": "validate_candidate(payload) -> list[str]",
+      "validates_against": ".sisyphus/specs/dataset-schema.md Section 1.1"
+    }
+  },
+  "contract_compliance": {
+    "hermes_authority": {
+      "contract": ".sisyphus/contracts/hermes-authority.md",
+      "non_blocking": true,
+      "timeout_behavior": "abstain verdict logged on timeout",
+      "no_chart_drawing": true,
+      "audit_fields_present": [
+        "anchor_id", "timestamp_decision", "symbol", "timeframe",
+        "pine_candidate_state", "hermes_verdict", "hermes_reasons",
+        "pine_final_state", "human_override", "disagreement"
+      ],
+      "reason_codes_validated": true,
+      "verdicts_restricted_to": ["approve", "veto", "abstain"]
+    },
+    "anchor_contract": {
+      "contract": ".sisyphus/contracts/anchor-contract.md",
+      "valid_pine_states": ["candidate", "confirmed", "active", "invalidated", "superseded"],
+      "valid_directions": ["bullish", "bearish"],
+      "no_business_logic_reuse": true
+    },
+    "dataset_schema": {
+      "spec": ".sisyphus/specs/dataset-schema.md",
+      "candidate_fields_validated": true,
+      "screenshot_at_decision_time": true,
+      "outcome_label_null_at_capture": true
+    }
+  },
+  "storage_layout": {
+    "audit_logs": "data/sd_anchor/audit/{YYYY-MM-DD}.jsonl",
+    "disagreement_logs": "data/sd_anchor/disagreements/{YYYY-MM-DD}.jsonl",
+    "screenshots": "data/sd_anchor/screenshots/{YYYY-MM-DD}/{anchor_id}.png"
+  },
+  "pattern_references": {
+    "tradingview_bridge": "deep6v2/tradingview/client.py (graceful degradation pattern)",
+    "sidecar_orchestration": "deep6/copilot/session.py (async lifecycle, component timeout)"
+  },
+  "integration_points": {
+    "hermes_skill": "_invoke_hermes() placeholder — wire to hermes-sd-anchor skill (T4)",
+    "pine_alerts": "receive_candidate() accepts webhook/polling payloads",
+    "tv_mcp_bridge": "capture_screenshot() and capture_chart_state() use MCP when connected"
+  },
+  "lsp_diagnostics": {
+    "deep6/sd_anchor/__init__.py": "clean — 0 errors",
+    "deep6/sd_anchor/sidecar.py": "clean — 0 errors"
+  }
+}

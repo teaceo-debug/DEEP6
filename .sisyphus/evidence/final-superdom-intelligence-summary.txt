@@ -1,0 +1,53 @@
+FINAL SuperDOM Intelligence Layer Summary (REVISED)
+=====================================================
+Date: 2026-05-27
+
+PRE-CONDITION: Python tests
+  python -m pytest tests_v2/dom_intelligence -v: 329/329 PASSED
+
+PRE-CONDITION: Dashboard tests
+  npm --prefix dashboard run test: 201/201 PASSED (DOM intelligence tests)
+  (1 pre-existing failure in FootprintSeries.test.ts — window.matchMedia mock issue, unrelated)
+
+REVIEW FIXES APPLIED:
+  - Task 19: Added header strip + SignalFeed integration to page layout
+  - Task 21: Added TestGoldenParityVsRecorded class comparing replay vs recorded intelligence_outputs
+  - Task 21/22/23: Removed exception swallowing from QA harnesses
+  - Task 23: Increased to 10K sustained-load benchmark, fixed memory growth test
+
+COMPLETED WAVES:
+  Wave 1-4: Previously completed (Waves 1-4 delivered contracts, adapters, detectors, features)
+  Pre-Wave 5: Registry Integration — 11 tests, PASS
+  Wave 5 (Tasks 17-20): Dashboard Surface — 39 tests, PASS
+  Wave 6 (Tasks 21-24): Hardening — 48 tests, PASS
+
+FILES MODIFIED (this session):
+  deep6v2/signals/registry.py — DOMIntelligenceAdapter + create_default() DOM registration
+  dashboard/types/deep6.ts — DOM intelligence TypeScript types
+
+FILES CREATED (this session):
+  tests_v2/dom_intelligence/test_registry_integration.py
+  tests_v2/dom_intelligence/test_golden_parity.py
+  tests_v2/dom_intelligence/test_false_positive_rates.py
+  tests_v2/dom_intelligence/test_performance.py
+  tests_v2/dom_intelligence/test_replay_safety_audit.py
+  dashboard/components/dom/DOMLadder.tsx
+  dashboard/components/dom/DOMLadder.test.tsx
+  dashboard/components/dom/IntelligenceRail.tsx
+  dashboard/components/dom/IntelligenceRail.test.tsx
+  dashboard/app/dom-intelligence/page.tsx
+  dashboard/app/dom-intelligence/page.test.tsx
+  dashboard/lib/dom-mock-state.ts
+  dashboard/lib/dom-mock-state.test.ts
+
+EVIDENCE FILES (this session):
+  .sisyphus/evidence/pre-wave5-registry-integration.txt
+  .sisyphus/evidence/task-17-dom-ladder.txt
+  .sisyphus/evidence/task-18-intel-rail.txt
+  .sisyphus/evidence/task-19-layout-integration.txt
+  .sisyphus/evidence/task-20-demo-render.txt
+  .sisyphus/evidence/task-21-golden-parity.json
+  .sisyphus/evidence/task-22-false-positives.txt
+  .sisyphus/evidence/task-23-performance.txt
+  .sisyphus/evidence/task-24-replay-safety.txt
+  .sisyphus/evidence/final-superdom-intelligence-summary.txt

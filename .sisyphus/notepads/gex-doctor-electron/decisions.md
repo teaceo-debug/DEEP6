@@ -1,0 +1,1 @@
+- 2026-05-31: Reused `~/.deep6/gexdoctor_v2.pid` when the backend process is still alive; on quit, Electron posts `/shutdown`, waits 3 seconds, then escalates to `taskkill /T /F` on Windows to guarantee full process-tree cleanup.

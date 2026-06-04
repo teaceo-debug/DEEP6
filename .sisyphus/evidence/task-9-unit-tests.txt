@@ -1,0 +1,68 @@
+Task 9: HUD Update + Unit Tests for DEEP6DepthRadarV2
+Date: 2026-05-22
+Status: PASSED
+
+== Part 1: HUD Update ==
+- DrawHud signature: (int genuineCount, int spoofCount, int icebergCount, int staleCount)
+- HUD format: "DEPTH RADAR V2 | G:{0} S:{1} I:{2} X:{3} | ML:OFF | cb: {4:N0}"
+- HUD width: 420f (was 300f)
+- RenderWalls: creates int[5] classCounts, passed to DrawWallsForSide, indexed by WallClassification
+- DrawWallsForSide: changed return type from int to void, accepts int[] classCounts
+- Classification counts incremented after Unknown skip, before brush selection
+
+== Part 2: Logic Extraction ==
+- DepthRadarV2Logic static class added to DEEP6DepthRadarV2Types.cs
+- Methods: ComputeSpoofScore, ComputeFreshnessScore, ClassifyWall
+- All accept DateTime utcNow parameter for deterministic testing
+- Indicator ScoreAllWalls updated to call DepthRadarV2Logic with captured utcNow
+- Three private static methods removed from indicator
+
+== Part 3: Unit Tests ==
+File: ninjatrader/tests/Indicators/DEEP6DepthRadarV2Tests.cs
+Test project include: DEEP6DepthRadarV2Types.cs added to ninjatrader.tests.csproj
+
+Test classes:
+  L2LevelStateV2Tests (2 tests)
+    - DefaultFields_HaveExpectedValues
+    - WallClassification_EnumValues_AreCorrect
+
+  ComputeSpoofScoreTests (8 tests)
+    - KnownSpoofPattern_HighCancelShortTime_ScoreAbove70
+    - GenuinePattern_NoCancels_ScoreBelow40
+    - CancellationComponent_HighRatio_Caps40
+    - TimeInBookComponent_ShortTime_Max25
+    - TimeInBookComponent_NoCancels_IsZero
+    - SizeAnomalyComponent_5xAvg_Max20
+    - DistanceComponent_10Ticks_Max10
+    - ModFrequencyComponent_HighRate_Max5
+
+  ComputeFreshnessScoreTests (7 tests)
+    - FreshWall_JustUpdated_ScoreAbove085
+    - FreshWall_ZeroTicksFromBBO_ScoreIs1
+    - PriceCrossed_20sAgo_DecaysSignificantly
+    - StaleWall_OldUpdate_ManyMods_NearZero
+    - TimeDecay_5MinOld_ModerateDecay
+    - ModPenalty_10Mods_ReducesFreshness
+    - DistancePenalty_20Ticks_ReducesFreshness
+
+  ClassifyWallTests (11 tests)
+    - SpoofBeatsIceberg_HighSpoofScore_ClassifiesAsSpoof
+    - StaleBeatsIceberg_LowFreshness_ClassifiesAsStale
+    - IcebergBeatsGenuine_HighRefills_ClassifiesAsIceberg
+    - Genuine_NoFlags_GoodFreshness_ClassifiesAsGenuine
+    - Unknown_SmallWall_ClassifiesAsUnknown
+    - MLOverride_PreservesExistingClassification
+    - SpoofBoundary_Exactly70_ClassifiesAsSpoof
+    - SpoofBoundary_69_DoesNotClassifyAsSpoof
+    - FreshnessBoundary_Exactly01_IsNotStale
+    - IcebergBoundary_1Refill_NotIceberg
+    - ClassifyWall_SetsLastClassificationTime
+
+Total: 28 tests
+
+== Verification ==
+- dotnet test DepthRadarV2 tests: 28 passed, 0 failed
+- dotnet test full suite: 538 passed, 0 failed, 6 skipped
+- LSP diagnostics (v2 indicator): 0 errors
+- LSP diagnostics (v2 types): 0 errors
+- git diff HEAD -- DEEP6DepthRadar.cs: empty (v1 untouched)

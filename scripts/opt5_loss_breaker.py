@@ -1,3 +1,4 @@
+from pathlib import Path
 #!/usr/bin/env python3
 """
 opt5_loss_breaker.py — Circuit Breaker & Drawdown Management for ChNavy6 VWAP Bounce
@@ -23,8 +24,9 @@ SESSION_END = time(14, 30)
 FLATTEN_TIME = time(16, 0)
 VWAP_CROSS_MIN = 5.0  # points above/below VWAP required
 
-CSV_PATH = "/Users/teaceo/DEEP6/data/backtests/nq_3mo_1m.csv"
-OUT_PATH = "/Users/teaceo/DEEP6/scripts/opt5_loss_breaker.txt"
+ROOT = Path(__file__).resolve().parents[1]
+CSV_PATH = ROOT / "data/backtests/nq_3mo_1m.csv"
+OUT_PATH = ROOT / "scripts/opt5_loss_breaker.txt"
 
 
 def load_data():

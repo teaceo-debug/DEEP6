@@ -1,0 +1,34 @@
+F2 — Code Quality Review: DEEP6LiquidityLevels.cs
+===================================================
+Date: 2026-05-20
+File: ninjatrader/Custom/Indicators/DEEP6/DEEP6LiquidityLevels.cs (610 lines)
+
+Build           [PASS] — [COMPILE-RESULT] SUCCESS 2026-05-20 14:48:54.061
+Namespace       [PASS] — Line 25: namespace NinjaTrader.NinjaScript.Indicators.DEEP6
+Empty catch     [PASS] — 3 catches, all intentional:
+                  Line 262: catch {} in OnThrottleTimer (timer callback safety)
+                  Line 276: catch {} in OnInvalidateTimer (UI dispatcher safety)
+                  Line 531: catch {} in TryAppendPerfLog (file I/O safety)
+Resource lifecycle [PASS] — 9 creates, 9 disposes
+                  7x SolidColorBrush created (lines 287-296) / 7x SafeDispose (lines 536-538)
+                  2x TextFormat created (lines 298-299) / 2x Dispose (lines 539-540)
+                  OnRenderTargetChanged: DisposeDx() called FIRST (line 281)
+                  State.Terminated: DisposeDx() called (line 135)
+Null checks     [PASS] — Line 305: if (RenderTarget == null || chartControl == null) return;
+                  Line 306: if (_dxBidLine == null) return;
+                  Line 402-403: null guards on _fmtStatus/_dxStatusText/_dxLabelBg in DrawStatus
+Array bounds    [PASS] — Line 166: if (index < 0 || index >= DepthSlots) { recenter; return; }
+Tick size       [PASS] — Line 37: _tickSize = 0.25 (field default)
+                  Line 111-113: runtime override from Instrument.MasterInstrument.TickSize
+                  with 0.25 as fallback only when Instrument unavailable
+                  Lines 287/291: 0.25f is alpha opacity, NOT tick size
+
+Additional observations:
+  - OnRenderTargetChanged correctly creates all 7 brushes + 2 TextFormats
+  - Volatile snapshot pattern (_renderSnapshot) for safe cross-thread render data
+  - Interlocked ops throughout for thread-safe flag/counter management
+  - Performance self-monitoring: render time averaging + perf log
+  - Session reset on first bar of session (line 147-148)
+  - Recenter logic when price drifts beyond array bounds (line 196-199)
+
+VERDICT: APPROVE

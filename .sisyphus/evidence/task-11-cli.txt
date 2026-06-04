@@ -1,0 +1,42 @@
+$ python -m gexdoctor --dry-run
+GEX Doctor: dry run OK - config valid
+EXIT: 0
+
+$ python -m gexdoctor --help
+usage: gexdoctor [-h] [--dry-run] [--once] [--interval INTERVAL]
+                 [--output OUTPUT] [--verbose] [--source {QQQ,NDX}]
+                 [--config CONFIG]
+
+GEX Doctor v0.1 - FlashAlpha to NQ Magnet Engine
+
+options:
+  -h, --help           show this help message and exit
+  --dry-run            Validate config and dependencies, then exit
+  --once               Run one poll cycle, write JSON, then exit
+  --interval INTERVAL  Override poll interval in seconds (minimum 15)
+  --output OUTPUT      Override output JSON file path
+  --verbose, -v        Enable DEBUG logging
+  --source {QQQ,NDX}   FlashAlpha symbol to track (default: from config)
+  --config CONFIG      Path to config.yaml (default: config.yaml)
+EXIT: 0
+
+$ python -m pytest tests/test_cli.py -v --tb=short
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.0.3, pluggy-1.6.0 -- C:\Users\Tea\AppData\Local\Programs\Python\Python311\python.exe
+cachedir: .pytest_cache
+benchmark: 5.2.3 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: C:\Users\Tea\DEEP6\gexdoctor
+configfile: pyproject.toml
+plugins: anyio-4.13.0, asyncio-1.3.0, benchmark-5.2.3
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 6 items
+
+tests/test_cli.py::test_build_parser_has_all_flags PASSED                [ 16%]
+tests/test_cli.py::test_help_shows_flags PASSED                          [ 33%]
+tests/test_cli.py::test_validate_config_with_key PASSED                  [ 50%]
+tests/test_cli.py::test_validate_config_missing_key PASSED               [ 66%]
+tests/test_cli.py::test_dry_run_exits_zero PASSED                        [ 83%]
+tests/test_cli.py::test_dry_run_missing_key_exits_one PASSED             [100%]
+
+============================== 6 passed in 0.59s ==============================
+EXIT: 0

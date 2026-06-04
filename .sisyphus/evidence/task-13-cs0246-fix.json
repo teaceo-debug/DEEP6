@@ -1,0 +1,63 @@
+{
+  "cs0246_dry_run": {
+    "stdout": {
+      "fixes_applied": 1,
+      "fixes_failed": 0,
+      "unfixable": [],
+      "needs_human": [],
+      "diffs": [
+        {
+          "file": "C:\\Users\\Tea\\AppData\\Local\\Temp\\tmpfinxf9q7\\TestIndicator.cs",
+          "code": "CS0246",
+          "fix_applied": "Added 'using NinjaTrader.NinjaScript.Indicators;'",
+          "diff": "--- TestIndicator.cs\n+++ TestIndicator.cs\n@@ -1,4 +1,5 @@\n using System;\n\n+using NinjaTrader.NinjaScript.Indicators;\n\n namespace NinjaTrader.NinjaScript.Indicators.DEEP6\n\n {\n\n     public class TestIndicator : Indicator\n",
+          "dry_run": true
+        }
+      ]
+    },
+    "file_unchanged": true
+  },
+  "unknown_code": {
+    "stdout": {
+      "fixes_applied": 0,
+      "fixes_failed": 1,
+      "unfixable": [
+        {
+          "status": "UNFIXABLE",
+          "reason": "Unsupported error code: CS9999",
+          "error": {
+            "code": "CS9999",
+            "message": "Unknown compiler failure",
+            "file": "TestIndicator.cs",
+            "line": 1,
+            "col": 1,
+            "severity": "error"
+          }
+        }
+      ],
+      "needs_human": [],
+      "diffs": []
+    }
+  },
+  "self_test": {
+    "stdout": {
+      "fixes_applied": 1,
+      "fixes_failed": 0,
+      "unfixable": [],
+      "needs_human": [],
+      "diffs": [
+        {
+          "file": "C:\\Users\\Tea\\AppData\\Local\\Temp\\tmp6ejc_zm4\\TestIndicator.cs",
+          "code": "CS0246",
+          "fix_applied": "Added 'using NinjaTrader.NinjaScript.Indicators;'",
+          "diff": "--- TestIndicator.cs\n+++ TestIndicator.cs\n@@ -1,4 +1,5 @@\n using System;\n\n+using NinjaTrader.NinjaScript.Indicators;\n\n namespace NinjaTrader.NinjaScript.Indicators.DEEP6\n\n {\n\n     public class TestIndicator : Indicator\n",
+          "dry_run": true
+        }
+      ],
+      "test": {
+        "source_file": "C:\\Users\\Tea\\AppData\\Local\\Temp\\tmp6ejc_zm4\\TestIndicator.cs",
+        "sample_error_code": "CS0246"
+      }
+    }
+  }
+}

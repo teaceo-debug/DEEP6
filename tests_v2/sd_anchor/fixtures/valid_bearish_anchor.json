@@ -1,0 +1,40 @@
+{
+  "anchor_id": "184b41c7-6390-4101-aa96-c8eb36a27f4c",
+  "captured_at": "2026-05-21T15:07:00Z",
+  "mode": "replay",
+  "label_timing": "decision_time",
+  "symbol": "NQ1!",
+  "timeframe_primary": "1",
+  "timeframe_context": "15",
+  "direction": "bearish",
+  "anchor_low_price": 21418.75,
+  "anchor_high_price": 21443.25,
+  "anchor_low_bar_time": 1779375840,
+  "anchor_high_bar_time": 1779375660,
+  "range": 24.5,
+  "level_minus2": 21369.75,
+  "level_minus2_5": 21357.5,
+  "level_minus4": 21320.75,
+  "pine_confidence_score": 76,
+  "pine_state": "candidate",
+  "screenshot_path": "data/sd_anchor/screenshots/2026-05-21/184b41c7-6390-4101-aa96-c8eb36a27f4c.png",
+  "chart_metadata": {
+    "zoom_level": 140,
+    "visible_bar_range_start": 1779375000,
+    "visible_bar_range_end": 1779376200,
+    "candle_style": "candles",
+    "theme": "dark",
+    "chart_width_px": 1920,
+    "chart_height_px": 1080
+  },
+  "hermes_verdict": "veto",
+  "hermes_reasons": [
+    "Displacement candle is acceptable but context still looks extended",
+    "Needs cleaner pre-break separation"
+  ],
+  "hermes_version": "hermes-sd-anchor-1.0.0",
+  "human_override": false,
+  "human_override_reason": null,
+  "outcome_label": null,
+  "outcome_resolved_at": null
+}

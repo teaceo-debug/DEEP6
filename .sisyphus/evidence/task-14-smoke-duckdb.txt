@@ -1,0 +1,53 @@
+DEEP6 Backtest Discovery Loop — DuckDB Verification
+=====================================================
+Date: 2026-05-23
+DB: C:\Users\Tea\AppData\Local\Temp\opencode\smoke_test.duckdb
+
+TABLE COUNTS
+------------
+Iterations: 3 — PASS (expected 3)
+Trades: 0 — PASS (expected 0, no preprocessed data)
+Strategies: 3 — PASS (expected >=1, got 3 unique)
+
+ITERATIONS TABLE SCHEMA
+------------------------
+id: INTEGER PRIMARY KEY
+timestamp: VARCHAR
+strategy_hash: VARCHAR
+config_json: VARCHAR
+is_win_rate: REAL
+is_avg_rr: REAL
+is_profit_factor: REAL
+is_max_dd: REAL
+oos_win_rate: REAL
+oos_avg_rr: REAL
+oos_profit_factor: REAL
+oos_max_dd: REAL
+is_trade_count: INTEGER
+oos_trade_count: INTEGER
+status: VARCHAR
+parent_iteration_id: INTEGER
+fitness_passed: BOOLEAN
+
+ITERATION DETAILS
+-----------------
+Iter 1: status=failed, is_wr=0.0, is_rr=0.0, is_trades=0, oos_wr=0.0, oos_rr=0.0, oos_trades=0, fitness=False
+Iter 2: status=failed, is_wr=0.0, is_rr=0.0, is_trades=0, oos_wr=0.0, oos_rr=0.0, oos_trades=0, fitness=False
+Iter 3: status=failed, is_wr=0.0, is_rr=0.0, is_trades=0, oos_wr=0.0, oos_rr=0.0, oos_trades=0, fitness=False
+
+PARENT LINKAGE
+--------------
+Iter 2 config_json contains parent_hash: aa3b4bf61a2768b1... (Iter 1's strategy hash)
+RESULT: PASS — lineage is correctly tracked
+
+IS/OOS METRICS
+--------------
+All 3 iterations have IS and OOS metric columns populated (0.0 values, as expected with no data).
+RESULT: PASS — metrics present even for failed fitness
+
+BUDGET ENFORCEMENT
+------------------
+Test: Pre-populated DB with 50 fake iterations, ran with --budget 50
+Output: "=== CHECKPOINT - budget exhausted (50 iterations) ==="
+Return code: 0
+RESULT: PASS — CHECKPOINT correctly triggered at budget limit

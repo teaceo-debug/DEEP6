@@ -1,0 +1,26 @@
+- generic [ref=e1]:
+  - generic [ref=e8]:
+    - img "Trader Dale" [ref=e9]
+    - heading "Log in to your account" [level=1] [ref=e10]
+    - generic [ref=e11]:
+      - generic [ref=e14]:
+        - generic [ref=e15]:
+          - generic [ref=e18] [cursor=pointer]: Email
+          - textbox "Email" [active] [ref=e20]
+        - generic [ref=e21]:
+          - generic [ref=e24] [cursor=pointer]: Password
+          - textbox "Password" [ref=e26]
+        - button "Sign In" [ref=e28] [cursor=pointer]
+      - generic [ref=e29]:
+        - generic [ref=e30]:
+          - text: Not a Member?
+          - link "Sign up" [ref=e31] [cursor=pointer]:
+            - /url: https://www.trader-dale.com/volume-profile-forex-trading-course
+        - link "Forgot your password?" [ref=e34] [cursor=pointer]:
+          - /url: /users/password/new?post_login_redirect=https%3A%2F%2Fmember.trader-dale.com%2F
+  - generic:
+    - region "Notifications"
+  - status [ref=e36]:
+    - generic [ref=e37]:
+      - img [ref=e40]
+      - generic [ref=e44]: Hey, there! You need to log in to see this page.

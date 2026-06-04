@@ -1,0 +1,34 @@
+ABSORPTION @ VOLUME PROFILE LEVELS
+========================================================================
+Primary window: 5 bars
+Current-session threshold: 10 ticks | Prior-day threshold: 20 ticks
+Signal price proxy: bullish=bar low, bearish=bar high
+Session profile method: 1m OHLCV volume distributed evenly across touched 0.25-tick levels
+Current-session profile levels are end-of-session retrospective levels.
+
+Absorption events analyzed: 901
+Sessions with profiles: 307
+
+Bucket                                    N      WR%   AvgTicks     Median
+--------------------------------------------------------------------------
+All absorption                          901   46.28%      -3.24      -6.00
+At POC (≤10t)                            63   44.44%       7.71     -12.00
+Away from POC (>10t)                    838   46.42%      -4.06      -6.00
+At VAH/VAL edge (≤10t)                   21   57.14%      29.14      28.00
+Beyond value area                        96   57.29%      40.00      24.50
+At VWAP (≤10t)                           39   53.85%       5.82       5.00
+Near LVN (≤10t)                         650   45.69%      -0.24      -6.00
+VAH/VAL + TYPE_B/C                       15   60.00%      40.40      28.00
+Near prior POC (≤20t)                    18   55.56%     200.33      11.00
+Near prior VAH/VAL (≤20t)                10   30.00%     -37.10     -34.50
+Near any prior major level (≤20t)        28   46.43%     115.54      -1.50
+Near prior VWAP (≤20t)                   17   41.18%       9.88     -18.00
+Near prior LVN (≤20t)                   189   42.86%     -21.19     -10.00
+
+Per absorption signal
+------------------------------------------------------------------------
+Bucket                                    N      WR%   AvgTicks     Median
+--------------------------------------------------------------------------
+ABS_01                                    2   50.00%    -687.00    -687.00
+ABS_03                                  858   45.92%     -11.35      -7.00
+ABS_04                                   41   53.66%     199.78      65.00

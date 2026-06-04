@@ -1,0 +1,9 @@
+﻿
+session_id: 20260523_144540_351362
+Command:
+Set-Location "C:\Users\Tea\DEEP6"; $env:PYTHONPATH="C:\Users\Tea\DEEP6"; py -3 scripts\preprocess_mbo.py --input data\databento\nq_mbo\raw_dbn\NQ_c_0_mbo_2026-04-08_2026-04-11.dbn.zst --output-dir "C:\Users\Tea\AppData\Local\Temp\opencode\preprocess_test" --start-date 2026-04-08 --end-date 2026-04-08
+
+Relevant output line:
+Skipping session_2026-04-08 (already exists)
+
+Confirmed: the command exited successfully and the output contains exactly that skip line.

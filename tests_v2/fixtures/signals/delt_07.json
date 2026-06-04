@@ -1,0 +1,53 @@
+{
+  "name": "DELT_07_delta_spike_mean_revert",
+  "description": "Delta spikes then mean-reverts within same bar. Heavy buying at wick then heavy selling at body — intra-bar reversal pattern.",
+  "bar": {
+    "open": 21500.0,
+    "high": 21515.0,
+    "low": 21498.0,
+    "close": 21502.0,
+    "delta": 20,
+    "total_volume": 3200,
+    "bid_volumes": {
+      "21498.0": 50,
+      "21500.0": 100,
+      "21502.0": 400,
+      "21505.0": 450,
+      "21508.0": 350,
+      "21510.0": 250
+    },
+    "ask_volumes": {
+      "21498.0": 200,
+      "21500.0": 350,
+      "21502.0": 150,
+      "21505.0": 100,
+      "21508.0": 80,
+      "21510.0": 100,
+      "21512.0": 200,
+      "21515.0": 420
+    },
+    "poc_price": 21505.0,
+    "poc_volume": 550,
+    "vah": 21510.0,
+    "val": 21500.0,
+    "cvd": 250.0,
+    "bar_index": 46,
+    "timestamp": "2026-05-13T10:31:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 250.0,
+    "vah": 21510.0,
+    "val": 21500.0,
+    "poc": 21505.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0
+  },
+  "expected_signal": {
+    "signal_id": "DELT_07",
+    "direction": "BEARISH",
+    "strength_min": 0.25,
+    "strength_max": 0.45
+  }
+}

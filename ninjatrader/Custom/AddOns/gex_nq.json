@@ -1,0 +1,25 @@
+{
+  "_comment": "DEEP6 ATLAS GEX input file. Replace with live producer output. See HANDOFF.md §6.",
+  "_format_version": "1.0",
+  "_updated": "2026-04-26T14:30:00Z",
+
+  "instrument": "NQ",
+  "underlying_ref": "QQQ",
+  "spot_ref": 22150.50,
+
+  "flip": 22000.0,
+  "call_wall": 22300.0,
+  "put_wall": 21800.0,
+
+  "net_gex": 5000000000,
+  "dealer_gamma_position": "long",
+
+  "regime": "PositiveGamma",
+  "regime_confidence": 0.78,
+
+  "vanna_pinning_strikes": [22000, 22100, 22200],
+  "charm_decay_rate": 0.012,
+
+  "ts": "2026-04-26T14:30:00Z",
+  "stale_after_seconds": 300
+}

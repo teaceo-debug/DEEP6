@@ -1,3 +1,5 @@
+> ⚠️ ARCHIVED: Canonical source moved to opencode skill `ninjatrader-error-doctor`. This file is preserved for reference but is no longer the authoritative version. Do not edit.
+
 # ██ NINJASCRIPT ERROR SURGEON — ABSOLUTE EDITION v2.0 ██
 # NinjaTrader 8 | Every Error Known | Every Fix | Zero Ambiguity
 # Compiled from: NT8 Official Docs · 8+ Years of Forum Archives · SharkIndicators ·

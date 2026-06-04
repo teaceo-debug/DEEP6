@@ -1,0 +1,50 @@
+{
+  "name": "VOLP_02_volume_spike_then_drop",
+  "description": "Volume spikes >3× rolling avg then drops. Climactic volume followed by exhaustion — likely reversal point.",
+  "bar": {
+    "open": 21510.0,
+    "high": 21512.0,
+    "low": 21500.0,
+    "close": 21502.0,
+    "delta": -50,
+    "total_volume": 1200,
+    "bid_volumes": {
+      "21500.0": 150,
+      "21502.0": 200,
+      "21505.0": 180,
+      "21508.0": 120,
+      "21510.0": 100
+    },
+    "ask_volumes": {
+      "21502.0": 100,
+      "21505.0": 120,
+      "21508.0": 80,
+      "21510.0": 60,
+      "21512.0": 40
+    },
+    "poc_price": 21502.0,
+    "poc_volume": 300,
+    "vah": 21508.0,
+    "val": 21501.0,
+    "cvd": 400.0,
+    "bar_index": 52,
+    "timestamp": "2026-05-13T10:37:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 400.0,
+    "vah": 21508.0,
+    "val": 21501.0,
+    "poc": 21502.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "vol_history": [2000, 2200, 2100, 7500, 1200]
+  },
+  "expected_signal": {
+    "signal_id": "VOLP_02",
+    "direction": "BEARISH",
+    "strength_min": 0.30,
+    "strength_max": 0.50
+  }
+}

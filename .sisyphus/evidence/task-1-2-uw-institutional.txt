@@ -1,0 +1,12 @@
+schemas ok
+adapter ok
+LSP diagnostics:
+- gex_terminal/schemas_institutional.py: clean
+- gex_terminal/engine/adapters/unusual_whales.py: clean
+
+pytest gex_terminal/tests -v
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.0.3, pluggy-1.6.0
+collected 94 items
+
+Result: 94 passed in 72.50s (0:01:12)

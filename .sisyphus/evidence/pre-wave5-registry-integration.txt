@@ -1,0 +1,39 @@
+Pre-Wave 5: Registry Integration Evidence
+==========================================
+Date: 2026-05-27
+Status: PASS
+
+Summary:
+- DetectorRegistry.create_default() now conditionally registers DOM intelligence detectors
+- Guard: is_dom_intelligence_enabled() from feature_flags.py
+- DOMIntelligenceAdapter wraps DOM detectors (on_depth -> list[DOMIntelligenceEvent])
+  into IDepthConsumingDetector-compatible (on_depth -> None) with event buffering
+- 5 snapshot-consuming Tier-1 detectors registered via adapters:
+  - dom.imbalance.v1 (OrderBookImbalanceDetector)
+  - dom.thinness.v1 (LiquidityThinnessDetector)
+  - dom.absorption.v1 (AbsorptionDOMDetector)
+  - dom.sweep_reload.v1 (SweepReloadDetector)
+  - dom.iceberg.v1 (IcebergRefillDetector)
+- CVDDetector excluded from snapshot adapter path (uses update_trade, not on_depth)
+  - Must be wired into trade stream separately
+- drain_dom_intelligence_events() returns collected events from all adapters
+- Exception isolation: detector exceptions are caught and logged, not propagated
+- Buffer bounded: deque(maxlen=500) prevents unbounded growth
+
+Test results (11/11 pass):
+  test_dom_detectors_registered_when_enabled PASSED
+  test_dom_detectors_not_registered_when_disabled PASSED
+  test_existing_detectors_unaffected_by_dom_flag PASSED
+  test_dom_detector_ids_match_tier1_snapshot_taxonomy PASSED
+  test_on_depth_dispatches_to_dom_adapters PASSED
+  test_drain_dom_events_returns_list PASSED
+  test_drain_clears_buffer PASSED
+  test_adapter_rejects_invalid_detector PASSED
+  test_adapter_collects_events PASSED
+  test_adapter_exception_isolation PASSED
+  test_adapter_respects_max_buffer PASSED
+
+Files modified:
+  deep6v2/signals/registry.py
+Files created:
+  tests_v2/dom_intelligence/test_registry_integration.py

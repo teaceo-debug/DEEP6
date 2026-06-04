@@ -1,0 +1,16 @@
+>> python -c "from gex_terminal.schemas import GEXTerminalSnapshot; print(list(GEXTerminalSnapshot.model_fields.keys()))"
+['timestamp', 'bias', 'levels', 'dealer', 'flow', 'vanna_charm', 'zero_dte', 'narrative', 'sources', 'deep6_bias_score', 'deep6_bias_label', 'deep6_confidence', 'cost_today_usd']
+
+>> python -c "from gex_terminal.schemas import BiasVerdict; v = BiasVerdict(direction='BULLISH', confidence=85, grade='A', regime_name='test'); print(v.model_dump_json())"
+{"direction":"BULLISH","confidence":85,"grade":"A","regime_name":"test"}
+
+>> python -c "from gex_terminal.schemas import BiasVerdict; v = BiasVerdict(direction='BULLISH', confidence=85, grade='A', regime_name='test'); v.confidence = 90; print('FAIL')"
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "C:\Users\Tea\DEEP6\gex_terminal\schemas.py", line 15, in __setattr__
+    raise TypeError(f"{self.__class__.__name__} is frozen")
+TypeError: BiasVerdict is frozen
+
+>> python -c "from gex_terminal.schemas import GEXDoctorPayload; fields = GEXDoctorPayload.model_fields; print('score type:', fields['score'].annotation, 'max_range type:', fields['max_range'].annotation, 'updated_at type:', fields['updated_at'].annotation)"
+score type: <class 'int'> max_range type: <class 'int'> updated_at type: <class 'float'>
+

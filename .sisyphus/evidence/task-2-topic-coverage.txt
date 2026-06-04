@@ -1,0 +1,7 @@
+﻿install : 29 matches
+uninstall : 13 matches
+editor : 22 matches
+F5 : 5 matches
+compile : 15 matches
+shortcut : 10 matches
+workspace : 29 matches

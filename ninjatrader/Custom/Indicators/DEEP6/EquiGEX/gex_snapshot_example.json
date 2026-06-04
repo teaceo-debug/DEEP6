@@ -1,0 +1,28 @@
+{
+  "asof": "2024-05-20T15:30:00Z",
+  "underlying": "ES",
+  "spot": 5308.75,
+  "weekly": {
+    "strikes": [
+      { "k": 5100, "gex": -0.42 },
+      { "k": 5200, "gex": 0.34 },
+      { "k": 5300, "gex": 0.85 },
+      { "k": 5375, "gex": 1.20 }
+    ],
+    "call_wall": 5375,
+    "zero_gamma": 5240,
+    "put_wall": 5115,
+    "net_gex": 1.32
+  },
+  "daily": {
+    "strikes": [
+      { "k": 5270, "gex": -0.25 },
+      { "k": 5302, "gex": 0.10 },
+      { "k": 5325, "gex": 0.55 }
+    ],
+    "call_wall": 5325,
+    "zero_gamma": 5302,
+    "put_wall": 5270,
+    "net_gex": -0.24
+  }
+}

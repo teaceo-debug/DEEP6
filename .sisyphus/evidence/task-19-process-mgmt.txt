@@ -1,0 +1,11 @@
+Verification:
+
+1. `python -c "from gex_terminal.engine.logger import setup_logging, LOG_FILE; print('logger ok:', LOG_FILE)"`
+   - Output: `logger ok: C:\Users\Tea\.deep6\gexdoctor_v2.log`
+
+2. `python -m gex_terminal --dry-run`
+   - Output: config validated with expected port/refresh/model/key status lines.
+
+Diagnostics:
+- `lsp_diagnostics` on `gex_terminal/__main__.py`: no diagnostics found
+- `lsp_diagnostics` on `gex_terminal/engine/logger.py`: no diagnostics found

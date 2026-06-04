@@ -1,0 +1,52 @@
+{
+  "name": "DELT_09_delta_at_session_extreme",
+  "description": "Delta at session maximum. Current bar's cumulative delta is the highest of the session — peak buying pressure.",
+  "bar": {
+    "open": 21515.0,
+    "high": 21535.0,
+    "low": 21512.0,
+    "close": 21532.0,
+    "delta": 550,
+    "total_volume": 3400,
+    "bid_volumes": {
+      "21512.0": 80,
+      "21515.0": 120,
+      "21518.0": 200,
+      "21520.0": 250,
+      "21525.0": 200
+    },
+    "ask_volumes": {
+      "21515.0": 300,
+      "21518.0": 350,
+      "21520.0": 450,
+      "21525.0": 400,
+      "21530.0": 350,
+      "21532.0": 250,
+      "21535.0": 150
+    },
+    "poc_price": 21520.0,
+    "poc_volume": 700,
+    "vah": 21530.0,
+    "val": 21516.0,
+    "cvd": 1200.0,
+    "bar_index": 85,
+    "timestamp": "2026-05-13T11:10:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 12.0,
+    "cvd": 1200.0,
+    "vah": 21530.0,
+    "val": 21516.0,
+    "poc": 21520.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "delta_history": [100, 200, 300, 400, 500, 550]
+  },
+  "expected_signal": {
+    "signal_id": "DELT_09",
+    "direction": "BULLISH",
+    "strength_min": 0.30,
+    "strength_max": 0.50
+  }
+}

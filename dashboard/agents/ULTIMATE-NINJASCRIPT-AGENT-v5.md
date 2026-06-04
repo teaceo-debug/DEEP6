@@ -1,3 +1,5 @@
+> ⚠️ ARCHIVED: Canonical source moved to opencode skill `ninjatrader-builder-doctor`. This file is preserved for reference but is no longer the authoritative version. Do not edit.
+
 # ULTIMATE NINJASCRIPT EXPERT AGENT — v3.0
 # NinjaTrader 8 | Indicators | Strategies | Order Flow | ICT | Prop Firm
 

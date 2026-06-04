@@ -1,0 +1,17 @@
+Task 12 verification evidence
+
+Files:
+- depth_radar_desktop/live/live_tab.py
+- depth_radar_desktop/__main__.py
+
+LSP diagnostics:
+- live_tab.py: clean
+- __main__.py: clean
+
+Commands:
+python -c "from depth_radar_desktop.live.live_tab import LiveTab; print('live_tab OK')"
+python -m depth_radar_desktop --dry-run
+
+Output:
+live_tab OK
+Depth Radar Desktop v0.1.0 -- Dry-run OK

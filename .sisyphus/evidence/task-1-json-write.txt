@@ -1,0 +1,2 @@
+Created bias-v3 JSON writer with NT8 display payload fields.
+Validated JSON serialization in pytest against a representative MarketBiasSnapshot.

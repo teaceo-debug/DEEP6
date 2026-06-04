@@ -1,0 +1,27 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.0.3, pluggy-1.6.0 -- C:\Users\Tea\AppData\Local\Programs\Python\Python311\python.exe
+cachedir: .pytest_cache
+benchmark: 5.2.3 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: C:\Users\Tea\DEEP6\gexdoctor
+configfile: pyproject.toml
+plugins: anyio-4.13.0, asyncio-1.3.0, benchmark-5.2.3
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 15 items
+
+tests/test_magnet_scorer.py::TestMagnetScorerSelection::test_select_call_wall_as_magnet PASSED [  6%]
+tests/test_magnet_scorer.py::TestMagnetScorerSelection::test_pin_magnet_wins_high_pin_risk PASSED [ 13%]
+tests/test_magnet_scorer.py::TestMagnetScorerSelection::test_score_below_threshold_no_magnet PASSED [ 20%]
+tests/test_magnet_scorer.py::TestMagnetScorerSelection::test_no_levels_returns_no_magnet PASSED [ 26%]
+tests/test_magnet_scorer.py::TestMagnetScorerSelection::test_negative_gex_weights_gamma_flip PASSED [ 33%]
+tests/test_magnet_scorer.py::TestMagnetScorerSelection::test_gamma_flip_regime_alignment PASSED [ 40%]
+tests/test_magnet_scorer.py::TestAntiFlicker::test_anti_flicker_blocks_small_improvement PASSED [ 46%]
+tests/test_magnet_scorer.py::TestAntiFlicker::test_anti_flicker_allows_large_improvement PASSED [ 53%]
+tests/test_magnet_scorer.py::TestAntiFlicker::test_anti_flicker_force_refresh PASSED [ 60%]
+tests/test_magnet_scorer.py::TestInvalidation::test_every_magnet_has_invalidation PASSED [ 66%]
+tests/test_magnet_scorer.py::TestInvalidation::test_call_wall_invalidation_above PASSED [ 73%]
+tests/test_magnet_scorer.py::TestInvalidation::test_put_wall_invalidation_below PASSED [ 80%]
+tests/test_magnet_scorer.py::TestEdgeCases::test_max_pain_expiry_boost_0dte PASSED [ 86%]
+tests/test_magnet_scorer.py::TestEdgeCases::test_amplifying_flow_boosts_score PASSED [ 93%]
+tests/test_magnet_scorer.py::TestEdgeCases::test_constants_match_spec PASSED [100%]
+
+============================= 15 passed in 0.19s ==============================

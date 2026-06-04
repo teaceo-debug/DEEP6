@@ -1,0 +1,12 @@
+Files created:
+  ninjatrader/tests/MADConfluenceAI/MADConfluenceAITestBase.cs — base test class with fixture POCOs and LoadFixture helper
+  ninjatrader/tests/MADConfluenceAI/fixtures/abs-01-example.json — example ABS-01 absorption fixture
+  ninjatrader/tests/MADConfluenceAI/FixtureTests.cs — 2 tests verifying fixture loading and directory existence
+
+Files modified:
+  ninjatrader/tests/ninjatrader.tests.csproj — added MADConfluenceAI\fixtures\**\*.json CopyToOutputDirectory=PreserveNewest
+
+Verification:
+  Build was already broken pre-T4 (DataTypesTests.cs from prior task has CS0234 errors).
+  T4 files introduce no new compilation errors — MADConfluenceAITestBase.cs, FixtureTests.cs, and JSON fixture are clean.
+  csproj correctly updated with fixture copy rule at line 56.

@@ -9,7 +9,7 @@ This document covers the full data path from backend wire to screen pixel, the s
 ```
 Python FastAPI backend
         |
-        | WebSocket  ws://localhost:8000/ws/live
+        | WebSocket  ws://<backend-host>:<backend-port>/ws/live
         |            (JSON, discriminated by `type` field)
         v
   useWebSocket.ts       (app/page.tsx mounts this hook)
@@ -111,7 +111,7 @@ ReplayState {
 
 ## Message Types
 
-All messages are JSON with a `type` discriminator. TypeScript types live in `types/deep6.ts`; Python mirrors live in `deep6/api/schemas.py`.
+All messages are JSON with a `type` discriminator. TypeScript types live in `types/deep6.ts`; Python mirrors live in `deep6/api/schemas.py`. Backend host/port are deployment-specific and should be configured explicitly rather than assumed from historical docs.
 
 ```typescript
 LiveBarMessage    { type:'bar',    session_id, bar_index, bar: FootprintBar }

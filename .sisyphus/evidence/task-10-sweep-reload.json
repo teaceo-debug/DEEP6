@@ -1,0 +1,32 @@
+{
+  "task": 10,
+  "name": "sweep-reload-detector",
+  "detector_id": "dom.sweep_reload.v1",
+  "signal_id": "ABS_02",
+  "status": "passed",
+  "verified_at": "2026-05-27",
+  "files": {
+    "detector": "deep6v2/signals/dom/detectors/sweep_reload.py",
+    "tests": "tests_v2/dom_intelligence/test_sweep_reload.py"
+  },
+  "coverage": [
+    "positive sweep->reload emits ABS_02 only on reload",
+    "sweep without reload stays silent",
+    "reload without sweep stays silent",
+    "timeout resets swept state when reload window is missed",
+    "bid reload maps to bullish and ask reload maps to bearish",
+    "simultaneous bid/ask reloads emit separate events"
+  ],
+  "thresholds": {
+    "sweep_threshold": 20,
+    "reload_threshold": 150,
+    "max_reload_snapshots": 3,
+    "max_tracked_levels": 20
+  },
+  "verification": {
+    "lsp_diagnostics": "clean on changed files",
+    "pytest_command": "python3 -m pytest tests_v2/dom_intelligence/test_sweep_reload.py -v",
+    "pytest_result": "6 passed, 1 warning in 0.74s",
+    "warning": "PytestConfigWarning: Unknown config option: asyncio_mode in pyproject.toml"
+  }
+}

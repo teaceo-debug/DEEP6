@@ -82,6 +82,12 @@
 
   /* Canvas font stack — read once on renderer init via getComputedStyle */
   --font-mono-canvas: 'JetBrains Mono', 'ui-monospace', 'Menlo', monospace;
+
+  /* DepthRadar — wall intent classification palette */
+  --intent-passive: #2B8CFF;
+  --intent-spoof: #FF3B5C;
+  --intent-reserve: #00D4AA;
+  --intent-migratory: #FFB347;
 }
 
 /* =====================================================================
@@ -110,6 +116,12 @@
 
   /* Font */
   --font-mono: var(--font-jetbrains-mono);
+
+  /* DepthRadar intents */
+  --color-intent-passive: var(--intent-passive);
+  --color-intent-spoof: var(--intent-spoof);
+  --color-intent-reserve: var(--intent-reserve);
+  --color-intent-migratory: var(--intent-migratory);
 }
 
 /* =====================================================================

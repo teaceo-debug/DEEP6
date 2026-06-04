@@ -1,0 +1,60 @@
+{
+  "name": "composite_absorption_multiple_signals",
+  "description": "Multiple absorption signals fire simultaneously: ABS_01 + ABS_03 + ABS_04. Heavy absorption at low wick with POC in wick and compressed range.",
+  "bar": {
+    "open": 21490.0,
+    "high": 21495.0,
+    "low": 21468.0,
+    "close": 21488.0,
+    "delta": -350,
+    "total_volume": 5000,
+    "bid_volumes": {
+      "21468.0": 1200,
+      "21468.25": 800,
+      "21470.0": 600,
+      "21472.0": 400,
+      "21475.0": 300,
+      "21480.0": 200,
+      "21485.0": 150,
+      "21490.0": 100
+    },
+    "ask_volumes": {
+      "21468.0": 50,
+      "21470.0": 80,
+      "21475.0": 120,
+      "21480.0": 200,
+      "21485.0": 250,
+      "21488.0": 200,
+      "21490.0": 150,
+      "21495.0": 100
+    },
+    "poc_price": 21468.0,
+    "poc_volume": 1250,
+    "vah": 21488.0,
+    "val": 21469.0,
+    "cvd": -200.0,
+    "bar_index": 35,
+    "timestamp": "2026-05-13T10:20:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 12.0,
+    "cvd": -200.0,
+    "vah": 21488.0,
+    "val": 21469.0,
+    "poc": 21468.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0
+  },
+  "expected_signals": [
+    {"signal_id": "ABS_01", "direction": "BULLISH", "strength_min": 0.40, "strength_max": 0.60},
+    {"signal_id": "ABS_03", "direction": "BULLISH", "strength_min": 0.35, "strength_max": 0.55},
+    {"signal_id": "ABS_04", "direction": "NEUTRAL", "strength_min": 0.20, "strength_max": 0.40}
+  ],
+  "expected_signal": {
+    "signal_id": "ABS_01",
+    "direction": "BULLISH",
+    "strength_min": 0.40,
+    "strength_max": 0.60
+  }
+}

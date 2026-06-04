@@ -1,0 +1,51 @@
+{
+  "name": "EXH_04_fat_print_neutral_delta",
+  "description": "Fat print with neutral delta at level. High volume but balanced bid/ask — market tested level exhaustively with no directional conviction.",
+  "bar": {
+    "open": 21500.0,
+    "high": 21510.0,
+    "low": 21490.0,
+    "close": 21502.0,
+    "delta": 15,
+    "total_volume": 3600,
+    "bid_volumes": {
+      "21490.0": 200,
+      "21495.0": 350,
+      "21498.0": 500,
+      "21500.0": 600,
+      "21502.0": 300,
+      "21505.0": 200
+    },
+    "ask_volumes": {
+      "21498.0": 480,
+      "21500.0": 580,
+      "21502.0": 250,
+      "21505.0": 300,
+      "21508.0": 200,
+      "21510.0": 140
+    },
+    "poc_price": 21500.0,
+    "poc_volume": 1180,
+    "vah": 21506.0,
+    "val": 21496.0,
+    "cvd": 120.0,
+    "bar_index": 50,
+    "timestamp": "2026-05-13T10:35:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 120.0,
+    "vah": 21506.0,
+    "val": 21496.0,
+    "poc": 21500.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0
+  },
+  "expected_signal": {
+    "signal_id": "EXH_04",
+    "direction": "NEUTRAL",
+    "strength_min": 0.20,
+    "strength_max": 0.40
+  }
+}

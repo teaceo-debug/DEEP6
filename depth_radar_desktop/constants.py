@@ -1,0 +1,12 @@
+APP_NAME = "Depth Radar Desktop"
+APP_VERSION = "0.1.0"
+SYMBOL = "NQ"
+TICK_SIZE = 0.25  # NQ tick size in points
+UPDATE_INTERVAL_MS = 500  # UI refresh interval
+WINDOW_WIDTH = 1400
+WINDOW_HEIGHT = 900
+MIN_WINDOW_WIDTH = 1000
+MIN_WINDOW_HEIGHT = 600
+MAX_ALERTS = 50  # FIFO cap for touch alerts
+MARKETS_CLOSED_TIMEOUT_SEC = 60  # Seconds without data before showing "Markets Closed"
+TOUCH_BAND_TICKS = 4  # Ticks from mid to trigger touch alert

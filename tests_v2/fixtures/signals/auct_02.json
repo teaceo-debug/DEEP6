@@ -1,0 +1,52 @@
+{
+  "name": "AUCT_02_declining_volume_at_extreme",
+  "description": "Bar extreme shows declining volume profile — auction complete. Volume tapers off toward the high, indicating natural exhaustion.",
+  "bar": {
+    "open": 21495.0,
+    "high": 21515.0,
+    "low": 21493.0,
+    "close": 21498.0,
+    "delta": 100,
+    "total_volume": 2600,
+    "bid_volumes": {
+      "21493.0": 80,
+      "21495.0": 200,
+      "21498.0": 300,
+      "21500.0": 250,
+      "21505.0": 150
+    },
+    "ask_volumes": {
+      "21495.0": 250,
+      "21498.0": 350,
+      "21500.0": 300,
+      "21505.0": 200,
+      "21508.0": 120,
+      "21510.0": 60,
+      "21513.0": 25,
+      "21515.0": 10
+    },
+    "poc_price": 21498.0,
+    "poc_volume": 650,
+    "vah": 21505.0,
+    "val": 21495.0,
+    "cvd": 350.0,
+    "bar_index": 42,
+    "timestamp": "2026-05-13T10:27:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 350.0,
+    "vah": 21505.0,
+    "val": 21495.0,
+    "poc": 21498.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0
+  },
+  "expected_signal": {
+    "signal_id": "AUCT_02",
+    "direction": "BEARISH",
+    "strength_min": 0.25,
+    "strength_max": 0.45
+  }
+}

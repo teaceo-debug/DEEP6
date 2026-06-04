@@ -1,0 +1,58 @@
+File modified: MADConfluenceAI.Rendering.cs
+Line count: 920 (must be < 1500) -- PASS
+Render methods implemented: 8 (levels, markers, absorption, sweep, imbalance, dashboard, SL/TP, heatmap)
+Build result: 0 errors from Rendering.cs (2 pre-existing errors in DEEP6Strategy.cs EMA reference)
+Tests project: 0 errors (ninjatrader.tests.csproj)
+
+=== T22: Level Zone Rendering ===
+- RenderLevelZones(): draws horizontal zone rectangles (+-1 tick height) for each MADLevel from _levelEngine
+- Color-coded by MADLevelType via GetLevelBrush() — 13 brush variants covering PDH/PDL/PDM, VWAP+bands, POC, VAH/VAL, OR, Session, Psych, NakedPoc, PrevWeek
+- Labels at right edge via GetLevelLabel() with prefix + price: "PDH 20100.25"
+- Max 50 levels rendered per frame
+- Visibility gated by ShowLevelZones toggle
+
+=== T23: Signal Markers ===
+- RenderSignalMarkers(): PathGeometry triangles (up=green/Long, down=red/Short)
+- Arrow size proportional to strength (6px base + 8px * strength)
+- RenderAbsorptionZones(): cyan dots at absorption price levels, radius 3-7px by strength
+- RenderSweepMarkers(): magenta horizontal line with direction arrow, 3-bar width
+- RenderImbalanceHighlights(): colored rectangles at imbalance levels (blue=ask, red=bid), last 6 bars
+- Each type controlled by independent visibility toggle
+
+=== T24: Confidence Dashboard ===
+- RenderConfidenceDashboard(): top-right corner, 220x260px semi-transparent dark panel
+- Large score number (28pt) colored: Green>=75, Yellow 60-74, Orange 40-59, Red<40
+- Tier badge pill: ELITE/HIGH/MOD/WAIT/DNT with matching color
+- Action line: LONG/SHORT/WAIT/DO NOT TRADE
+- Setup type name
+- 7 category bars (ABS, EXH, DLT, IMB, ICE, LIQ, TRP) with fill proportional to signal strength
+- Regime badge
+- Session info (RTH/ETH, ATR)
+- Visibility gated by ShowDashboard toggle
+
+=== T25: SL/TP Projection ===
+- RenderSlTpProjection(): only renders when Action is Long or Short
+- Entry zone: +-1 tick, semi-transparent white fill
+- Stop loss: dashed red line with label "SL: {price} ({ticks}t)"
+- Take profit: dashed green line with label "TP: {price} ({ticks}t)"
+- Risk zone: red 15% rectangle entry->SL
+- Reward zone: green 15% rectangle entry->TP
+- R:R label centered between entry and target
+- Visibility gated by ShowSlTp toggle
+
+=== T26: Delta Heatmap ===
+- RenderDeltaHeatmap(): last 20 bars, per-tick-level delta coloring
+- Green (buy dominant) / Red (sell dominant), opacity 20-60% proportional to delta intensity
+- Cell size: 1 tick height x bar width
+- Only levels between bar High and Low
+- Performance monitoring: Stopwatch tracks avg render time, auto-disables heatmap if avg > 8ms over 10 frames
+- 8Hz render throttle (125ms minimum between frames)
+- Visibility gated by ShowHeatmap toggle
+
+=== Architecture ===
+- All 43 brushes + 7 text formats + 1 stroke style created in OnRenderTargetChanged
+- All disposed in DisposeDx() via SafeDispose/SafeDisposeFormat helpers
+- DisposeDx called from OnRenderTargetChanged (before recreate) and State.Terminated
+- No Draw.* methods used — pure SharpDX
+- No references to AddOns.DEEP6
+- Safe null checks on all volatile state fields (_decision, _scorerResult, _bars, _levelEngine, etc.)

@@ -1,0 +1,55 @@
+{
+  "name": "IMB_01_standard_buy_imbalance",
+  "description": "Standard imbalance: ask_vol/bid_vol >= 3.0 at a price level. Aggressive buyers overwhelm sellers — BULLISH.",
+  "bar": {
+    "open": 21480.0,
+    "high": 21498.0,
+    "low": 21478.0,
+    "close": 21495.0,
+    "delta": 280,
+    "total_volume": 2600,
+    "bid_volumes": {
+      "21478.0": 60,
+      "21480.0": 100,
+      "21483.0": 120,
+      "21485.0": 80,
+      "21488.0": 150,
+      "21490.0": 200,
+      "21493.0": 180,
+      "21495.0": 100
+    },
+    "ask_volumes": {
+      "21480.0": 300,
+      "21483.0": 400,
+      "21485.0": 250,
+      "21488.0": 200,
+      "21490.0": 150,
+      "21493.0": 120,
+      "21495.0": 80,
+      "21498.0": 60
+    },
+    "poc_price": 21483.0,
+    "poc_volume": 520,
+    "vah": 21494.0,
+    "val": 21480.0,
+    "cvd": 350.0,
+    "bar_index": 32,
+    "timestamp": "2026-05-13T10:17:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 350.0,
+    "vah": 21494.0,
+    "val": 21480.0,
+    "poc": 21483.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0
+  },
+  "expected_signal": {
+    "signal_id": "IMB_01",
+    "direction": "BULLISH",
+    "strength_min": 0.30,
+    "strength_max": 0.50
+  }
+}

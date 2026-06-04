@@ -1,0 +1,8 @@
+﻿[COMPILE-RESULT] SUCCESS 2026-05-26 01:21:38.572
+All 5 changes applied to DEEP6FootprintV8.cs:
+1. Added _rtExhDetector field (line ~98)
+2. Initialized _rtExhDetector in State.DataLoaded and session reset
+3. Restructured OnBarUpdate with RT detection branch
+4. Added RunRealtimeDetection() method (~100 lines)
+5. Added RT drawing cleanup on bar close
+ExhaustionDetector.ResetCooldowns() already existed - no change needed.

@@ -1,0 +1,56 @@
+{
+  "name": "IMB_09_imbalance_direction_reversal",
+  "description": "Imbalance pattern reverses direction between consecutive bars. Prior bar had sell imbalance, current bar has buy imbalance — directional flip.",
+  "bar": {
+    "open": 21485.0,
+    "high": 21500.0,
+    "low": 21483.0,
+    "close": 21498.0,
+    "delta": 220,
+    "total_volume": 2500,
+    "bid_volumes": {
+      "21483.0": 50,
+      "21485.0": 80,
+      "21488.0": 100,
+      "21490.0": 120,
+      "21493.0": 150,
+      "21495.0": 180
+    },
+    "ask_volumes": {
+      "21485.0": 200,
+      "21488.0": 300,
+      "21490.0": 350,
+      "21493.0": 280,
+      "21495.0": 200,
+      "21498.0": 150,
+      "21500.0": 80
+    },
+    "poc_price": 21490.0,
+    "poc_volume": 470,
+    "vah": 21496.0,
+    "val": 21486.0,
+    "cvd": 300.0,
+    "bar_index": 68,
+    "timestamp": "2026-05-13T10:53:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 300.0,
+    "vah": 21496.0,
+    "val": 21486.0,
+    "poc": 21490.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "imbalance_history": [
+      {"21490.0": -3.5},
+      {"21490.0": 3.2}
+    ]
+  },
+  "expected_signal": {
+    "signal_id": "IMB_09",
+    "direction": "BULLISH",
+    "strength_min": 0.30,
+    "strength_max": 0.50
+  }
+}

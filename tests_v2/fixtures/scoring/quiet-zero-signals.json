@@ -1,0 +1,42 @@
+{
+  "name": "quiet_zero_signals",
+  "description": "No signals active. Plain bar with no notable microstructure features — should produce QUIET tier.",
+  "bar": {
+    "open": 21500.0,
+    "high": 21505.0,
+    "low": 21498.0,
+    "close": 21502.0,
+    "delta": 10,
+    "total_volume": 800,
+    "bid_volumes": {
+      "21498.0": 100,
+      "21500.0": 150,
+      "21502.0": 120
+    },
+    "ask_volumes": {
+      "21500.0": 130,
+      "21502.0": 140,
+      "21505.0": 110
+    },
+    "poc_price": 21500.0,
+    "poc_volume": 280,
+    "vah": 21503.0,
+    "val": 21499.0,
+    "cvd": 50.0,
+    "bar_index": 50,
+    "timestamp": "2026-05-13T10:35:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 50.0,
+    "vah": 21503.0,
+    "val": 21499.0,
+    "poc": 21500.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0
+  },
+  "active_signals": [],
+  "expected_tier": "QUIET",
+  "expected_score_range": [0, 30]
+}

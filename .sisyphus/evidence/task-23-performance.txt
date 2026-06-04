@@ -1,0 +1,13 @@
+Task 23: Performance Benchmarks — PASS
+Date: 2026-05-27
+Tests: 3/3 pass
+
+Configuration:
+  Updates: 1000 synthetic DOMSnapshot updates
+  Detectors: All Tier-1 (5 snapshot-based) + Tier-2 (4 snapshot-based) = 9 detectors
+  Model: Serial execution
+
+Results:
+  Individual detector latency: ALL ≤0.08ms mean per on_depth call — PASS
+  Memory growth: ≤10% over 1000-update window — PASS
+  Total wall time: <5.0 seconds for all detectors × 1000 updates — PASS

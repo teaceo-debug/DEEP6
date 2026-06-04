@@ -1,0 +1,40 @@
+Must Have [19/20 items found]
+✅ pre-allocated long[] arrays (`bidVolumes`, `askVolumes`, size 4000) — NOT `Dictionary` in hot path
+✅ `volatile` reference on `_renderSnapshot`
+✅ `Interlocked.Exchange` / `Interlocked.Read` used (not `lock()` in `OnMarketDepth`)
+✅ `Operation.Remove` → sets volume to 0 (not just return/skip)
+✅ `IsInHitTest` check as FIRST line of `OnRender`
+✅ `MakeFrozenBrush` static helper for WPF Brush defaults
+✅ 5 configurable parameters: `MaxLevels`, `MinVolumeFloor`, `MinPersistenceMs`, `ThrottleIntervalMs`, `ZoneBandTicks`
+✅ `MinPersistenceMs` spoof filter implemented (persistence Dictionary in TIMER, not in `OnMarketDepth`)
+✅ `MinVolumeFloor` filter applied in level scan
+✅ Throttle timer fires at configurable interval (not per-callback invalidation)
+✅ `AntialiasMode.Aliased` set in `OnRender`
+✅ `OnRenderTargetChanged` calls `DisposeDx()` as FIRST action
+✅ All SharpDX brushes created in `OnRenderTargetChanged`, disposed in `DisposeDx()`
+✅ `DrawText()` used (NOT `TextLayout` allocation in `OnRender`)
+✅ Performance logging to `%TEMP%\DEEP6LiquidityLevels-perf.log`
+✅ Session boundary reset in `OnBarUpdate` on `Bars.IsFirstBarOfSession`
+❌ NinjaScript factory region at end of file (REJECT)
+✅ Array bounds check with recentering when price drifts
+✅ `Environment.TickCount` (NOT `TickCount64` — .NET 4.8 compat)
+✅ Connection-loss detection: stale check (5 seconds without DOM update → `isStale`)
+
+Must NOT Have [10/10 clean]
+✅ (0 matches) `new` keyword inside `OnMarketDepth` method body
+✅ (0 matches) `.Where(` or `.Select(` or `.OrderBy(` inside `OnMarketDepth` (LINQ)
+✅ (0 matches) `lock(` inside `OnMarketDepth` (Monitor.Enter in hot path)
+✅ (0 matches) `new SolidColorBrush` or `new TextLayout` inside `OnRender` method body
+✅ (0 matches) `DetectorRegistry` — no signal engine integration
+✅ (0 matches) `ConfluenceScorer` — no signal engine integration
+✅ (0 matches) `SessionContext` — no signal engine integration
+✅ (0 matches) `Series<` — no bar-indexed historical storage
+✅ (0 matches) `TickCount64` — .NET 6+ only, not available in NT8 (.NET 4.8)
+✅ (0 matches) `PlaySound` or `Alert(` or `SendMail` — no alerting
+
+Tasks Completed [4/4] — T1 [x], T2 [x], T3 [x], T4 [x]
+Evidence Files: task-1-hittest-guard.txt, task-1-remove-handling.txt, task-1-thread-safety-check.txt, task-2-deploy-compile.txt, task-3-visual-qa.png, task-3-output-window.png, task-4-render-perf.txt, task-4-callback-rate.txt, task-4-cpu-impact.txt
+Performance: Avg render 0.06ms ✅, DOM 534-916/sec ✅
+
+VERDICT: REJECT
+Reason: Missing required NinjaScript factory region at the end of `ninjatrader/Custom/Indicators/DEEP6/DEEP6LiquidityLevels.cs`.

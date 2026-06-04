@@ -1,0 +1,23 @@
+{
+  "created_at": "2026-05-13T00:00:00Z",
+  "qa": [
+    {
+      "command": "powershell -File \".claude/skills/nt8-build-verify/scripts/runtime_check.ps1\" -ClassName \"DEEP6Signal\" -WindowSeconds 5",
+      "output": {
+        "check_window_seconds": 5,
+        "log_file": "C:\\Users\\Tea\\Documents\\NinjaTrader 8\\log\\log.20260513.00001.en.txt",
+        "errors": [],
+        "runtime_errors_found": 0
+      }
+    },
+    {
+      "command": "powershell -File \".claude/skills/nt8-build-verify/scripts/runtime_check.ps1\" -ClassName \"FakeIndicator\" -WindowSeconds 1",
+      "output": {
+        "check_window_seconds": 1,
+        "log_file": "C:\\Users\\Tea\\Documents\\NinjaTrader 8\\log\\log.20260513.00001.en.txt",
+        "errors": [],
+        "runtime_errors_found": 0
+      }
+    }
+  ]
+}

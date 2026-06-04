@@ -1,0 +1,257 @@
+{
+  "data_summary": {
+    "parsed_rows": 4999,
+    "alerts_by_type": {
+      "absorption": 3267,
+      "intraday_level": 202,
+      "session_level": 1530
+    },
+    "session_messages": 431,
+    "unique_type_message_pairs": 3900,
+    "coverage_by_type": [
+      {
+        "level_type": "absorption",
+        "first_timestamp_utc": "2024-08-20T13:56:11+00:00",
+        "last_timestamp_utc": "2026-05-29T19:27:18+00:00",
+        "rows": 3267
+      },
+      {
+        "level_type": "intraday_level",
+        "first_timestamp_utc": "2024-06-12T13:50:51+00:00",
+        "last_timestamp_utc": "2024-08-16T16:41:55+00:00",
+        "rows": 202
+      },
+      {
+        "level_type": "session_level",
+        "first_timestamp_utc": "2024-08-28T12:33:27+00:00",
+        "last_timestamp_utc": "2026-05-29T12:47:52+00:00",
+        "rows": 1530
+      }
+    ]
+  },
+  "active_level_days": 324,
+  "active_level_rows": 2535,
+  "touch_rows": 11343,
+  "resolved_touch_rows": 11276,
+  "unresolved_touch_rows": 67,
+  "type_reactivity": [
+    {
+      "level_type": "absorption",
+      "n": 5271,
+      "bounce_n": 2919,
+      "break_n": 2352,
+      "bounce_rate": 55.38
+    },
+    {
+      "level_type": "intraday_level",
+      "n": 0,
+      "bounce_n": 0,
+      "break_n": 0,
+      "bounce_rate": null
+    },
+    {
+      "level_type": "session_level",
+      "n": 6005,
+      "bounce_n": 3390,
+      "break_n": 2615,
+      "bounce_rate": 56.45
+    }
+  ],
+  "cluster_reactivity": [
+    {
+      "cluster_type_count": 1,
+      "n": 10528,
+      "bounce_n": 5909,
+      "break_n": 4619,
+      "bounce_rate": 56.13
+    },
+    {
+      "cluster_type_count": 2,
+      "n": 748,
+      "bounce_n": 400,
+      "break_n": 348,
+      "bounce_rate": 53.48
+    }
+  ],
+  "touch_number_reactivity": [
+    {
+      "test_number_bucket": "3+",
+      "n": 8561,
+      "bounce_n": 4858,
+      "break_n": 3703,
+      "bounce_rate": 56.75
+    },
+    {
+      "test_number_bucket": "2",
+      "n": 1258,
+      "bounce_n": 684,
+      "break_n": 574,
+      "bounce_rate": 54.37
+    },
+    {
+      "test_number_bucket": "1",
+      "n": 1457,
+      "bounce_n": 767,
+      "break_n": 690,
+      "bounce_rate": 52.64
+    }
+  ],
+  "first_touch_reactivity": [
+    {
+      "level_type": "absorption",
+      "n": 723,
+      "bounce_n": 393,
+      "break_n": 330,
+      "bounce_rate": 54.36
+    },
+    {
+      "level_type": "intraday_level",
+      "n": 0,
+      "bounce_n": 0,
+      "break_n": 0,
+      "bounce_rate": null
+    },
+    {
+      "level_type": "session_level",
+      "n": 734,
+      "bounce_n": 374,
+      "break_n": 360,
+      "bounce_rate": 50.95
+    }
+  ],
+  "clustered_vs_nonclustered": [
+    {
+      "group": "clustered_2plus_types",
+      "n": 748,
+      "bounce_rate": 53.48
+    },
+    {
+      "group": "single_type",
+      "n": 10528,
+      "bounce_rate": 56.13
+    }
+  ],
+  "second_touch_after_bounce": {
+    "n": 660,
+    "bounce_rate": 53.64,
+    "by_type": [
+      {
+        "level_type": "session_level",
+        "n": 322,
+        "bounce_n": 175,
+        "break_n": 147,
+        "bounce_rate": 54.35
+      },
+      {
+        "level_type": "absorption",
+        "n": 338,
+        "bounce_n": 179,
+        "break_n": 159,
+        "bounce_rate": 52.96
+      }
+    ]
+  },
+  "best_combinations_n_ge_30": [
+    {
+      "cluster_types": "session_level",
+      "cluster_type_count": 1,
+      "has_absorption_cluster": false,
+      "test_number_bucket": "3+",
+      "n": 4328,
+      "bounce_n": 2502,
+      "bounce_rate": 57.81
+    },
+    {
+      "cluster_types": "absorption",
+      "cluster_type_count": 1,
+      "has_absorption_cluster": true,
+      "test_number_bucket": "3+",
+      "n": 3653,
+      "bounce_n": 2043,
+      "bounce_rate": 55.93
+    },
+    {
+      "cluster_types": "absorption+session_level",
+      "cluster_type_count": 2,
+      "has_absorption_cluster": true,
+      "test_number_bucket": "1",
+      "n": 92,
+      "bounce_n": 51,
+      "bounce_rate": 55.43
+    },
+    {
+      "cluster_types": "session_level",
+      "cluster_type_count": 1,
+      "has_absorption_cluster": false,
+      "test_number_bucket": "2",
+      "n": 608,
+      "bounce_n": 335,
+      "bounce_rate": 55.1
+    },
+    {
+      "cluster_types": "absorption",
+      "cluster_type_count": 1,
+      "has_absorption_cluster": true,
+      "test_number_bucket": "2",
+      "n": 574,
+      "bounce_n": 313,
+      "bounce_rate": 54.53
+    },
+    {
+      "cluster_types": "absorption",
+      "cluster_type_count": 1,
+      "has_absorption_cluster": true,
+      "test_number_bucket": "1",
+      "n": 676,
+      "bounce_n": 367,
+      "bounce_rate": 54.29
+    },
+    {
+      "cluster_types": "absorption+session_level",
+      "cluster_type_count": 2,
+      "has_absorption_cluster": true,
+      "test_number_bucket": "3+",
+      "n": 580,
+      "bounce_n": 313,
+      "bounce_rate": 53.97
+    },
+    {
+      "cluster_types": "session_level",
+      "cluster_type_count": 1,
+      "has_absorption_cluster": false,
+      "test_number_bucket": "1",
+      "n": 689,
+      "bounce_n": 349,
+      "bounce_rate": 50.65
+    },
+    {
+      "cluster_types": "absorption+session_level",
+      "cluster_type_count": 2,
+      "has_absorption_cluster": true,
+      "test_number_bucket": "2",
+      "n": 76,
+      "bounce_n": 36,
+      "bounce_rate": 47.37
+    }
+  ],
+  "strength_score_buckets": [
+    {
+      "score_bucket": "(43.53, 47.911]",
+      "n": 2687,
+      "bounce_n": 1429,
+      "bounce_rate": 53.18
+    },
+    {
+      "score_bucket": "(47.911, 50.285]",
+      "n": 4261,
+      "bounce_n": 2378,
+      "bounce_rate": 55.81
+    },
+    {
+      "score_bucket": "(50.285, 51.66]",
+      "n": 4328,
+      "bounce_n": 2502,
+      "bounce_rate": 57.81
+    }
+  ]
+}

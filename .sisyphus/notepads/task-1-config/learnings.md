@@ -1,0 +1,3 @@
+- Strategy configs work well as frozen Pydantic v2 models with nested frozen submodels and a SHA256 over sorted JSON for deterministic fingerprints.
+- SignalId validation can safely key off SignalId.__members__ when the config stores signal names as strings.
+- model_dump(mode="json") + json.dumps(sort_keys=True) keeps config_hash stable across roundtrips.

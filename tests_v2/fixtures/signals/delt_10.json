@@ -1,0 +1,49 @@
+{
+  "name": "DELT_10_cvd_polyfit_divergence",
+  "description": "CVD polyfit divergence from price over 10 bars. Linear regression of CVD slopes opposite to price trend — structural divergence.",
+  "bar": {
+    "open": 21545.0,
+    "high": 21552.0,
+    "low": 21542.0,
+    "close": 21550.0,
+    "delta": 30,
+    "total_volume": 1600,
+    "bid_volumes": {
+      "21542.0": 80,
+      "21545.0": 150,
+      "21548.0": 200,
+      "21550.0": 180
+    },
+    "ask_volumes": {
+      "21545.0": 120,
+      "21548.0": 180,
+      "21550.0": 200,
+      "21552.0": 170
+    },
+    "poc_price": 21548.0,
+    "poc_volume": 380,
+    "vah": 21551.0,
+    "val": 21544.0,
+    "cvd": 100.0,
+    "bar_index": 90,
+    "timestamp": "2026-05-13T11:15:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 100.0,
+    "vah": 21551.0,
+    "val": 21544.0,
+    "poc": 21548.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "price_history": [21500.0, 21505.0, 21510.0, 21515.0, 21520.0, 21525.0, 21530.0, 21535.0, 21540.0, 21550.0],
+    "cvd_history": [800.0, 750.0, 680.0, 600.0, 520.0, 430.0, 350.0, 280.0, 180.0, 100.0]
+  },
+  "expected_signal": {
+    "signal_id": "DELT_10",
+    "direction": "BEARISH",
+    "strength_min": 0.35,
+    "strength_max": 0.55
+  }
+}

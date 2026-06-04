@@ -1,0 +1,16 @@
+Task 8 - ICT Session Domain Evidence
+
+Files:
+- deep6/engines/session_bias.py
+- tests/test_session_bias.py
+
+Verification:
+- lsp_diagnostics: clean for deep6/engines/session_bias.py
+- lsp_diagnostics: clean for tests/test_session_bias.py
+- pytest tests/test_session_bias.py -> 9 passed
+
+Implementation notes:
+- ICTSessionDomain maps PO3BiasState into a DomainScore over four +/-1 components.
+- Unknown PO3 fields reduce max_range instead of forcing a bearish/bullish penalty.
+- available=False is reserved for po3_state=None.
+- stale=True when PO3 timestamp age exceeds 60 seconds.

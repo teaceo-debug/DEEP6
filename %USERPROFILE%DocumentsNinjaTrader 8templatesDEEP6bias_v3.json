@@ -1,0 +1,20 @@
+{
+  "bias_label": "NEUTRAL",
+  "bias_score": 0,
+  "confidence": 0.0,
+  "confidence_pct": 0,
+  "domain_scores": {
+    "flow": 0,
+    "gex": 0,
+    "ict": 0,
+    "kronos": 0,
+    "macro": 0
+  },
+  "mode": "CAUTION",
+  "mode_reason": "Cold start",
+  "session_label": "AVOID",
+  "setup_quality": 0,
+  "updated_ts": 1780026184.2608206,
+  "version": "v3",
+  "xamd_phase": "BETWEEN"
+}

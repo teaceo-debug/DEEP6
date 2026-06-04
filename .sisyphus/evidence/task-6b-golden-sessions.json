@@ -1,0 +1,15 @@
+{
+  "task": "task-6b-golden-sessions",
+  "sessions_created": 3,
+  "quiet_rth": {"updates": 55, "outputs": 2, "format_version": "1.0"},
+  "volatile": {"updates": 85, "outputs": 5, "format_version": "1.0"},
+  "disconnect_reconnect": {"updates": 75, "outputs": 2, "format_version": "1.0"},
+  "all_conform_to_format": true,
+  "test_results": "56 passed in 0.25s",
+  "generation_script": "tests_v2/dom_intelligence/fixtures/generate_golden_sessions.py",
+  "fixture_files": [
+    "tests_v2/dom_intelligence/fixtures/golden_quiet_rth.json",
+    "tests_v2/dom_intelligence/fixtures/golden_volatile.json",
+    "tests_v2/dom_intelligence/fixtures/golden_disconnect.json"
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "name": "TRAP_01_buy_imbalance_then_drop",
+  "description": "Buy imbalance at high followed by price drop. Buyers trapped at top — aggressive buying couldn't sustain, price reversed.",
+  "bar": {
+    "open": 21515.0,
+    "high": 21518.0,
+    "low": 21495.0,
+    "close": 21498.0,
+    "delta": -250,
+    "total_volume": 3000,
+    "bid_volumes": {
+      "21495.0": 300,
+      "21498.0": 350,
+      "21500.0": 280,
+      "21505.0": 200,
+      "21510.0": 250,
+      "21515.0": 300
+    },
+    "ask_volumes": {
+      "21498.0": 100,
+      "21500.0": 120,
+      "21505.0": 150,
+      "21510.0": 130,
+      "21515.0": 400,
+      "21518.0": 220
+    },
+    "poc_price": 21498.0,
+    "poc_volume": 450,
+    "vah": 21512.0,
+    "val": 21497.0,
+    "cvd": 100.0,
+    "bar_index": 60,
+    "timestamp": "2026-05-13T10:45:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 100.0,
+    "vah": 21512.0,
+    "val": 21497.0,
+    "poc": 21498.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "bar_history_closes": [21510.0, 21515.0, 21498.0]
+  },
+  "expected_signal": {
+    "signal_id": "TRAP_01",
+    "direction": "BEARISH",
+    "strength_min": 0.35,
+    "strength_max": 0.55
+  }
+}

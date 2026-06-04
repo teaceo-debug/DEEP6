@@ -1,0 +1,70 @@
+{
+  "task": "E2E orchestrator pipeline test with TestSMA.cs",
+  "run_id": "bv-20260513-221539-ffc6",
+  "exit_code": 0,
+  "verdict": "PASS_WITH_NOTES",
+  "total_elapsed_ms": 43597,
+  "stages": {
+    "validate": { "status": "PASS", "ms": 746, "notes": "NT8 paths detected, devaddon + editor_uia available" },
+    "deploy": { "status": "PASS", "ms": 174, "notes": "Deployed to NT8 Custom/Indicators/TestSMA.cs, hash verified" },
+    "compile_fix": { "status": "PASS", "ms": 36023, "notes": "DevAddon infrastructure failure (editor_window_not_found); fell back to compile_editor.ps1 (F5 UIA). Compiled successfully in 1 iteration, 0 errors." },
+    "install": { "status": "PARTIAL", "ms": 3297, "mode": "workspace_mutator", "notes": "UIA install failed (chart window 'NQ' not found — chart shows 'MNQ 06-26'). Workspace XML mutation succeeded, injected TestSMA into Main.xml. Needs NT8 restart to load." },
+    "settle": { "status": "PASS", "ms": 1517 },
+    "runtime_check": { "status": "PASS", "ms": 140, "notes": "No runtime exceptions detected" },
+    "screenshot": { "status": "PASS", "ms": 1369, "file": "screenshot-221621.png", "size_bytes": 45850, "notes": "Chart captured; TestSMA not visually rendering (workspace mutation pending restart)" },
+    "visual_verify": { "status": "SKIPPED", "ms": 2, "notes": "-SkipVisualVerify flag set per task instructions" },
+    "report": { "status": "PASS", "ms": 5, "notes": "All artifacts written" }
+  },
+  "artifacts": {
+    "dir": "C:\\Users\\Tea\\AppData\\Local\\Temp\\opencode\\e2e-artifacts\\bv-20260513-221539-ffc6",
+    "files": [
+      "validate-log.json",
+      "deploy-log.json",
+      "compile-log.json",
+      "errors.json",
+      "fix-loop-log.json",
+      "install-log.json",
+      "screenshot-221621.png",
+      "screenshot-log.json",
+      "verify-log.json",
+      "timing.json",
+      "verdict-221623.json"
+    ]
+  },
+  "bugs_found_and_fixed": [
+    {
+      "file": "orchestrator.ps1",
+      "issue": "PS 5.1 array splatting (@Arguments) passes elements as positional params, not named params to .ps1 scripts",
+      "fix": "Convert array args to hashtable before splatting in Invoke-JsonScript"
+    },
+    {
+      "file": "fix_loop.ps1",
+      "issue": "Same PS 5.1 array splatting bug in Invoke-PowerShellJsonScript",
+      "fix": "Convert array args to hashtable before splatting"
+    },
+    {
+      "file": "compile_headless.ps1",
+      "issue": "DevAddon 'triggered=false' response treated as compile error because @($response.errors) produces @($null) with Count=1 when .errors property doesn't exist",
+      "fix": "Check 'triggered' property BEFORE errors; filter nulls from errors array; check property exists"
+    },
+    {
+      "file": "fix_loop.ps1",
+      "issue": "No fallback to compile_editor when compile_headless fails at infrastructure level",
+      "fix": "Added compile_editor.ps1 fallback when headless exits with code 2"
+    },
+    {
+      "file": "fix_loop.ps1",
+      "issue": "ArgumentException 'Argument types do not match' when serializing iteration log with List[object].ToArray()",
+      "fix": "Explicit type casts and .ToArray() on iterationLog; wrapped in try/catch"
+    },
+    {
+      "file": "NT8 environment",
+      "issue": "Duplicate DEEP6Signal.cs in Strategies/ folder causing CS0101 errors blocking all compiles",
+      "fix": "Removed misplaced Strategies/DEEP6Signal.cs (correct copy in Indicators/DEEP6/)"
+    }
+  ],
+  "cleanup": {
+    "TestSMA.cs_removed_from_NT8": true,
+    "artifacts_kept": true
+  }
+}

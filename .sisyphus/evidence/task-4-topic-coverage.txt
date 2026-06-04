@@ -1,0 +1,6 @@
+install : 19
+uninstall : 8
+editor : 14
+NinjaScript Editor : 8
+F5 : 5
+compile : 15

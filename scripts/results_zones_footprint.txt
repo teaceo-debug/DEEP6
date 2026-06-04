@@ -1,0 +1,1169 @@
+================================================================
+  INSTITUTIONAL ZONES + FOOTPRINT SIGNALS — COMBINED BACKTEST
+  NQ Futures  |  2026-01-02 → 2026-04-10
+  RTH 1m bars: 27,622
+
+  Footprint signal proxies (from DEEP6 signal_config defaults):
+  ABS-01/04: vol > 1.3× ema  AND  body_ratio < 0.4 (indecision bar)
+  EXH-02:  wick >= 35% of bar range at zone extreme
+  VOL_FADE: vol climax >= 1.8×, fade bar < 75% of climax
+  COMPOSITE: vol >= 1.5× + body_ratio < 0.35 + score ≥ 6
+
+  SL: zone distal + 4 ticks  |  TP: 1.5x / 2.0x / 3.0x risk
+================================================================
+
+════════════════════════════════════════════════════════════════
+  DETECTION TF: 5m
+════════════════════════════════════════════════════════════════
+────────────────────────────────────────────────────────────────
+  PROXIMAL_BASE     TF=5m  TP=1.5x
+────────────────────────────────────────────────────────────────
+  Trades: 232  |  Wins: 122  Losses: 110
+  Win Rate: 52.6%  |  Profit Factor: 1.29
+  Net PnL: $    13,450  |  Avg Risk: 69.7 ticks
+  Avg Win: $     492  |  Avg Loss: $    -424
+  Exits → TP: 122  SL: 108  Expire: 2
+  ── Zone type breakdown:
+    Supply  :  58 trades   46.6% WR  $  -3,696
+    Demand  :  50 trades   52.0% WR  $   4,743
+    RBR     :  58 trades   51.7% WR  $   6,702
+    DBD     :  66 trades   59.1% WR  $   5,701
+  ── Score-filtered subsets:
+    Score≥6: 175 trades   55.4% WR  $   9,472
+    Score≥8:  67 trades   59.7% WR  $   9,101
+    Score≥10:   8 trades   75.0% WR  $     987
+
+────────────────────────────────────────────────────────────────
+  PROXIMAL_BASE     TF=5m  TP=2.0x
+────────────────────────────────────────────────────────────────
+  Trades: 232  |  Wins: 108  Losses: 124
+  Win Rate: 46.6%  |  Profit Factor: 1.35
+  Net PnL: $    17,913  |  Avg Risk: 69.7 ticks
+  Avg Win: $     646  |  Avg Loss: $    -418
+  Exits → TP: 108  SL: 122  Expire: 2
+  ── Zone type breakdown:
+    Supply  :  58 trades   43.1% WR  $  -1,976
+    Demand  :  50 trades   42.0% WR  $   4,700
+    RBR     :  58 trades   46.6% WR  $   5,769
+    DBD     :  66 trades   53.0% WR  $   9,419
+  ── Score-filtered subsets:
+    Score≥6: 175 trades   50.9% WR  $  19,147
+    Score≥8:  67 trades   56.7% WR  $  13,753
+    Score≥10:   8 trades   75.0% WR  $   1,384
+
+────────────────────────────────────────────────────────────────
+  PROXIMAL_BASE     TF=5m  TP=3.0x
+────────────────────────────────────────────────────────────────
+  Trades: 232  |  Wins: 88  Losses: 144
+  Win Rate: 37.9%  |  Profit Factor: 1.43
+  Net PnL: $    25,408  |  Avg Risk: 69.7 ticks
+  Avg Win: $     953  |  Avg Loss: $    -406
+  Exits → TP: 87  SL: 142  Expire: 3
+  ── Zone type breakdown:
+    Supply  :  58 trades   36.2% WR  $  -3,011
+    Demand  :  50 trades   36.0% WR  $   7,835
+    RBR     :  58 trades   34.5% WR  $   6,179
+    DBD     :  66 trades   43.9% WR  $  14,404
+  ── Score-filtered subsets:
+    Score≥6: 175 trades   40.6% WR  $  22,547
+    Score≥8:  67 trades   44.8% WR  $  14,678
+    Score≥10:   8 trades   75.0% WR  $   2,179
+
+────────────────────────────────────────────────────────────────
+  ABS_EDGE          TF=5m  TP=1.5x
+────────────────────────────────────────────────────────────────
+  Trades: 7  |  Wins: 2  Losses: 5
+  Win Rate: 28.6%  |  Profit Factor: 0.66
+  Net PnL: $      -507  |  Avg Risk: 60.4 ticks
+  Avg Win: $     483  |  Avg Loss: $    -295
+  Exits → TP: 2  SL: 5  Expire: 0
+  ── Zone type breakdown:
+    Supply  :   3 trades   33.3% WR  $    -257
+    RBR     :   3 trades   33.3% WR  $    -165
+    DBD     :   1 trades    0.0% WR  $     -86
+  ── Score-filtered subsets:
+    Score≥6:   5 trades   20.0% WR  $    -826
+    Score≥8:   3 trades    0.0% WR  $    -982
+
+────────────────────────────────────────────────────────────────
+  ABS_EDGE          TF=5m  TP=2.0x
+────────────────────────────────────────────────────────────────
+  Trades: 7  |  Wins: 1  Losses: 6
+  Win Rate: 14.3%  |  Profit Factor: 0.20
+  Net PnL: $    -2,735  |  Avg Risk: 60.4 ticks
+  Avg Win: $     679  |  Avg Loss: $    -569
+  Exits → TP: 1  SL: 5  Expire: 1
+  ── Zone type breakdown:
+    Supply  :   3 trades   33.3% WR  $     -87
+    RBR     :   3 trades    0.0% WR  $  -2,562
+    DBD     :   1 trades    0.0% WR  $     -86
+  ── Score-filtered subsets:
+    Score≥6:   5 trades    0.0% WR  $  -3,224
+    Score≥8:   3 trades    0.0% WR  $    -982
+
+────────────────────────────────────────────────────────────────
+  ABS_EDGE          TF=5m  TP=3.0x
+────────────────────────────────────────────────────────────────
+  Trades: 7  |  Wins: 1  Losses: 6
+  Win Rate: 14.3%  |  Profit Factor: 0.30
+  Net PnL: $    -2,395  |  Avg Risk: 60.4 ticks
+  Avg Win: $   1,019  |  Avg Loss: $    -569
+  Exits → TP: 1  SL: 5  Expire: 1
+  ── Zone type breakdown:
+    Supply  :   3 trades   33.3% WR  $     253
+    RBR     :   3 trades    0.0% WR  $  -2,562
+    DBD     :   1 trades    0.0% WR  $     -86
+  ── Score-filtered subsets:
+    Score≥6:   5 trades    0.0% WR  $  -3,224
+    Score≥8:   3 trades    0.0% WR  $    -982
+
+────────────────────────────────────────────────────────────────
+  EXHAUST_EDGE      TF=5m  TP=1.5x
+────────────────────────────────────────────────────────────────
+  Trades: 105  |  Wins: 53  Losses: 52
+  Win Rate: 50.5%  |  Profit Factor: 1.39
+  Net PnL: $     9,784  |  Avg Risk: 80.7 ticks
+  Avg Win: $     652  |  Avg Loss: $    -477
+  Exits → TP: 51  SL: 50  Expire: 4
+  ── Zone type breakdown:
+    Supply  :  25 trades   56.0% WR  $   1,535
+    Demand  :  22 trades   50.0% WR  $   1,390
+    RBR     :  28 trades   50.0% WR  $   3,950
+    DBD     :  30 trades   46.7% WR  $   2,909
+  ── Score-filtered subsets:
+    Score≥6:  83 trades   50.6% WR  $   9,577
+    Score≥8:  32 trades   46.9% WR  $   5,500
+    Score≥10:   4 trades  100.0% WR  $   1,317
+
+────────────────────────────────────────────────────────────────
+  EXHAUST_EDGE      TF=5m  TP=2.0x
+────────────────────────────────────────────────────────────────
+  Trades: 105  |  Wins: 42  Losses: 63
+  Win Rate: 40.0%  |  Profit Factor: 1.20
+  Net PnL: $     5,807  |  Avg Risk: 80.7 ticks
+  Avg Win: $     837  |  Avg Loss: $    -466
+  Exits → TP: 40  SL: 61  Expire: 4
+  ── Zone type breakdown:
+    Supply  :  25 trades   40.0% WR  $    -698
+    Demand  :  22 trades   40.9% WR  $   1,320
+    RBR     :  28 trades   35.7% WR  $   1,825
+    DBD     :  30 trades   43.3% WR  $   3,359
+  ── Score-filtered subsets:
+    Score≥6:  83 trades   39.8% WR  $   5,592
+    Score≥8:  32 trades   37.5% WR  $   5,223
+    Score≥10:   4 trades   50.0% WR  $     797
+
+────────────────────────────────────────────────────────────────
+  EXHAUST_EDGE      TF=5m  TP=3.0x
+────────────────────────────────────────────────────────────────
+  Trades: 105  |  Wins: 35  Losses: 70
+  Win Rate: 33.3%  |  Profit Factor: 1.26
+  Net PnL: $     8,502  |  Avg Risk: 80.7 ticks
+  Avg Win: $   1,167  |  Avg Loss: $    -462
+  Exits → TP: 33  SL: 68  Expire: 4
+  ── Zone type breakdown:
+    Supply  :  25 trades   28.0% WR  $  -3,322
+    Demand  :  22 trades   31.8% WR  $   1,775
+    RBR     :  28 trades   28.6% WR  $   2,640
+    DBD     :  30 trades   43.3% WR  $   7,409
+  ── Score-filtered subsets:
+    Score≥6:  83 trades   33.7% WR  $   7,092
+    Score≥8:  32 trades   34.4% WR  $   7,108
+    Score≥10:   4 trades   50.0% WR  $   1,357
+
+────────────────────────────────────────────────────────────────
+  ABS_OR_EXHAUST    TF=5m  TP=1.5x
+────────────────────────────────────────────────────────────────
+  Trades: 111  |  Wins: 55  Losses: 56
+  Win Rate: 49.5%  |  Profit Factor: 1.37
+  Net PnL: $     9,627  |  Avg Risk: 79.5 ticks
+  Avg Win: $     646  |  Avg Loss: $    -463
+  Exits → TP: 53  SL: 54  Expire: 4
+  ── Zone type breakdown:
+    Supply  :  27 trades   55.6% WR  $   1,629
+    Demand  :  22 trades   50.0% WR  $   1,390
+    RBR     :  31 trades   48.4% WR  $   3,786
+    DBD     :  31 trades   45.2% WR  $   2,823
+  ── Score-filtered subsets:
+    Score≥6:  87 trades   49.4% WR  $   9,102
+    Score≥8:  34 trades   44.1% WR  $   4,869
+    Score≥10:   4 trades  100.0% WR  $   1,317
+  ── Signal type breakdown:
+    ABS_EDGE              :   7   28.6% WR  $    -507
+    EXHAUST_WICK          : 104   51.0% WR  $  10,135
+
+────────────────────────────────────────────────────────────────
+  ABS_OR_EXHAUST    TF=5m  TP=2.0x
+────────────────────────────────────────────────────────────────
+  Trades: 111  |  Wins: 43  Losses: 68
+  Win Rate: 38.7%  |  Profit Factor: 1.11
+  Net PnL: $     3,422  |  Avg Risk: 79.5 ticks
+  Avg Win: $     833  |  Avg Loss: $    -476
+  Exits → TP: 41  SL: 65  Expire: 5
+  ── Zone type breakdown:
+    Supply  :  27 trades   40.7% WR  $    -434
+    Demand  :  22 trades   40.9% WR  $   1,320
+    RBR     :  31 trades   32.3% WR  $    -737
+    DBD     :  31 trades   41.9% WR  $   3,273
+  ── Score-filtered subsets:
+    Score≥6:  87 trades   37.9% WR  $   2,719
+    Score≥8:  34 trades   35.3% WR  $   4,591
+    Score≥10:   4 trades   50.0% WR  $     797
+  ── Signal type breakdown:
+    ABS_EDGE              :   7   14.3% WR  $  -2,735
+    EXHAUST_WICK          : 104   40.4% WR  $   6,157
+
+────────────────────────────────────────────────────────────────
+  ABS_OR_EXHAUST    TF=5m  TP=3.0x
+────────────────────────────────────────────────────────────────
+  Trades: 111  |  Wins: 36  Losses: 75
+  Win Rate: 32.4%  |  Profit Factor: 1.18
+  Net PnL: $     6,457  |  Avg Risk: 79.5 ticks
+  Avg Win: $   1,163  |  Avg Loss: $    -472
+  Exits → TP: 34  SL: 72  Expire: 5
+  ── Zone type breakdown:
+    Supply  :  27 trades   29.6% WR  $  -2,719
+    Demand  :  22 trades   31.8% WR  $   1,775
+    RBR     :  31 trades   25.8% WR  $      78
+    DBD     :  31 trades   41.9% WR  $   7,323
+  ── Score-filtered subsets:
+    Score≥6:  87 trades   32.2% WR  $   4,219
+    Score≥8:  34 trades   32.4% WR  $   6,476
+    Score≥10:   4 trades   50.0% WR  $   1,357
+  ── Signal type breakdown:
+    ABS_EDGE              :   7   14.3% WR  $  -2,395
+    EXHAUST_WICK          : 104   33.7% WR  $   8,852
+
+────────────────────────────────────────────────────────────────
+  ABS_INSIDE        TF=5m  TP=1.5x
+────────────────────────────────────────────────────────────────
+  Trades: 3  |  Wins: 1  Losses: 2
+  Win Rate: 33.3%  |  Profit Factor: 0.93
+  Net PnL: $       -35  |  Avg Risk: 53.0 ticks
+  Avg Win: $     457  |  Avg Loss: $    -246
+  Exits → TP: 1  SL: 2  Expire: 0
+  ── Zone type breakdown:
+    Supply  :   1 trades    0.0% WR  $    -191
+    RBR     :   2 trades   50.0% WR  $     156
+  ── Score-filtered subsets:
+    Score≥6:   2 trades   50.0% WR  $     156
+
+────────────────────────────────────────────────────────────────
+  ABS_INSIDE        TF=5m  TP=2.0x
+────────────────────────────────────────────────────────────────
+  Trades: 3  |  Wins: 0  Losses: 3
+  Win Rate: 0.0%  |  Profit Factor: 0.00
+  Net PnL: $    -2,432  |  Avg Risk: 53.0 ticks
+  Avg Win: $       0  |  Avg Loss: $    -811
+  Exits → TP: 0  SL: 2  Expire: 1
+  ── Zone type breakdown:
+    Supply  :   1 trades    0.0% WR  $    -191
+    RBR     :   2 trades    0.0% WR  $  -2,241
+  ── Score-filtered subsets:
+    Score≥6:   2 trades    0.0% WR  $  -2,241
+
+────────────────────────────────────────────────────────────────
+  ABS_INSIDE        TF=5m  TP=3.0x
+────────────────────────────────────────────────────────────────
+  Trades: 3  |  Wins: 0  Losses: 3
+  Win Rate: 0.0%  |  Profit Factor: 0.00
+  Net PnL: $    -2,432  |  Avg Risk: 53.0 ticks
+  Avg Win: $       0  |  Avg Loss: $    -811
+  Exits → TP: 0  SL: 2  Expire: 1
+  ── Zone type breakdown:
+    Supply  :   1 trades    0.0% WR  $    -191
+    RBR     :   2 trades    0.0% WR  $  -2,241
+  ── Score-filtered subsets:
+    Score≥6:   2 trades    0.0% WR  $  -2,241
+
+────────────────────────────────────────────────────────────────
+  VOL_FADE          TF=5m  TP=1.5x
+────────────────────────────────────────────────────────────────
+  Trades: 7  |  Wins: 4  Losses: 3
+  Win Rate: 57.1%  |  Profit Factor: 6.78
+  Net PnL: $     6,398  |  Avg Risk: 115.4 ticks
+  Avg Win: $   1,876  |  Avg Loss: $    -369
+  Exits → TP: 3  SL: 3  Expire: 1
+  ── Zone type breakdown:
+    Supply  :   2 trades    0.0% WR  $    -641
+    Demand  :   1 trades    0.0% WR  $    -466
+    DBD     :   4 trades  100.0% WR  $   7,505
+  ── Score-filtered subsets:
+    Score≥6:   5 trades   60.0% WR  $   5,892
+    Score≥8:   3 trades  100.0% WR  $   6,808
+
+────────────────────────────────────────────────────────────────
+  VOL_FADE          TF=5m  TP=2.0x
+────────────────────────────────────────────────────────────────
+  Trades: 7  |  Wins: 2  Losses: 5
+  Win Rate: 28.6%  |  Profit Factor: 3.29
+  Net PnL: $     4,515  |  Avg Risk: 115.4 ticks
+  Avg Win: $   3,242  |  Avg Loss: $    -394
+  Exits → TP: 1  SL: 5  Expire: 1
+  ── Zone type breakdown:
+    Supply  :   2 trades    0.0% WR  $    -641
+    Demand  :   1 trades    0.0% WR  $    -466
+    DBD     :   4 trades   50.0% WR  $   5,622
+  ── Score-filtered subsets:
+    Score≥6:   5 trades   40.0% WR  $   5,172
+    Score≥8:   3 trades   66.7% WR  $   6,088
+
+────────────────────────────────────────────────────────────────
+  VOL_FADE          TF=5m  TP=3.0x
+────────────────────────────────────────────────────────────────
+  Trades: 7  |  Wins: 2  Losses: 5
+  Win Rate: 28.6%  |  Profit Factor: 3.57
+  Net PnL: $     5,050  |  Avg Risk: 115.4 ticks
+  Avg Win: $   3,509  |  Avg Loss: $    -394
+  Exits → TP: 1  SL: 5  Expire: 1
+  ── Zone type breakdown:
+    Supply  :   2 trades    0.0% WR  $    -641
+    Demand  :   1 trades    0.0% WR  $    -466
+    DBD     :   4 trades   50.0% WR  $   6,157
+  ── Score-filtered subsets:
+    Score≥6:   5 trades   40.0% WR  $   5,706
+    Score≥8:   3 trades   66.7% WR  $   6,623
+
+────────────────────────────────────────────────────────────────
+  COMPOSITE         TF=5m  TP=1.5x
+────────────────────────────────────────────────────────────────
+  Trades: 3  |  Wins: 1  Losses: 2
+  Win Rate: 33.3%  |  Profit Factor: 0.52
+  Net PnL: $      -420  |  Avg Risk: 78.7 ticks
+  Avg Win: $     457  |  Avg Loss: $    -438
+  Exits → TP: 1  SL: 2  Expire: 0
+  ── Zone type breakdown:
+    Supply  :   1 trades    0.0% WR  $    -576
+    RBR     :   2 trades   50.0% WR  $     156
+  ── Score-filtered subsets:
+    Score≥6:   3 trades   33.3% WR  $    -420
+    Score≥8:   1 trades    0.0% WR  $    -576
+
+────────────────────────────────────────────────────────────────
+  COMPOSITE         TF=5m  TP=2.0x
+────────────────────────────────────────────────────────────────
+  Trades: 3  |  Wins: 0  Losses: 3
+  Win Rate: 0.0%  |  Profit Factor: 0.00
+  Net PnL: $    -2,817  |  Avg Risk: 78.7 ticks
+  Avg Win: $       0  |  Avg Loss: $    -939
+  Exits → TP: 0  SL: 2  Expire: 1
+  ── Zone type breakdown:
+    Supply  :   1 trades    0.0% WR  $    -576
+    RBR     :   2 trades    0.0% WR  $  -2,241
+  ── Score-filtered subsets:
+    Score≥6:   3 trades    0.0% WR  $  -2,817
+    Score≥8:   1 trades    0.0% WR  $    -576
+
+────────────────────────────────────────────────────────────────
+  COMPOSITE         TF=5m  TP=3.0x
+────────────────────────────────────────────────────────────────
+  Trades: 3  |  Wins: 0  Losses: 3
+  Win Rate: 0.0%  |  Profit Factor: 0.00
+  Net PnL: $    -2,817  |  Avg Risk: 78.7 ticks
+  Avg Win: $       0  |  Avg Loss: $    -939
+  Exits → TP: 0  SL: 2  Expire: 1
+  ── Zone type breakdown:
+    Supply  :   1 trades    0.0% WR  $    -576
+    RBR     :   2 trades    0.0% WR  $  -2,241
+  ── Score-filtered subsets:
+    Score≥6:   3 trades    0.0% WR  $  -2,817
+    Score≥8:   1 trades    0.0% WR  $    -576
+
+
+════════════════════════════════════════════════════════════════
+  DETECTION TF: 15m
+════════════════════════════════════════════════════════════════
+────────────────────────────────────────────────────────────────
+  PROXIMAL_BASE     TF=15m  TP=1.5x
+────────────────────────────────────────────────────────────────
+  Trades: 107  |  Wins: 67  Losses: 40
+  Win Rate: 62.6%  |  Profit Factor: 2.46
+  Net PnL: $    38,050  |  Avg Risk: 122.0 ticks
+  Avg Win: $     957  |  Avg Loss: $    -652
+  Exits → TP: 65  SL: 38  Expire: 4
+  ── Zone type breakdown:
+    Supply  :  26 trades   73.1% WR  $  14,077
+    Demand  :  29 trades   41.4% WR  $  -1,328
+    RBR     :  26 trades   69.2% WR  $  13,349
+    DBD     :  26 trades   69.2% WR  $  11,952
+  ── Score-filtered subsets:
+    Score≥6:  82 trades   63.4% WR  $  32,443
+    Score≥8:  32 trades   59.4% WR  $   8,055
+    Score≥10:   8 trades   50.0% WR  $   2,029
+
+────────────────────────────────────────────────────────────────
+  PROXIMAL_BASE     TF=15m  TP=2.0x
+────────────────────────────────────────────────────────────────
+  Trades: 107  |  Wins: 61  Losses: 46
+  Win Rate: 57.0%  |  Profit Factor: 2.34
+  Net PnL: $    42,680  |  Avg Risk: 122.0 ticks
+  Avg Win: $   1,223  |  Avg Loss: $    -694
+  Exits → TP: 58  SL: 44  Expire: 5
+  ── Zone type breakdown:
+    Supply  :  26 trades   65.4% WR  $  13,787
+    Demand  :  29 trades   41.4% WR  $   1,975
+    RBR     :  26 trades   57.7% WR  $  12,927
+    DBD     :  26 trades   65.4% WR  $  13,992
+  ── Score-filtered subsets:
+    Score≥6:  82 trades   57.3% WR  $  36,038
+    Score≥8:  32 trades   56.2% WR  $  13,883
+    Score≥10:   8 trades   50.0% WR  $   2,989
+
+────────────────────────────────────────────────────────────────
+  PROXIMAL_BASE     TF=15m  TP=3.0x
+────────────────────────────────────────────────────────────────
+  Trades: 107  |  Wins: 51  Losses: 56
+  Win Rate: 47.7%  |  Profit Factor: 2.23
+  Net PnL: $    47,605  |  Avg Risk: 122.0 ticks
+  Avg Win: $   1,692  |  Avg Loss: $    -691
+  Exits → TP: 44  SL: 51  Expire: 12
+  ── Zone type breakdown:
+    Supply  :  26 trades   57.7% WR  $  16,082
+    Demand  :  29 trades   31.0% WR  $    -495
+    RBR     :  26 trades   50.0% WR  $  18,012
+    DBD     :  26 trades   53.8% WR  $  14,007
+  ── Score-filtered subsets:
+    Score≥6:  82 trades   48.8% WR  $  41,088
+    Score≥8:  32 trades   50.0% WR  $  16,753
+    Score≥10:   8 trades   50.0% WR  $   4,909
+
+────────────────────────────────────────────────────────────────
+  ABS_EDGE          TF=15m  TP=1.5x
+────────────────────────────────────────────────────────────────
+  Trades: 4  |  Wins: 1  Losses: 3
+  Win Rate: 25.0%  |  Profit Factor: 0.31
+  Net PnL: $      -398  |  Avg Risk: 34.8 ticks
+  Avg Win: $     179  |  Avg Loss: $    -192
+  Exits → TP: 1  SL: 3  Expire: 0
+  ── Zone type breakdown:
+    Supply  :   1 trades  100.0% WR  $     179
+    Demand  :   2 trades    0.0% WR  $    -476
+    RBR     :   1 trades    0.0% WR  $    -101
+  ── Score-filtered subsets:
+    Score≥6:   4 trades   25.0% WR  $    -398
+    Score≥8:   3 trades   33.3% WR  $     -42
+    Score≥10:   1 trades    0.0% WR  $    -101
+
+────────────────────────────────────────────────────────────────
+  ABS_EDGE          TF=15m  TP=2.0x
+────────────────────────────────────────────────────────────────
+  Trades: 4  |  Wins: 1  Losses: 3
+  Win Rate: 25.0%  |  Profit Factor: 0.41
+  Net PnL: $      -338  |  Avg Risk: 34.8 ticks
+  Avg Win: $     239  |  Avg Loss: $    -192
+  Exits → TP: 1  SL: 3  Expire: 0
+  ── Zone type breakdown:
+    Supply  :   1 trades  100.0% WR  $     239
+    Demand  :   2 trades    0.0% WR  $    -476
+    RBR     :   1 trades    0.0% WR  $    -101
+  ── Score-filtered subsets:
+    Score≥6:   4 trades   25.0% WR  $    -338
+    Score≥8:   3 trades   33.3% WR  $      18
+    Score≥10:   1 trades    0.0% WR  $    -101
+
+────────────────────────────────────────────────────────────────
+  ABS_EDGE          TF=15m  TP=3.0x
+────────────────────────────────────────────────────────────────
+  Trades: 4  |  Wins: 1  Losses: 3
+  Win Rate: 25.0%  |  Profit Factor: 0.62
+  Net PnL: $      -218  |  Avg Risk: 34.8 ticks
+  Avg Win: $     359  |  Avg Loss: $    -192
+  Exits → TP: 1  SL: 3  Expire: 0
+  ── Zone type breakdown:
+    Supply  :   1 trades  100.0% WR  $     359
+    Demand  :   2 trades    0.0% WR  $    -476
+    RBR     :   1 trades    0.0% WR  $    -101
+  ── Score-filtered subsets:
+    Score≥6:   4 trades   25.0% WR  $    -218
+    Score≥8:   3 trades   33.3% WR  $     138
+    Score≥10:   1 trades    0.0% WR  $    -101
+
+────────────────────────────────────────────────────────────────
+  EXHAUST_EDGE      TF=15m  TP=1.5x
+────────────────────────────────────────────────────────────────
+  Trades: 47  |  Wins: 33  Losses: 14
+  Win Rate: 70.2%  |  Profit Factor: 3.80
+  Net PnL: $    25,417  |  Avg Risk: 119.3 ticks
+  Avg Win: $   1,046  |  Avg Loss: $    -649
+  Exits → TP: 32  SL: 12  Expire: 3
+  ── Zone type breakdown:
+    Supply  :  10 trades   80.0% WR  $  10,136
+    Demand  :   9 trades   55.6% WR  $   1,671
+    RBR     :  18 trades   72.2% WR  $  11,540
+    DBD     :  10 trades   70.0% WR  $   2,070
+  ── Score-filtered subsets:
+    Score≥6:  38 trades   73.7% WR  $  25,036
+    Score≥8:  14 trades   64.3% WR  $   3,863
+    Score≥10:   4 trades   75.0% WR  $   1,935
+
+────────────────────────────────────────────────────────────────
+  EXHAUST_EDGE      TF=15m  TP=2.0x
+────────────────────────────────────────────────────────────────
+  Trades: 47  |  Wins: 29  Losses: 18
+  Win Rate: 61.7%  |  Profit Factor: 3.35
+  Net PnL: $    27,622  |  Avg Risk: 119.3 ticks
+  Avg Win: $   1,357  |  Avg Loss: $    -652
+  Exits → TP: 27  SL: 15  Expire: 5
+  ── Zone type breakdown:
+    Supply  :  10 trades   70.0% WR  $   9,173
+    Demand  :   9 trades   44.4% WR  $   1,184
+    RBR     :  18 trades   66.7% WR  $  14,867
+    DBD     :  10 trades   60.0% WR  $   2,398
+  ── Score-filtered subsets:
+    Score≥6:  38 trades   63.2% WR  $  25,983
+    Score≥8:  14 trades   57.1% WR  $   4,220
+    Score≥10:   4 trades   75.0% WR  $   2,672
+
+────────────────────────────────────────────────────────────────
+  EXHAUST_EDGE      TF=15m  TP=3.0x
+────────────────────────────────────────────────────────────────
+  Trades: 47  |  Wins: 24  Losses: 23
+  Win Rate: 51.1%  |  Profit Factor: 2.32
+  Net PnL: $    24,717  |  Avg Risk: 119.3 ticks
+  Avg Win: $   1,812  |  Avg Loss: $    -816
+  Exits → TP: 22  SL: 19  Expire: 6
+  ── Zone type breakdown:
+    Supply  :  10 trades   40.0% WR  $    -192
+    Demand  :   9 trades   44.4% WR  $   2,839
+    RBR     :  18 trades   61.1% WR  $  18,787
+    DBD     :  10 trades   50.0% WR  $   3,283
+  ── Score-filtered subsets:
+    Score≥6:  38 trades   50.0% WR  $  20,563
+    Score≥8:  14 trades   50.0% WR  $   5,845
+    Score≥10:   4 trades   75.0% WR  $   4,147
+
+────────────────────────────────────────────────────────────────
+  ABS_OR_EXHAUST    TF=15m  TP=1.5x
+────────────────────────────────────────────────────────────────
+  Trades: 50  |  Wins: 34  Losses: 16
+  Win Rate: 68.0%  |  Profit Factor: 3.69
+  Net PnL: $    25,295  |  Avg Risk: 113.8 ticks
+  Avg Win: $   1,020  |  Avg Loss: $    -587
+  Exits → TP: 33  SL: 14  Expire: 3
+  ── Zone type breakdown:
+    Supply  :  11 trades   81.8% WR  $  10,315
+    Demand  :  11 trades   45.5% WR  $   1,195
+    RBR     :  18 trades   72.2% WR  $  11,715
+    DBD     :  10 trades   70.0% WR  $   2,070
+  ── Score-filtered subsets:
+    Score≥6:  41 trades   70.7% WR  $  24,914
+    Score≥8:  16 trades   62.5% WR  $   4,096
+    Score≥10:   4 trades   75.0% WR  $   2,110
+  ── Signal type breakdown:
+    ABS_EDGE              :   4   25.0% WR  $    -398
+    EXHAUST_WICK          :  46   71.7% WR  $  25,693
+
+────────────────────────────────────────────────────────────────
+  ABS_OR_EXHAUST    TF=15m  TP=2.0x
+────────────────────────────────────────────────────────────────
+  Trades: 50  |  Wins: 30  Losses: 20
+  Win Rate: 60.0%  |  Profit Factor: 3.29
+  Net PnL: $    27,560  |  Avg Risk: 113.8 ticks
+  Avg Win: $   1,320  |  Avg Loss: $    -602
+  Exits → TP: 28  SL: 17  Expire: 5
+  ── Zone type breakdown:
+    Supply  :  11 trades   72.7% WR  $   9,412
+    Demand  :  11 trades   36.4% WR  $     707
+    RBR     :  18 trades   66.7% WR  $  15,042
+    DBD     :  10 trades   60.0% WR  $   2,398
+  ── Score-filtered subsets:
+    Score≥6:  41 trades   61.0% WR  $  25,921
+    Score≥8:  16 trades   56.2% WR  $   4,514
+    Score≥10:   4 trades   75.0% WR  $   2,847
+  ── Signal type breakdown:
+    ABS_EDGE              :   4   25.0% WR  $    -338
+    EXHAUST_WICK          :  46   63.0% WR  $  27,898
+
+────────────────────────────────────────────────────────────────
+  ABS_OR_EXHAUST    TF=15m  TP=3.0x
+────────────────────────────────────────────────────────────────
+  Trades: 50  |  Wins: 25  Losses: 25
+  Win Rate: 50.0%  |  Profit Factor: 2.30
+  Net PnL: $    24,775  |  Avg Risk: 113.8 ticks
+  Avg Win: $   1,754  |  Avg Loss: $    -763
+  Exits → TP: 23  SL: 21  Expire: 6
+  ── Zone type breakdown:
+    Supply  :  11 trades   45.5% WR  $     167
+    Demand  :  11 trades   36.4% WR  $   2,362
+    RBR     :  18 trades   61.1% WR  $  18,962
+    DBD     :  10 trades   50.0% WR  $   3,283
+  ── Score-filtered subsets:
+    Score≥6:  41 trades   48.8% WR  $  20,621
+    Score≥8:  16 trades   50.0% WR  $   6,259
+    Score≥10:   4 trades   75.0% WR  $   4,322
+  ── Signal type breakdown:
+    ABS_EDGE              :   4   25.0% WR  $    -218
+    EXHAUST_WICK          :  46   52.2% WR  $  24,993
+
+────────────────────────────────────────────────────────────────
+  ABS_INSIDE        TF=15m  TP=1.5x
+────────────────────────────────────────────────────────────────
+  Trades: 2  |  Wins: 0  Losses: 2
+  Win Rate: 0.0%  |  Profit Factor: 0.00
+  Net PnL: $      -221  |  Avg Risk: 22.0 ticks
+  Avg Win: $       0  |  Avg Loss: $    -111
+  Exits → TP: 0  SL: 2  Expire: 0
+  ── Zone type breakdown:
+    Demand  :   1 trades    0.0% WR  $    -121
+    RBR     :   1 trades    0.0% WR  $    -101
+  ── Score-filtered subsets:
+    Score≥6:   2 trades    0.0% WR  $    -221
+    Score≥8:   2 trades    0.0% WR  $    -221
+    Score≥10:   1 trades    0.0% WR  $    -101
+
+────────────────────────────────────────────────────────────────
+  ABS_INSIDE        TF=15m  TP=2.0x
+────────────────────────────────────────────────────────────────
+  Trades: 2  |  Wins: 0  Losses: 2
+  Win Rate: 0.0%  |  Profit Factor: 0.00
+  Net PnL: $      -221  |  Avg Risk: 22.0 ticks
+  Avg Win: $       0  |  Avg Loss: $    -111
+  Exits → TP: 0  SL: 2  Expire: 0
+  ── Zone type breakdown:
+    Demand  :   1 trades    0.0% WR  $    -121
+    RBR     :   1 trades    0.0% WR  $    -101
+  ── Score-filtered subsets:
+    Score≥6:   2 trades    0.0% WR  $    -221
+    Score≥8:   2 trades    0.0% WR  $    -221
+    Score≥10:   1 trades    0.0% WR  $    -101
+
+────────────────────────────────────────────────────────────────
+  ABS_INSIDE        TF=15m  TP=3.0x
+────────────────────────────────────────────────────────────────
+  Trades: 2  |  Wins: 0  Losses: 2
+  Win Rate: 0.0%  |  Profit Factor: 0.00
+  Net PnL: $      -221  |  Avg Risk: 22.0 ticks
+  Avg Win: $       0  |  Avg Loss: $    -111
+  Exits → TP: 0  SL: 2  Expire: 0
+  ── Zone type breakdown:
+    Demand  :   1 trades    0.0% WR  $    -121
+    RBR     :   1 trades    0.0% WR  $    -101
+  ── Score-filtered subsets:
+    Score≥6:   2 trades    0.0% WR  $    -221
+    Score≥8:   2 trades    0.0% WR  $    -221
+    Score≥10:   1 trades    0.0% WR  $    -101
+
+────────────────────────────────────────────────────────────────
+  VOL_FADE          TF=15m  TP=1.5x
+────────────────────────────────────────────────────────────────
+  Trades: 3  |  Wins: 0  Losses: 3
+  Win Rate: 0.0%  |  Profit Factor: 0.00
+  Net PnL: $    -2,257  |  Avg Risk: 150.3 ticks
+  Avg Win: $       0  |  Avg Loss: $    -752
+  Exits → TP: 0  SL: 3  Expire: 0
+  ── Zone type breakdown:
+    Demand  :   2 trades    0.0% WR  $  -1,981
+    RBR     :   1 trades    0.0% WR  $    -276
+  ── Score-filtered subsets:
+    Score≥6:   3 trades    0.0% WR  $  -2,257
+    Score≥8:   3 trades    0.0% WR  $  -2,257
+    Score≥10:   1 trades    0.0% WR  $    -276
+
+────────────────────────────────────────────────────────────────
+  VOL_FADE          TF=15m  TP=2.0x
+────────────────────────────────────────────────────────────────
+  Trades: 3  |  Wins: 0  Losses: 3
+  Win Rate: 0.0%  |  Profit Factor: 0.00
+  Net PnL: $    -2,257  |  Avg Risk: 150.3 ticks
+  Avg Win: $       0  |  Avg Loss: $    -752
+  Exits → TP: 0  SL: 3  Expire: 0
+  ── Zone type breakdown:
+    Demand  :   2 trades    0.0% WR  $  -1,981
+    RBR     :   1 trades    0.0% WR  $    -276
+  ── Score-filtered subsets:
+    Score≥6:   3 trades    0.0% WR  $  -2,257
+    Score≥8:   3 trades    0.0% WR  $  -2,257
+    Score≥10:   1 trades    0.0% WR  $    -276
+
+────────────────────────────────────────────────────────────────
+  VOL_FADE          TF=15m  TP=3.0x
+────────────────────────────────────────────────────────────────
+  Trades: 3  |  Wins: 0  Losses: 3
+  Win Rate: 0.0%  |  Profit Factor: 0.00
+  Net PnL: $    -2,257  |  Avg Risk: 150.3 ticks
+  Avg Win: $       0  |  Avg Loss: $    -752
+  Exits → TP: 0  SL: 3  Expire: 0
+  ── Zone type breakdown:
+    Demand  :   2 trades    0.0% WR  $  -1,981
+    RBR     :   1 trades    0.0% WR  $    -276
+  ── Score-filtered subsets:
+    Score≥6:   3 trades    0.0% WR  $  -2,257
+    Score≥8:   3 trades    0.0% WR  $  -2,257
+    Score≥10:   1 trades    0.0% WR  $    -276
+
+────────────────────────────────────────────────────────────────
+  COMPOSITE         TF=15m  TP=1.5x
+────────────────────────────────────────────────────────────────
+  Trades: 3  |  Wins: 1  Losses: 2
+  Win Rate: 33.3%  |  Profit Factor: 0.39
+  Net PnL: $      -277  |  Avg Risk: 38.3 ticks
+  Avg Win: $     179  |  Avg Loss: $    -228
+  Exits → TP: 1  SL: 2  Expire: 0
+  ── Zone type breakdown:
+    Supply  :   1 trades  100.0% WR  $     179
+    Demand  :   1 trades    0.0% WR  $    -356
+    RBR     :   1 trades    0.0% WR  $    -101
+  ── Score-filtered subsets:
+    Score≥6:   3 trades   33.3% WR  $    -277
+    Score≥8:   2 trades   50.0% WR  $      79
+    Score≥10:   1 trades    0.0% WR  $    -101
+  ── Signal type breakdown:
+    COMPOSITE_ABS         :   1    0.0% WR  $    -356
+    COMPOSITE_ABS+WICK    :   2   50.0% WR  $      79
+
+────────────────────────────────────────────────────────────────
+  COMPOSITE         TF=15m  TP=2.0x
+────────────────────────────────────────────────────────────────
+  Trades: 3  |  Wins: 1  Losses: 2
+  Win Rate: 33.3%  |  Profit Factor: 0.52
+  Net PnL: $      -217  |  Avg Risk: 38.3 ticks
+  Avg Win: $     239  |  Avg Loss: $    -228
+  Exits → TP: 1  SL: 2  Expire: 0
+  ── Zone type breakdown:
+    Supply  :   1 trades  100.0% WR  $     239
+    Demand  :   1 trades    0.0% WR  $    -356
+    RBR     :   1 trades    0.0% WR  $    -101
+  ── Score-filtered subsets:
+    Score≥6:   3 trades   33.3% WR  $    -217
+    Score≥8:   2 trades   50.0% WR  $     139
+    Score≥10:   1 trades    0.0% WR  $    -101
+  ── Signal type breakdown:
+    COMPOSITE_ABS         :   1    0.0% WR  $    -356
+    COMPOSITE_ABS+WICK    :   2   50.0% WR  $     139
+
+────────────────────────────────────────────────────────────────
+  COMPOSITE         TF=15m  TP=3.0x
+────────────────────────────────────────────────────────────────
+  Trades: 3  |  Wins: 1  Losses: 2
+  Win Rate: 33.3%  |  Profit Factor: 0.79
+  Net PnL: $       -97  |  Avg Risk: 38.3 ticks
+  Avg Win: $     359  |  Avg Loss: $    -228
+  Exits → TP: 1  SL: 2  Expire: 0
+  ── Zone type breakdown:
+    Supply  :   1 trades  100.0% WR  $     359
+    Demand  :   1 trades    0.0% WR  $    -356
+    RBR     :   1 trades    0.0% WR  $    -101
+  ── Score-filtered subsets:
+    Score≥6:   3 trades   33.3% WR  $     -97
+    Score≥8:   2 trades   50.0% WR  $     259
+    Score≥10:   1 trades    0.0% WR  $    -101
+  ── Signal type breakdown:
+    COMPOSITE_ABS         :   1    0.0% WR  $    -356
+    COMPOSITE_ABS+WICK    :   2   50.0% WR  $     259
+
+
+════════════════════════════════════════════════════════════════
+  DETECTION TF: 30m
+════════════════════════════════════════════════════════════════
+────────────────────────────────────────────────────────────────
+  PROXIMAL_BASE     TF=30m  TP=1.5x
+────────────────────────────────────────────────────────────────
+  Trades: 76  |  Wins: 49  Losses: 27
+  Win Rate: 64.5%  |  Profit Factor: 2.60
+  Net PnL: $    37,092  |  Avg Risk: 160.8 ticks
+  Avg Win: $   1,232  |  Avg Loss: $    -861
+  Exits → TP: 45  SL: 25  Expire: 6
+  ── Zone type breakdown:
+    Supply  :  17 trades   58.8% WR  $   6,978
+    Demand  :  15 trades   46.7% WR  $     644
+    RBR     :  19 trades   68.4% WR  $  12,442
+    DBD     :  25 trades   76.0% WR  $  17,027
+  ── Score-filtered subsets:
+    Score≥6:  53 trades   69.8% WR  $  24,875
+    Score≥8:  21 trades   66.7% WR  $   8,070
+    Score≥10:   3 trades   66.7% WR  $     278
+
+────────────────────────────────────────────────────────────────
+  PROXIMAL_BASE     TF=30m  TP=2.0x
+────────────────────────────────────────────────────────────────
+  Trades: 76  |  Wins: 41  Losses: 35
+  Win Rate: 53.9%  |  Profit Factor: 1.79
+  Net PnL: $    25,962  |  Avg Risk: 160.8 ticks
+  Avg Win: $   1,437  |  Avg Loss: $    -942
+  Exits → TP: 33  SL: 32  Expire: 11
+  ── Zone type breakdown:
+    Supply  :  17 trades   52.9% WR  $   6,948
+    Demand  :  15 trades   40.0% WR  $    -256
+    RBR     :  19 trades   47.4% WR  $   1,012
+    DBD     :  25 trades   68.0% WR  $  18,257
+  ── Score-filtered subsets:
+    Score≥6:  53 trades   60.4% WR  $  19,468
+    Score≥8:  21 trades   66.7% WR  $  11,815
+    Score≥10:   3 trades   66.7% WR  $     623
+
+────────────────────────────────────────────────────────────────
+  PROXIMAL_BASE     TF=30m  TP=3.0x
+────────────────────────────────────────────────────────────────
+  Trades: 76  |  Wins: 34  Losses: 42
+  Win Rate: 44.7%  |  Profit Factor: 1.45
+  Net PnL: $    19,867  |  Avg Risk: 160.8 ticks
+  Avg Win: $   1,869  |  Avg Loss: $  -1,040
+  Exits → TP: 26  SL: 35  Expire: 15
+  ── Zone type breakdown:
+    Supply  :  17 trades   47.1% WR  $   7,998
+    Demand  :  15 trades   33.3% WR  $    -680
+    RBR     :  19 trades   47.4% WR  $   5,272
+    DBD     :  25 trades   48.0% WR  $   7,277
+  ── Score-filtered subsets:
+    Score≥6:  53 trades   52.8% WR  $  16,288
+    Score≥8:  21 trades   66.7% WR  $  19,305
+    Score≥10:   3 trades   66.7% WR  $   1,313
+
+────────────────────────────────────────────────────────────────
+  ABS_EDGE          TF=30m  TP=1.5x
+────────────────────────────────────────────────────────────────
+  Trades: 2  |  Wins: 1  Losses: 1
+  Win Rate: 50.0%  |  Profit Factor: 7.21
+  Net PnL: $     1,401  |  Avg Risk: 131.0 ticks
+  Avg Win: $   1,627  |  Avg Loss: $    -226
+  Exits → TP: 1  SL: 1  Expire: 0
+  ── Zone type breakdown:
+    RBR     :   1 trades    0.0% WR  $    -226
+    DBD     :   1 trades  100.0% WR  $   1,627
+  ── Score-filtered subsets:
+    Score≥6:   1 trades    0.0% WR  $    -226
+    Score≥8:   1 trades    0.0% WR  $    -226
+
+────────────────────────────────────────────────────────────────
+  ABS_EDGE          TF=30m  TP=2.0x
+────────────────────────────────────────────────────────────────
+  Trades: 2  |  Wins: 1  Losses: 1
+  Win Rate: 50.0%  |  Profit Factor: 9.61
+  Net PnL: $     1,944  |  Avg Risk: 131.0 ticks
+  Avg Win: $   2,169  |  Avg Loss: $    -226
+  Exits → TP: 1  SL: 1  Expire: 0
+  ── Zone type breakdown:
+    RBR     :   1 trades    0.0% WR  $    -226
+    DBD     :   1 trades  100.0% WR  $   2,169
+  ── Score-filtered subsets:
+    Score≥6:   1 trades    0.0% WR  $    -226
+    Score≥8:   1 trades    0.0% WR  $    -226
+
+────────────────────────────────────────────────────────────────
+  ABS_EDGE          TF=30m  TP=3.0x
+────────────────────────────────────────────────────────────────
+  Trades: 2  |  Wins: 0  Losses: 2
+  Win Rate: 0.0%  |  Profit Factor: 0.00
+  Net PnL: $    -1,311  |  Avg Risk: 131.0 ticks
+  Avg Win: $       0  |  Avg Loss: $    -656
+  Exits → TP: 0  SL: 2  Expire: 0
+  ── Zone type breakdown:
+    RBR     :   1 trades    0.0% WR  $    -226
+    DBD     :   1 trades    0.0% WR  $  -1,086
+  ── Score-filtered subsets:
+    Score≥6:   1 trades    0.0% WR  $    -226
+    Score≥8:   1 trades    0.0% WR  $    -226
+
+────────────────────────────────────────────────────────────────
+  EXHAUST_EDGE      TF=30m  TP=1.5x
+────────────────────────────────────────────────────────────────
+  Trades: 41  |  Wins: 26  Losses: 15
+  Win Rate: 63.4%  |  Profit Factor: 2.11
+  Net PnL: $    17,796  |  Avg Risk: 159.9 ticks
+  Avg Win: $   1,299  |  Avg Loss: $  -1,066
+  Exits → TP: 22  SL: 14  Expire: 5
+  ── Zone type breakdown:
+    Supply  :  10 trades   60.0% WR  $   4,401
+    Demand  :  10 trades   30.0% WR  $  -1,587
+    RBR     :   6 trades   66.7% WR  $   1,418
+    DBD     :  15 trades   86.7% WR  $  13,564
+  ── Score-filtered subsets:
+    Score≥6:  25 trades   72.0% WR  $  10,458
+    Score≥8:   6 trades  100.0% WR  $   5,096
+
+────────────────────────────────────────────────────────────────
+  EXHAUST_EDGE      TF=30m  TP=2.0x
+────────────────────────────────────────────────────────────────
+  Trades: 41  |  Wins: 22  Losses: 19
+  Win Rate: 53.7%  |  Profit Factor: 1.99
+  Net PnL: $    18,601  |  Avg Risk: 159.9 ticks
+  Avg Win: $   1,703  |  Avg Loss: $    -993
+  Exits → TP: 17  SL: 18  Expire: 6
+  ── Zone type breakdown:
+    Supply  :  10 trades   40.0% WR  $   3,793
+    Demand  :  10 trades   30.0% WR  $    -927
+    RBR     :   6 trades   66.7% WR  $   4,061
+    DBD     :  15 trades   73.3% WR  $  11,674
+  ── Score-filtered subsets:
+    Score≥6:  25 trades   68.0% WR  $  13,792
+    Score≥8:   6 trades  100.0% WR  $   6,796
+
+────────────────────────────────────────────────────────────────
+  EXHAUST_EDGE      TF=30m  TP=3.0x
+────────────────────────────────────────────────────────────────
+  Trades: 41  |  Wins: 20  Losses: 21
+  Win Rate: 48.8%  |  Profit Factor: 2.12
+  Net PnL: $    22,346  |  Avg Risk: 159.9 ticks
+  Avg Win: $   2,119  |  Avg Loss: $    -954
+  Exits → TP: 14  SL: 20  Expire: 7
+  ── Zone type breakdown:
+    Supply  :  10 trades   30.0% WR  $   2,538
+    Demand  :  10 trades   30.0% WR  $     393
+    RBR     :   6 trades   50.0% WR  $   1,221
+    DBD     :  15 trades   73.3% WR  $  18,194
+  ── Score-filtered subsets:
+    Score≥6:  25 trades   64.0% WR  $  20,048
+    Score≥8:   6 trades  100.0% WR  $  10,196
+
+────────────────────────────────────────────────────────────────
+  ABS_OR_EXHAUST    TF=30m  TP=1.5x
+────────────────────────────────────────────────────────────────
+  Trades: 42  |  Wins: 26  Losses: 16
+  Win Rate: 61.9%  |  Profit Factor: 2.06
+  Net PnL: $    17,211  |  Avg Risk: 156.0 ticks
+  Avg Win: $   1,286  |  Avg Loss: $  -1,014
+  Exits → TP: 22  SL: 15  Expire: 5
+  ── Zone type breakdown:
+    Supply  :  10 trades   60.0% WR  $   4,401
+    Demand  :  10 trades   30.0% WR  $  -1,587
+    RBR     :   7 trades   57.1% WR  $   1,193
+    DBD     :  15 trades   86.7% WR  $  13,204
+  ── Score-filtered subsets:
+    Score≥6:  26 trades   69.2% WR  $  10,232
+    Score≥8:   7 trades   85.7% WR  $   4,870
+  ── Signal type breakdown:
+    ABS_EDGE              :   2   50.0% WR  $   1,401
+    EXHAUST_WICK          :  40   62.5% WR  $  15,809
+
+────────────────────────────────────────────────────────────────
+  ABS_OR_EXHAUST    TF=30m  TP=2.0x
+────────────────────────────────────────────────────────────────
+  Trades: 42  |  Wins: 23  Losses: 19
+  Win Rate: 54.8%  |  Profit Factor: 2.23
+  Net PnL: $    21,871  |  Avg Risk: 156.0 ticks
+  Avg Win: $   1,723  |  Avg Loss: $    -935
+  Exits → TP: 18  SL: 18  Expire: 6
+  ── Zone type breakdown:
+    Supply  :  10 trades   40.0% WR  $   3,793
+    Demand  :  10 trades   30.0% WR  $    -927
+    RBR     :   7 trades   57.1% WR  $   3,835
+    DBD     :  15 trades   80.0% WR  $  15,170
+  ── Score-filtered subsets:
+    Score≥6:  26 trades   65.4% WR  $  13,567
+    Score≥8:   7 trades   85.7% WR  $   6,570
+  ── Signal type breakdown:
+    ABS_EDGE              :   2   50.0% WR  $   1,944
+    EXHAUST_WICK          :  40   55.0% WR  $  19,927
+
+────────────────────────────────────────────────────────────────
+  ABS_OR_EXHAUST    TF=30m  TP=3.0x
+────────────────────────────────────────────────────────────────
+  Trades: 42  |  Wins: 20  Losses: 22
+  Win Rate: 47.6%  |  Profit Factor: 2.12
+  Net PnL: $    22,361  |  Avg Risk: 156.0 ticks
+  Avg Win: $   2,119  |  Avg Loss: $    -910
+  Exits → TP: 14  SL: 21  Expire: 7
+  ── Zone type breakdown:
+    Supply  :  10 trades   30.0% WR  $   2,538
+    Demand  :  10 trades   30.0% WR  $     393
+    RBR     :   7 trades   42.9% WR  $     995
+    DBD     :  15 trades   73.3% WR  $  18,434
+  ── Score-filtered subsets:
+    Score≥6:  26 trades   61.5% WR  $  19,822
+    Score≥8:   7 trades   85.7% WR  $   9,970
+  ── Signal type breakdown:
+    ABS_EDGE              :   2    0.0% WR  $  -1,311
+    EXHAUST_WICK          :  40   50.0% WR  $  23,672
+
+────────────────────────────────────────────────────────────────
+  ABS_INSIDE        TF=30m  TP=1.5x
+────────────────────────────────────────────────────────────────
+  Trades: 1  |  Wins: 0  Losses: 1
+  Win Rate: 0.0%  |  Profit Factor: 0.00
+  Net PnL: $      -226  |  Avg Risk: 45.0 ticks
+  Avg Win: $       0  |  Avg Loss: $    -226
+  Exits → TP: 0  SL: 1  Expire: 0
+  ── Zone type breakdown:
+    RBR     :   1 trades    0.0% WR  $    -226
+  ── Score-filtered subsets:
+    Score≥6:   1 trades    0.0% WR  $    -226
+    Score≥8:   1 trades    0.0% WR  $    -226
+
+────────────────────────────────────────────────────────────────
+  ABS_INSIDE        TF=30m  TP=2.0x
+────────────────────────────────────────────────────────────────
+  Trades: 1  |  Wins: 0  Losses: 1
+  Win Rate: 0.0%  |  Profit Factor: 0.00
+  Net PnL: $      -226  |  Avg Risk: 45.0 ticks
+  Avg Win: $       0  |  Avg Loss: $    -226
+  Exits → TP: 0  SL: 1  Expire: 0
+  ── Zone type breakdown:
+    RBR     :   1 trades    0.0% WR  $    -226
+  ── Score-filtered subsets:
+    Score≥6:   1 trades    0.0% WR  $    -226
+    Score≥8:   1 trades    0.0% WR  $    -226
+
+────────────────────────────────────────────────────────────────
+  ABS_INSIDE        TF=30m  TP=3.0x
+────────────────────────────────────────────────────────────────
+  Trades: 1  |  Wins: 0  Losses: 1
+  Win Rate: 0.0%  |  Profit Factor: 0.00
+  Net PnL: $      -226  |  Avg Risk: 45.0 ticks
+  Avg Win: $       0  |  Avg Loss: $    -226
+  Exits → TP: 0  SL: 1  Expire: 0
+  ── Zone type breakdown:
+    RBR     :   1 trades    0.0% WR  $    -226
+  ── Score-filtered subsets:
+    Score≥6:   1 trades    0.0% WR  $    -226
+    Score≥8:   1 trades    0.0% WR  $    -226
+
+────────────────────────────────────────────────────────────────
+  VOL_FADE          TF=30m  TP=1.5x
+────────────────────────────────────────────────────────────────
+  Trades: 4  |  Wins: 3  Losses: 1
+  Win Rate: 75.0%  |  Profit Factor: 15.31
+  Net PnL: $     3,230  |  Avg Risk: 126.5 ticks
+  Avg Win: $   1,152  |  Avg Loss: $    -226
+  Exits → TP: 3  SL: 1  Expire: 0
+  ── Zone type breakdown:
+    RBR     :   2 trades   50.0% WR  $     606
+    DBD     :   2 trades  100.0% WR  $   2,624
+  ── Score-filtered subsets:
+    Score≥6:   2 trades   50.0% WR  $     606
+    Score≥8:   2 trades   50.0% WR  $     606
+    Score≥10:   1 trades  100.0% WR  $     832
+
+────────────────────────────────────────────────────────────────
+  VOL_FADE          TF=30m  TP=2.0x
+────────────────────────────────────────────────────────────────
+  Trades: 4  |  Wins: 1  Losses: 3
+  Win Rate: 25.0%  |  Profit Factor: 0.56
+  Net PnL: $      -868  |  Avg Risk: 126.5 ticks
+  Avg Win: $   1,109  |  Avg Loss: $    -659
+  Exits → TP: 1  SL: 3  Expire: 0
+  ── Zone type breakdown:
+    RBR     :   2 trades   50.0% WR  $     884
+    DBD     :   2 trades    0.0% WR  $  -1,751
+  ── Score-filtered subsets:
+    Score≥6:   2 trades   50.0% WR  $     884
+    Score≥8:   2 trades   50.0% WR  $     884
+    Score≥10:   1 trades  100.0% WR  $   1,109
+
+────────────────────────────────────────────────────────────────
+  VOL_FADE          TF=30m  TP=3.0x
+────────────────────────────────────────────────────────────────
+  Trades: 4  |  Wins: 1  Losses: 3
+  Win Rate: 25.0%  |  Profit Factor: 0.84
+  Net PnL: $      -313  |  Avg Risk: 126.5 ticks
+  Avg Win: $   1,664  |  Avg Loss: $    -659
+  Exits → TP: 1  SL: 3  Expire: 0
+  ── Zone type breakdown:
+    RBR     :   2 trades   50.0% WR  $   1,439
+    DBD     :   2 trades    0.0% WR  $  -1,751
+  ── Score-filtered subsets:
+    Score≥6:   2 trades   50.0% WR  $   1,439
+    Score≥8:   2 trades   50.0% WR  $   1,439
+    Score≥10:   1 trades  100.0% WR  $   1,664
+
+────────────────────────────────────────────────────────────────
+  COMPOSITE         TF=30m  TP=1.5x
+────────────────────────────────────────────────────────────────
+  Trades: 1  |  Wins: 0  Losses: 1
+  Win Rate: 0.0%  |  Profit Factor: 0.00
+  Net PnL: $      -226  |  Avg Risk: 45.0 ticks
+  Avg Win: $       0  |  Avg Loss: $    -226
+  Exits → TP: 0  SL: 1  Expire: 0
+  ── Zone type breakdown:
+    RBR     :   1 trades    0.0% WR  $    -226
+  ── Score-filtered subsets:
+    Score≥6:   1 trades    0.0% WR  $    -226
+    Score≥8:   1 trades    0.0% WR  $    -226
+
+────────────────────────────────────────────────────────────────
+  COMPOSITE         TF=30m  TP=2.0x
+────────────────────────────────────────────────────────────────
+  Trades: 1  |  Wins: 0  Losses: 1
+  Win Rate: 0.0%  |  Profit Factor: 0.00
+  Net PnL: $      -226  |  Avg Risk: 45.0 ticks
+  Avg Win: $       0  |  Avg Loss: $    -226
+  Exits → TP: 0  SL: 1  Expire: 0
+  ── Zone type breakdown:
+    RBR     :   1 trades    0.0% WR  $    -226
+  ── Score-filtered subsets:
+    Score≥6:   1 trades    0.0% WR  $    -226
+    Score≥8:   1 trades    0.0% WR  $    -226
+
+────────────────────────────────────────────────────────────────
+  COMPOSITE         TF=30m  TP=3.0x
+────────────────────────────────────────────────────────────────
+  Trades: 1  |  Wins: 0  Losses: 1
+  Win Rate: 0.0%  |  Profit Factor: 0.00
+  Net PnL: $      -226  |  Avg Risk: 45.0 ticks
+  Avg Win: $       0  |  Avg Loss: $    -226
+  Exits → TP: 0  SL: 1  Expire: 0
+  ── Zone type breakdown:
+    RBR     :   1 trades    0.0% WR  $    -226
+  ── Score-filtered subsets:
+    Score≥6:   1 trades    0.0% WR  $    -226
+    Score≥8:   1 trades    0.0% WR  $    -226
+
+==============================================================================
+  SUMMARY TABLE  (sorted by Net PnL)
+==============================================================================
+  Model             TF       TP      N     WR%     PF        Net$  AvgRisk
+  ─────────────────────────────────────────────────────────────────────────
+  PROXIMAL_BASE     15m     3.0    107    47.7   2.23      47,605    122.0
+  PROXIMAL_BASE     15m     2.0    107    57.0   2.34      42,680    122.0
+  PROXIMAL_BASE     15m     1.5    107    62.6   2.46      38,050    122.0
+  PROXIMAL_BASE     30m     1.5     76    64.5   2.60      37,092    160.8
+  EXHAUST_EDGE      15m     2.0     47    61.7   3.35      27,622    119.3
+  ABS_OR_EXHAUST    15m     2.0     50    60.0   3.29      27,560    113.8
+  PROXIMAL_BASE     30m     2.0     76    53.9   1.79      25,962    160.8
+  EXHAUST_EDGE      15m     1.5     47    70.2   3.80      25,417    119.3
+  PROXIMAL_BASE     5m      3.0    232    37.9   1.43      25,408     69.7
+  ABS_OR_EXHAUST    15m     1.5     50    68.0   3.69      25,295    113.8
+  ABS_OR_EXHAUST    15m     3.0     50    50.0   2.30      24,775    113.8
+  EXHAUST_EDGE      15m     3.0     47    51.1   2.32      24,717    119.3
+  ABS_OR_EXHAUST    30m     3.0     42    47.6   2.12      22,361    156.0
+  EXHAUST_EDGE      30m     3.0     41    48.8   2.12      22,346    159.9
+  ABS_OR_EXHAUST    30m     2.0     42    54.8   2.23      21,871    156.0
+  PROXIMAL_BASE     30m     3.0     76    44.7   1.45      19,867    160.8
+  EXHAUST_EDGE      30m     2.0     41    53.7   1.99      18,601    159.9
+  PROXIMAL_BASE     5m      2.0    232    46.6   1.35      17,913     69.7
+  EXHAUST_EDGE      30m     1.5     41    63.4   2.11      17,796    159.9
+  ABS_OR_EXHAUST    30m     1.5     42    61.9   2.06      17,211    156.0
+  PROXIMAL_BASE     5m      1.5    232    52.6   1.29      13,450     69.7
+  EXHAUST_EDGE      5m      1.5    105    50.5   1.39       9,784     80.7
+  ABS_OR_EXHAUST    5m      1.5    111    49.5   1.37       9,627     79.5
+  EXHAUST_EDGE      5m      3.0    105    33.3   1.26       8,502     80.7
+  ABS_OR_EXHAUST    5m      3.0    111    32.4   1.18       6,457     79.5
+  VOL_FADE          5m      1.5      7    57.1   6.78       6,398    115.4
+  EXHAUST_EDGE      5m      2.0    105    40.0   1.20       5,807     80.7
+  VOL_FADE          5m      3.0      7    28.6   3.57       5,050    115.4
+  VOL_FADE          5m      2.0      7    28.6   3.29       4,515    115.4
+  ABS_OR_EXHAUST    5m      2.0    111    38.7   1.11       3,422     79.5
+  VOL_FADE          30m     1.5      4    75.0  15.31       3,230    126.5
+  ABS_EDGE          30m     2.0      2    50.0   9.61       1,944    131.0
+  ABS_EDGE          30m     1.5      2    50.0   7.21       1,401    131.0
+  ABS_INSIDE        5m      1.5      3    33.3   0.93         -35     53.0
+  COMPOSITE         15m     3.0      3    33.3   0.79         -97     38.3
+  COMPOSITE         15m     2.0      3    33.3   0.52        -217     38.3
+  ABS_EDGE          15m     3.0      4    25.0   0.62        -218     34.8
+  ABS_INSIDE        15m     1.5      2     0.0   0.00        -221     22.0
+  ABS_INSIDE        15m     2.0      2     0.0   0.00        -221     22.0
+  ABS_INSIDE        15m     3.0      2     0.0   0.00        -221     22.0
+  ABS_INSIDE        30m     1.5      1     0.0   0.00        -226     45.0
+  ABS_INSIDE        30m     2.0      1     0.0   0.00        -226     45.0
+  ABS_INSIDE        30m     3.0      1     0.0   0.00        -226     45.0
+  COMPOSITE         30m     1.5      1     0.0   0.00        -226     45.0
+  COMPOSITE         30m     2.0      1     0.0   0.00        -226     45.0
+  COMPOSITE         30m     3.0      1     0.0   0.00        -226     45.0
+  COMPOSITE         15m     1.5      3    33.3   0.39        -277     38.3
+  VOL_FADE          30m     3.0      4    25.0   0.84        -313    126.5
+  ABS_EDGE          15m     2.0      4    25.0   0.41        -338     34.8
+  ABS_EDGE          15m     1.5      4    25.0   0.31        -398     34.8
+  COMPOSITE         5m      1.5      3    33.3   0.52        -420     78.7
+  ABS_EDGE          5m      1.5      7    28.6   0.66        -507     60.4
+  VOL_FADE          30m     2.0      4    25.0   0.56        -868    126.5
+  ABS_EDGE          30m     3.0      2     0.0   0.00      -1,311    131.0
+  VOL_FADE          15m     1.5      3     0.0   0.00      -2,257    150.3
+  VOL_FADE          15m     2.0      3     0.0   0.00      -2,257    150.3
+  VOL_FADE          15m     3.0      3     0.0   0.00      -2,257    150.3
+  ABS_EDGE          5m      3.0      7    14.3   0.30      -2,395     60.4
+  ABS_INSIDE        5m      2.0      3     0.0   0.00      -2,432     53.0
+  ABS_INSIDE        5m      3.0      3     0.0   0.00      -2,432     53.0
+  ABS_EDGE          5m      2.0      7    14.3   0.20      -2,735     60.4
+  COMPOSITE         5m      2.0      3     0.0   0.00      -2,817     78.7
+  COMPOSITE         5m      3.0      3     0.0   0.00      -2,817     78.7
+
+  Completed in 3.9s

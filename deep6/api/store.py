@@ -129,6 +129,51 @@ CREATE TABLE IF NOT EXISTS walk_forward_outcomes (
 )
 """
 
+DEPTHRADAR_EPISODES_SCHEMA = """
+CREATE TABLE IF NOT EXISTS depthradar_episodes (
+    episode_id TEXT PRIMARY KEY,
+    session_date TEXT NOT NULL,
+    side TEXT NOT NULL,
+    price REAL NOT NULL,
+    first_seen TEXT NOT NULL,
+    retirement_time TEXT,
+    retirement_reason TEXT,
+    intent_label TEXT,
+    final_state TEXT,
+    max_size INTEGER,
+    duration_sec REAL,
+    touch_count INTEGER,
+    created_at TEXT DEFAULT (datetime('now'))
+)
+"""
+
+DEPTHRADAR_SNAPSHOTS_SCHEMA = """
+CREATE TABLE IF NOT EXISTS depthradar_snapshots (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    episode_id TEXT NOT NULL,
+    timestamp TEXT NOT NULL,
+    features_json TEXT NOT NULL,
+    intent_prediction TEXT,
+    intent_confidence REAL,
+    state TEXT,
+    created_at TEXT DEFAULT (datetime('now'))
+)
+"""
+
+DEPTHRADAR_TOUCHES_SCHEMA = """
+CREATE TABLE IF NOT EXISTS depthradar_touches (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    episode_id TEXT NOT NULL,
+    timestamp TEXT NOT NULL,
+    mid_price REAL NOT NULL,
+    outcome_prediction TEXT,
+    outcome_confidence REAL,
+    outcome_resolved TEXT,
+    features_json TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now'))
+)
+"""
+
 # Closed trade event types — used by count_oos_trades_per_signal
 _CLOSED_TYPES = ("'STOP_HIT'", "'TARGET_HIT'", "'TIMEOUT_EXIT'", "'MANUAL_EXIT'")
 _CLOSED_IN = f"({', '.join(_CLOSED_TYPES)})"
@@ -163,6 +208,9 @@ class EventStore:
             await self._mem_conn.execute(TRADE_EVENTS_SCHEMA)
             await self._mem_conn.execute(SETUP_TRANSITIONS_SCHEMA)
             await self._mem_conn.execute(WALK_FORWARD_OUTCOMES_SCHEMA)
+            await self._mem_conn.execute(DEPTHRADAR_EPISODES_SCHEMA)
+            await self._mem_conn.execute(DEPTHRADAR_SNAPSHOTS_SCHEMA)
+            await self._mem_conn.execute(DEPTHRADAR_TOUCHES_SCHEMA)
             # BAR_HISTORY_SCHEMA has two statements (CREATE TABLE + CREATE INDEX);
             # executescript() handles the semicolon-separated pair.
             await self._mem_conn.executescript(BAR_HISTORY_SCHEMA)
@@ -173,6 +221,9 @@ class EventStore:
                 await db.execute(TRADE_EVENTS_SCHEMA)
                 await db.execute(SETUP_TRANSITIONS_SCHEMA)
                 await db.execute(WALK_FORWARD_OUTCOMES_SCHEMA)
+                await db.execute(DEPTHRADAR_EPISODES_SCHEMA)
+                await db.execute(DEPTHRADAR_SNAPSHOTS_SCHEMA)
+                await db.execute(DEPTHRADAR_TOUCHES_SCHEMA)
                 await db.executescript(BAR_HISTORY_SCHEMA)
                 await db.commit()
 
@@ -458,6 +509,209 @@ class EventStore:
             async with db.execute(sql, tuple(params)) as cursor:
                 rows = await cursor.fetchall()
                 return [dict(row) for row in rows]
+
+    # ------------------------------------------------------------------
+    # DepthRadar V4 persistence
+    # ------------------------------------------------------------------
+
+    async def insert_depthradar_episode(self, episode: dict) -> None:
+        """Insert a DepthRadar episode row."""
+        now = time.time()
+        async with self._conn() as db:
+            await db.execute(
+                """
+                INSERT INTO depthradar_episodes
+                    (episode_id, session_date, side, price, first_seen,
+                     retirement_time, retirement_reason, intent_label,
+                     final_state, max_size, duration_sec, touch_count,
+                     created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    episode["episode_id"],
+                    episode["session_date"],
+                    episode["side"],
+                    float(episode["price"]),
+                    episode["first_seen"],
+                    episode.get("retirement_time"),
+                    episode.get("retirement_reason"),
+                    episode.get("intent_label"),
+                    episode.get("final_state"),
+                    episode.get("max_size"),
+                    episode.get("duration_sec"),
+                    episode.get("touch_count"),
+                    now,
+                ),
+            )
+            await db.commit()
+
+    async def insert_depthradar_snapshot(self, snapshot: dict) -> None:
+        """Insert a DepthRadar snapshot row."""
+        now = time.time()
+        features_json = snapshot.get("features_json")
+        if not isinstance(features_json, str):
+            features_json = json.dumps(features_json)
+        async with self._conn() as db:
+            await db.execute(
+                """
+                INSERT INTO depthradar_snapshots
+                    (episode_id, timestamp, features_json, intent_prediction,
+                     intent_confidence, state, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    snapshot["episode_id"],
+                    snapshot["timestamp"],
+                    features_json,
+                    snapshot.get("intent_prediction"),
+                    snapshot.get("intent_confidence"),
+                    snapshot.get("state"),
+                    now,
+                ),
+            )
+            await db.commit()
+
+    async def insert_depthradar_touch(self, touch: dict) -> None:
+        """Insert a DepthRadar touch row."""
+        now = time.time()
+        features_json = touch.get("features_json")
+        if not isinstance(features_json, str):
+            features_json = json.dumps(features_json)
+        async with self._conn() as db:
+            await db.execute(
+                """
+                INSERT INTO depthradar_touches
+                    (episode_id, timestamp, mid_price, outcome_prediction,
+                     outcome_confidence, outcome_resolved, features_json,
+                     created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    touch["episode_id"],
+                    touch["timestamp"],
+                    float(touch["mid_price"]),
+                    touch.get("outcome_prediction"),
+                    touch.get("outcome_confidence"),
+                    touch.get("outcome_resolved"),
+                    features_json,
+                    now,
+                ),
+            )
+            await db.commit()
+
+    async def fetch_depthradar_episodes(
+        self,
+        session_date: str | None = None,
+        limit: int = 500,
+    ) -> list[dict]:
+        """Fetch DepthRadar episodes ordered by created_at DESC."""
+        if session_date is not None:
+            sql = (
+                "SELECT * FROM depthradar_episodes WHERE session_date = ? "
+                "ORDER BY created_at DESC, episode_id DESC LIMIT ?"
+            )
+            params: tuple = (session_date, limit)
+        else:
+            sql = (
+                "SELECT * FROM depthradar_episodes "
+                "ORDER BY created_at DESC, episode_id DESC LIMIT ?"
+            )
+            params = (limit,)
+
+        async with self._conn() as db:
+            db.row_factory = aiosqlite.Row
+            async with db.execute(sql, params) as cursor:
+                rows = await cursor.fetchall()
+                return [dict(row) for row in rows]
+
+    async def fetch_depthradar_touches(
+        self,
+        episode_id: str | None = None,
+        limit: int = 500,
+    ) -> list[dict]:
+        """Fetch DepthRadar touches ordered by timestamp DESC."""
+        if episode_id is not None:
+            sql = (
+                "SELECT * FROM depthradar_touches WHERE episode_id = ? "
+                "ORDER BY timestamp DESC, id DESC LIMIT ?"
+            )
+            params: tuple = (episode_id, limit)
+        else:
+            sql = (
+                "SELECT * FROM depthradar_touches "
+                "ORDER BY timestamp DESC, id DESC LIMIT ?"
+            )
+            params = (limit,)
+
+        async with self._conn() as db:
+            db.row_factory = aiosqlite.Row
+            async with db.execute(sql, params) as cursor:
+                rows = await cursor.fetchall()
+                return [dict(row) for row in rows]
+
+    async def fetch_depthradar_metrics(self) -> dict:
+        """Return DepthRadar table counts and resolved accuracy stats."""
+        async with self._conn() as db:
+            db.row_factory = aiosqlite.Row
+
+            async with db.execute("SELECT COUNT(*) AS cnt FROM depthradar_episodes") as cursor:
+                episode_count = (await cursor.fetchone())["cnt"]
+            async with db.execute("SELECT COUNT(*) AS cnt FROM depthradar_snapshots") as cursor:
+                snapshot_count = (await cursor.fetchone())["cnt"]
+            async with db.execute("SELECT COUNT(*) AS cnt FROM depthradar_touches") as cursor:
+                touch_count = (await cursor.fetchone())["cnt"]
+
+            async with db.execute(
+                """
+                SELECT COUNT(*) AS cnt
+                FROM depthradar_touches
+                WHERE outcome_resolved IS NOT NULL
+                  AND outcome_prediction IS NOT NULL
+                """
+            ) as cursor:
+                resolved_touch_count = (await cursor.fetchone())["cnt"]
+
+            async with db.execute(
+                """
+                SELECT
+                    COUNT(*) AS cnt,
+                    SUM(CASE WHEN s.intent_prediction = e.intent_label THEN 1 ELSE 0 END) AS correct
+                FROM depthradar_snapshots s
+                JOIN depthradar_episodes e ON e.episode_id = s.episode_id
+                WHERE e.intent_label IS NOT NULL
+                  AND s.intent_prediction IS NOT NULL
+                """
+            ) as cursor:
+                row = await cursor.fetchone()
+                intent_total = row["cnt"] or 0
+                intent_correct = row["correct"] or 0
+
+            async with db.execute(
+                """
+                SELECT
+                    COUNT(*) AS cnt,
+                    SUM(CASE WHEN outcome_prediction = outcome_resolved THEN 1 ELSE 0 END) AS correct
+                FROM depthradar_touches
+                WHERE outcome_resolved IS NOT NULL
+                  AND outcome_prediction IS NOT NULL
+                """
+            ) as cursor:
+                row = await cursor.fetchone()
+                outcome_total = row["cnt"] or 0
+                outcome_correct = row["correct"] or 0
+
+        return {
+            "episode_count": episode_count,
+            "snapshot_count": snapshot_count,
+            "touch_count": touch_count,
+            "resolved_touch_count": resolved_touch_count,
+            "intent_accuracy": (intent_correct / intent_total) if intent_total else None,
+            "outcome_accuracy": (outcome_correct / outcome_total) if outcome_total else None,
+            "intent_total": intent_total,
+            "intent_correct": intent_correct,
+            "outcome_total": outcome_total,
+            "outcome_correct": outcome_correct,
+        }
 
     # ------------------------------------------------------------------
     # Phase 11-01: bar_history CRUD

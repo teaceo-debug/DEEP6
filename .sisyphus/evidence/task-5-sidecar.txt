@@ -1,0 +1,10 @@
+let backendPid = null;
+function spawnBackend() {
+backendPid = existingPid;
+backendPid = backendProcess.pid ?? null;
+console.log(`[GEX] Backend PID: ${backendPid ?? 'unknown'}`);
+if (backendPid) {
+cleanupStalePidFile(backendPid);
+backendPid = null;
+function pollHealth() {
+`Python backend did not start within 15 seconds.\n\nCheck that Python is installed and try again.\n\nPID: ${backendPid ?? 'unknown'}`

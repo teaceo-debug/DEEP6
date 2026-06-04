@@ -1,0 +1,55 @@
+{
+  "name": "VOLP_03_volume_surge",
+  "description": "Volume > surge_mult × vol_ema. Simple volume surge detection — current bar volume far exceeds exponential moving average.",
+  "bar": {
+    "open": 21490.0,
+    "high": 21518.0,
+    "low": 21488.0,
+    "close": 21515.0,
+    "delta": 500,
+    "total_volume": 5200,
+    "bid_volumes": {
+      "21488.0": 100,
+      "21490.0": 200,
+      "21495.0": 300,
+      "21500.0": 400,
+      "21505.0": 350,
+      "21510.0": 250
+    },
+    "ask_volumes": {
+      "21490.0": 300,
+      "21495.0": 450,
+      "21500.0": 550,
+      "21505.0": 500,
+      "21510.0": 400,
+      "21515.0": 350,
+      "21518.0": 250
+    },
+    "poc_price": 21500.0,
+    "poc_volume": 950,
+    "vah": 21512.0,
+    "val": 21492.0,
+    "cvd": 700.0,
+    "bar_index": 45,
+    "timestamp": "2026-05-13T10:30:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 12.0,
+    "cvd": 700.0,
+    "vah": 21512.0,
+    "val": 21492.0,
+    "poc": 21500.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "vol_history": [1800, 2000, 2100, 1900, 5200],
+    "vol_ema": 2000,
+    "surge_mult": 2.5
+  },
+  "expected_signal": {
+    "signal_id": "VOLP_03",
+    "direction": "BULLISH",
+    "strength_min": 0.35,
+    "strength_max": 0.55
+  }
+}

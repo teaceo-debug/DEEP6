@@ -1,0 +1,377 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e9]:
+    - generic [ref=e11]:
+      - generic [ref=e12]:
+        - list [ref=e13]:
+          - button "Trader Dale" [disabled] [ref=e14]:
+            - link "Trader Dale" [disabled] [ref=e15] [cursor=pointer]:
+              - /url: https://member.trader-dale.com/?automatic_login=true&token=
+              - img "Trader Dale logo" [ref=e19]
+        - status [ref=e20]
+      - link [ref=e22] [cursor=pointer]:
+        - /url: /discover
+        - img [ref=e25]
+      - link "Create a new community" [ref=e28] [cursor=pointer]:
+        - /url: /communities/new
+        - img [ref=e29]
+    - generic [ref=e31]:
+      - navigation "Main navigation bar" [ref=e32]:
+        - button "Trader Dale logo" [ref=e37] [cursor=pointer]:
+          - generic [ref=e38]:
+            - img "Trader Dale logo" [ref=e40]
+            - img [ref=e42]
+        - list [ref=e44]:
+          - listitem [ref=e45]:
+            - link "Home" [ref=e46] [cursor=pointer]:
+              - /url: /feed
+          - listitem [ref=e47]:
+            - link "Courses" [ref=e48] [cursor=pointer]:
+              - /url: /courses
+          - listitem [ref=e49]:
+            - link "Members" [ref=e50] [cursor=pointer]:
+              - /url: /members
+        - generic [ref=e51]:
+          - generic [ref=e52]:
+            - generic:
+              - img
+            - button "Search" [ref=e53] [cursor=pointer]
+          - generic [ref=e54]:
+            - button "Notifications" [ref=e59] [cursor=pointer]:
+              - img [ref=e60]
+            - button "Direct messages" [ref=e66] [cursor=pointer]:
+              - img [ref=e67]
+            - button "Bookmarks" [ref=e73] [cursor=pointer]:
+              - img [ref=e74]
+          - button "User menu options" [ref=e78] [cursor=pointer]:
+            - generic [ref=e80]: MG
+      - generic [ref=e84]:
+        - complementary "Left Sidebar" [ref=e85]:
+          - navigation:
+            - generic [ref=e89]:
+              - navigation "Secondary navigation bar" [ref=e90]:
+                - list [ref=e91]:
+                  - listitem [ref=e92]:
+                    - link "Feed" [ref=e93] [cursor=pointer]:
+                      - /url: /feed
+                      - img [ref=e94]
+                      - heading "Feed" [level=4] [ref=e96]
+              - generic [ref=e97]:
+                - generic [ref=e98]:
+                  - button "Welcome To Trader Dale's FTA" [disabled] [expanded] [ref=e99] [cursor=pointer]:
+                    - heading "Welcome To Trader Dale's FTA" [level=3] [ref=e101]
+                  - generic [ref=e102]:
+                    - button "Start Here" [disabled] [ref=e103] [cursor=pointer]:
+                      - link "Start Here" [disabled] [ref=e104]:
+                        - /url: /c/start-here/
+                        - img [ref=e107]
+                        - heading "Start Here" [level=4] [ref=e110]
+                    - button "New Member Introductions" [disabled] [ref=e111] [cursor=pointer]:
+                      - link "New Member Introductions" [disabled] [ref=e112]:
+                        - /url: /c/new-member-introductions/
+                        - img [ref=e115]
+                        - heading "New Member Introductions" [level=4] [ref=e118]
+                - generic [ref=e119]:
+                  - button "LIVE FTA Room & Recordings" [disabled] [expanded] [ref=e120] [cursor=pointer]:
+                    - heading "LIVE FTA Room & Recordings" [level=3] [ref=e122]
+                  - generic [ref=e123]:
+                    - button "Live Room Schedule" [disabled] [ref=e124] [cursor=pointer]:
+                      - link "Live Room Schedule" [disabled] [ref=e125]:
+                        - /url: /c/live-room-schedule/
+                        - img [ref=e128]
+                        - heading "Live Room Schedule" [level=4] [ref=e131]
+                    - button "Recordings" [disabled] [ref=e132] [cursor=pointer]:
+                      - link "Recordings" [disabled] [ref=e133]:
+                        - /url: /c/recordings/
+                        - img [ref=e136]
+                        - heading "Recordings" [level=4] [ref=e139]
+                    - button "Live Meetings Protocol" [disabled] [ref=e140] [cursor=pointer]:
+                      - link "Live Meetings Protocol" [disabled] [ref=e141]:
+                        - /url: /c/live-meetings-protocol/
+                        - img [ref=e144]
+                        - heading "Live Meetings Protocol" [level=4] [ref=e147]
+                - generic [ref=e148]:
+                  - button "FTA Community Tools" [disabled] [expanded] [ref=e149] [cursor=pointer]:
+                    - heading "FTA Community Tools" [level=3] [ref=e151]
+                  - generic [ref=e152]:
+                    - button "Market Preview/Review" [disabled] [ref=e153] [cursor=pointer]:
+                      - link "Market Preview/Review" [disabled] [ref=e154]:
+                        - /url: /c/market-preview-review/
+                        - img [ref=e157]
+                        - heading "Market Preview/Review" [level=4] [ref=e160]
+                    - button "Order Flow Methodology" [disabled] [ref=e161] [cursor=pointer]:
+                      - link "Order Flow Methodology" [disabled] [ref=e162]:
+                        - /url: /c/order-flow-methodology/
+                        - img [ref=e164]
+                        - heading "Order Flow Methodology" [level=4] [ref=e167]
+                    - button "FTA Student Analysis" [disabled] [ref=e168] [cursor=pointer]:
+                      - link "FTA Student Analysis" [disabled] [ref=e169]:
+                        - /url: /c/student-chart-analysis/
+                        - img [ref=e172]
+                        - heading "FTA Student Analysis" [level=4] [ref=e175]
+                    - button "Live FTA Member Chat" [disabled] [ref=e176] [cursor=pointer]:
+                      - link "Live FTA Member Chat" [disabled] [ref=e177]:
+                        - /url: /c/live-fta-member-chat-3d9ecb/
+                        - img [ref=e180]
+                        - heading "Live FTA Member Chat" [level=4] [ref=e183]
+                    - button "Trading Journal & Training Videos" [disabled] [ref=e184] [cursor=pointer]:
+                      - link "Trading Journal & Training Videos" [disabled] [ref=e185]:
+                        - /url: /c/trading-journal-training-videos/
+                        - img [ref=e188]
+                        - heading "Trading Journal & Training Videos" [level=4] [ref=e191]
+                    - button "Post Your Success!" [disabled] [ref=e192] [cursor=pointer]:
+                      - link "Post Your Success!" [disabled] [ref=e193]:
+                        - /url: /c/post-your-success/
+                        - generic [ref=e195]: 📈
+                        - heading "Post Your Success!" [level=4] [ref=e197]
+                    - button "Prop Firm Basics" [disabled] [ref=e198] [cursor=pointer]:
+                      - link "Prop Firm Basics" [disabled] [ref=e199]:
+                        - /url: /c/prop-firm-basics/
+                        - img [ref=e202]
+                        - heading "Prop Firm Basics" [level=4] [ref=e205]
+                    - button "Demo Trading" [disabled] [ref=e206] [cursor=pointer]:
+                      - link "Demo Trading" [disabled] [ref=e207]:
+                        - /url: /c/demo-trading/
+                        - img [ref=e210]
+                        - heading "Demo Trading" [level=4] [ref=e213]
+                - generic [ref=e214]:
+                  - button "FTA Trading Courses" [disabled] [expanded] [ref=e215] [cursor=pointer]:
+                    - heading "FTA Trading Courses" [level=3] [ref=e217]
+                  - generic [ref=e218]:
+                    - button "VP Video Course" [disabled] [ref=e219] [cursor=pointer]:
+                      - link "VP Video Course" [disabled] [ref=e220]:
+                        - /url: /c/volume-profile-course/
+                        - img [ref=e223]
+                        - heading "VP Video Course" [level=4] [ref=e226]
+                    - button "OF Video Course" [disabled] [ref=e227] [cursor=pointer]:
+                      - link "OF Video Course" [disabled] [ref=e228]:
+                        - /url: /c/order-flow-course/
+                        - img [ref=e231]
+                        - heading "OF Video Course" [level=4] [ref=e234]
+                    - button "Smart Money Course" [disabled] [ref=e235] [cursor=pointer]:
+                      - link "Smart Money Course" [disabled] [ref=e236]:
+                        - /url: /c/smart-money-course/
+                        - img [ref=e239]
+                        - heading "Smart Money Course" [level=4] [ref=e242]
+                    - button "Trading Psychology" [disabled] [ref=e243] [cursor=pointer]:
+                      - link "Trading Psychology" [disabled] [ref=e244]:
+                        - /url: /c/trading-psychology/
+                        - img [ref=e247]
+                        - heading "Trading Psychology" [level=4] [ref=e250]
+                    - button "Trading Plan Review" [disabled] [ref=e251] [cursor=pointer]:
+                      - link "Trading Plan Review" [disabled] [ref=e252]:
+                        - /url: /c/trading-plan-review/
+                        - img [ref=e255]
+                        - heading "Trading Plan Review" [level=4] [ref=e258]
+                - generic [ref=e259]:
+                  - button "TD's Accelerator Program" [disabled] [expanded] [ref=e260] [cursor=pointer]:
+                    - heading "TD's Accelerator Program" [level=3] [ref=e262]
+                  - generic [ref=e263]:
+                    - button "Start Here" [disabled] [ref=e264] [cursor=pointer]:
+                      - link "Start Here" [disabled] [ref=e265]:
+                        - /url: /c/welcome/
+                        - img [ref=e268]
+                        - heading "Start Here" [level=4] [ref=e271]
+                    - button "Methodology" [disabled] [ref=e272] [cursor=pointer]:
+                      - link "Methodology" [disabled] [ref=e273]:
+                        - /url: /c/methodology/
+                        - img [ref=e276]
+                        - heading "Methodology" [level=4] [ref=e279]
+                    - button "Announcements" [disabled] [ref=e280] [cursor=pointer]:
+                      - link "Announcements" [disabled] [ref=e281]:
+                        - /url: /c/announcements/
+                        - img [ref=e284]
+                        - heading "Announcements" [level=4] [ref=e287]
+                    - button "AP Live Room Schedule" [disabled] [ref=e288] [cursor=pointer]:
+                      - link "AP Live Room Schedule" [disabled] [ref=e289]:
+                        - /url: /c/live-room-schedule-9ac8bc/
+                        - img [ref=e292]
+                        - heading "AP Live Room Schedule" [level=4] [ref=e295]
+                    - button "AP Room Recordings" [disabled] [ref=e296] [cursor=pointer]:
+                      - link "AP Room Recordings" [disabled] [ref=e297]:
+                        - /url: /c/ap-room-recording-s/
+                        - img [ref=e300]
+                        - heading "AP Room Recordings" [level=4] [ref=e303]
+                    - button "AP Preview/Review" [disabled] [ref=e304] [cursor=pointer]:
+                      - link "AP Preview/Review" [disabled] [ref=e305]:
+                        - /url: /c/ap-chart-analysis/
+                        - img [ref=e308]
+                        - heading "AP Preview/Review" [level=4] [ref=e311]
+                    - button "Day Trading Analysis" [disabled] [ref=e312] [cursor=pointer]:
+                      - link "Day Trading Analysis" [disabled] [ref=e313]:
+                        - /url: /c/ap-chart-analysis-cf7d27/
+                        - img [ref=e316]
+                        - heading "Day Trading Analysis" [level=4] [ref=e319]
+                    - button "Swing Trading Analysis" [disabled] [ref=e320] [cursor=pointer]:
+                      - link "Swing Trading Analysis" [disabled] [ref=e321]:
+                        - /url: /c/ap-swing-analysis/
+                        - img [ref=e324]
+                        - heading "Swing Trading Analysis" [level=4] [ref=e327]
+                    - button "AP Student Analysis" [disabled] [ref=e328] [cursor=pointer]:
+                      - link "AP Student Analysis" [disabled] [ref=e329]:
+                        - /url: /c/student-chart-analysis-a5c4ad/
+                        - img [ref=e332]
+                        - heading "AP Student Analysis" [level=4] [ref=e335]
+                    - button "DAY TRADING CHAT" [disabled] [ref=e336] [cursor=pointer]:
+                      - link "DAY TRADING CHAT" [disabled] [ref=e337]:
+                        - /url: /c/ap-live-chat/
+                        - img [ref=e340]
+                        - heading "DAY TRADING CHAT" [level=4] [ref=e343]
+                    - button "SWING TRADING CHAT" [disabled] [ref=e344] [cursor=pointer]:
+                      - link "SWING TRADING CHAT" [disabled] [ref=e345]:
+                        - /url: /c/swing-trading/
+                        - img [ref=e348]
+                        - heading "SWING TRADING CHAT" [level=4] [ref=e351]
+                    - button "Tradingview Tools" [disabled] [ref=e352] [cursor=pointer]:
+                      - link "Tradingview Tools" [disabled] [ref=e353]:
+                        - /url: /c/tradingview-tools/
+                        - img [ref=e356]
+                        - heading "Tradingview Tools" [level=4] [ref=e359]
+                    - button "NinjaTrader Tools" [disabled] [ref=e360] [cursor=pointer]:
+                      - link "NinjaTrader Tools" [disabled] [ref=e361]:
+                        - /url: /c/ninjatrader-tools/
+                        - img [ref=e364]
+                        - heading "NinjaTrader Tools" [level=4] [ref=e367]
+                    - button "Post Your Success" [disabled] [ref=e368] [cursor=pointer]:
+                      - link "Post Your Success" [disabled] [ref=e369]:
+                        - /url: /c/post-your-success-3778b2/
+                        - generic [ref=e371]: 🎖️
+                        - heading "Post Your Success" [level=4] [ref=e373]
+                - generic [ref=e374]:
+                  - button "TD Courses & Indicators" [disabled] [expanded] [ref=e375] [cursor=pointer]:
+                    - heading "TD Courses & Indicators" [level=3] [ref=e377]
+                  - generic [ref=e378]:
+                    - button "News & Updates 11" [disabled] [ref=e379] [cursor=pointer]:
+                      - link "News & Updates 11" [disabled] [ref=e380]:
+                        - /url: /c/news-updates/
+                        - generic [ref=e382]: 📰
+                        - heading "News & Updates" [level=4] [ref=e384]
+                        - generic [ref=e385]: "11"
+                    - button "General Questions" [disabled] [ref=e386] [cursor=pointer]:
+                      - link "General Questions" [disabled] [ref=e387]:
+                        - /url: /c/general-questions/
+                        - img [ref=e390]
+                        - heading "General Questions" [level=4] [ref=e393]
+                    - button "Smart Money Course" [disabled] [ref=e394] [cursor=pointer]:
+                      - link "Smart Money Course" [disabled] [ref=e395]:
+                        - /url: /c/smart-money-course-self-study/
+                        - img [ref=e398]
+                        - heading "Smart Money Course" [level=4] [ref=e401]
+                    - button "VP Video Course" [disabled] [ref=e402] [cursor=pointer]:
+                      - link "VP Video Course" [disabled] [ref=e403]:
+                        - /url: /c/vp-video-course/
+                        - img [ref=e406]
+                        - heading "VP Video Course" [level=4] [ref=e409]
+                    - button "OF Video Course" [disabled] [ref=e410] [cursor=pointer]:
+                      - link "OF Video Course" [disabled] [ref=e411]:
+                        - /url: /c/of-video-course/
+                        - generic [ref=e413]: 🏫
+                        - heading "OF Video Course" [level=4] [ref=e415]
+                    - button "VWAP Video Course" [disabled] [ref=e416] [cursor=pointer]:
+                      - link "VWAP Video Course" [disabled] [ref=e417]:
+                        - /url: /c/vwap-video-course-80da73/
+                        - img [ref=e420]
+                        - heading "VWAP Video Course" [level=4] [ref=e423]
+                    - button "Stock Investing Pack" [disabled] [ref=e424] [cursor=pointer]:
+                      - link "Stock Investing Pack" [disabled] [ref=e425]:
+                        - /url: /c/stock-investing-pack/
+                        - img [ref=e428]
+                        - heading "Stock Investing Pack" [level=4] [ref=e431]
+                    - button "Book Your Tech Call" [disabled] [ref=e432] [cursor=pointer]:
+                      - link "Book Your Tech Call" [disabled] [ref=e433]:
+                        - /url: /c/book-your-tech-call-03bcfb/
+                        - generic [ref=e435]: 👷‍♂️
+                        - heading "Book Your Tech Call" [level=4] [ref=e437]
+                    - button "Indicator & Software Downloads" [disabled] [ref=e438] [cursor=pointer]:
+                      - link "Indicator & Software Downloads" [disabled] [ref=e439]:
+                        - /url: /c/indicator-software-downloads/
+                        - generic [ref=e441]: ⤵️
+                        - heading "Indicator & Software Downloads" [level=4] [ref=e443]
+                    - button "Daily Trading Levels" [disabled] [ref=e444] [cursor=pointer]:
+                      - link "Daily Trading Levels" [disabled] [ref=e445]:
+                        - /url: /c/daily-trading-levels/
+                        - img [ref=e448]
+                        - heading "Daily Trading Levels" [level=4] [ref=e451]
+                    - button "Swing Trading Levels" [disabled] [ref=e452] [cursor=pointer]:
+                      - link "Swing Trading Levels" [disabled] [ref=e453]:
+                        - /url: /c/swing-trading-levels/
+                        - img [ref=e456]
+                        - heading "Swing Trading Levels" [level=4] [ref=e459]
+                    - button "Post Your Intraday Charts" [disabled] [ref=e460] [cursor=pointer]:
+                      - link "Post Your Intraday Charts" [disabled] [ref=e461]:
+                        - /url: /c/post-your-charts/
+                        - img [ref=e464]
+                        - heading "Post Your Intraday Charts" [level=4] [ref=e467]
+                    - button "Post Your Swing Charts" [disabled] [ref=e468] [cursor=pointer]:
+                      - link "Post Your Swing Charts" [disabled] [ref=e469]:
+                        - /url: /c/post-your-swing-charts/
+                        - img [ref=e472]
+                        - heading "Post Your Swing Charts" [level=4] [ref=e475]
+              - generic [ref=e476]:
+                - button "Links" [ref=e477] [cursor=pointer]:
+                  - generic [ref=e478]: Links
+                - list [ref=e479]:
+                  - button "Download the Android app" [disabled] [ref=e480]:
+                    - link "Download the Android app" [disabled] [ref=e481] [cursor=pointer]:
+                      - /url: https://play.google.com/store/apps/details?id=so.circle.circle&utm_source=community_nav
+                      - img [ref=e483]
+                      - heading "Download the Android app" [level=4] [ref=e485]
+                  - button "Download the iOS app" [disabled] [ref=e486]:
+                    - link "Download the iOS app" [disabled] [ref=e487] [cursor=pointer]:
+                      - /url: https://apps.apple.com/us/app/circle-communities/id1509651625?pt=121043132&ct=Sidebar%20Navigation&mt=8
+                      - img [ref=e489]
+                      - heading "Download the iOS app" [level=4] [ref=e491]
+                - status [ref=e492]
+            - status [ref=e493]
+        - generic [ref=e494]:
+          - banner "Page Header" [ref=e495]:
+            - generic [ref=e500]:
+              - img [ref=e502]
+              - heading "OF Video Course" [level=1] [ref=e505]
+          - main "Main Content" [ref=e506]:
+            - generic [ref=e508]:
+              - generic [ref=e510]:
+                - heading "The Funded Trader Academy" [level=2] [ref=e511]
+                - paragraph [ref=e512]: Follow the footsteps of our prop firm traders LIVE
+              - generic [ref=e516]:
+                - iframe [ref=e521]:
+                  - generic [active] [ref=f14e1]:
+                    - generic "YouTube Video Player" [ref=f14e3]
+                    - generic [ref=f14e5]:
+                      - generic:
+                        - generic:
+                          - button "Play video" [ref=f14e10] [cursor=pointer]:
+                            - generic [ref=f14e13]:
+                              - img
+                          - button "Hide player controls" [ref=f14e14] [cursor=pointer]
+                          - generic [ref=f14e16]:
+                            - generic [ref=f14e21]:
+                              - generic [ref=f14e22]:
+                                - link "👑Funded Trader Academy - LIVE Training with Dale and our Team of Prop Firm Funded Traders" [ref=f14e23] [cursor=pointer]:
+                                  - /url: https://www.youtube.com/watch?v=aOQcLTWQnSc
+                                - link "Trader Dale" [ref=f14e24] [cursor=pointer]:
+                                  - /url: /channel/UC1_SoqTCXaM8kk0SxkAyhcQ
+                                  - generic [ref=f14e25]: Trader Dale
+                              - generic [ref=f14e26]:
+                                - button "thumbnail-image" [ref=f14e27] [cursor=pointer]:
+                                  - img "thumbnail-image" [ref=f14e28]
+                                - generic [ref=f14e30]:
+                                  - generic: Trader Dale
+                                  - generic: 135K subscribers
+                            - generic [ref=f14e31]:
+                              - button "Share" [ref=f14e34] [cursor=pointer]:
+                                - generic [ref=f14e38]:
+                                  - img
+                              - link "Watch on YouTube" [ref=f14e45] [cursor=pointer]:
+                                - /url: https://www.youtube.com/watch?v=aOQcLTWQnSc
+                                - generic [ref=f14e48]:
+                                  - text: Watch on
+                                  - img [ref=f14e50]:
+                                    - generic [ref=f14e52]:
+                                      - img
+                - link "Book Your Call to Learn More" [ref=e524] [cursor=pointer]:
+                  - /url: https://meetings.hubspot.com/david-truffelman/fta
+  - generic:
+    - region "Notifications"
+  - generic:
+    - region "Notifications"
+  - img

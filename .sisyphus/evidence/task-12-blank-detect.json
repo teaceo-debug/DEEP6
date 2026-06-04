@@ -1,0 +1,5 @@
+{
+    "raw_output":  "{\n  \"verdict\": \"FAIL\",\n  \"auto_checks\": {\n    \"file_size_bytes\": 287,\n    \"file_size_check\": \"fail\",\n    \"image_size\": {\n      \"width\": 100,\n      \"height\": 100\n    },\n    \"pixel_stddev\": 0.0,\n    \"blank_check\": \"fail\"\n  },\n  \"llm_result\": null,\n  \"screenshot\": \"C:\\\\Users\\\\Tea\\\\AppData\\\\Local\\\\Temp\\\\opencode\\\\blank.png\",\n  \"spec\": \"Blue SMA line\",\n  \"timestamp\": \"213343\",\n  \"artifacts_dir\": \"C:\\\\Users\\\\Tea\\\\AppData\\\\Local\\\\Temp\\\\opencode\\\\test-artifacts\",\n  \"verdict_path\": \"C:\\\\Users\\\\Tea\\\\AppData\\\\Local\\\\Temp\\\\opencode\\\\test-artifacts\\\\bv-20260513-213343-24f4\\\\verdict-213343.json\"\n}",
+    "command":  "verify_visual blank-image QA",
+    "exit_code":  1
+}

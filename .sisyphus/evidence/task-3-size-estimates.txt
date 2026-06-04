@@ -1,0 +1,11 @@
+﻿Size estimate matches found in nt8-ownership-map.md:
+
+Line 251: - ULTIMATE file: 10,433 raw lines → target ~50-60KB for builder-doctor
+Line 264: | Skill | H2 sections | H3 sections | Est. raw lines | Compression ratio | Est. compressed KB | Under 60KB? |
+Line 266: | machine-profile | 18 | 22 | ~1,800 | 5.5 bytes/line | ~9.9 KB + install research (~8KB) = ~18 KB | ✅ |
+Line 267: | builder-doctor | 57 | 148 | ~8,500 | 5.5 bytes/line | ~46.8 KB + duplication additions (~3KB) = ~50 KB | ✅ |
+Line 268: | error-doctor | 11 | 67 | ~3,200 | 5.5 bytes/line | ~17.6 KB + surgeon content (~22KB) = ~40 KB | ✅ |
+Line 271: - machine-profile: 40 sections × ~20 lines avg = ~800 lines from ULTIMATE/ai-context + ~400 lines from install research (Task 2) + ~200 lines from ai-context platform sections = ~1,400 lines → ~18KB total. Well under ceiling.
+Line 272: - builder-doctor: 205 sections. H2 avg ~50 lines, H3 avg ~15 lines. (57 × 50) + (148 × 15) = 2,850 + 2,220 = ~5,070 lines from section headers alone. But many sections have substantial code blocks — actual content is ~8,000-9,000 lines. At 5.5 bytes/line compressed = ~44-50KB. Duplication additions (State Guards, brief namespace note) add ~3KB. Total: ~47-53KB. Under ceiling.
+Line 273: - error-doctor: 78 sections. H2 avg ~40 lines, H3 avg ~35 lines. (11 × 40) + (67 × 35) = 440 + 2,345 = ~2,785 lines. At 5.5 bytes/line = ~15KB. But surgeon content is dense with code blocks — actual ~3,200 lines → ~18KB. Plus ULTIMATE debugging section (~200 lines → ~1KB). Total: ~19-22KB. Well under ceiling.
+Line 276: - builder-doctor is the only skill approaching the ceiling. At ~50KB it has ~10KB of headroom. If the full footprint engine implementations are included verbatim, it could push toward 55-58KB. Writers should prioritize compression (remove redundant prose, keep code blocks tight).

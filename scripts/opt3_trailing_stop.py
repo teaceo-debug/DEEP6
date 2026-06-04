@@ -1,3 +1,4 @@
+from pathlib import Path
 """
 opt3_trailing_stop.py — Trailing stop optimization for ChNavy6 (VWAP Bounce) on 30m NQ bars.
 
@@ -19,8 +20,9 @@ TICK_SIZE = 0.25
 TICK_VALUE = 5.0
 COMMISSION_PER_SIDE = 0.35
 SLIPPAGE_TICKS = 1
-CSV_PATH = "/Users/teaceo/DEEP6/data/backtests/nq_3mo_1m.csv"
-OUT_PATH = "/Users/teaceo/DEEP6/scripts/opt3_trailing_stop.txt"
+ROOT = Path(__file__).resolve().parents[1]
+CSV_PATH = ROOT / "data/backtests/nq_3mo_1m.csv"
+OUT_PATH = ROOT / "scripts/opt3_trailing_stop.txt"
 
 # ── load & resample ──────────────────────────────────────────────────────────
 

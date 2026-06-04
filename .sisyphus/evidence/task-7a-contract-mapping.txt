@@ -1,0 +1,9 @@
+TASK-7A CONTRACT MAPPING EVIDENCE
+===================================
+Tests run: python -m pytest tests_v2/dom_intelligence/test_signal_contract_mapping.py -v
+Result: PASS
+MVP_NEW_SIGNAL_IDS_ALLOWED: False CONFIRMED
+Tier1 mapped: 6 detectors → existing SignalIds CONFIRMED
+Tier2 feature-only: 5 detectors → None CONFIRMED
+Entry gate policy: 3 safety modes documented CONFIRMED
+Rollback rule: feature flag mechanism documented CONFIRMED

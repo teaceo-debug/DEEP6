@@ -88,7 +88,7 @@ Log "=============================================="
 for ($iter = 1; $iter -le $MaxIterations; $iter++) {
 
     Log ""
-    Log "── Iteration $iter / $MaxIterations ───────────────────────────────────" "Magenta"
+    Log "-- Iteration $iter / $MaxIterations -----------------------------------" "Magenta"
 
     # ── 1. Verify NT8 is running ───────────────────────────────────────────────
     $nt8 = Assert-NT8Running
@@ -97,7 +97,7 @@ for ($iter = 1; $iter -le $MaxIterations; $iter++) {
     # ── 2. Deploy ─────────────────────────────────────────────────────────────
     Log "  [2/3] Deploying ($Target)..."
     $deployOut = & $deployScript -Target $Target -Force 2>&1
-    $deployExit = $LASTEXITCODE
+    $deployExit = if ($null -eq $LASTEXITCODE -or $LASTEXITCODE -eq "") { 0 } else { [int]$LASTEXITCODE }
 
     if (!$Quiet) { $deployOut | ForEach-Object { Write-Host "    $_" -ForegroundColor Gray } }
 

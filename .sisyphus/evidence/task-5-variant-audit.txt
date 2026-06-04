@@ -1,0 +1,32 @@
+Task 5 — Variant Audit Evidence
+Date: 2026-05-24
+
+Inputs read:
+- data/backtests/v8_parity_report.md
+- .sisyphus/notepads/footprint-v8-refactor/learnings.md
+- deep6/backtest/variant_evaluator.py
+
+Execution notes:
+- The CLI accepts only a single `--bars-forward` integer, so verdict evaluation used 10 bars.
+- Windows DuckDB audit runs left a stale `.wal` lock behind; removing `v8_variant_audit.duckdb*` and rebuilding the database resolved it.
+- Evaluations were run against `data/backtests/nq_3mo_1m.csv` for all 10 supported variants and written back to `data/backtests/v8_variant_audit.duckdb`.
+
+Variant results:
+- ABS_01 | n_oos=13710 | oos_hit_rate=0.971918 | rr=1.153691 | verdict=INCONCLUSIVE
+- ABS_02 | n_oos=12030 | oos_hit_rate=0.971488 | rr=1.154364 | verdict=INCONCLUSIVE
+- ABS_03 | n_oos=850 | oos_hit_rate=0.848235 | rr=1.074606 | verdict=INCONCLUSIVE
+- ABS_04 | n_oos=27 | oos_hit_rate=0.888889 | rr=0.793752 | verdict=INCONCLUSIVE
+- EXH_01 | n_oos=15686 | oos_hit_rate=0.771771 | rr=1.022469 | verdict=INCONCLUSIVE
+- EXH_02 | n_oos=17921 | oos_hit_rate=0.970872 | rr=1.166765 | verdict=INCONCLUSIVE
+- EXH_03 | n_oos=6415 | oos_hit_rate=0.770850 | rr=1.044710 | verdict=INCONCLUSIVE
+- EXH_04 | n_oos=787 | oos_hit_rate=0.820839 | rr=0.990124 | verdict=INCONCLUSIVE
+- EXH_05 | n_oos=5869 | oos_hit_rate=0.793491 | rr=1.023513 | verdict=INCONCLUSIVE
+- EXH_06 | n_oos=9674 | oos_hit_rate=0.969196 | rr=1.080140 | verdict=INCONCLUSIVE
+
+DuckDB verification:
+- `variants` row count = 10
+- Final row set contains ABS_01-04 and EXH_01-06
+
+Artifacts produced:
+- data/backtests/v8_variant_audit.duckdb
+- data/backtests/v8_variant_audit_summary.md

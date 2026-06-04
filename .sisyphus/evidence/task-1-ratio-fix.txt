@@ -1,0 +1,13 @@
+Changed gex_terminal/engine/analyzer.py to:
+- derive NQ/QQQ ratio dynamically from live spots (auto-extracts QQQ spot from Massive raw_gex_result.spot and NQ spot from FlashAlpha summary raw if present)
+- apply VIX confidence modifier before direction/grade calculation
+- preserve backward-compatible analyze(fa_result, massive_result) calls
+
+Changed gex_terminal/config.py to add:
+- vix_threshold_low = 15.0
+- vix_threshold_high = 25.0
+- vix_threshold_extreme = 35.0
+
+Verification:
+- lsp_diagnostics clean on analyzer.py, config.py, test_analyzer.py
+- pytest gex_terminal/tests -q => 77 passed

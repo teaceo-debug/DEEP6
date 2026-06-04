@@ -1,0 +1,2 @@
+- Keep mutation_type as a plain optional string here; do not define MutationType in this module.
+- Use frozen Pydantic models for exits/confirmation data so configs stay serializable and immutable.

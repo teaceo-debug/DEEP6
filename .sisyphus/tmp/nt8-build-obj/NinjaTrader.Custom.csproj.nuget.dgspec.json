@@ -1,0 +1,66 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\Users\\Tea\\Documents\\NinjaTrader 8\\bin\\Custom\\NinjaTrader.Custom.csproj": {}
+  },
+  "projects": {
+    "C:\\Users\\Tea\\Documents\\NinjaTrader 8\\bin\\Custom\\NinjaTrader.Custom.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\Tea\\Documents\\NinjaTrader 8\\bin\\Custom\\NinjaTrader.Custom.csproj",
+        "projectName": "NinjaTrader.Custom",
+        "projectPath": "C:\\Users\\Tea\\Documents\\NinjaTrader 8\\bin\\Custom\\NinjaTrader.Custom.csproj",
+        "packagesPath": "C:\\Users\\Tea\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Tea\\DEEP6\\.sisyphus\\tmp\\nt8-build-obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\Tea\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net48"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net48": {
+            "targetAlias": "net48",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "net48": {
+          "targetAlias": "net48",
+          "dependencies": {
+            "ActiproSoftware.Controls.WPF.SyntaxEditor.Addons.DotNet": {
+              "target": "Package",
+              "version": "[25.1.1, )"
+            },
+            "Microsoft.NETFramework.ReferenceAssemblies": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[1.0.3, )",
+              "autoReferenced": true
+            },
+            "System.ComponentModel.Annotations": {
+              "target": "Package",
+              "version": "[5.0.0, )"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.420\\RuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

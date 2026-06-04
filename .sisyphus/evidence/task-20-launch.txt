@@ -1,0 +1,9 @@
+GEX Terminal v2.0 — Config validated
+  Port: 8780
+  Refresh: 30s
+  Claude model: claude-haiku-4-5-20251001
+  DEEP6 URL: http://localhost:8765
+  FlashAlpha key: NOT SET
+  Massive key: NOT SET
+  UW key: NOT SET
+  Anthropic key: NOT SET

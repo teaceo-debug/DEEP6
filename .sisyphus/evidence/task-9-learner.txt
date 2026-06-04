@@ -1,0 +1,19 @@
+Task 9 — Claude daily learner
+
+Changed files:
+- gex_terminal/engine/learner.py
+- gex_terminal/engine/interpreter.py
+- gex_terminal/engine/orchestrator.py
+- .claude/skills/gex-doctor-learnings/knowledge.md
+- gex_terminal/tests/test_learner.py
+- gex_terminal/tests/test_interpreter.py
+- gex_terminal/tests/test_orchestrator.py
+
+Verification:
+- LSP diagnostics clean on all changed Python files.
+- Hermes test command: `.venv/bin/python -m pytest gex_terminal/tests/test_learner.py gex_terminal/tests/test_interpreter.py gex_terminal/tests/test_orchestrator.py -v`
+- Result: `16 passed in 68.68s`
+
+Notes:
+- Learner is optional/fail-open and only persists at end-of-session.
+- Recall context loads up to 5 recent session JSON summaries into Claude prompt context.

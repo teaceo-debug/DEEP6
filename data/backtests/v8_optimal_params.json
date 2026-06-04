@@ -1,0 +1,34 @@
+{
+  "iteration_id": 67,
+  "params_hash": "{\"BiasLongThreshold\":0.59481,\"BiasLookback\":4,\"BiasShortThreshold\":-0.649336,\"MaxSignalsPerSession\":23,\"MinArrowConfluence\":4,\"MinExhaustionStrength\":0.504331,\"ShowBidAskFade\":1,\"ShowClassicAbsorption\":1,\"ShowEffortVsResult\":1,\"ShowExhaustionPrint\":1,\"ShowFadingMomentum\":0,\"ShowFatPrint\":1,\"ShowPassiveAbsorption\":0,\"ShowStoppingVolume\":0,\"ShowThinPrint\":0,\"ShowZeroPrint\":0}",
+  "params": {
+    "BiasLongThreshold": 0.59481,
+    "BiasLookback": 4,
+    "BiasShortThreshold": -0.649336,
+    "MaxSignalsPerSession": 23,
+    "MinArrowConfluence": 4,
+    "MinExhaustionStrength": 0.504331,
+    "ShowBidAskFade": 1,
+    "ShowClassicAbsorption": 1,
+    "ShowEffortVsResult": 1,
+    "ShowExhaustionPrint": 1,
+    "ShowFadingMomentum": 0,
+    "ShowFatPrint": 1,
+    "ShowPassiveAbsorption": 0,
+    "ShowStoppingVolume": 0,
+    "ShowThinPrint": 0,
+    "ShowZeroPrint": 0
+  },
+  "validation": {
+    "oos_fitness": 1.0
+  },
+  "walk_forward": {
+    "test_win_rate": 0.42857142857142855,
+    "test_avg_rr": 4.4421470736762085,
+    "test_profit_factor": 3.3316103052571564,
+    "test_max_dd": 4.62159125,
+    "test_total_pnl": 18.037208500000002,
+    "test_trade_count": 7,
+    "test_fitness": 0.6105
+  }
+}

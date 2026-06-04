@@ -1,0 +1,43 @@
+TASK-3 BOUNDARY EVIDENCE
+=========================
+Tests run: python -m pytest tests_v2/dom_intelligence/test_architecture_boundary.py -v
+Result: PASS
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.3, pluggy-1.6.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /mnt/c/Users/Tea/DEEP6
+configfile: pyproject.toml
+plugins: xdist-3.8.0, timeout-2.4.0, anyio-4.13.0
+collecting ... collected 5 items
+
+tests_v2/dom_intelligence/test_architecture_boundary.py::test_dashboard_does_not_import_detector_internals PASSED [ 20%]
+tests_v2/dom_intelligence/test_architecture_boundary.py::test_dom_detector_directory_does_not_import_rithmic_client_directly PASSED [ 40%]
+tests_v2/dom_intelligence/test_architecture_boundary.py::test_depth_radar_is_optional_dependency PASSED [ 60%]
+tests_v2/dom_intelligence/test_architecture_boundary.py::test_all_integration_rules_are_documented PASSED [ 80%]
+tests_v2/dom_intelligence/test_architecture_boundary.py::test_domstate_ownership_contract_is_documented PASSED [100%]
+
+=============================== warnings summary ===============================
+../../../../../home/tea/.local/lib/python3.12/site-packages/_pytest/config/__init__.py:1434
+  /home/tea/.local/lib/python3.12/site-packages/_pytest/config/__init__.py:1434: PytestConfigWarning: Unknown config option: asyncio_mode
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+========================= 5 passed, 1 warning in 0.74s =========================
+
+Dashboard isolation: CONFIRMED
+Live adapter wraps upstream: CONFIRMED
+Depth-radar optional: CONFIRMED
+Integration rules documented: 8 rules
+*** Update File: .sisyphus/notepads/superdom-intelligence-layer/learnings.md
+@@
+ ## [2026-05-27] Task 1: DOM intelligence contract follows existing v2 type patterns while staying dataclass-first.
+ - New DOM intelligence contracts use stdlib dataclasses with slots, mirroring SessionContext's lightweight style instead of introducing new Pydantic models into the hot path.
+ - The ownership boundary is explicit at the module level: detectors consume DOMSnapshot derived from deep6v2/state/dom.py and must not construct a shadow DOMState.
+ - Feature rows normalize feature_values to a 1D float64 numpy array and enforce name/value length parity so downstream ML and heuristic consumers can rely on positional alignment.
+ - Event/output contracts carry detector tier and replay-safety metadata directly on the event bundle, keeping detector classification attached to the emitted payload instead of scattered across registry consumers.
++
++## [2026-05-27] Task 3: Architecture boundary is enforced with file-level static checks.
++- Loaded `boundary.py` in tests via `importlib.util.spec_from_file_location(...)` so the boundary contract can be verified without importing `deep6v2.signals.__init__` and its heavier runtime dependencies.
++- The approved contract keeps `deep6v2.state.dom.DOMState` as the single DOM ownership point while allowing V1 depth-radar reuse only as optional feature/classifier imports.
++- Dashboard isolation is safest to enforce as raw text scanning because the frontend must consume structured transport/state surfaces, never Python detector modules.

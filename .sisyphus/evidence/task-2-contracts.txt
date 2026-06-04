@@ -1,0 +1,2 @@
+Implemented v3 bias-engine contracts and appended bias config dataclasses.
+Validated enum values, snapshot instantiation, and config defaults in tests.

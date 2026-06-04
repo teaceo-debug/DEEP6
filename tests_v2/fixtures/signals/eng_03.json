@@ -1,0 +1,66 @@
+{
+  "name": "ENG_03_spoof_detected",
+  "description": "Spoof detected: high cancel rate + large DOM movement. Large resting orders appear and disappear rapidly — spoofing behavior.",
+  "bar": {
+    "open": 21505.0,
+    "high": 21515.0,
+    "low": 21502.0,
+    "close": 21510.0,
+    "delta": 100,
+    "total_volume": 2200,
+    "bid_volumes": {
+      "21502.0": 80,
+      "21505.0": 200,
+      "21508.0": 250,
+      "21510.0": 180
+    },
+    "ask_volumes": {
+      "21505.0": 150,
+      "21508.0": 200,
+      "21510.0": 250,
+      "21512.0": 180,
+      "21515.0": 130
+    },
+    "poc_price": 21508.0,
+    "poc_volume": 450,
+    "vah": 21512.0,
+    "val": 21505.0,
+    "cvd": 250.0,
+    "bar_index": 45,
+    "timestamp": "2026-05-13T10:30:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 250.0,
+    "vah": 21512.0,
+    "val": 21505.0,
+    "poc": 21508.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "dom_snapshot": {
+      "bids": [
+        {"price": 21510.0, "volume": 500},
+        {"price": 21509.75, "volume": 40},
+        {"price": 21509.50, "volume": 35},
+        {"price": 21509.25, "volume": 30},
+        {"price": 21509.0, "volume": 25}
+      ],
+      "asks": [
+        {"price": 21510.25, "volume": 50},
+        {"price": 21510.50, "volume": 45},
+        {"price": 21510.75, "volume": 40},
+        {"price": 21511.0, "volume": 35},
+        {"price": 21511.25, "volume": 30}
+      ]
+    },
+    "cancel_rate": 0.85,
+    "dom_movement_ticks": 8
+  },
+  "expected_signal": {
+    "signal_id": "ENG_03",
+    "direction": "BEARISH",
+    "strength_min": 0.30,
+    "strength_max": 0.50
+  }
+}

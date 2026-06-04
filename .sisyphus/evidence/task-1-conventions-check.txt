@@ -1,0 +1,26 @@
+﻿TASK 1 CONVENTIONS CHECK — 2026-05-29
+======================================
+File: ninjatrader/Custom/Indicators/DEEP6/DEEP6StackedAbsorptionArrows.cs
+Lines: 817
+
+CHECKS:
+  AddVolumetric count: 2 (PASS — expected 2)
+  Forbidden types (AbsorptionDetector|FootprintBar|AddOns.DEEP6): 0 (PASS — expected 0)
+  [NinjaScriptProperty] count: 26 (PASS — expected 20+)
+  Namespace: NinjaTrader.NinjaScript.Indicators.DEEP6 (PASS)
+  Class: DEEP6StackedAbsorptionArrows : Indicator (PASS)
+  Arrow types: Draw.ArrowUp + Draw.ArrowDown only (PASS)
+  No HUD/text/lines: confirmed (PASS)
+  Tick size per instrument: Instruments[bipIndex].MasterInstrument.TickSize (PASS)
+  BarsArray[bipIndex].BarsType cast: confirmed (PASS)
+  CurrentBars[bipIndex] for vol indexing: confirmed (PASS)
+
+PROPERTY GROUPS:
+  1. Instruments: EsInstrument, VolBarPeriod (PASS)
+  2. Manual Levels: ManualLevel1-5, ManualLevel1Type-5Type, CsvFilePath (PASS)
+  3. Absorption: MinStackedLevels, MinVolumePerLevel_NQ, MinVolumePerLevel_ES, MinTotalAbsorbedVolume, ProximityTicks (PASS)
+  4. Confluence: ConfirmationWindow, RequireConfirmationCandle (PASS)
+  5. Session: SessionStartTime, SessionEndTime, ResetDistanceTicks (PASS)
+  6. Alerts: EnableAlerts, EnableSoundAlert, EnablePopupAlert (PASS)
+
+VERDICT: PASS

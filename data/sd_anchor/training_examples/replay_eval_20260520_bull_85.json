@@ -1,0 +1,27 @@
+{
+  "anchor_id": "replay_20260520_bull",
+  "direction": "bullish",
+  "pine_confidence": 85,
+  "hermes_verdict": "approve",
+  "hermes_score": 85,
+  "step_scores": {
+    "swing_clarity": 25,
+    "displacement_strength": 25,
+    "structure_break": 20,
+    "wick_to_wick": 15,
+    "htf_context": 0
+  },
+  "reasons": ["STRUCTURE_CLEAR", "DISPLACEMENT_CONFIRMED", "ANCHOR_ALIGNMENT_VALID", "CONFIDENCE_SUFFICIENT"],
+  "deviation_levels": {
+    "minus_2": 29469.5,
+    "minus_2_5": 29418.5,
+    "minus_4": 29401.5
+  },
+  "screenshot": "stddev_anchor_ai_replay_detection_2026-05-20_attempt3.png",
+  "symbol": "CME_MINI:NQ1!",
+  "timeframe": "1",
+  "replay_date": "2026-05-20",
+  "timestamp": "2026-05-22T21:47:00Z",
+  "mode": "replay",
+  "label_timing": "decision_time"
+}

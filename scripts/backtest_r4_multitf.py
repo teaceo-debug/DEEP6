@@ -10,10 +10,12 @@ import numpy as np
 from itertools import product
 from collections import defaultdict
 import time
+from pathlib import Path
 
 # ── Constants ──────────────────────────────────────────────────────────────
-DB_PATH = "/Users/teaceo/DEEP6/data/backtests/replay_full_5sessions.duckdb"
-RESULTS_PATH = "/Users/teaceo/DEEP6/scripts/results_r4_multitf.txt"
+ROOT = Path(__file__).resolve().parents[1]
+DB_PATH = ROOT / "data/backtests/replay_full_5sessions.duckdb"
+RESULTS_PATH = ROOT / "scripts/results_r4_multitf.txt"
 
 TICK_SIZE = 0.25
 TICK_VALUE = 5.0

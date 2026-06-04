@@ -1,0 +1,32 @@
+﻿{
+    "install_mode":  "workspace_mutator",
+    "uia_result":  {
+                       "installed":  false,
+                       "chart":  "NQ",
+                       "class_name":  "DEEP6OptionsDecisionSurface",
+                       "legend_verified":  false,
+                       "elapsed_ms":  1842,
+                       "error":  "Chart window not found"
+                   },
+    "workspace_result":  {
+                             "workspace_mutation":  {
+                                                        "workspace":  "C:\\Users\\Tea\\Documents\\NinjaTrader 8\\workspaces\\Untitled 3.xml",
+                                                        "workspace_name":  "Untitled 3",
+                                                        "backup_path":  "C:\\Users\\Tea\\Documents\\NinjaTrader 8\\workspaces\\Untitled 3.xml.backup-20260515-135927",
+                                                        "chart_found":  true,
+                                                        "chart_instrument":  "MNQ 06-26",
+                                                        "chart_guid":  "31da9814ddb84906bd018a1c6d8fdbff",
+                                                        "indicator_name":  "NinjaTrader.NinjaScript.Indicators.DEEP6.DEEP6OptionsDecisionSurface",
+                                                        "injected":  true,
+                                                        "xml_valid":  true,
+                                                        "reload_needed":  true,
+                                                        "reload_method":  "NEEDS_RESTART"
+                                                    },
+                             "reload_note":  {
+                                                 "reload_needed":  true,
+                                                 "active_strategies_checked":  false,
+                                                 "restart_performed":  false,
+                                                 "reason":  "Workspace mutation requires NT8 reload/restart; orchestrator does not auto-restart per G4/G9. Manual operator review required before any restart."
+                                             }
+                         }
+}

@@ -1,0 +1,2 @@
+Verified atomic write path uses temp file creation plus os.replace.
+Confirmed no partial target file exists before replacement in unit test.

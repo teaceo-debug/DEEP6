@@ -101,6 +101,8 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
         private bool _killSwitch;     // set when daily loss cap hit; resets next session
         private int _lastEntryBar = -1;
         private string _activeAtmGuid;   // tracks live ATM bracket so we can AtmStrategyClose() instead of racing ExitLong/Short
+        private int _lastMissingDataLogBar = -1;
+        private int _lastMissingScorerLogBar = -1;
 
         // P9: consistency rule tracking
         private double _challengeStartBalance = double.NaN; // captured once at first live account read; never reset
@@ -154,6 +156,7 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                 UseNewRegistry               = true;
                 EnableLiveTrading            = false;
                 ApprovedAccountName          = "Sim101";
+                AllowPlaybackAccounts        = true;
                 MaxContractsPerTrade         = 2;      // R1: scale-out requires 2 contracts (50% T1, 50% T2)
                 MaxTradesPerSession          = 5;
                 DailyLossCapDollars          = 1000.0; // P9: Apex $50K DLL = $1,000 (was $500)
@@ -201,6 +204,8 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                 VolSurgeVetoEnabled          = true;
                 SlowGrindVetoEnabled         = true;
                 SlowGrindAtrRatio            = 0.5;
+                TrendContextEnabled          = false;
+                TrendEmaPeriod               = 20;
             }
             else if (State == State.Configure)
             {
@@ -266,7 +271,7 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
             }
             else if (State == State.Terminated)
             {
-                // Fix 10: clean up all state on termination to avoid memory leaks.
+                ScorerSharedState.Clear(Instrument != null ? Instrument.FullName : null);
                 lock (_barsLock) { _bars.Clear(); }
                 lock (_l2Lock) { _l2Bids.Clear(); _l2Asks.Clear(); }
                 _atrWindow.Clear();
@@ -335,21 +340,40 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
             {
                 _bars.TryGetValue(prevIdx, out prev);
             }
-            if (prev == null) return;
 
-            // Reconcile + finalize
-            prev.Open = Bars.GetOpen(prevIdx);
-            prev.High = Bars.GetHigh(prevIdx);
-            prev.Low  = Bars.GetLow(prevIdx);
-            prev.Close= Bars.GetClose(prevIdx);
-            prev.Finalize(_priorCvd);
-            _priorCvd = prev.Cvd;
+            ScorerResult sharedScored = UseNewRegistry ? ScorerSharedState.Latest(Instrument.FullName) : null;
+            int sharedLatestBarIdx    = UseNewRegistry ? ScorerSharedState.LatestBarIndex(Instrument.FullName) : -1;
+            bool useSharedScorerOnly  = CanEvaluateSharedScorerWithoutLocalFootprint(prev, sharedScored);
+            if (prev == null && !useSharedScorerOnly)
+            {
+                LogMissingExecutionData(prevIdx, sharedScored);
+                return;
+            }
 
-            _atrWindow.Enqueue(prev.BarRange);
+            double fallbackBarRange = Math.Max(Bars.GetHigh(prevIdx) - Bars.GetLow(prevIdx), TickSize > 0 ? TickSize : 0.25);
+
+            if (prev != null)
+            {
+                // Reconcile + finalize
+                prev.Open = Bars.GetOpen(prevIdx);
+                prev.High = Bars.GetHigh(prevIdx);
+                prev.Low  = Bars.GetLow(prevIdx);
+                prev.Close= Bars.GetClose(prevIdx);
+                prev.Finalize(_priorCvd);
+                _priorCvd = prev.Cvd;
+                fallbackBarRange = prev.BarRange > 0 ? prev.BarRange : fallbackBarRange;
+            }
+            else if (useSharedScorerOnly)
+            {
+                Print(string.Format("[DEEP6 Strategy] No local footprint for bar {0}; using shared scorer state only.", prevIdx));
+            }
+
+            _atrWindow.Enqueue(fallbackBarRange);
             while (_atrWindow.Count > AtrPeriod) _atrWindow.Dequeue();
             double sum = 0; foreach (var v in _atrWindow) sum += v;
             _atr = _atrWindow.Count == 0 ? 1.0 : Math.Max(sum / _atrWindow.Count, TickSize);
-            _volEma = _volEma == 0 ? prev.TotalVol : _volEma + VolEmaAlpha * (prev.TotalVol - _volEma);
+            if (prev != null)
+                _volEma = _volEma == 0 ? prev.TotalVol : _volEma + VolEmaAlpha * (prev.TotalVol - _volEma);
             _sessionAtrSum += _atr;
             _sessionAtrCount++;
 
@@ -396,83 +420,85 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
             // Capture the bar-before-prev BEFORE we overwrite _priorFinalized — otherwise
             // the exhaustion detector receives null for the prior bar and BID_ASK_FADE never fires.
             var priorBeforePrev = _priorFinalized;
-            _priorFinalized = prev;
+            if (prev != null)
+                _priorFinalized = prev;
 
             // Run detectors — legacy path or registry path depending on UseNewRegistry flag
-            var va  = FootprintBar.ComputeValueArea(prev, TickSize);
-            List<AbsorptionSignal> abs;
-            List<ExhaustionSignal> exh;
+            List<AbsorptionSignal> abs = new List<AbsorptionSignal>();
+            List<ExhaustionSignal> exh = new List<ExhaustionSignal>();
 
-            if (UseNewRegistry && _registry != null && _session != null)
+            if (prev != null)
             {
-                // Phase 17 Wave 2: registry path — populate SessionContext then call EvaluateBar.
-                // Risk gates execute BEFORE this branch (above via _killSwitch + Position check).
-                _session.Atr20        = _atr;
-                _session.VolEma20     = _volEma;
-                _session.TickSize     = TickSize;
-                _session.Vah          = va.vah;
-                _session.Val          = va.val;
-                _session.PriorBar     = priorBeforePrev;
-                _session.BarsSinceOpen = prevIdx;
-
-                var regResults = System.Linq.Enumerable.ToArray(_registry.EvaluateBar(prev, _session));
-                _session.PriorBar = prev;   // advance prior bar for next bar
-
-                // Self-score and publish — strategy owns scoring, DEEP6Footprint not required.
+                var va  = FootprintBar.ComputeValueArea(prev, TickSize);
+                if (UseNewRegistry && _registry != null && _session != null)
                 {
-                    double _sAvgAtr = _sessionAtrCount > 0 ? _sessionAtrSum / _sessionAtrCount : 0.0;
-                    var _ss = ConfluenceScorer.Score(
-                        regResults, _session.BarsSinceOpen, 0L, prev.Close,
-                        tickSize: TickSize > 0 ? TickSize : 0.25);
-                    _ss.Signals = regResults;
-                    ScorerSharedState.Publish(Instrument.FullName, CurrentBar, _ss, _sAvgAtr);
-                }
+                    // Phase 17 Wave 2: registry path — populate SessionContext then call EvaluateBar.
+                    // Risk gates execute BEFORE this branch (above via _killSwitch + Position check).
+                    _session.Atr20        = _atr;
+                    _session.VolEma20     = _volEma;
+                    _session.TickSize     = TickSize;
+                    _session.Vah          = va.vah;
+                    _session.Val          = va.val;
+                    _session.PriorBar     = priorBeforePrev;
+                    _session.BarsSinceOpen = prevIdx;
 
-                // Log non-ABS/EXH signals once (ABS/EXH drive confluence below; others are observational)
-                foreach (var sr in regResults)
-                {
-                    if (!sr.SignalId.StartsWith("ABS") && !sr.SignalId.StartsWith("EXH"))
-                        Print(string.Format("[DEEP6 Registry] {0} dir={1:+#;-#;0} str={2:F2} | {3}",
-                            sr.SignalId, sr.Direction, sr.Strength, sr.Detail));
-                }
+                    var regResults = System.Linq.Enumerable.ToArray(_registry.EvaluateBar(prev, _session));
+                    _session.PriorBar = prev;   // advance prior bar for next bar
 
-                // Convert SignalResult[] → legacy list types so EvaluateEntry + CheckOpposingExit
-                // can consume them without modification (risk gates are in those methods, untouched).
-                abs = new List<AbsorptionSignal>();
-                exh = new List<ExhaustionSignal>();
-                foreach (var r in regResults)
-                {
-                    if (r.SignalId.StartsWith("ABS") && r.SignalId != "ABS-07")
+                    // Self-score and publish — strategy owns scoring, DEEP6Footprint not required.
                     {
-                        abs.Add(new AbsorptionSignal
-                        {
-                            Kind        = AbsorptionType.Classic,   // best-effort mapping for confluence
-                            Direction   = r.Direction,
-                            Price       = r.Direction < 0 ? prev.High : r.Direction > 0 ? prev.Low : prev.Close,
-                            Wick        = r.Direction < 0 ? "upper" : "lower",
-                            Strength    = r.Strength,
-                            AtVaExtreme = r.Detail != null && (r.Detail.Contains("@VAH") || r.Detail.Contains("@VAL")),
-                            Detail      = r.Detail,
-                        });
+                        double _sAvgAtr = _sessionAtrCount > 0 ? _sessionAtrSum / _sessionAtrCount : 0.0;
+                        var _ss = ConfluenceScorer.Score(
+                            regResults, _session.BarsSinceOpen, 0L, prev.Close,
+                            tickSize: TickSize > 0 ? TickSize : 0.25);
+                        _ss.Signals = regResults;
+                        ScorerSharedState.Publish(Instrument.FullName, CurrentBar, _ss, _sAvgAtr);
                     }
-                    else if (r.SignalId.StartsWith("EXH"))
+
+                    // Log non-ABS/EXH signals once (ABS/EXH drive confluence below; others are observational)
+                    foreach (var sr in regResults)
                     {
-                        exh.Add(new ExhaustionSignal
+                        if (!sr.SignalId.StartsWith("ABS") && !sr.SignalId.StartsWith("EXH"))
+                            Print(string.Format("[DEEP6 Registry] {0} dir={1:+#;-#;0} str={2:F2} | {3}",
+                                sr.SignalId, sr.Direction, sr.Strength, sr.Detail));
+                    }
+
+                    // Convert SignalResult[] → legacy list types so EvaluateEntry + CheckOpposingExit
+                    // can consume them without modification (risk gates are in those methods, untouched).
+                    foreach (var r in regResults)
+                    {
+                        if (r.SignalId.StartsWith("ABS") && r.SignalId != "ABS-07")
                         {
-                            Kind      = ExhaustionType.ZeroPrint,   // best-effort mapping; not used for gating
-                            Direction = r.Direction,
-                            Price     = r.Direction < 0 ? prev.High : r.Direction > 0 ? prev.Low : prev.Close,
-                            Strength  = r.Strength,
-                            Detail    = r.Detail,
-                        });
+                            abs.Add(new AbsorptionSignal
+                            {
+                                Kind        = AbsorptionType.Classic,
+                                Direction   = r.Direction,
+                                Price       = r.Direction < 0 ? prev.High : r.Direction > 0 ? prev.Low : prev.Close,
+                                Wick        = r.Direction < 0 ? "upper" : "lower",
+                                Strength    = r.Strength,
+                                AtVaExtreme = r.Detail != null && (r.Detail.Contains("@VAH") || r.Detail.Contains("@VAL")),
+                                Detail      = r.Detail,
+                            });
+                        }
+                        else if (r.SignalId.StartsWith("EXH"))
+                        {
+                            exh.Add(new ExhaustionSignal
+                            {
+                                Kind      = ExhaustionType.ZeroPrint,
+                                Direction = r.Direction,
+                                Price     = r.Direction < 0 ? prev.High : r.Direction > 0 ? prev.Low : prev.Close,
+                                Strength  = r.Strength,
+                                Detail    = r.Detail,
+                            });
+                        }
                     }
                 }
-            }
-            else
-            {
-                // Legacy path (UseNewRegistry=false, default) — unchanged behavior
-                abs = AbsorptionDetector.Detect(prev, _atr, _volEma, _absCfg, va.vah, va.val, TickSize);
-                exh = _exhDetector.Detect(prev, priorBeforePrev, prevIdx, _atr, _exhCfg);
+                else
+                {
+                    // Legacy path (UseNewRegistry=false, default) — unchanged behavior
+                    abs = AbsorptionDetector.Detect(prev, _atr, _volEma, _absCfg, va.vah, va.val, TickSize);
+                    exh = _exhDetector.Detect(prev, priorBeforePrev, prevIdx, _atr, _exhCfg);
+                }
             }
 
             // Cleanup history
@@ -494,8 +520,22 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
             }
 
             // Phase 18-03: scorer-gated entry — read latest result published by DEEP6Footprint indicator.
-            ScorerResult _scored = ScorerSharedState.Latest(Instrument.FullName);
-            int _latestBarIdx    = ScorerSharedState.LatestBarIndex(Instrument.FullName);
+            ScorerResult _scored = sharedScored ?? ScorerSharedState.Latest(Instrument.FullName);
+            int _latestBarIdx    = sharedLatestBarIdx >= 0 ? sharedLatestBarIdx : ScorerSharedState.LatestBarIndex(Instrument.FullName);
+            if (!HasFreshScorerResult(_scored, _latestBarIdx, CurrentBar))
+            {
+                if (_scored != null)
+                {
+                    Print(string.Format("[DEEP6 Strategy] BLOCKED — stale scorer state latestBar={0} expected={1}.",
+                        _latestBarIdx, CurrentBar));
+                }
+                else if (_lastMissingScorerLogBar != CurrentBar)
+                {
+                    _lastMissingScorerLogBar = CurrentBar;
+                    Print("[DEEP6 Strategy] BLOCKED — no shared scorer state for this bar. Attach DEEP6Footprint to the same chart/instrument/timeframe and use Tick Replay or Market Replay for order-flow data.");
+                }
+                return;
+            }
 
             // R1: Observe signals into session gate state for VOLP-03 tracking (each bar, before Evaluate).
             // Also read sessionAvgAtr from ScorerSharedState for slow-grind veto.
@@ -521,7 +561,7 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
             DateTime barTs = Bars.GetTime(prevIdx);
             int barTimeHHMM = barTs.Hour * 100 + barTs.Minute;
 
-            EvaluateEntry(CurrentBar, _scored, _barSignals, _sessionAvgAtr, barTimeHHMM);
+            EvaluateEntry(CurrentBar, _scored, _barSignals, _sessionAvgAtr, barTimeHHMM, barTs);
         }
 
         // ---- Confluence / entry decision ----
@@ -539,7 +579,7 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
         ///   - Time-of-day blackout (BlackoutWindowStart–BlackoutWindowEnd ET)
         /// </summary>
         private void EvaluateEntry(int barIdx, ScorerResult scored, SignalResult[] signals = null,
-                                   double sessionAvgAtr = 0.0, int barTimeHHMM = 0)
+                                   double sessionAvgAtr = 0.0, int barTimeHHMM = 0, DateTime? signalBarTime = null)
         {
             var outcome = ScorerEntryGate.EvaluateWithContext(
                 scored,
@@ -555,7 +595,9 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                 signals:                signals,
                 blackoutWindowStart:    BlackoutWindowStart,
                 blackoutWindowEnd:      BlackoutWindowEnd,
-                barTimeHHMM:            barTimeHHMM);
+                barTimeHHMM:            barTimeHHMM,
+                trendContextEnabled:    TrendContextEnabled,
+                sessionTrendDirection:  CalculateSessionTrend());
 
             if (outcome != ScorerEntryGate.GateOutcome.Passed)
             {
@@ -568,6 +610,9 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                 else if (outcome == ScorerEntryGate.GateOutcome.BlackoutVeto)
                     Print(string.Format("[DEEP6 Strategy] bar={0} blackout veto — time {1:D4} in [{2},{3}].",
                         barIdx, barTimeHHMM, BlackoutWindowStart, BlackoutWindowEnd));
+                else if (outcome == ScorerEntryGate.GateOutcome.TrendContextVeto)
+                    Print(string.Format("[DEEP6 Strategy] bar={0} trend-context veto — {1} signal opposes EMA({2}) slope.",
+                        barIdx, scored.Direction > 0 ? "LONG" : "SHORT", TrendEmaPeriod));
                 return;
             }
 
@@ -575,7 +620,7 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
             string trigger    = string.Format("SCORER_{0}_{1:F0}", scored.Tier, scored.TotalScore);
 
             // RISK GATES — still evaluated before any order submission (unchanged behavior).
-            if (!RiskGatesPass(scored.Direction, entryPrice, trigger, barIdx)) return;
+            if (!RiskGatesPass(scored.Direction, entryPrice, trigger, barIdx, signalBarTime)) return;
 
             // R1: Select ATM template based on scale-out configuration.
             string atmTemplate = SelectAtmTemplate(scored);
@@ -594,6 +639,13 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
         private string SelectAtmTemplate(ScorerResult scored)
         {
             return ScaleOutEnabled ? AtmTemplateConfluence : AtmTemplateDefault;
+        }
+
+        private int CalculateSessionTrend()
+        {
+            if (!TrendContextEnabled || CurrentBar < TrendEmaPeriod + 1) return 0;
+            double slope = EMA(TrendEmaPeriod)[0] - EMA(TrendEmaPeriod)[1];
+            return slope > 0 ? 1 : slope < 0 ? -1 : 0;
         }
 
         private bool IsWallAnchored(double signalPrice, int signalDir)
@@ -620,18 +672,57 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
 
         // ---- Risk gates ----
 
-        private bool RiskGatesPass(int direction, double signalPrice, string trigger, int barIdx)
+        private bool HasFreshScorerResult(ScorerResult scored, int latestBarIdx, int expectedBarIdx)
+        {
+            return scored != null && latestBarIdx == expectedBarIdx;
+        }
+
+        private bool CanEvaluateSharedScorerWithoutLocalFootprint(FootprintBar prevBar, ScorerResult sharedScored)
+        {
+            return UseNewRegistry && prevBar == null && sharedScored != null;
+        }
+
+        private void LogMissingExecutionData(int prevIdx, ScorerResult sharedScored)
+        {
+            if (_lastMissingDataLogBar == prevIdx)
+                return;
+
+            _lastMissingDataLogBar = prevIdx;
+            string scorerState = sharedScored != null ? "present-but-not-usable" : "missing";
+            Print(string.Format(
+                "[DEEP6 Strategy] BLOCKED — no local footprint data for bar {0} and shared scorer is {1}. Historical playback often does not provide the intrabar order-flow callbacks DEEP6 needs. Use DEEP6Footprint on the same chart and run Tick Replay or Market Replay.",
+                prevIdx, scorerState));
+        }
+
+        private bool IsApprovedTradingAccount(string currentAccountName)
+        {
+            if (string.IsNullOrWhiteSpace(currentAccountName))
+                return false;
+
+            if (string.Equals(currentAccountName, ApprovedAccountName, StringComparison.Ordinal))
+                return true;
+
+            return AllowPlaybackAccounts
+                && currentAccountName.StartsWith("Playback", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private bool RiskGatesPass(int direction, double signalPrice, string trigger, int barIdx, DateTime? signalBarTime = null)
         {
             // 1. Account check — only fire on the approved account
-            if (Account == null || Account.Name != ApprovedAccountName)
+            string currentAccountName = Account != null ? Account.Name : null;
+            if (!IsApprovedTradingAccount(currentAccountName))
             {
-                Print(string.Format("[DEEP6 Strategy] BLOCKED — account '{0}' != approved '{1}'.",
-                    Account == null ? "null" : Account.Name, ApprovedAccountName));
+                string extra = AllowPlaybackAccounts
+                    ? " (playback accounts are allowed automatically)"
+                    : string.Empty;
+                Print(string.Format("[DEEP6 Strategy] BLOCKED — account '{0}' != approved '{1}'{2}.",
+                    currentAccountName ?? "null", ApprovedAccountName, extra));
                 return false;
             }
 
             // 2. RTH window
-            var t = Time[0].TimeOfDay;
+            DateTime effectiveSignalBarTime = signalBarTime ?? (Time != null && Time.Count > 0 ? Time[0] : DateTime.MinValue);
+            var t = effectiveSignalBarTime.TimeOfDay;
             var rthStart = new TimeSpan(RthStartHour, RthStartMinute, 0);
             var rthEnd   = new TimeSpan(RthEndHour, RthEndMinute, 0);
             if (t < rthStart || t > rthEnd)
@@ -732,6 +823,18 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
 
         private void EnterWithAtm(int direction, string atmTemplate, string trigger, double signalPrice)
         {
+            if (string.IsNullOrWhiteSpace(atmTemplate))
+            {
+                Print(string.Format("[DEEP6 Strategy] BLOCKED — ATM template missing for trigger {0}.", trigger));
+                return;
+            }
+
+            if (ScaleOutEnabled && MaxContractsPerTrade < 2)
+            {
+                Print(string.Format("[DEEP6 Strategy] BLOCKED — scale-out requires at least 2 contracts, but MaxContractsPerTrade={0}.", MaxContractsPerTrade));
+                return;
+            }
+
             string side = direction > 0 ? "LONG" : "SHORT";
             string label = string.Format("DEEP6_{0}_{1}_{2}", trigger, side, CurrentBar);
 
@@ -818,7 +921,7 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
                 if (s.Direction != 0 && s.Direction != holdingDir && s.Strength > maxOppStr)
                 { opposingSignal = true; maxOppStr = s.Strength; }
 
-            if (!opposingSignal || maxOppStr < 0.6) return;
+            if (!opposingSignal || maxOppStr < ExitOnOpposingScore) return;
 
             Print(string.Format("[DEEP6 Strategy] EXIT — opposing signal strength {0:F2} fired against {1} position.",
                 maxOppStr, Position.MarketPosition));
@@ -892,7 +995,11 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
         // NT8 8.1.6.3 bug: StrategyBase.CopyTo() calls set_BacktestCommissionTemplate after the
         // clone's state has advanced past SetDefaults, causing InvalidOperationException.
         // CopyTo IS virtual, so this override is called. We swallow only that specific exception.
+#if NINJASCRIPT_SIM
+        public override void CopyTo(NinjaTrader.NinjaScript.NinjaScriptBase ninjaScript)
+#else
         public override void CopyTo(NinjaScript ninjaScript)
+#endif
         {
             try { base.CopyTo(ninjaScript); }
             catch (System.InvalidOperationException) { }
@@ -916,18 +1023,23 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
         public string ApprovedAccountName { get; set; }
 
         [NinjaScriptProperty]
+        [Display(Name = "Allow Playback Accounts", Order = 3, GroupName = "1. Safety",
+                 Description = "When true, Playback101 and other playback accounts are allowed even if Approved Account Name is Sim101.")]
+        public bool AllowPlaybackAccounts { get; set; }
+
+        [NinjaScriptProperty]
         [Range(1, 50)]
-        [Display(Name = "Max Contracts Per Trade", Order = 3, GroupName = "1. Safety")]
+        [Display(Name = "Max Contracts Per Trade", Order = 4, GroupName = "1. Safety")]
         public int MaxContractsPerTrade { get; set; }
 
         [NinjaScriptProperty]
         [Range(1, 50)]
-        [Display(Name = "Max Trades Per Session", Order = 4, GroupName = "1. Safety")]
+        [Display(Name = "Max Trades Per Session", Order = 5, GroupName = "1. Safety")]
         public int MaxTradesPerSession { get; set; }
 
         [NinjaScriptProperty]
         [Range(100, 20000)]
-        [Display(Name = "Daily Loss Cap ($)", Order = 5, GroupName = "1. Safety",
+        [Display(Name = "Daily Loss Cap ($)", Order = 6, GroupName = "1. Safety",
                  Description = "P9: DLL by account — Apex $50K=$1,000 (soft), Apex $150K=$3,000, TopStep $50K=$1,000 (hard broker liquidation), TopStep $150K=$3,000.")]
         public double DailyLossCapDollars { get; set; }
 
@@ -1097,6 +1209,17 @@ namespace NinjaTrader.NinjaScript.Strategies.DEEP6
         [Display(Name = "Slow Grind ATR Ratio", Order = 3, GroupName = "4. Filters",
                  Description = "R1: block entry when bar ATR < this ratio × session avg ATR. Default 0.5. Source: BacktestConfig default validated across 50 sessions.")]
         public double SlowGrindAtrRatio { get; set; } = 0.5;
+
+        [NinjaScriptProperty]
+        [Display(Name = "Trend Context Veto Enabled", Order = 4, GroupName = "4. Filters",
+                 Description = "Block entries where scored direction opposes the TrendEmaPeriod EMA slope. Disabled by default — enable only after confirming no false negatives on valid reversal setups.")]
+        public bool TrendContextEnabled { get; set; } = false;
+
+        [NinjaScriptProperty]
+        [Range(5, 200)]
+        [Display(Name = "Trend EMA Period", Order = 5, GroupName = "4. Filters",
+                 Description = "EMA period for trend context slope check. Default 20 (approx 20 bars). Larger = slower trend, fewer vetos.")]
+        public int TrendEmaPeriod { get; set; } = 20;
 
         [NinjaScriptProperty]
         [Display(Name = "ATM Template — Absorption", Order = 30, GroupName = "4. ATM Templates")]

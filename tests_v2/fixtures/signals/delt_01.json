@@ -1,0 +1,51 @@
+{
+  "name": "DELT_01_large_delta_movement",
+  "description": "Bar delta exceeds delta_threshold. Large positive delta — aggressive buying dominates.",
+  "bar": {
+    "open": 21480.0,
+    "high": 21505.0,
+    "low": 21478.0,
+    "close": 21502.0,
+    "delta": 800,
+    "total_volume": 3500,
+    "bid_volumes": {
+      "21478.0": 100,
+      "21480.0": 150,
+      "21485.0": 200,
+      "21490.0": 250,
+      "21495.0": 200
+    },
+    "ask_volumes": {
+      "21480.0": 300,
+      "21485.0": 400,
+      "21490.0": 500,
+      "21495.0": 450,
+      "21500.0": 350,
+      "21505.0": 200
+    },
+    "poc_price": 21490.0,
+    "poc_volume": 750,
+    "vah": 21500.0,
+    "val": 21482.0,
+    "cvd": 800.0,
+    "bar_index": 33,
+    "timestamp": "2026-05-13T10:18:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 800.0,
+    "vah": 21500.0,
+    "val": 21482.0,
+    "poc": 21490.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "delta_threshold": 500
+  },
+  "expected_signal": {
+    "signal_id": "DELT_01",
+    "direction": "BULLISH",
+    "strength_min": 0.35,
+    "strength_max": 0.55
+  }
+}

@@ -1,0 +1,10 @@
+﻿{
+    "verdict":  "PASS_WITH_NOTES",
+    "reason":  "Pipeline completed successfully",
+    "run_id":  "bv-20260515-135835-3c40",
+    "class_name":  "DEEP6OptionsDecisionSurface",
+    "chart_title":  "NQ",
+    "source_file":  "C:\\Users\\Tea\\DEEP6\\ninjatrader\\Custom\\Indicators\\DEEP6\\DEEP6OptionsDecisionSurface.cs",
+    "run_dir":  "C:\\Users\\Tea\\DEEP6\\artifacts\\bv-20260515-135835-3c40",
+    "timestamp":  "2026-05-15T13:59:34.5416171-04:00"
+}

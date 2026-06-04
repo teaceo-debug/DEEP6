@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-05-27T00:00:00Z",
+  "task": "Wave 3 - Task 12: CVD detector",
+  "files": [
+    "deep6v2/signals/dom/detectors/cvd.py",
+    "deep6v2/signals/dom/detectors/__init__.py",
+    "tests_v2/dom_intelligence/test_cvd_integration.py"
+  ],
+  "verification": {
+    "command": "python -m pytest tests_v2/dom_intelligence/test_cvd_integration.py -v",
+    "status": "passed"
+  }
+}

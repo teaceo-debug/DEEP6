@@ -1,0 +1,5 @@
+is_global = true
+build_property.RootNamespace = NinjaTrader.Custom
+build_property.ProjectDir = C:\Users\Tea\Documents\NinjaTrader 8\bin\Custom\
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 

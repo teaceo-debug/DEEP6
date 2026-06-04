@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# deep6_status.sh — Show state of each DEEP6 process
+# deep6_status.sh — Show the status of the DEEP6 backend + dashboard development stack
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PID_DIR="$REPO_ROOT/.deep6"
+BACKEND_PORT=8765
 
 GRN='\033[0;32m'; RED='\033[0;31m'; YEL='\033[0;33m'; DIM='\033[2m'; BLD='\033[1m'; RST='\033[0m'
 
@@ -73,9 +74,11 @@ echo ""
 echo -e "${BLD}DEEP6 Status${RST}"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
-status_line "Backend"  "$PID_DIR/backend.pid"  "8000" "http://localhost:8000/api/session/status"
-status_line "Frontend" "$PID_DIR/frontend.pid" "3000" "http://localhost:3000/"
-status_line "Demo"     "$PID_DIR/demo.pid"     ""     ""
+status_line "Backend"     "$PID_DIR/backend.pid"      "$BACKEND_PORT" "http://localhost:$BACKEND_PORT/api/session/status"
+status_line "Frontend"    "$PID_DIR/frontend.pid"     "3000"          "http://localhost:3000/"
+status_line "NQ Atlas"    "$PID_DIR/atlas.pid"        "8766"          "http://localhost:8766/health"
+status_line "Bias Bridge" "$PID_DIR/bias_bridge.pid"  ""              ""
+status_line "Demo"        "$PID_DIR/demo.pid"         ""              ""
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""

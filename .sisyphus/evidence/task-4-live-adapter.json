@@ -1,0 +1,15 @@
+{
+  "task": "task-4-live-adapter",
+  "test_command": "python -m pytest tests_v2/dom_intelligence/test_live_adapter.py -v",
+  "result": "PASS",
+  "tests_run": 17,
+  "tests_passed": 17,
+  "contract_match": true,
+  "feed_stale_error_tested": true,
+  "files_created": [
+    "deep6v2/signals/dom/adapters/__init__.py",
+    "deep6v2/signals/dom/adapters/live_adapter.py",
+    "tests_v2/dom_intelligence/test_live_adapter.py"
+  ],
+  "notes": "17 tests across 7 test classes covering all required scenarios. OrderSide BUY/SELL mapped to bid/ask strings for DOMState.update_level() compatibility."
+}

@@ -1,0 +1,3 @@
+PASS: validate_config rejected out-of-bounds stop_ticks
+Command: pytest tests_v2/backtest/test_param_bounds.py -q
+Result: 4 passed

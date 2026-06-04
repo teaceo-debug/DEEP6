@@ -1,0 +1,52 @@
+﻿=== WAVE 6 VERIFICATION ===
+Date: 2026-05-12 21:37:48
+
+--- TESTS ---
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  ninjatrader.tests -> C:\Users\Tea\DEEP6\ninjatrader\tests\bin\Debug\net8.0\ninjatrader.tests.dll
+Test run for C:\Users\Tea\DEEP6\ninjatrader\tests\bin\Debug\net8.0\ninjatrader.tests.dll (.NETCoreApp,Version=v8.0)
+VSTest version 17.11.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Bar processing: 0.028ms avg over 100 bars (2.8ms total)
+
+Delta pipeline: 0.0000ms avg over 1,000 bars (0.01ms total)
+
+Memory: 0.04KB avg per AddTrade (4.2KB total for 100 calls)
+
+Tick processing: 0.2us avg over 10,000 ticks (2.1ms total)
+
+
+Passed!  - Failed:     0, Passed:   217, Skipped:     0, Total:   217, Duration: 220 ms - ninjatrader.tests.dll (net8.0)
+
+--- BUILD ---
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+
+
+--- FILE SIZES ---
+MADConfluenceAI.cs: 329 lines [OK]
+MADConfluenceAI.Data.cs: 388 lines [OK]
+MADConfluenceAI.Rendering.cs: 920 lines [OK]
+MADConfluenceAI.Scoring.cs: 814 lines [OK]
+MADConfluenceAI.Signals.cs: 554 lines [OK]
+
+NinjaScriptProperty count: 30 [OK]
+AddOns.DEEP6 references: 0 [OK]
+
+--- TEST FILES CREATED (T27-T29) ---
+IntegrationTests.cs : EXISTS [OK]
+PerformanceTests.cs : EXISTS [OK]
+HistoricalModeTests.cs : EXISTS [OK]
+
+--- T29: HISTORICAL MODE ---
+_processedBars field in Data.cs: 1 references [OK]
+_processedBars logic in Core.cs: 2 references [OK]
+
+=== VERIFICATION COMPLETE ===
+

@@ -1,0 +1,30 @@
+Task T10 replay/evaluation harness evidence
+Date: 2026-05-21
+
+Created:
+- tests_v2/sd_anchor/__init__.py
+- tests_v2/sd_anchor/test_eval_harness.py
+- tests_v2/sd_anchor/fixtures/valid_bullish_anchor.json
+- tests_v2/sd_anchor/fixtures/valid_bearish_anchor.json
+- tests_v2/sd_anchor/fixtures/invalid_chop_anchor.json
+
+Harness behavior:
+- Loads three replay-only anchor fixtures.
+- Separates deterministic Pine acceptance from HERMES verdict accounting.
+- Tracks disagreement counts between Pine acceptance and HERMES approve/veto outcomes.
+- Enforces replay mode and decision-time labeling on every sample.
+- Enforces outcome_label=null at capture time.
+
+Expected aggregate replay metrics from fixtures:
+- total_records=3
+- deterministic_accepts=2
+- deterministic_rejects=1
+- hermes_approves=1
+- hermes_vetoes=2
+- disagreements=1
+
+Verification command:
+- python -m pytest tests_v2/sd_anchor -q
+
+Note:
+- The bearish -4 deviation expectation in this task is 50 for anchor_low=100 and anchor_high=110, so the harness test and helper were aligned to that explicit task contract.

@@ -1,0 +1,33 @@
+Bridge Resilience Task — Evidence
+==================================
+Date: 2026-06-01
+
+## Problem
+- NT8 bridge (scripts/gex_terminal_nt8_bridge.py) dies silently as background process
+- Electron main.js spawns it but doesn't restart on exit
+- No crash recovery in the bridge loop itself
+
+## Fix 1: Bridge crash recovery (gex_terminal_nt8_bridge.py)
+- Refactored run_bridge() into _run_bridge_loop() (inner) + run_bridge() (outer wrapper)
+- Outer wrapper catches ALL exceptions (except KeyboardInterrupt) and retries
+- Exponential backoff: 2^n seconds, capped at 30s max
+- 100 retries before giving up (effectively infinite for transient errors)
+- Dry-run mode bypasses the retry wrapper (exits after single fetch)
+
+## Fix 2: Electron sidecar auto-restart (main.js)
+- Added auto-restart logic to bridgeProcess 'exit' handler
+- 5-second delay before restart attempt
+- Guards: checks app.isQuiting AND app._isShuttingDown before restart
+- Both checks done at schedule time AND execution time (prevents race)
+
+## Fix 3: PYTHONUNBUFFERED (main.js)
+- Already present at spawn env (line 168): { ...process.env, PYTHONUNBUFFERED: '1' }
+- No change needed — verified correct
+
+## Files Changed
+1. scripts/gex_terminal_nt8_bridge.py — crash recovery wrapper
+2. gex_terminal/desktop/main.js — auto-restart on exit
+
+## Verification
+- LSP diagnostics: 0 errors on both files
+- PYTHONUNBUFFERED already set in spawn env

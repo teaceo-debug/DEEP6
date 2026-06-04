@@ -4,7 +4,7 @@ Per D-10: /ws/live is the single multiplexed WebSocket for all real-time streams
 Clients receive LiveBarMessage, LiveSignalMessage, LiveScoreMessage, LiveStatusMessage
 discriminated by the 'type' field.
 
-Per D-09: localhost-only, no auth middleware on this endpoint.
+Per D-09: local-network / development deployment assumption; this endpoint currently has no auth middleware.
 
 Per T-11-01: POST /api/live/test-broadcast validates the incoming payload against
 the LiveMessage discriminated union before broadcasting, so a malformed push cannot
@@ -81,7 +81,7 @@ async def session_status(request: Request) -> LiveStatusMessage:
     connection, or for monitoring scripts / uptime checks.
 
     Example:
-        curl http://localhost:8000/api/session/status
+        curl http://localhost:8765/api/session/status
     """
     manager = request.app.state.ws_manager
     snapshot = manager.status_snapshot()

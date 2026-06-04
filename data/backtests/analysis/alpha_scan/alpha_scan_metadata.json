@@ -1,0 +1,19 @@
+{
+  "input": "/mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv",
+  "rows": 1767271,
+  "signals": 35,
+  "categories": 9,
+  "top_signal_ids": [
+    "ABS_04",
+    "VOLP_06",
+    "AUCT_03",
+    "TRAP_04",
+    "EXH_03",
+    "DELT_04",
+    "EXH_01",
+    "EXH_04",
+    "EXH_05",
+    "DELT_01"
+  ],
+  "primary_window": 5
+}

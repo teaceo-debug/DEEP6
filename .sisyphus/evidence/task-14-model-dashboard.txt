@@ -1,0 +1,15 @@
+Task 14: Model Dashboard - PASSED
+Date: 2026-06-01
+
+File created: depth_radar_desktop/research/model_dashboard.py
+
+Verification:
+> python -c "from depth_radar_desktop.research.model_dashboard import ModelDashboard; print('model_dashboard OK')"
+model_dashboard OK
+
+Components:
+- MetricCard(QFrame): big number + label display
+- ModelDashboard(QWidget): full dashboard with metrics, confusion matrix, per-class table, feature importance
+- load_model_metrics(model_path: Path): reads joblib payload, populates all widgets
+- Handles missing models gracefully (empty state with instructions)
+- Pure Qt widgets (no matplotlib/plotly)

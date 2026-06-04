@@ -3,39 +3,40 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "deep6"
-version = "0.1.0"
-description = "DEEP6 v2.0 — Institutional-grade footprint auto-trading system for NQ futures"
+name = "deep6v2"
+version = "2.0.0-dev"
+description = "DEEP6 v2.0 — Python-native clean room package scaffold"
 requires-python = ">=3.12"
 dependencies = [
     "async-rithmic==1.5.9",
-    "uvloop==0.22.1",
-    "aiosqlite==0.22.1",
-    "numpy>=2.0",
-    "structlog>=25.0",
-    # Phase 13: backtest engine core
-    "duckdb>=0.10",
-    "pyyaml>=6.0",
-    "order-book>=0.6",  # bmoscon — C-backed L2 OrderBook, imported as `order_book`
-    "pydantic>=2.0",    # BacktestConfig (13-01)
-]
-
-[project.optional-dependencies]
-dev = [
+    "polygon-api-client>=1.14",
+    "anthropic>=0.40",
+    "scipy>=1.14",
+    "pydantic>=2.0",
+    "pydantic-settings>=2.0",
+    "structlog",
+    "aiosqlite",
+    "duckdb",
+    "janus",
+    "numpy",
+    "uvicorn",
+    "fastapi",
+    "httpx",
     "pytest>=8.0",
-    "pytest-asyncio>=1.2.0",
-    # Phase 7 parameter sweep and Bayesian optimization
-    "vectorbt>=0.26.0",   # portfolio simulation and metrics (installed: 0.28.5)
-    "optuna>=3.6.0",      # Bayesian threshold sweep via TPE sampler (installed: 4.8.0)
+    "pytest-asyncio>=0.24",
+    "pytest-benchmark",
 ]
 
 [project.scripts]
-deep6 = "deep6.__main__:cli_entry"
+deep6v2 = "deep6v2.__main__:cli_entry"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-testpaths = ["tests"]
+testpaths = ["tests_v2"]
+markers = [
+    "integration: tests that require external services or credentials",
+]
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["deep6*"]
+include = ["deep6v2*", "nq_atlas*"]

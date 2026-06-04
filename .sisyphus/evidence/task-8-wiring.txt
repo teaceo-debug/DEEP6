@@ -1,0 +1,7 @@
+Has institutional: True
+DP levels: 2
+Signal grid buy: 2
+Swing eq: 28414.04
+DP bias: BULLISH
+Narrative: Initializing analysis...
+Narrative cached: True

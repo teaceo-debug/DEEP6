@@ -1,0 +1,50 @@
+{
+  "name": "DELT_04_cvd_price_divergence",
+  "description": "Price trending up but CVD trending down over last bars. Price making new highs while cumulative delta declining — bearish divergence.",
+  "bar": {
+    "open": 21530.0,
+    "high": 21540.0,
+    "low": 21528.0,
+    "close": 21538.0,
+    "delta": 50,
+    "total_volume": 1800,
+    "bid_volumes": {
+      "21528.0": 100,
+      "21530.0": 150,
+      "21532.0": 180,
+      "21535.0": 200
+    },
+    "ask_volumes": {
+      "21530.0": 120,
+      "21532.0": 150,
+      "21535.0": 180,
+      "21538.0": 200,
+      "21540.0": 120
+    },
+    "poc_price": 21535.0,
+    "poc_volume": 380,
+    "vah": 21538.0,
+    "val": 21530.0,
+    "cvd": 200.0,
+    "bar_index": 70,
+    "timestamp": "2026-05-13T10:55:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 200.0,
+    "vah": 21538.0,
+    "val": 21530.0,
+    "poc": 21535.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "price_history": [21500.0, 21510.0, 21518.0, 21525.0, 21530.0, 21538.0],
+    "cvd_history": [600.0, 550.0, 450.0, 350.0, 280.0, 200.0]
+  },
+  "expected_signal": {
+    "signal_id": "DELT_04",
+    "direction": "BEARISH",
+    "strength_min": 0.35,
+    "strength_max": 0.55
+  }
+}

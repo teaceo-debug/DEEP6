@@ -40,6 +40,13 @@ namespace NinjaTrader.NinjaScript.DrawingTools
             return null;
         }
 
+        public static object Text(NinjaScriptBase owner, string tag, bool isAutoScale, string text, int barsAgo, double y, int yPixelOffset,
+            System.Windows.Media.Brush textBrush, NinjaTrader.Gui.Tools.SimpleFont font, System.Windows.TextAlignment alignment,
+            System.Windows.Media.Brush outlineBrush, System.Windows.Media.Brush areaBrush, int areaOpacity)
+        {
+            return null;
+        }
+
         public static object Text(NinjaScriptBase owner, string tag, bool isAutoScale, int barsAgo, double y, int yPixelOffset,
             System.Windows.Media.Brush textBrush, NinjaTrader.Gui.Tools.SimpleFont font, System.Windows.TextAlignment alignment,
             System.Windows.Media.Brush outlineBrush, System.Windows.Media.Brush areaBrush, int areaOpacity)

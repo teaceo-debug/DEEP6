@@ -1,0 +1,5 @@
+DEEP6LVNZones compile verification
+
+[COMPILE-RESULT] SUCCESS 2026-05-26 01:02:32.300
+Deploy: nt8-deploy.ps1 -Indicator "DEEP6LVNZones"
+Compile: nt8-compile.ps1 -TimeoutSeconds 120 -CheckErrors

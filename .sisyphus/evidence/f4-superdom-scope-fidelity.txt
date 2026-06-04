@@ -1,0 +1,28 @@
+F4: SuperDOM Intelligence Layer — Scope Fidelity Review
+Date: 2026-05-27
+Status: APPROVE
+
+Must Have verification:
+  ✓ Single source of truth for DOM state (DOMState from deep6v2/state/dom.py)
+  ✓ Single source of truth migration contract (signal_contract.py)
+  ✓ Explicit detector classification (16 detectors: 6 Tier-1, 5 Tier-2, 5 Tier-3)
+  ✓ Formal detector definitions with quantitative thresholds
+  ✓ Golden-session parity workflow (3 fixtures, tolerance-checked)
+  ✓ UI and signal engine fully separated
+  ✓ Dashboard uses DEEP6 visual language (monospace, dark theme, muted colors)
+  ✓ NQ-only scope (all prices ~20000, 0.25 tick)
+  ✓ Session-aware and stale-feed-aware (FeedStateManager)
+  ✓ Detector metadata for replay safety / confidence mode
+
+Must NOT Have verification:
+  ✓ No UI columns defining signal-engine capabilities
+  ✓ No SuperDOM UX clone (detector-first architecture)
+  ✓ No detector logic in dashboard components
+  ✓ No order entry / click-trading
+  ✓ No multi-instrument support
+  ✓ No new SignalId values (MVP_NEW_SIGNAL_IDS_ALLOWED = False)
+  ✓ No Tier 3 overlays in Phase 4 dashboard
+  ✓ No heuristic/discretionary auto-promoted to scoring without replay evidence
+  ✓ No visual confirmation as sole acceptance criteria
+
+Scope verdict: CLEAN — no creep, no guardrail violations.

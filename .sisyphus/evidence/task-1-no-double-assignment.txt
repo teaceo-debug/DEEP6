@@ -1,0 +1,9 @@
+﻿=== NT8 COVERAGE MATRIX - NO DOUBLE ASSIGNMENT VERIFICATION ===
+Generated: 2026-05-12 16:14:46
+
+Checking for sections assigned to multiple targets (pattern: '| target1, target2 |')...
+
+PASS - No double assignments found.
+
+Note: SHARED-fundamental sections are documented in the SHARED-fundamental Notes table
+at the bottom of the matrix. Each section has exactly ONE primary target in the main table.

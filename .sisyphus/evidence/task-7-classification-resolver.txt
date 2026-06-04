@@ -1,0 +1,8 @@
+Task 7 evidence
+
+Changed file: ninjatrader/Custom/Indicators/DEEP6/DEEP6DepthRadarV2.cs
+Added: ClassifyWall resolver with SPOOF > STALE > ICEBERG > GENUINE priority
+Removed: direct stale classification from OnBarUpdate
+Integrated: ScoreAllWalls() now calls ClassifyWall after spoof/freshness scoring
+Verification: lsp_diagnostics clean
+Verification: git diff HEAD -- ninjatrader/Custom/Indicators/DEEP6/DEEP6DepthRadar.cs showed no changes

@@ -1,0 +1,7 @@
+{
+  "task": "task-6-golden-roundtrip",
+  "test_command": "python -m pytest tests_v2/dom_intelligence/test_golden_session_format.py -v",
+  "result": "PASS",
+  "round_trip_verified": true,
+  "fields_preserved": ["session_id", "timestamps", "levels", "detector_metadata", "format_version"]
+}

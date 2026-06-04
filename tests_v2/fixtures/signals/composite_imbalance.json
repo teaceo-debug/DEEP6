@@ -1,0 +1,66 @@
+{
+  "name": "composite_imbalance_multiple_signals",
+  "description": "Multiple imbalance signals: IMB_01 + IMB_03 + IMB_06. Standard imbalance + stacked + extreme ratio all at once.",
+  "bar": {
+    "open": 21490.0,
+    "high": 21520.0,
+    "low": 21488.0,
+    "close": 21518.0,
+    "delta": 700,
+    "total_volume": 4500,
+    "bid_volumes": {
+      "21488.0": 30,
+      "21490.0": 40,
+      "21490.25": 35,
+      "21490.5": 30,
+      "21490.75": 25,
+      "21491.0": 20,
+      "21495.0": 80,
+      "21500.0": 150,
+      "21505.0": 200,
+      "21510.0": 180
+    },
+    "ask_volumes": {
+      "21490.0": 400,
+      "21490.25": 350,
+      "21490.5": 380,
+      "21490.75": 320,
+      "21491.0": 300,
+      "21495.0": 350,
+      "21500.0": 400,
+      "21505.0": 350,
+      "21510.0": 300,
+      "21515.0": 250,
+      "21518.0": 200,
+      "21520.0": 100
+    },
+    "poc_price": 21500.0,
+    "poc_volume": 550,
+    "vah": 21515.0,
+    "val": 21491.0,
+    "cvd": 800.0,
+    "bar_index": 50,
+    "timestamp": "2026-05-13T10:35:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 12.0,
+    "cvd": 800.0,
+    "vah": 21515.0,
+    "val": 21491.0,
+    "poc": 21500.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0
+  },
+  "expected_signals": [
+    {"signal_id": "IMB_01", "direction": "BULLISH", "strength_min": 0.35, "strength_max": 0.55},
+    {"signal_id": "IMB_03", "direction": "BULLISH", "strength_min": 0.45, "strength_max": 0.65},
+    {"signal_id": "IMB_06", "direction": "BULLISH", "strength_min": 0.45, "strength_max": 0.65}
+  ],
+  "expected_signal": {
+    "signal_id": "IMB_03",
+    "direction": "BULLISH",
+    "strength_min": 0.45,
+    "strength_max": 0.65
+  }
+}

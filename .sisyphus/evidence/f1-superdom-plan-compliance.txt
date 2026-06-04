@@ -1,0 +1,28 @@
+F1: SuperDOM Intelligence Layer — Plan Compliance Audit
+Date: 2026-05-27
+Status: APPROVE
+
+Deliverable Compliance (Waves 5-6 + Pre-Wave 5):
+
+Pre-Wave 5 — Registry Integration:
+  ✓ DOM detectors registered in DetectorRegistry.create_default()
+  ✓ Feature flag guard (DOM_INTELLIGENCE_ENABLED)
+  ✓ DOMIntelligenceAdapter wraps DOM detectors into IDepthConsumingDetector interface
+  ✓ 5 snapshot-consuming Tier-1 detectors registered (CVD trade-based, separate)
+  ✓ Tests: 11/11 pass (test_registry_integration.py)
+  ✓ Evidence: pre-wave5-registry-integration.txt
+
+Wave 5 — Dashboard Surface:
+  Task 17: ✓ DOMLadder.tsx — renders DOM bid/ask ladder, 9/9 tests pass
+  Task 18: ✓ IntelligenceRail.tsx — active detectors + score summary, 9/9 tests pass
+  Task 19: ✓ dom-intelligence/page.tsx — 3-column layout, 8/8 tests pass
+  Task 20: ✓ dom-mock-state.ts — NQ fixture data, 13/13 tests pass
+
+Wave 6 — Hardening:
+  Task 21: ✓ test_golden_parity.py — 23/23 tests pass
+  Task 22: ✓ test_false_positive_rates.py — 7/7 tests pass
+  Task 23: ✓ test_performance.py — 3/3 tests pass
+  Task 24: ✓ test_replay_safety_audit.py — 15/15 tests pass
+
+Total: 318 Python tests + 199 dashboard tests = 517 tests passing
+All evidence files present in .sisyphus/evidence/

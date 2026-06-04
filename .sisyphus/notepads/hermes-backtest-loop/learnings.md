@@ -1,0 +1,10 @@
+- Backtest-loop memory notes should mirror existing vault index style: YAML frontmatter first, then concise H2 sections, wiki links, and simple markdown tables for traceability.
+- Template notes can keep placeholder tokens (`{{...}}`, `<...>`) in YAML as long as the frontmatter remains syntactically valid for QA parsing.
+- Seed text for the loop index should point Hermes to `python scripts/backtest_loop.py --action generate` so the persistent memory file is immediately actionable.
+- `databento.DBNStore.from_file(...)` yields `MBOMsg` records where `action`/`side` are enum-like values with `.value`, `price` is fixed-point `/ 1e9`, and `ts_event` is the reliable session-grouping field.
+- The current `deep6v2.data.BarBuilder` is RTH-gated and callback-driven; full-day preprocessing needs its own batch bar accumulator if pre/post-market trades must be preserved.
+- Running repo-root scripts with `py -3 scripts\...` may still require `PYTHONPATH=C:\Users\Tea\DEEP6` in Hermes/PowerShell contexts so package imports like `deep6.*` resolve consistently.
+- `StrategyConfig` mutation must round-trip through `model_dump(...)` -> dict edits -> `StrategyConfig.model_validate(...)`; frozen Pydantic configs cannot be mutated in place.
+- Mutation-engine exit mutations need an explicit guard to preserve at least one of `bracket_exit` or `level_exit`, because bounds validation alone does not enforce the semantic exit invariant.
+- `scripts/backtest_loop.py` should treat the harness as a subprocess boundary only: serialize `StrategyConfig` to temp YAML, call `python -m deep6.backtest.harness`, parse stdout JSON, and keep all orchestration state in DuckDB/Obsidian.
+- Manual `--action mutate` needs a fallback parent of `latest_hash` when no passing `best_hash` exists yet, otherwise the loop stalls after an initial failed iteration.

@@ -1,0 +1,65 @@
+{
+  "name": "ENG_02_dom_depth_imbalance",
+  "description": "DOM depth imbalance: bid/ask ratio at top 5 levels heavily skewed. Bids far exceed asks — strong buying pressure in order book.",
+  "bar": {
+    "open": 21500.0,
+    "high": 21510.0,
+    "low": 21498.0,
+    "close": 21508.0,
+    "delta": 200,
+    "total_volume": 2400,
+    "bid_volumes": {
+      "21498.0": 100,
+      "21500.0": 250,
+      "21502.0": 200,
+      "21505.0": 300,
+      "21508.0": 250
+    },
+    "ask_volumes": {
+      "21500.0": 200,
+      "21502.0": 250,
+      "21505.0": 300,
+      "21508.0": 200,
+      "21510.0": 150
+    },
+    "poc_price": 21505.0,
+    "poc_volume": 600,
+    "vah": 21509.0,
+    "val": 21500.0,
+    "cvd": 350.0,
+    "bar_index": 42,
+    "timestamp": "2026-05-13T10:27:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 350.0,
+    "vah": 21509.0,
+    "val": 21500.0,
+    "poc": 21505.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "dom_snapshot": {
+      "bids": [
+        {"price": 21508.0, "volume": 250},
+        {"price": 21507.75, "volume": 200},
+        {"price": 21507.50, "volume": 180},
+        {"price": 21507.25, "volume": 160},
+        {"price": 21507.0, "volume": 150}
+      ],
+      "asks": [
+        {"price": 21508.25, "volume": 40},
+        {"price": 21508.50, "volume": 35},
+        {"price": 21508.75, "volume": 30},
+        {"price": 21509.0, "volume": 25},
+        {"price": 21509.25, "volume": 20}
+      ]
+    }
+  },
+  "expected_signal": {
+    "signal_id": "ENG_02",
+    "direction": "BULLISH",
+    "strength_min": 0.30,
+    "strength_max": 0.50
+  }
+}

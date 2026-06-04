@@ -1,0 +1,59 @@
+﻿TASK 4 STATIC VERIFICATION — 2026-05-30 01:14 AM
+=================================================
+NOTE: Live chart verification requires market hours + working HERMES UI automation.
+Markets closed at time of verification (1AM ET). HERMES previously timed out at 30min.
+All verifiable behaviors confirmed via static code review and compile evidence.
+
+DELIVERABLES VERIFIED:
+  Source file: C:\Users\Tea\DEEP6\ninjatrader\Custom\Indicators\DEEP6\DEEP6StackedAbsorptionArrows.cs
+    Size: 29,662 bytes (817 lines)
+    Status: EXISTS ✓
+
+  NT8 deployed file: C:\Users\Tea\Documents\NinjaTrader 8\bin\Custom\Indicators\DEEP6\DEEP6StackedAbsorptionArrows.cs
+    Status: EXISTS ✓
+
+  Compile result: [COMPILE-RESULT] SUCCESS 2026-05-29 15:53:31.901 ✓
+
+  CSV file: ninjatrader/Custom/Indicators/DEEP6/Levels/sample-levels.csv
+    Status: EXISTS ✓ (6 levels: Support/Resistance/Magnet/Neutral)
+
+STATIC BEHAVIOR VERIFICATION:
+  Session filter (8:30AM-3:30PM ET):
+    SessionStartTime = 83000, SessionEndTime = 153000 ✓
+    ToTime(Time[0]) < SessionStartTime || > SessionEndTime → return ✓ (line 193-194)
+    
+  Dual volumetric feeds (BIP routing):
+    BIP 1 constant = NqVolBip = 1 ✓ (line 33)
+    BIP 2 constant = EsVolBip = 2 ✓ (line 34)
+    AddVolumetric(NQ) → BIP 1 ✓ (line 123)
+    AddVolumetric(ES) → BIP 2 ✓ (line 124)
+    if (BarsInProgress == NqVolBip) → ProcessNqVolumetricBar() ✓ (line 148)
+    if (BarsInProgress == EsVolBip) → ProcessEsVolumetricBar() ✓ (line 154)
+    VolumetricBarsType cast at DataLoaded ✓ (lines 128-133)
+    GetBidVolumeForPrice/GetAskVolumeForPrice ✓ (lines 353-354)
+    
+  CSV level loading:
+    File.ReadAllLines(CsvFilePath) ✓ (line 544)
+    LoadLevelsFromCsv() called at DataLoaded ✓ (line 510)
+    Print("[DEEP6SAC] Loaded N levels from CSV") ✓ (line 588)
+    
+  Arrow drawing (no extra visuals):
+    Draw.ArrowUp (bull, lime, Low-4*TickSize) ✓ (line 392)
+    Draw.ArrowDown (bear, red, High+4*TickSize) ✓ (line 444)
+    No other Draw.* calls in file ✓
+    
+  One-signal-per-level:
+    _pendingBullLevel.SignalFired = true after arrow ✓ (line 393)
+    Check: if (_pendingBullLevel.SignalFired) return ✓ (line 380)
+    Daily reset on IsFirstBarOfSession ✓ (lines 174-184)
+    
+  Alerts:
+    Alert() called with EnableAlerts/EnableSoundAlert toggles ✓ (lines 396-406, 448-458)
+
+LIVE VERIFICATION STATUS:
+  [ ] Both volumetric feeds produce data — DEFERRED (markets closed, requires live session)
+  [ ] Arrows appear at confluence — DEFERRED (requires absorption event during session)
+  [ ] No arrows pre-market — DEFERRED (requires chart with historical bars)
+  [ ] CSV levels appear in Output Window — DEFERRED (requires live NT8 + Output Window access)
+
+VERDICT: Static verification PASS. Live verification deferred to next market session.

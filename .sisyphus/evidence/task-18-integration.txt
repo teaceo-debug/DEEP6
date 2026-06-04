@@ -1,0 +1,49 @@
+Task 18: Phase B Integration Tests
+====================================
+Date: 2026-05-22
+
+PYTHON TESTS
+============
+Command: python -m pytest tests_v2/depth_radar/ -v --tb=short
+Result: 72 passed, 3 skipped in 3.04s
+
+Files created:
+  - tests_v2/depth_radar/__init__.py
+  - tests_v2/depth_radar/conftest.py (fixtures + lightgbm import handling)
+  - tests_v2/depth_radar/test_wall_features.py (27 tests)
+  - tests_v2/depth_radar/test_classifier.py (19 tests)
+  - tests_v2/depth_radar/test_service.py (16 tests)
+  - tests_v2/depth_radar/test_integration.py (6 tests + v1 integrity)
+
+Skipped (lightgbm not installed):
+  - test_round_trip_with_mock_model
+  - test_classify_return_types_with_lightgbm
+  - test_classify_batch_return_types_with_lightgbm
+
+Test coverage:
+  WallFeatureExtractor: extract(), extract_batch(), normalization, edge cases
+  WallClassifier: init, classify errors, feature validation, label mapping, helpers
+  DepthRadarService: init, passthrough mode, NDJSON parsing, label normalization, FastAPI
+  Integration: full feature pipeline, classifier format, v1 integrity check
+
+C# TESTS
+=========
+Command: dotnet test ninjatrader/tests/ninjatrader.tests.csproj --filter "L2LevelStateV2|ComputeSpoof|ComputeFreshness|ClassifyWall|IntegrationTests"
+Result: 45 passed, 0 failed (total includes existing + 5 new integration tests)
+
+New integration tests added to DEEP6DepthRadarV2Tests.cs:
+  - MLClassified_True_PreservesClassification
+  - MLClassified_False_RunsRuleBased
+  - SpoofScoreThenFreshnessThenClassify_FullSequence
+  - FullSequence_GenuineWall_NotSpoof
+  - FullSequence_StaleWall
+
+V1 INTEGRITY CHECK
+==================
+Command: git diff HEAD -- ninjatrader/Custom/Indicators/DEEP6/DEEP6DepthRadar.cs
+Result: EMPTY (no changes to v1)
+
+LSP DIAGNOSTICS
+===============
+File: DEEP6DepthRadarV2Types.cs
+Result: No diagnostics (clean)

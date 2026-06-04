@@ -1,0 +1,34 @@
+Task 7 Integration Test Results
+================================
+Date: 2026-05-31
+
+Step 1: npm install
+- Result: PASS
+- 299 packages added, audited 300 packages
+- 1 high severity vuln (electron dep-chain, non-blocking)
+
+Step 2: electron-builder config
+- Fixed: extraResources.from "../" → "../../" (correct relative path from gex_terminal/desktop/ to project root)
+- Added: "!**/node_modules", "!gex_terminal/desktop/**" filters
+- Removed: "requirements.txt" from filter (not needed in packaged app)
+
+Step 3: Launch script
+- Created: scripts/start_gex_doctor_desktop.ps1
+- Features: auto npm install if missing, sets DEEP6_PROJECT_ROOT env var
+
+Step 4: Integration test
+- Backend PID: 41000 (started, stayed alive)
+- /health: PASS — status=degraded (expected: no API keys configured), version returned
+- / (UI): PASS — 5703 bytes HTML, contains "GEX"
+- /stream (SSE): PASS — received JSON data with bias, levels, sources structure
+  Preview: data: {"timestamp": ..., "bias": {"direction": "NEUTRAL", "confidence": 32, ...}, "levels": {"gamma_flip": ...}}
+
+Step 5: Python tests
+- Result: PASS — 75 passed in 73.40s
+- Signal quality: 100% accuracy (10/10), positive gamma 100%, negative gamma 100%
+- Catastrophic errors: 0
+
+Step 6: node --check main.js
+- Result: PASS — no syntax errors
+
+ALL CHECKS PASSED

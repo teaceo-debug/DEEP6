@@ -1,0 +1,102 @@
+/* GEX Terminal v2.0 — Phosphor Green Terminal Design System */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+
+:root {
+  --terminal-green: #00FF41;
+  --terminal-dim: #00AA00;
+  --terminal-dark: #006600;
+  --terminal-bg: #0D0D0D;
+  --terminal-border: #00FF41;
+  --terminal-red: #FF4444;
+  --terminal-amber: #FFB000;
+  --terminal-glow: 0 0 8px #00FF41;
+  --terminal-glow-red: 0 0 8px rgba(255, 68, 68, 0.4);
+  --terminal-glow-amber: 0 0 8px rgba(255, 176, 0, 0.4);
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 800px;
+  min-height: 800px;
+  overflow-y: auto;
+  background: #000;
+}
+
+body {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--terminal-green);
+  background-color: var(--terminal-bg);
+}
+
+/* CRT Effects — scanlines + vignette + border glow */
+.terminal-frame {
+  width: 800px;
+  min-height: 800px;
+  position: relative;
+  border: 1px solid var(--terminal-border);
+  box-shadow: 0 0 15px rgba(0, 255, 65, 0.4), inset 0 0 10px rgba(0, 255, 65, 0.05);
+}
+
+/* Scanlines overlay */
+.terminal-frame::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 1px,
+    rgba(0, 0, 0, 0.15) 1px,
+    rgba(0, 0, 0, 0.15) 2px
+  );
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* Vignette */
+.terminal-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.4) 100%);
+  pointer-events: none;
+  z-index: 99;
+}
+
+.terminal-content {
+  width: 100%;
+  min-height: 100%;
+  padding: 4px 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--terminal-green);
+  text-shadow: var(--terminal-glow);
+}
+
+/* Text utilities */
+.text-bright { color: var(--terminal-green); text-shadow: var(--terminal-glow); }
+.text-dim { color: var(--terminal-dim); text-shadow: none; }
+.text-dark { color: var(--terminal-dark); text-shadow: none; }
+.text-red { color: var(--terminal-red); text-shadow: var(--terminal-glow-red); }
+.text-amber { color: var(--terminal-amber); text-shadow: var(--terminal-glow-amber); }
+.text-bold { font-weight: 700; }
+
+/* Panel layout */
+.panel-section {
+  border-top: 1px solid var(--terminal-dark);
+  padding: 1px 0;
+}
+
+.panel-row {
+  white-space: pre;
+  overflow: hidden;
+}

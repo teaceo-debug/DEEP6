@@ -1,0 +1,10 @@
+level_target: LVN
+approach_direction: EITHER
+timing_filter: ANY
+bracket_exit:
+  stop_ticks: 20
+  target_ticks: 40
+  rr_ratio: 2.0
+time_exit:
+  max_bars_in_trade: 30
+  session_end_flatten: true

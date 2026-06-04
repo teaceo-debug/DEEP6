@@ -1,0 +1,875 @@
+==============================================================
+  INSTITUTIONAL ZONES — ENTRY MODEL BACKTEST
+  NQ Futures  |  2026-01-02 → 2026-04-10
+  RTH 1m bars: 27,622
+  Entry models: PROXIMAL | DISTAL | MID | PIN_REJECT | CLOSE_IN
+  SL: zone distal + 4 ticks  |  TP: 1.5x / 2.0x / 3.0x risk
+==============================================================
+
+══════════════════════════════════════════════════════════════
+  DETECTION TF: 5m
+══════════════════════════════════════════════════════════════
+──────────────────────────────────────────────────────────────
+  PROXIMAL  TF=5m  TP=1.5x
+──────────────────────────────────────────────────────────────
+  Trades: 232  |  Wins: 122  Losses: 110
+  Win Rate: 52.6%  |  Profit Factor: 1.29
+  Net PnL: $    13,450  |  Avg Risk: 69.7 ticks
+  Avg Win: $     492  |  Avg Loss: $    -424
+  Exits → TP: 122  SL: 108  Expire: 2
+  ── By zone type:
+    Supply  :  58 trades   46.6% WR  $  -3,696
+    Demand  :  50 trades   52.0% WR  $   4,743
+    RBR     :  58 trades   51.7% WR  $   6,702
+    DBD     :  66 trades   59.1% WR  $   5,701
+  ── Score-filtered subsets:
+    Score≥6: 175 trades   55.4% WR  $   9,472
+    Score≥8:  67 trades   59.7% WR  $   9,101
+    Score≥10:   8 trades   75.0% WR  $     987
+
+──────────────────────────────────────────────────────────────
+  PROXIMAL  TF=5m  TP=2.0x
+──────────────────────────────────────────────────────────────
+  Trades: 232  |  Wins: 108  Losses: 124
+  Win Rate: 46.6%  |  Profit Factor: 1.35
+  Net PnL: $    17,913  |  Avg Risk: 69.7 ticks
+  Avg Win: $     646  |  Avg Loss: $    -418
+  Exits → TP: 108  SL: 122  Expire: 2
+  ── By zone type:
+    Supply  :  58 trades   43.1% WR  $  -1,976
+    Demand  :  50 trades   42.0% WR  $   4,700
+    RBR     :  58 trades   46.6% WR  $   5,769
+    DBD     :  66 trades   53.0% WR  $   9,419
+  ── Score-filtered subsets:
+    Score≥6: 175 trades   50.9% WR  $  19,147
+    Score≥8:  67 trades   56.7% WR  $  13,753
+    Score≥10:   8 trades   75.0% WR  $   1,384
+
+──────────────────────────────────────────────────────────────
+  PROXIMAL  TF=5m  TP=3.0x
+──────────────────────────────────────────────────────────────
+  Trades: 232  |  Wins: 88  Losses: 144
+  Win Rate: 37.9%  |  Profit Factor: 1.43
+  Net PnL: $    25,408  |  Avg Risk: 69.7 ticks
+  Avg Win: $     953  |  Avg Loss: $    -406
+  Exits → TP: 87  SL: 142  Expire: 3
+  ── By zone type:
+    Supply  :  58 trades   36.2% WR  $  -3,011
+    Demand  :  50 trades   36.0% WR  $   7,835
+    RBR     :  58 trades   34.5% WR  $   6,179
+    DBD     :  66 trades   43.9% WR  $  14,404
+  ── Score-filtered subsets:
+    Score≥6: 175 trades   40.6% WR  $  22,547
+    Score≥8:  67 trades   44.8% WR  $  14,678
+    Score≥10:   8 trades   75.0% WR  $   2,179
+
+──────────────────────────────────────────────────────────────
+  DISTAL  TF=5m  TP=1.5x
+──────────────────────────────────────────────────────────────
+  Trades: 41  |  Wins: 16  Losses: 25
+  Win Rate: 39.0%  |  Profit Factor: 0.91
+  Net PnL: $       -49  |  Avg Risk: 4.0 ticks
+  Avg Win: $      29  |  Avg Loss: $     -21
+  Exits → TP: 16  SL: 25  Expire: 0
+  ── By zone type:
+    Supply  :  11 trades   45.5% WR  $      22
+    Demand  :   8 trades   37.5% WR  $     -16
+    RBR     :  11 trades   27.3% WR  $     -78
+    DBD     :  11 trades   45.5% WR  $      22
+  ── Score-filtered subsets:
+    Score≥6:  29 trades   48.3% WR  $     100
+    Score≥8:  12 trades   41.7% WR  $       2
+    Score≥10:   3 trades   33.3% WR  $     -12
+
+──────────────────────────────────────────────────────────────
+  DISTAL  TF=5m  TP=2.0x
+──────────────────────────────────────────────────────────────
+  Trades: 41  |  Wins: 16  Losses: 25
+  Win Rate: 39.0%  |  Profit Factor: 1.22
+  Net PnL: $       111  |  Avg Risk: 4.0 ticks
+  Avg Win: $      39  |  Avg Loss: $     -21
+  Exits → TP: 16  SL: 25  Expire: 0
+  ── By zone type:
+    Supply  :  11 trades   45.5% WR  $      72
+    Demand  :   8 trades   37.5% WR  $      14
+    RBR     :  11 trades   27.3% WR  $     -48
+    DBD     :  11 trades   45.5% WR  $      72
+  ── Score-filtered subsets:
+    Score≥6:  29 trades   48.3% WR  $     240
+    Score≥8:  12 trades   41.7% WR  $      52
+    Score≥10:   3 trades   33.3% WR  $      -2
+
+──────────────────────────────────────────────────────────────
+  DISTAL  TF=5m  TP=3.0x
+──────────────────────────────────────────────────────────────
+  Trades: 41  |  Wins: 16  Losses: 25
+  Win Rate: 39.0%  |  Profit Factor: 1.83
+  Net PnL: $       431  |  Avg Risk: 4.0 ticks
+  Avg Win: $      59  |  Avg Loss: $     -21
+  Exits → TP: 16  SL: 25  Expire: 0
+  ── By zone type:
+    Supply  :  11 trades   45.5% WR  $     172
+    Demand  :   8 trades   37.5% WR  $      74
+    RBR     :  11 trades   27.3% WR  $      12
+    DBD     :  11 trades   45.5% WR  $     172
+  ── Score-filtered subsets:
+    Score≥6:  29 trades   48.3% WR  $     520
+    Score≥8:  12 trades   41.7% WR  $     152
+    Score≥10:   3 trades   33.3% WR  $      18
+
+──────────────────────────────────────────────────────────────
+  MID  TF=5m  TP=1.5x
+──────────────────────────────────────────────────────────────
+  Trades: 132  |  Wins: 71  Losses: 61
+  Win Rate: 53.8%  |  Profit Factor: 1.77
+  Net PnL: $     7,860  |  Avg Risk: 33.8 ticks
+  Avg Win: $     255  |  Avg Loss: $    -168
+  Exits → TP: 71  SL: 61  Expire: 0
+  ── By zone type:
+    Supply  :  37 trades   37.8% WR  $  -2,361
+    Demand  :  26 trades   50.0% WR  $   2,216
+    RBR     :  32 trades   65.6% WR  $   3,798
+    DBD     :  37 trades   62.2% WR  $   4,208
+  ── Score-filtered subsets:
+    Score≥6:  99 trades   58.6% WR  $   5,989
+    Score≥8:  42 trades   59.5% WR  $   2,434
+    Score≥10:   7 trades   71.4% WR  $     479
+
+──────────────────────────────────────────────────────────────
+  MID  TF=5m  TP=2.0x
+──────────────────────────────────────────────────────────────
+  Trades: 132  |  Wins: 67  Losses: 65
+  Win Rate: 50.8%  |  Profit Factor: 1.87
+  Net PnL: $    10,028  |  Avg Risk: 33.8 ticks
+  Avg Win: $     322  |  Avg Loss: $    -178
+  Exits → TP: 67  SL: 65  Expire: 0
+  ── By zone type:
+    Supply  :  37 trades   37.8% WR  $  -1,416
+    Demand  :  26 trades   46.2% WR  $   2,064
+    RBR     :  32 trades   62.5% WR  $   5,088
+    DBD     :  37 trades   56.8% WR  $   4,292
+  ── Score-filtered subsets:
+    Score≥6:  99 trades   55.6% WR  $   8,111
+    Score≥8:  42 trades   57.1% WR  $   3,288
+    Score≥10:   7 trades   71.4% WR  $     680
+
+──────────────────────────────────────────────────────────────
+  MID  TF=5m  TP=3.0x
+──────────────────────────────────────────────────────────────
+  Trades: 132  |  Wins: 56  Losses: 76
+  Win Rate: 42.4%  |  Profit Factor: 2.02
+  Net PnL: $    13,658  |  Avg Risk: 33.8 ticks
+  Avg Win: $     482  |  Avg Loss: $    -176
+  Exits → TP: 56  SL: 76  Expire: 0
+  ── By zone type:
+    Supply  :  37 trades   32.4% WR  $  -1,636
+    Demand  :  26 trades   42.3% WR  $   4,119
+    RBR     :  32 trades   46.9% WR  $   5,868
+    DBD     :  37 trades   48.6% WR  $   5,307
+  ── Score-filtered subsets:
+    Score≥6:  99 trades   45.5% WR  $  10,051
+    Score≥8:  42 trades   42.9% WR  $   3,756
+    Score≥10:   7 trades   71.4% WR  $   1,083
+
+──────────────────────────────────────────────────────────────
+  PIN_REJECT  TF=5m  TP=1.5x
+──────────────────────────────────────────────────────────────
+  Trades: 165  |  Wins: 87  Losses: 78
+  Win Rate: 52.7%  |  Profit Factor: 1.38
+  Net PnL: $    17,704  |  Avg Risk: 97.9 ticks
+  Avg Win: $     733  |  Avg Loss: $    -590
+  Exits → TP: 85  SL: 75  Expire: 5
+  ── By zone type:
+    Supply  :  33 trades   60.6% WR  $   2,152
+    Demand  :  34 trades   47.1% WR  $   6,014
+    RBR     :  43 trades   51.2% WR  $   2,067
+    DBD     :  55 trades   52.7% WR  $   7,472
+  ── Score-filtered subsets:
+    Score≥6: 132 trades   54.5% WR  $  17,585
+    Score≥8:  56 trades   55.4% WR  $  12,006
+    Score≥10:   8 trades   62.5% WR  $     872
+
+──────────────────────────────────────────────────────────────
+  PIN_REJECT  TF=5m  TP=2.0x
+──────────────────────────────────────────────────────────────
+  Trades: 165  |  Wins: 75  Losses: 90
+  Win Rate: 45.5%  |  Profit Factor: 1.32
+  Net PnL: $    16,849  |  Avg Risk: 97.9 ticks
+  Avg Win: $     927  |  Avg Loss: $    -586
+  Exits → TP: 73  SL: 87  Expire: 5
+  ── By zone type:
+    Supply  :  33 trades   54.5% WR  $   1,492
+    Demand  :  34 trades   38.2% WR  $   3,201
+    RBR     :  43 trades   39.5% WR  $    -200
+    DBD     :  55 trades   49.1% WR  $  12,356
+  ── Score-filtered subsets:
+    Score≥6: 132 trades   45.5% WR  $  13,878
+    Score≥8:  56 trades   46.4% WR  $  11,956
+    Score≥10:   8 trades   50.0% WR  $     934
+
+──────────────────────────────────────────────────────────────
+  PIN_REJECT  TF=5m  TP=3.0x
+──────────────────────────────────────────────────────────────
+  Trades: 165  |  Wins: 54  Losses: 111
+  Win Rate: 32.7%  |  Profit Factor: 1.14
+  Net PnL: $     8,414  |  Avg Risk: 97.9 ticks
+  Avg Win: $   1,309  |  Avg Loss: $    -561
+  Exits → TP: 51  SL: 106  Expire: 8
+  ── By zone type:
+    Supply  :  33 trades   39.4% WR  $  -1,208
+    Demand  :  34 trades   26.5% WR  $   3,246
+    RBR     :  43 trades   25.6% WR  $  -6,445
+    DBD     :  55 trades   38.2% WR  $  12,821
+  ── Score-filtered subsets:
+    Score≥6: 132 trades   34.1% WR  $   8,788
+    Score≥8:  56 trades   37.5% WR  $  13,036
+    Score≥10:   8 trades   50.0% WR  $   2,184
+
+──────────────────────────────────────────────────────────────
+  CLOSE_IN  TF=5m  TP=1.5x
+──────────────────────────────────────────────────────────────
+  Trades: 151  |  Wins: 74  Losses: 77
+  Win Rate: 49.0%  |  Profit Factor: 1.21
+  Net PnL: $     5,107  |  Avg Risk: 55.2 ticks
+  Avg Win: $     404  |  Avg Loss: $    -322
+  Exits → TP: 74  SL: 76  Expire: 1
+  ── By zone type:
+    Supply  :  42 trades   47.6% WR  $    -762
+    Demand  :  31 trades   38.7% WR  $  -3,979
+    RBR     :  32 trades   50.0% WR  $   4,343
+    DBD     :  46 trades   56.5% WR  $   5,505
+  ── Score-filtered subsets:
+    Score≥6: 109 trades   50.5% WR  $   4,016
+    Score≥8:  33 trades   48.5% WR  $     842
+    Score≥10:   2 trades  100.0% WR  $     321
+
+──────────────────────────────────────────────────────────────
+  CLOSE_IN  TF=5m  TP=2.0x
+──────────────────────────────────────────────────────────────
+  Trades: 151  |  Wins: 63  Losses: 88
+  Win Rate: 41.7%  |  Profit Factor: 1.06
+  Net PnL: $     1,754  |  Avg Risk: 55.2 ticks
+  Avg Win: $     509  |  Avg Loss: $    -345
+  Exits → TP: 63  SL: 86  Expire: 2
+  ── By zone type:
+    Supply  :  42 trades   42.9% WR  $     576
+    Demand  :  31 trades   32.3% WR  $  -3,322
+    RBR     :  32 trades   37.5% WR  $  -1,472
+    DBD     :  46 trades   50.0% WR  $   5,973
+  ── Score-filtered subsets:
+    Score≥6: 109 trades   42.2% WR  $   2,714
+    Score≥8:  33 trades   39.4% WR  $     887
+    Score≥10:   2 trades   50.0% WR  $     144
+
+──────────────────────────────────────────────────────────────
+  CLOSE_IN  TF=5m  TP=3.0x
+──────────────────────────────────────────────────────────────
+  Trades: 151  |  Wins: 54  Losses: 97
+  Win Rate: 35.8%  |  Profit Factor: 1.25
+  Net PnL: $     8,199  |  Avg Risk: 55.2 ticks
+  Avg Win: $     758  |  Avg Loss: $    -338
+  Exits → TP: 54  SL: 95  Expire: 2
+  ── By zone type:
+    Supply  :  42 trades   31.0% WR  $  -1,579
+    Demand  :  31 trades   32.3% WR  $    -582
+    RBR     :  32 trades   31.2% WR  $     983
+    DBD     :  46 trades   45.7% WR  $   9,378
+  ── Score-filtered subsets:
+    Score≥6: 109 trades   37.6% WR  $   9,264
+    Score≥8:  33 trades   33.3% WR  $   2,657
+    Score≥10:   2 trades   50.0% WR  $     264
+
+
+══════════════════════════════════════════════════════════════
+  DETECTION TF: 15m
+══════════════════════════════════════════════════════════════
+──────────────────────────────────────────────────────────────
+  PROXIMAL  TF=15m  TP=1.5x
+──────────────────────────────────────────────────────────────
+  Trades: 107  |  Wins: 67  Losses: 40
+  Win Rate: 62.6%  |  Profit Factor: 2.46
+  Net PnL: $    38,050  |  Avg Risk: 122.0 ticks
+  Avg Win: $     957  |  Avg Loss: $    -652
+  Exits → TP: 65  SL: 38  Expire: 4
+  ── By zone type:
+    Supply  :  26 trades   73.1% WR  $  14,077
+    Demand  :  29 trades   41.4% WR  $  -1,328
+    RBR     :  26 trades   69.2% WR  $  13,349
+    DBD     :  26 trades   69.2% WR  $  11,952
+  ── Score-filtered subsets:
+    Score≥6:  82 trades   63.4% WR  $  32,443
+    Score≥8:  32 trades   59.4% WR  $   8,055
+    Score≥10:   8 trades   50.0% WR  $   2,029
+
+──────────────────────────────────────────────────────────────
+  PROXIMAL  TF=15m  TP=2.0x
+──────────────────────────────────────────────────────────────
+  Trades: 107  |  Wins: 61  Losses: 46
+  Win Rate: 57.0%  |  Profit Factor: 2.34
+  Net PnL: $    42,680  |  Avg Risk: 122.0 ticks
+  Avg Win: $   1,223  |  Avg Loss: $    -694
+  Exits → TP: 58  SL: 44  Expire: 5
+  ── By zone type:
+    Supply  :  26 trades   65.4% WR  $  13,787
+    Demand  :  29 trades   41.4% WR  $   1,975
+    RBR     :  26 trades   57.7% WR  $  12,927
+    DBD     :  26 trades   65.4% WR  $  13,992
+  ── Score-filtered subsets:
+    Score≥6:  82 trades   57.3% WR  $  36,038
+    Score≥8:  32 trades   56.2% WR  $  13,883
+    Score≥10:   8 trades   50.0% WR  $   2,989
+
+──────────────────────────────────────────────────────────────
+  PROXIMAL  TF=15m  TP=3.0x
+──────────────────────────────────────────────────────────────
+  Trades: 107  |  Wins: 51  Losses: 56
+  Win Rate: 47.7%  |  Profit Factor: 2.23
+  Net PnL: $    47,605  |  Avg Risk: 122.0 ticks
+  Avg Win: $   1,692  |  Avg Loss: $    -691
+  Exits → TP: 44  SL: 51  Expire: 12
+  ── By zone type:
+    Supply  :  26 trades   57.7% WR  $  16,082
+    Demand  :  29 trades   31.0% WR  $    -495
+    RBR     :  26 trades   50.0% WR  $  18,012
+    DBD     :  26 trades   53.8% WR  $  14,007
+  ── Score-filtered subsets:
+    Score≥6:  82 trades   48.8% WR  $  41,088
+    Score≥8:  32 trades   50.0% WR  $  16,753
+    Score≥10:   8 trades   50.0% WR  $   4,909
+
+──────────────────────────────────────────────────────────────
+  DISTAL  TF=15m  TP=1.5x
+──────────────────────────────────────────────────────────────
+  Trades: 13  |  Wins: 4  Losses: 9
+  Win Rate: 30.8%  |  Profit Factor: 0.63
+  Net PnL: $       -69  |  Avg Risk: 4.0 ticks
+  Avg Win: $      29  |  Avg Loss: $     -21
+  Exits → TP: 4  SL: 9  Expire: 0
+  ── By zone type:
+    Supply  :   2 trades   50.0% WR  $       9
+    Demand  :   3 trades    0.0% WR  $     -62
+    RBR     :   4 trades   25.0% WR  $     -33
+    DBD     :   4 trades   50.0% WR  $      17
+  ── Score-filtered subsets:
+    Score≥6:  12 trades   33.3% WR  $     -48
+    Score≥8:   9 trades   11.1% WR  $    -136
+    Score≥10:   2 trades    0.0% WR  $     -41
+
+──────────────────────────────────────────────────────────────
+  DISTAL  TF=15m  TP=2.0x
+──────────────────────────────────────────────────────────────
+  Trades: 13  |  Wins: 4  Losses: 9
+  Win Rate: 30.8%  |  Profit Factor: 0.84
+  Net PnL: $       -29  |  Avg Risk: 4.0 ticks
+  Avg Win: $      39  |  Avg Loss: $     -21
+  Exits → TP: 4  SL: 9  Expire: 0
+  ── By zone type:
+    Supply  :   2 trades   50.0% WR  $      19
+    Demand  :   3 trades    0.0% WR  $     -62
+    RBR     :   4 trades   25.0% WR  $     -23
+    DBD     :   4 trades   50.0% WR  $      37
+  ── Score-filtered subsets:
+    Score≥6:  12 trades   33.3% WR  $      -8
+    Score≥8:   9 trades   11.1% WR  $    -126
+    Score≥10:   2 trades    0.0% WR  $     -41
+
+──────────────────────────────────────────────────────────────
+  DISTAL  TF=15m  TP=3.0x
+──────────────────────────────────────────────────────────────
+  Trades: 13  |  Wins: 4  Losses: 9
+  Win Rate: 30.8%  |  Profit Factor: 1.27
+  Net PnL: $        51  |  Avg Risk: 4.0 ticks
+  Avg Win: $      59  |  Avg Loss: $     -21
+  Exits → TP: 4  SL: 9  Expire: 0
+  ── By zone type:
+    Supply  :   2 trades   50.0% WR  $      39
+    Demand  :   3 trades    0.0% WR  $     -62
+    RBR     :   4 trades   25.0% WR  $      -3
+    DBD     :   4 trades   50.0% WR  $      77
+  ── Score-filtered subsets:
+    Score≥6:  12 trades   33.3% WR  $      72
+    Score≥8:   9 trades   11.1% WR  $    -106
+    Score≥10:   2 trades    0.0% WR  $     -41
+
+──────────────────────────────────────────────────────────────
+  MID  TF=15m  TP=1.5x
+──────────────────────────────────────────────────────────────
+  Trades: 44  |  Wins: 28  Losses: 16
+  Win Rate: 63.6%  |  Profit Factor: 3.46
+  Net PnL: $     9,297  |  Avg Risk: 54.0 ticks
+  Avg Win: $     467  |  Avg Loss: $    -236
+  Exits → TP: 28  SL: 15  Expire: 1
+  ── By zone type:
+    Supply  :  10 trades   70.0% WR  $   1,106
+    Demand  :  13 trades   61.5% WR  $   1,795
+    RBR     :  12 trades   75.0% WR  $   4,208
+    DBD     :   9 trades   44.4% WR  $   2,189
+  ── Score-filtered subsets:
+    Score≥6:  36 trades   63.9% WR  $   8,045
+    Score≥8:  18 trades   50.0% WR  $   2,144
+    Score≥10:   4 trades   25.0% WR  $     267
+
+──────────────────────────────────────────────────────────────
+  MID  TF=15m  TP=2.0x
+──────────────────────────────────────────────────────────────
+  Trades: 44  |  Wins: 27  Losses: 17
+  Win Rate: 61.4%  |  Profit Factor: 4.03
+  Net PnL: $    12,559  |  Avg Risk: 54.0 ticks
+  Avg Win: $     619  |  Avg Loss: $    -244
+  Exits → TP: 27  SL: 16  Expire: 1
+  ── By zone type:
+    Supply  :  10 trades   70.0% WR  $   2,030
+    Demand  :  13 trades   53.8% WR  $   1,696
+    RBR     :  12 trades   75.0% WR  $   5,664
+    DBD     :   9 trades   44.4% WR  $   3,169
+  ── Score-filtered subsets:
+    Score≥6:  36 trades   63.9% WR  $  11,622
+    Score≥8:  18 trades   50.0% WR  $   3,067
+    Score≥10:   4 trades   25.0% WR  $     417
+
+──────────────────────────────────────────────────────────────
+  MID  TF=15m  TP=3.0x
+──────────────────────────────────────────────────────────────
+  Trades: 44  |  Wins: 24  Losses: 20
+  Win Rate: 54.5%  |  Profit Factor: 4.34
+  Net PnL: $    17,082  |  Avg Risk: 54.0 ticks
+  Avg Win: $     925  |  Avg Loss: $    -255
+  Exits → TP: 24  SL: 19  Expire: 1
+  ── By zone type:
+    Supply  :  10 trades   70.0% WR  $   3,880
+    Demand  :  13 trades   46.2% WR  $   2,166
+    RBR     :  12 trades   58.3% WR  $   5,907
+    DBD     :   9 trades   44.4% WR  $   5,129
+  ── Score-filtered subsets:
+    Score≥6:  36 trades   55.6% WR  $  14,937
+    Score≥8:  18 trades   50.0% WR  $   4,915
+    Score≥10:   4 trades   25.0% WR  $     717
+
+──────────────────────────────────────────────────────────────
+  PIN_REJECT  TF=15m  TP=1.5x
+──────────────────────────────────────────────────────────────
+  Trades: 75  |  Wins: 42  Losses: 33
+  Win Rate: 56.0%  |  Profit Factor: 1.90
+  Net PnL: $    22,785  |  Avg Risk: 147.7 ticks
+  Avg Win: $   1,147  |  Avg Loss: $    -769
+  Exits → TP: 40  SL: 32  Expire: 3
+  ── By zone type:
+    Supply  :  16 trades   75.0% WR  $   9,279
+    Demand  :  22 trades   36.4% WR  $  -3,470
+    RBR     :  17 trades   58.8% WR  $   7,771
+    DBD     :  20 trades   60.0% WR  $   9,206
+  ── Score-filtered subsets:
+    Score≥6:  60 trades   56.7% WR  $  24,158
+    Score≥8:  26 trades   46.2% WR  $   7,427
+    Score≥10:   7 trades   42.9% WR  $   1,475
+
+──────────────────────────────────────────────────────────────
+  PIN_REJECT  TF=15m  TP=2.0x
+──────────────────────────────────────────────────────────────
+  Trades: 75  |  Wins: 39  Losses: 36
+  Win Rate: 52.0%  |  Profit Factor: 2.12
+  Net PnL: $    30,152  |  Avg Risk: 147.7 ticks
+  Avg Win: $   1,464  |  Avg Loss: $    -749
+  Exits → TP: 35  SL: 34  Expire: 6
+  ── By zone type:
+    Supply  :  16 trades   75.0% WR  $  11,934
+    Demand  :  22 trades   31.8% WR  $  -2,160
+    RBR     :  17 trades   52.9% WR  $  10,293
+    DBD     :  20 trades   55.0% WR  $  10,086
+  ── Score-filtered subsets:
+    Score≥6:  60 trades   51.7% WR  $  29,513
+    Score≥8:  26 trades   42.3% WR  $   8,962
+    Score≥10:   7 trades   42.9% WR  $   2,345
+
+──────────────────────────────────────────────────────────────
+  PIN_REJECT  TF=15m  TP=3.0x
+──────────────────────────────────────────────────────────────
+  Trades: 75  |  Wins: 31  Losses: 44
+  Win Rate: 41.3%  |  Profit Factor: 1.70
+  Net PnL: $    25,362  |  Avg Risk: 147.7 ticks
+  Avg Win: $   1,985  |  Avg Loss: $    -822
+  Exits → TP: 25  SL: 41  Expire: 9
+  ── By zone type:
+    Supply  :  16 trades   62.5% WR  $   9,064
+    Demand  :  22 trades   22.7% WR  $  -3,250
+    RBR     :  17 trades   47.1% WR  $  11,998
+    DBD     :  20 trades   40.0% WR  $   7,551
+  ── Score-filtered subsets:
+    Score≥6:  60 trades   41.7% WR  $  25,773
+    Score≥8:  26 trades   38.5% WR  $  10,922
+    Score≥10:   7 trades   42.9% WR  $   4,085
+
+──────────────────────────────────────────────────────────────
+  CLOSE_IN  TF=15m  TP=1.5x
+──────────────────────────────────────────────────────────────
+  Trades: 68  |  Wins: 43  Losses: 25
+  Win Rate: 63.2%  |  Profit Factor: 2.66
+  Net PnL: $    21,952  |  Avg Risk: 98.8 ticks
+  Avg Win: $     818  |  Avg Loss: $    -529
+  Exits → TP: 41  SL: 24  Expire: 3
+  ── By zone type:
+    Supply  :  20 trades   80.0% WR  $  14,206
+    Demand  :  21 trades   38.1% WR  $  -3,400
+    RBR     :  15 trades   66.7% WR  $   5,584
+    DBD     :  12 trades   75.0% WR  $   5,562
+  ── Score-filtered subsets:
+    Score≥6:  48 trades   62.5% WR  $  17,154
+    Score≥8:  17 trades   70.6% WR  $   5,301
+    Score≥10:   3 trades   66.7% WR  $   1,098
+
+──────────────────────────────────────────────────────────────
+  CLOSE_IN  TF=15m  TP=2.0x
+──────────────────────────────────────────────────────────────
+  Trades: 68  |  Wins: 41  Losses: 27
+  Win Rate: 60.3%  |  Profit Factor: 2.88
+  Net PnL: $    27,342  |  Avg Risk: 98.8 ticks
+  Avg Win: $   1,022  |  Avg Loss: $    -540
+  Exits → TP: 39  SL: 26  Expire: 3
+  ── By zone type:
+    Supply  :  20 trades   75.0% WR  $  14,161
+    Demand  :  21 trades   38.1% WR  $  -2,080
+    RBR     :  15 trades   60.0% WR  $   7,510
+    DBD     :  12 trades   75.0% WR  $   7,752
+  ── Score-filtered subsets:
+    Score≥6:  48 trades   58.3% WR  $  20,101
+    Score≥8:  17 trades   70.6% WR  $   7,343
+    Score≥10:   3 trades   66.7% WR  $   1,498
+
+──────────────────────────────────────────────────────────────
+  CLOSE_IN  TF=15m  TP=3.0x
+──────────────────────────────────────────────────────────────
+  Trades: 68  |  Wins: 36  Losses: 32
+  Win Rate: 52.9%  |  Profit Factor: 3.15
+  Net PnL: $    36,672  |  Avg Risk: 98.8 ticks
+  Avg Win: $   1,492  |  Avg Loss: $    -532
+  Exits → TP: 33  SL: 31  Expire: 4
+  ── By zone type:
+    Supply  :  20 trades   50.0% WR  $   9,571
+    Demand  :  21 trades   38.1% WR  $     560
+    RBR     :  15 trades   60.0% WR  $  14,410
+    DBD     :  12 trades   75.0% WR  $  12,132
+  ── Score-filtered subsets:
+    Score≥6:  48 trades   50.0% WR  $  25,786
+    Score≥8:  17 trades   52.9% WR  $   7,148
+    Score≥10:   3 trades   33.3% WR  $   1,118
+
+
+══════════════════════════════════════════════════════════════
+  DETECTION TF: 30m
+══════════════════════════════════════════════════════════════
+──────────────────────────────────────────────────────────────
+  PROXIMAL  TF=30m  TP=1.5x
+──────────────────────────────────────────────────────────────
+  Trades: 76  |  Wins: 49  Losses: 27
+  Win Rate: 64.5%  |  Profit Factor: 2.60
+  Net PnL: $    37,092  |  Avg Risk: 160.8 ticks
+  Avg Win: $   1,232  |  Avg Loss: $    -861
+  Exits → TP: 45  SL: 25  Expire: 6
+  ── By zone type:
+    Supply  :  17 trades   58.8% WR  $   6,978
+    Demand  :  15 trades   46.7% WR  $     644
+    RBR     :  19 trades   68.4% WR  $  12,442
+    DBD     :  25 trades   76.0% WR  $  17,027
+  ── Score-filtered subsets:
+    Score≥6:  53 trades   69.8% WR  $  24,875
+    Score≥8:  21 trades   66.7% WR  $   8,070
+    Score≥10:   3 trades   66.7% WR  $     278
+
+──────────────────────────────────────────────────────────────
+  PROXIMAL  TF=30m  TP=2.0x
+──────────────────────────────────────────────────────────────
+  Trades: 76  |  Wins: 41  Losses: 35
+  Win Rate: 53.9%  |  Profit Factor: 1.79
+  Net PnL: $    25,962  |  Avg Risk: 160.8 ticks
+  Avg Win: $   1,437  |  Avg Loss: $    -942
+  Exits → TP: 33  SL: 32  Expire: 11
+  ── By zone type:
+    Supply  :  17 trades   52.9% WR  $   6,948
+    Demand  :  15 trades   40.0% WR  $    -256
+    RBR     :  19 trades   47.4% WR  $   1,012
+    DBD     :  25 trades   68.0% WR  $  18,257
+  ── Score-filtered subsets:
+    Score≥6:  53 trades   60.4% WR  $  19,468
+    Score≥8:  21 trades   66.7% WR  $  11,815
+    Score≥10:   3 trades   66.7% WR  $     623
+
+──────────────────────────────────────────────────────────────
+  PROXIMAL  TF=30m  TP=3.0x
+──────────────────────────────────────────────────────────────
+  Trades: 76  |  Wins: 34  Losses: 42
+  Win Rate: 44.7%  |  Profit Factor: 1.45
+  Net PnL: $    19,867  |  Avg Risk: 160.8 ticks
+  Avg Win: $   1,869  |  Avg Loss: $  -1,040
+  Exits → TP: 26  SL: 35  Expire: 15
+  ── By zone type:
+    Supply  :  17 trades   47.1% WR  $   7,998
+    Demand  :  15 trades   33.3% WR  $    -680
+    RBR     :  19 trades   47.4% WR  $   5,272
+    DBD     :  25 trades   48.0% WR  $   7,277
+  ── Score-filtered subsets:
+    Score≥6:  53 trades   52.8% WR  $  16,288
+    Score≥8:  21 trades   66.7% WR  $  19,305
+    Score≥10:   3 trades   66.7% WR  $   1,313
+
+──────────────────────────────────────────────────────────────
+  DISTAL  TF=30m  TP=1.5x
+──────────────────────────────────────────────────────────────
+  Trades: 4  |  Wins: 3  Losses: 1
+  Win Rate: 75.0%  |  Profit Factor: 4.25
+  Net PnL: $        67  |  Avg Risk: 4.0 ticks
+  Avg Win: $      29  |  Avg Loss: $     -21
+  Exits → TP: 3  SL: 1  Expire: 0
+  ── By zone type:
+    Supply  :   1 trades  100.0% WR  $      29
+    RBR     :   1 trades    0.0% WR  $     -21
+    DBD     :   2 trades  100.0% WR  $      59
+  ── Score-filtered subsets:
+    Score≥6:   4 trades   75.0% WR  $      67
+    Score≥8:   3 trades   66.7% WR  $      38
+
+──────────────────────────────────────────────────────────────
+  DISTAL  TF=30m  TP=2.0x
+──────────────────────────────────────────────────────────────
+  Trades: 4  |  Wins: 3  Losses: 1
+  Win Rate: 75.0%  |  Profit Factor: 5.70
+  Net PnL: $        97  |  Avg Risk: 4.0 ticks
+  Avg Win: $      39  |  Avg Loss: $     -21
+  Exits → TP: 3  SL: 1  Expire: 0
+  ── By zone type:
+    Supply  :   1 trades  100.0% WR  $      39
+    RBR     :   1 trades    0.0% WR  $     -21
+    DBD     :   2 trades  100.0% WR  $      79
+  ── Score-filtered subsets:
+    Score≥6:   4 trades   75.0% WR  $      97
+    Score≥8:   3 trades   66.7% WR  $      58
+
+──────────────────────────────────────────────────────────────
+  DISTAL  TF=30m  TP=3.0x
+──────────────────────────────────────────────────────────────
+  Trades: 4  |  Wins: 3  Losses: 1
+  Win Rate: 75.0%  |  Profit Factor: 8.59
+  Net PnL: $       157  |  Avg Risk: 4.0 ticks
+  Avg Win: $      59  |  Avg Loss: $     -21
+  Exits → TP: 3  SL: 1  Expire: 0
+  ── By zone type:
+    Supply  :   1 trades  100.0% WR  $      59
+    RBR     :   1 trades    0.0% WR  $     -21
+    DBD     :   2 trades  100.0% WR  $     119
+  ── Score-filtered subsets:
+    Score≥6:   4 trades   75.0% WR  $     157
+    Score≥8:   3 trades   66.7% WR  $      98
+
+──────────────────────────────────────────────────────────────
+  MID  TF=30m  TP=1.5x
+──────────────────────────────────────────────────────────────
+  Trades: 24  |  Wins: 19  Losses: 5
+  Win Rate: 79.2%  |  Profit Factor: 7.21
+  Net PnL: $     6,888  |  Avg Risk: 53.7 ticks
+  Avg Win: $     421  |  Avg Loss: $    -222
+  Exits → TP: 19  SL: 5  Expire: 0
+  ── By zone type:
+    Supply  :   5 trades  100.0% WR  $   1,500
+    Demand  :   2 trades  100.0% WR  $     947
+    RBR     :   6 trades   83.3% WR  $   2,006
+    DBD     :  11 trades   63.6% WR  $   2,435
+  ── Score-filtered subsets:
+    Score≥6:  19 trades   73.7% WR  $   4,675
+    Score≥8:  13 trades   69.2% WR  $   2,853
+    Score≥10:   3 trades  100.0% WR  $   1,127
+
+──────────────────────────────────────────────────────────────
+  MID  TF=30m  TP=2.0x
+──────────────────────────────────────────────────────────────
+  Trades: 24  |  Wins: 18  Losses: 6
+  Win Rate: 75.0%  |  Profit Factor: 9.59
+  Net PnL: $    10,841  |  Avg Risk: 53.7 ticks
+  Avg Win: $     672  |  Avg Loss: $    -210
+  Exits → TP: 17  SL: 6  Expire: 1
+  ── By zone type:
+    Supply  :   5 trades   80.0% WR  $   1,544
+    Demand  :   2 trades  100.0% WR  $   1,264
+    RBR     :   6 trades   83.3% WR  $   4,476
+    DBD     :  11 trades   63.6% WR  $   3,557
+  ── Score-filtered subsets:
+    Score≥6:  19 trades   73.7% WR  $   6,607
+    Score≥8:  13 trades   69.2% WR  $   4,131
+    Score≥10:   3 trades  100.0% WR  $   1,503
+
+──────────────────────────────────────────────────────────────
+  MID  TF=30m  TP=3.0x
+──────────────────────────────────────────────────────────────
+  Trades: 24  |  Wins: 15  Losses: 9
+  Win Rate: 62.5%  |  Profit Factor: 7.92
+  Net PnL: $    13,033  |  Avg Risk: 53.7 ticks
+  Avg Win: $     994  |  Avg Loss: $    -209
+  Exits → TP: 14  SL: 9  Expire: 1
+  ── By zone type:
+    Supply  :   5 trades   20.0% WR  $     -86
+    Demand  :   2 trades  100.0% WR  $   1,896
+    RBR     :   6 trades   83.3% WR  $   5,421
+    DBD     :  11 trades   63.6% WR  $   5,802
+  ── Score-filtered subsets:
+    Score≥6:  19 trades   63.2% WR  $   8,389
+    Score≥8:  13 trades   61.5% WR  $   5,136
+    Score≥10:   3 trades   66.7% WR  $     705
+
+──────────────────────────────────────────────────────────────
+  PIN_REJECT  TF=30m  TP=1.5x
+──────────────────────────────────────────────────────────────
+  Trades: 40  |  Wins: 21  Losses: 19
+  Win Rate: 52.5%  |  Profit Factor: 1.70
+  Net PnL: $    12,699  |  Avg Risk: 180.6 ticks
+  Avg Win: $   1,466  |  Avg Loss: $    -952
+  Exits → TP: 17  SL: 18  Expire: 5
+  ── By zone type:
+    Supply  :   9 trades   66.7% WR  $   8,834
+    Demand  :  10 trades   30.0% WR  $  -3,187
+    RBR     :  11 trades   54.5% WR  $   2,167
+    DBD     :  10 trades   60.0% WR  $   4,886
+  ── Score-filtered subsets:
+    Score≥6:  28 trades   50.0% WR  $   2,053
+    Score≥8:  11 trades   63.6% WR  $   5,217
+    Score≥10:   2 trades   50.0% WR  $    -134
+
+──────────────────────────────────────────────────────────────
+  PIN_REJECT  TF=30m  TP=2.0x
+──────────────────────────────────────────────────────────────
+  Trades: 40  |  Wins: 19  Losses: 21
+  Win Rate: 47.5%  |  Profit Factor: 1.73
+  Net PnL: $    14,467  |  Avg Risk: 180.6 ticks
+  Avg Win: $   1,807  |  Avg Loss: $    -946
+  Exits → TP: 15  SL: 20  Expire: 5
+  ── By zone type:
+    Supply  :   9 trades   55.6% WR  $   8,634
+    Demand  :  10 trades   30.0% WR  $  -2,632
+    RBR     :  11 trades   45.5% WR  $   1,022
+    DBD     :  10 trades   60.0% WR  $   7,443
+  ── Score-filtered subsets:
+    Score≥6:  28 trades   50.0% WR  $   6,440
+    Score≥8:  11 trades   63.6% WR  $   7,627
+    Score≥10:   2 trades   50.0% WR  $     144
+
+──────────────────────────────────────────────────────────────
+  PIN_REJECT  TF=30m  TP=3.0x
+──────────────────────────────────────────────────────────────
+  Trades: 40  |  Wins: 17  Losses: 23
+  Win Rate: 42.5%  |  Profit Factor: 1.93
+  Net PnL: $    20,087  |  Avg Risk: 180.6 ticks
+  Avg Win: $   2,451  |  Avg Loss: $    -939
+  Exits → TP: 13  SL: 22  Expire: 5
+  ── By zone type:
+    Supply  :   9 trades   44.4% WR  $   9,109
+    Demand  :  10 trades   30.0% WR  $  -1,522
+    RBR     :  11 trades   45.5% WR  $   4,282
+    DBD     :  10 trades   50.0% WR  $   8,218
+  ── Score-filtered subsets:
+    Score≥6:  28 trades   50.0% WR  $  15,215
+    Score≥8:  11 trades   63.6% WR  $  12,447
+    Score≥10:   2 trades   50.0% WR  $     699
+
+──────────────────────────────────────────────────────────────
+  CLOSE_IN  TF=30m  TP=1.5x
+──────────────────────────────────────────────────────────────
+  Trades: 57  |  Wins: 43  Losses: 14
+  Win Rate: 75.4%  |  Profit Factor: 3.06
+  Net PnL: $    27,825  |  Avg Risk: 137.0 ticks
+  Avg Win: $     961  |  Avg Loss: $    -964
+  Exits → TP: 40  SL: 13  Expire: 4
+  ── By zone type:
+    Supply  :  12 trades   75.0% WR  $   3,344
+    Demand  :  11 trades   54.5% WR  $   1,792
+    RBR     :  15 trades   73.3% WR  $   9,447
+    DBD     :  19 trades   89.5% WR  $  13,242
+  ── Score-filtered subsets:
+    Score≥6:  40 trades   80.0% WR  $  18,564
+    Score≥8:  15 trades   86.7% WR  $   6,792
+    Score≥10:   3 trades  100.0% WR  $   1,100
+
+──────────────────────────────────────────────────────────────
+  CLOSE_IN  TF=30m  TP=2.0x
+──────────────────────────────────────────────────────────────
+  Trades: 57  |  Wins: 39  Losses: 18
+  Win Rate: 68.4%  |  Profit Factor: 3.10
+  Net PnL: $    32,490  |  Avg Risk: 137.0 ticks
+  Avg Win: $   1,229  |  Avg Loss: $    -858
+  Exits → TP: 35  SL: 17  Expire: 5
+  ── By zone type:
+    Supply  :  12 trades   66.7% WR  $   4,282
+    Demand  :  11 trades   54.5% WR  $   3,072
+    RBR     :  15 trades   66.7% WR  $  11,434
+    DBD     :  19 trades   78.9% WR  $  13,702
+  ── Score-filtered subsets:
+    Score≥6:  40 trades   75.0% WR  $  21,182
+    Score≥8:  15 trades   86.7% WR  $   9,204
+    Score≥10:   3 trades  100.0% WR  $   1,468
+
+──────────────────────────────────────────────────────────────
+  CLOSE_IN  TF=30m  TP=3.0x
+──────────────────────────────────────────────────────────────
+  Trades: 57  |  Wins: 32  Losses: 25
+  Win Rate: 56.1%  |  Profit Factor: 2.26
+  Net PnL: $    27,690  |  Avg Risk: 137.0 ticks
+  Avg Win: $   1,554  |  Avg Loss: $    -882
+  Exits → TP: 26  SL: 23  Expire: 8
+  ── By zone type:
+    Supply  :  12 trades   41.7% WR  $  -1,573
+    Demand  :  11 trades   54.5% WR  $   5,632
+    RBR     :  15 trades   46.7% WR  $   5,730
+    DBD     :  19 trades   73.7% WR  $  17,902
+  ── Score-filtered subsets:
+    Score≥6:  40 trades   65.0% WR  $  21,752
+    Score≥8:  15 trades   86.7% WR  $  14,029
+    Score≥10:   3 trades  100.0% WR  $   2,203
+
+===========================================================================
+  SUMMARY TABLE  (sorted by Net PnL)
+===========================================================================
+  Model         TF       TP      N     WR%     PF        Net$  AvgRisk
+  ──────────────────────────────────────────────────────────────────────
+  PROXIMAL      15m     3.0    107    47.7   2.23      47,605    122.0
+  PROXIMAL      15m     2.0    107    57.0   2.34      42,680    122.0
+  PROXIMAL      15m     1.5    107    62.6   2.46      38,050    122.0
+  PROXIMAL      30m     1.5     76    64.5   2.60      37,092    160.8
+  CLOSE_IN      15m     3.0     68    52.9   3.15      36,672     98.8
+  CLOSE_IN      30m     2.0     57    68.4   3.10      32,490    137.0
+  PIN_REJECT    15m     2.0     75    52.0   2.12      30,152    147.7
+  CLOSE_IN      30m     1.5     57    75.4   3.06      27,825    137.0
+  CLOSE_IN      30m     3.0     57    56.1   2.26      27,690    137.0
+  CLOSE_IN      15m     2.0     68    60.3   2.88      27,342     98.8
+  PROXIMAL      30m     2.0     76    53.9   1.79      25,962    160.8
+  PROXIMAL      5m      3.0    232    37.9   1.43      25,408     69.7
+  PIN_REJECT    15m     3.0     75    41.3   1.70      25,362    147.7
+  PIN_REJECT    15m     1.5     75    56.0   1.90      22,785    147.7
+  CLOSE_IN      15m     1.5     68    63.2   2.66      21,952     98.8
+  PIN_REJECT    30m     3.0     40    42.5   1.93      20,087    180.6
+  PROXIMAL      30m     3.0     76    44.7   1.45      19,867    160.8
+  PROXIMAL      5m      2.0    232    46.6   1.35      17,913     69.7
+  PIN_REJECT    5m      1.5    165    52.7   1.38      17,704     97.9
+  MID           15m     3.0     44    54.5   4.34      17,082     54.0
+  PIN_REJECT    5m      2.0    165    45.5   1.32      16,849     97.9
+  PIN_REJECT    30m     2.0     40    47.5   1.73      14,467    180.6
+  MID           5m      3.0    132    42.4   2.02      13,658     33.8
+  PROXIMAL      5m      1.5    232    52.6   1.29      13,450     69.7
+  MID           30m     3.0     24    62.5   7.92      13,033     53.7
+  PIN_REJECT    30m     1.5     40    52.5   1.70      12,699    180.6
+  MID           15m     2.0     44    61.4   4.03      12,559     54.0
+  MID           30m     2.0     24    75.0   9.59      10,841     53.7
+  MID           5m      2.0    132    50.8   1.87      10,028     33.8
+  MID           15m     1.5     44    63.6   3.46       9,297     54.0
+  PIN_REJECT    5m      3.0    165    32.7   1.14       8,414     97.9
+  CLOSE_IN      5m      3.0    151    35.8   1.25       8,199     55.2
+  MID           5m      1.5    132    53.8   1.77       7,860     33.8
+  MID           30m     1.5     24    79.2   7.21       6,888     53.7
+  CLOSE_IN      5m      1.5    151    49.0   1.21       5,107     55.2
+  CLOSE_IN      5m      2.0    151    41.7   1.06       1,754     55.2
+  DISTAL        5m      3.0     41    39.0   1.83         431      4.0
+  DISTAL        30m     3.0      4    75.0   8.59         157      4.0
+  DISTAL        5m      2.0     41    39.0   1.22         111      4.0
+  DISTAL        30m     2.0      4    75.0   5.70          97      4.0
+  DISTAL        30m     1.5      4    75.0   4.25          67      4.0
+  DISTAL        15m     3.0     13    30.8   1.27          51      4.0
+  DISTAL        15m     2.0     13    30.8   0.84         -29      4.0
+  DISTAL        5m      1.5     41    39.0   0.91         -49      4.0
+  DISTAL        15m     1.5     13    30.8   0.63         -69      4.0
+
+  Completed in 1.7s

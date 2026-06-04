@@ -1,0 +1,62 @@
+{
+  "name": "composite_trapped_multiple_signals",
+  "description": "Multiple trap signals: TRAP_01 + TRAP_02 + TRAP_03. Buy imbalance at high + large positive delta with lower close + breakout failure — maximum trap.",
+  "bar": {
+    "open": 21518.0,
+    "high": 21530.0,
+    "low": 21498.0,
+    "close": 21500.0,
+    "delta": 400,
+    "total_volume": 4000,
+    "bid_volumes": {
+      "21498.0": 300,
+      "21500.0": 350,
+      "21505.0": 280,
+      "21510.0": 200,
+      "21515.0": 250,
+      "21520.0": 300,
+      "21525.0": 350,
+      "21530.0": 250
+    },
+    "ask_volumes": {
+      "21500.0": 100,
+      "21505.0": 150,
+      "21510.0": 200,
+      "21515.0": 250,
+      "21520.0": 300,
+      "21525.0": 400,
+      "21530.0": 350
+    },
+    "poc_price": 21525.0,
+    "poc_volume": 750,
+    "vah": 21528.0,
+    "val": 21502.0,
+    "cvd": 300.0,
+    "bar_index": 70,
+    "timestamp": "2026-05-13T10:55:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 12.0,
+    "cvd": 300.0,
+    "vah": 21528.0,
+    "val": 21502.0,
+    "poc": 21525.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "prior_bar_high": 21520.0,
+    "prior_bar_low": 21505.0,
+    "bar_history_closes": [21510.0, 21518.0, 21500.0]
+  },
+  "expected_signals": [
+    {"signal_id": "TRAP_01", "direction": "BEARISH", "strength_min": 0.35, "strength_max": 0.55},
+    {"signal_id": "TRAP_02", "direction": "BEARISH", "strength_min": 0.35, "strength_max": 0.55},
+    {"signal_id": "TRAP_03", "direction": "BEARISH", "strength_min": 0.35, "strength_max": 0.55}
+  ],
+  "expected_signal": {
+    "signal_id": "TRAP_01",
+    "direction": "BEARISH",
+    "strength_min": 0.35,
+    "strength_max": 0.55
+  }
+}

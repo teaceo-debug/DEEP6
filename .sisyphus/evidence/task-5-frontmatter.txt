@@ -1,0 +1,4 @@
+﻿Line 1: ---
+Line 2: name: "ninjatrader-error-doctor"
+Line 3: description: "NinjaTrader 8 error diagnosis encyclopedia. Fixes compile errors (CS####), runtime exceptions, SharpDX rendering crashes, behavioral bugs (wrong data, logic errors), deployment drift, strategy/ATM errors, and NT7 to NT8 migration failures. Triggers: 'fix NinjaTrader error', 'CS error', 'compile error', 'NT8 won't compile', 'NinjaScript error', 'SharpDX crash', 'strategy not working', 'indicator crashes', 'fix CS0246', 'fix CS0101', 'NinjaScript runtime exception'."
+Line 4: ---

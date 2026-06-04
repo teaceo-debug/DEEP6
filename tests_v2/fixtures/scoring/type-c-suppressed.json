@@ -1,0 +1,49 @@
+{
+  "name": "type_c_low_score",
+  "description": "Low confidence score (50-71). Some signals active but not enough conviction for higher tiers — TYPE_C tier.",
+  "bar": {
+    "open": 21500.0,
+    "high": 21512.0,
+    "low": 21495.0,
+    "close": 21510.0,
+    "delta": 200,
+    "total_volume": 2200,
+    "bid_volumes": {
+      "21495.0": 100,
+      "21498.0": 150,
+      "21500.0": 200,
+      "21505.0": 250,
+      "21508.0": 180
+    },
+    "ask_volumes": {
+      "21500.0": 180,
+      "21505.0": 250,
+      "21508.0": 200,
+      "21510.0": 180,
+      "21512.0": 130
+    },
+    "poc_price": 21505.0,
+    "poc_volume": 500,
+    "vah": 21510.0,
+    "val": 21499.0,
+    "cvd": 300.0,
+    "bar_index": 40,
+    "timestamp": "2026-05-13T10:25:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 300.0,
+    "vah": 21510.0,
+    "val": 21499.0,
+    "poc": 21505.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0
+  },
+  "active_signals": [
+    {"signal_id": "IMB_01", "direction": "BULLISH", "strength": 0.35},
+    {"signal_id": "DELT_01", "direction": "BULLISH", "strength": 0.40}
+  ],
+  "expected_tier": "TYPE_C",
+  "expected_score_range": [50, 71]
+}

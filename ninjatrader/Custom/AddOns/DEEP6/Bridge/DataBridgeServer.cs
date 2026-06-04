@@ -123,6 +123,15 @@ namespace NinjaTrader.NinjaScript.AddOns.DEEP6.Bridge
             Broadcast(line);
         }
 
+        public void WriteInternals(double tick, double addValue, double vold)
+        {
+            long tsMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            string line = string.Format(CultureInfo.InvariantCulture,
+                "{{\"type\":\"internals\",\"tick\":{0},\"add\":{1},\"vold\":{2},\"ts_ms\":{3}}}",
+                tick, addValue, vold, tsMs);
+            Broadcast(line);
+        }
+
         public void WriteSessionReset()
         {
             long tsMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();

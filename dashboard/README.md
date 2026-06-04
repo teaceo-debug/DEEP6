@@ -1,91 +1,127 @@
 # DEEP6 Dashboard
 
-> View-only NQ futures footprint trading dashboard. TERMINAL NOIR aesthetic. Real-time order flow, confluence scoring, Kronos E10 ML bias, and session replay — all in one screen.
+View-focused operator dashboard and replay UI for DEEP6.
 
-<!-- Screenshot: add `docs/screenshot.png` after first live session -->
+This dashboard is best understood as a visualization layer for:
+- replay and inspection
+- operator-facing score/signal/status display
+- backend-connected live-like monitoring
+- frontend demo mode when no backend is available
 
----
+It is not the canonical source of project truth.
+For overall system status, read:
+- `../README.md`
+- `../docs/CURRENT-STATE.md`
+- `../docs/VERIFICATION-LADDER.md`
 
-## Quick Start
+## Current role
+
+The dashboard currently serves three use cases:
+
+1. Demo mode
+- frontend-only rendering and interaction validation
+- no backend dependency
+- useful for layout, UX, and presentation checks
+
+2. Replay / backend-connected mode
+- connects to the DEEP6 backend for replay and status-driven workflows
+- useful for inspecting score/signal behavior and backend integration
+
+3. Operator-facing visualization
+- acts as a display surface for bars, signals, scores, and status
+- should not be treated as the only source of operational truth
+
+## Quick start
 
 ```bash
 npm install
-npm run dev        # http://localhost:3000
+npm run dev
 ```
 
-The Python FastAPI backend (Phase 9) must be running at `:8000` to receive live data:
+Default local URL:
+- `http://localhost:3000`
+
+## Backend expectations
+
+Important:
+The DEEP6 repo is still consolidating its canonical runtime path and port story.
+This dashboard expects a backend URL and websocket URL that match the active backend you are running.
+
+Before trusting backend-connected mode:
+- verify the backend host/port you intend to use
+- verify the websocket route you intend to use
+- verify whether you are in demo, replay, or backend-connected mode
+
+Do not assume every repo document uses the same port until the runtime consolidation work is complete.
+
+## Environment
+
+Examples:
 
 ```bash
-# From /Users/teaceo/DEEP6 — in a separate terminal
-uvicorn deep6.api.app:app --reload
+# Frontend-only demo mode
+NEXT_PUBLIC_DEMO_MODE=true
+
+# Backend-connected mode
+NEXT_PUBLIC_DEMO_MODE=false
+NEXT_PUBLIC_WS_URL=ws://localhost:8765/ws/live
+NEXT_PUBLIC_API_BASE=http://localhost:8765
 ```
 
-The dashboard connects automatically and retries with exponential backoff if the backend is not yet up.
+If your backend is running on a different port, set both values explicitly.
 
 ## Commands
 
 | Command | Purpose |
 |---------|---------|
-| `npm run dev` | Dev server (Turbopack) at localhost:3000 |
+| `npm run dev` | Start local dev server |
 | `npm run build` | Production build |
-| `npm run typecheck` | TypeScript strict check, no emit |
-| `npm run test` | Vitest unit suite (5 test files, 32 tests) |
-| `npm run test:watch` | Vitest in watch mode |
+| `npm run typecheck` | TypeScript check |
+| `npm run test` | Vitest suite |
+| `npm run test:watch` | Vitest watch mode |
 
-## Stack
+## Modes
 
-| Layer | Choice | Version |
-|-------|--------|---------|
-| Framework | Next.js App Router | 16.2.3 |
-| Styling | Tailwind v4 (CSS-first) | 4.x |
-| Animation | Motion (Framer Motion) | 11.18.2 |
-| Financial charts | Lightweight Charts custom series | 5.1.0 |
-| State | Zustand with `subscribeWithSelector` | 5.0.12 |
-| UI primitives | Radix UI (headless) + shadcn/ui | latest |
-| Font | JetBrains Mono (variable, weights 100-800) | via next/font |
-| Icons | Lucide React | 1.8.x |
-| Testing | Vitest + jsdom | 2.x |
+### Demo mode
+Use when:
+- no backend is available
+- validating UI and interaction behavior
+- presenting the dashboard without backend dependencies
 
-## Environment
-
-```bash
-# Optional — defaults to ws://localhost:8000/ws/live
-NEXT_PUBLIC_WS_URL=ws://your-backend:8000/ws/live
-```
-
-## Demo Mode (Vercel / no backend)
-
-The dashboard ships with an in-browser demo mode that generates realistic NQ
-futures activity entirely client-side — no backend required.
-
-**Flip between modes via environment variable:**
-
-| Env var | Value | Behavior |
-|---------|-------|----------|
-| `NEXT_PUBLIC_DEMO_MODE` | `true` | In-browser demo; WebSocket disabled. Works on Vercel. |
-| `NEXT_PUBLIC_DEMO_MODE` | `false` (default) | Connects to real backend via WebSocket. |
-
-**Local demo run:**
+Enable with:
 
 ```bash
 NEXT_PUBLIC_DEMO_MODE=true npm run dev
 ```
 
-**Vercel deployment:**
+### Backend-connected mode
+Use when:
+- validating replay and websocket integration
+- reviewing live-like backend output
+- checking operator-facing status behavior
 
-Set `NEXT_PUBLIC_DEMO_MODE=true` in the Vercel project environment variables.
-No backend, no WebSocket URL needed.
+Enable with explicit URLs:
 
-The demo ports `scripts/demo_broadcast.py` to TypeScript:
-- `PriceModel` — autocorrelated random walk, 0.25-tick snapped, bounded to NQ range
-- `ScoreModel` — sine-rippled oscillator 30-92, TYPE_A spikes, Kronos updates every 15-20s
-- `SignalScheduler` — Poisson timers (TYPE_C 8-15s, TYPE_B 30-60s, TYPE_A 90-180s)
-- `buildBar` — 31-row Gaussian-weighted footprint ladder, 30% one-sided bars
-- Dispatches directly to Zustand store at 500ms intervals (rate 2x equivalent)
+```bash
+NEXT_PUBLIC_DEMO_MODE=false \
+NEXT_PUBLIC_WS_URL=ws://localhost:8765/ws/live \
+NEXT_PUBLIC_API_BASE=http://localhost:8765 \
+npm run dev
+```
 
-## Docs
+Adjust ports to match the backend you are actually running.
 
-- [ARCHITECTURE.md](docs/ARCHITECTURE.md) — data flow, store shape, rendering split, replay mode
-- [COMPONENT-INDEX.md](docs/COMPONENT-INDEX.md) — every component with props, store subscriptions, and layout slot
-- [EXTENDING.md](docs/EXTENDING.md) — how to add message types, panels, zone types, overlays, and animations
-- [Main project README / CLAUDE.md](../CLAUDE.md) — full system context (Rithmic, Kronos, backend stack)
+## Documentation
+
+- `docs/ARCHITECTURE.md` — data flow, store shape, rendering split, replay mode
+- `docs/COMPONENT-INDEX.md` — component map
+- `docs/EXTENDING.md` — extension points
+- `../docs/CURRENT-STATE.md` — canonical project truth
+- `../docs/VERIFICATION-LADDER.md` — trust and promotion model
+
+## Important cautions
+
+- Do not confuse demo mode with backend-connected behavior.
+- Do not treat the dashboard as proof that execution logic is production-ready.
+- Do not assume the dashboard alone is sufficient operator safety instrumentation.
+- Treat the dashboard as one subsystem within DEEP6, not the whole system.

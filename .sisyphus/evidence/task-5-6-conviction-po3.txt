@@ -1,0 +1,21 @@
+2026-05-31 T5/T6 verification evidence
+
+Files changed:
+- gex_terminal/engine/conviction.py
+- gex_terminal/engine/po3_gate.py
+- gex_terminal/engine/analyzer.py
+- gex_terminal/engine/orchestrator.py
+- gex_terminal/schemas.py
+- gex_terminal/tests/test_analyzer.py
+- gex_terminal/tests/test_orchestrator.py
+
+Verification:
+- LSP diagnostics: clean on C:\Users\Tea\DEEP6\gex_terminal (0 errors)
+- Hermes / PowerShell / Windows Python 3.11:
+  py -3.11 -m pytest gex_terminal/tests -v
+  Result: 89 passed in 70.56s
+
+Notes:
+- WSL base python lacked required pytest deps; verification succeeded through Hermes using Windows `py -3.11`.
+- PO3 wrapper uses `PO3BiasDetector` and normalizes deep6 bias enums to terminal states.
+- Conviction outputs are surfaced on both AnalysisResult and GEXTerminalSnapshot.

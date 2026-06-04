@@ -1,7 +1,7 @@
 """Looping demo broadcaster for DEEP6 dashboard validation.
 
 Streams realistic NQ-futures-like market activity indefinitely to the backend's
-/api/live/test-broadcast endpoint.  Every tick fires a status heartbeat; bars,
+/api/live/test-broadcast endpoint. Every tick fires a status heartbeat; bars,
 tape prints, scores, and signals follow a realistic cadence driven by a random-
 walk price model with configurable speed and duration.
 
@@ -9,10 +9,10 @@ Usage (quickstart — streams until Ctrl-C):
     python scripts/demo_broadcast.py
 
 Options:
-    --url http://localhost:8000   Backend base URL
-    --rate 1.0                   Speed multiplier (2.0 = 2× faster)
-    --duration 0                 Seconds to run; 0 = run forever
-    --seed 42                    RNG seed for reproducible runs; -1 = random
+    --url http://localhost:8765   Backend base URL
+    --rate 1.0                    Speed multiplier (2.0 = 2× faster)
+    --duration 0                  Seconds to run; 0 = run forever
+    --seed 42                     RNG seed for reproducible runs; -1 = random
 
 Dependencies: stdlib only (urllib, json, time, random, argparse, math, sys).
 """
@@ -418,8 +418,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Looping DEEP6 demo broadcaster — streams NQ market activity."
     )
-    parser.add_argument("--url",      default="http://localhost:8000",
-                        help="Backend base URL (default: http://localhost:8000)")
+    parser.add_argument("--url",      default="http://localhost:8765",
+                        help="Backend base URL (default: http://localhost:8765)")
     parser.add_argument("--rate",     type=float, default=1.0,
                         help="Speed multiplier (2.0 = 2× faster, default: 1.0)")
     parser.add_argument("--duration", type=float, default=0.0,

@@ -1,0 +1,22 @@
+﻿{
+    "run_id":  "bv-20260515-135837-b3b6",
+    "result":  "SUCCESS",
+    "iterations":  1,
+    "final_error_count":  0,
+    "total_fixes":  0,
+    "total_rollbacks":  0,
+    "iteration_details":  [
+                              {
+                                  "iteration":  1,
+                                  "errors_before":  0,
+                                  "errors_after":  0,
+                                  "fixes":  [
+
+                                            ],
+                                  "rollbacks":  [
+
+                                                ],
+                                  "elapsed_ms":  47180
+                              }
+                          ]
+}

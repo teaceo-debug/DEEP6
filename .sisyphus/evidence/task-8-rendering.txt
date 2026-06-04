@@ -1,0 +1,49 @@
+Task 8: Classification-Based 4-Color Rendering for DEEP6DepthRadarV2
+=====================================================================
+Date: 2026-05-22
+File: ninjatrader/Custom/Indicators/DEEP6/DEEP6DepthRadarV2.cs
+
+CHANGES MADE
+-------------
+1. BRUSH PROPERTIES: Removed WallBidBrush/WallAskBrush (2 side-based).
+   Added 4 classification brushes:
+   - GenuineBrush  ARGB(220, 46, 204, 113) bright green
+   - SpoofBrush    ARGB(220, 231, 76, 60)  alert red
+   - IcebergBrush  ARGB(220, 52, 152, 219) deep blue
+   - StaleBrush    ARGB(100, 149, 165, 166) dim gray
+   Each with [XmlIgnore], [Display], and *BrushSerialize companion property.
+
+2. DX FIELDS: Replaced _wallBidDx/_wallAskDx with _genuineDx/_spoofDx/_icebergDx/_staleDx.
+   Replaced _glowBidDx/_glowAskDx with _glowGenuineDx/_glowSpoofDx/_glowIcebergDx.
+   Removed GLOW_ALPHAS/GLOW_WIDTHS static arrays.
+   Added GLOW_WIDTHS_STANDARD {14,8,5} and GLOW_WIDTHS_ICEBERG {16,10,6}.
+
+3. OnRenderTargetChanged: Creates 4 classification brushes via .ToDxBrush().
+   Creates 3 glow arrays with per-classification alpha intensities:
+   - GENUINE: standard  {0.08, 0.18, 0.35}
+   - SPOOF:   intense   {0.15, 0.30, 0.50}
+   - ICEBERG: standard  {0.08, 0.18, 0.35} with wider widths {16,10,6}
+   - STALE:   no glow
+
+4. DrawWallsForSide: Removed brush/isBid parameters. Now selects brush and glow
+   per-wall based on st.Classification. Unknown walls are skipped (continue).
+
+5. LABEL FORMAT:
+   - GENUINE: "BID 21025.50  150 [GENUINE 87%]"
+   - SPOOF:   "ASK 21050.25  300 [SPOOF 92%]"
+   - ICEBERG: "BID 21025.50  150 [ICExN 78%]"
+   - STALE:   "BID 21025.50  150 [STALE]"
+   Label layout width increased to 260px to accommodate classification tags.
+
+6. DisposeDx: Disposes all 4 classification brushes and 3 glow arrays.
+
+7. OnRender null check: Changed from _wallBidDx/_wallAskDx to _genuineDx.
+
+VERIFICATION
+------------
+- lsp_diagnostics: CLEAN (zero errors)
+- v1 untouched: git diff HEAD -- DEEP6DepthRadar.cs = empty
+- V2Types.cs: NOT modified
+- No brushes allocated in OnRender (all in OnRenderTargetChanged)
+- No LINQ or string interpolation in rendering path
+- All SharpDX resources properly disposed in DisposeDx

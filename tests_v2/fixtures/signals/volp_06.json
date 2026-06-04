@@ -1,0 +1,52 @@
+{
+  "name": "VOLP_06_big_delta_at_single_level",
+  "description": "Single price level with delta > big_delta_threshold. One level shows extreme directional aggression.",
+  "bar": {
+    "open": 21500.0,
+    "high": 21512.0,
+    "low": 21498.0,
+    "close": 21510.0,
+    "delta": 350,
+    "total_volume": 2800,
+    "bid_volumes": {
+      "21498.0": 80,
+      "21500.0": 100,
+      "21502.0": 60,
+      "21505.0": 150,
+      "21508.0": 200,
+      "21510.0": 180
+    },
+    "ask_volumes": {
+      "21500.0": 150,
+      "21502.0": 120,
+      "21505.0": 800,
+      "21508.0": 300,
+      "21510.0": 250,
+      "21512.0": 160
+    },
+    "poc_price": 21505.0,
+    "poc_volume": 950,
+    "vah": 21510.0,
+    "val": 21501.0,
+    "cvd": 500.0,
+    "bar_index": 48,
+    "timestamp": "2026-05-13T10:33:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 500.0,
+    "vah": 21510.0,
+    "val": 21501.0,
+    "poc": 21505.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "big_delta_threshold": 500
+  },
+  "expected_signal": {
+    "signal_id": "VOLP_06",
+    "direction": "BULLISH",
+    "strength_min": 0.30,
+    "strength_max": 0.50
+  }
+}

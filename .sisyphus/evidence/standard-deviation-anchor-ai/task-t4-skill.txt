@@ -1,0 +1,79 @@
+TASK: T4 — HERMES Standard-Deviation Expert Skill + Training Doctrine
+STATUS: COMPLETE
+DATE: 2026-05-21
+
+FILE CREATED:
+  .claude/skills/hermes-sd-anchor/knowledge.md
+
+CHECKLIST VERIFICATION:
+
+[x] Skill behavior defined
+    - HERMES identity: "You are HERMES, a standard-deviation anchor expert trained to evaluate
+      whether a Pine-detected manipulation-leg anchor matches the original human-style method.
+      You approve, veto, or abstain. You do not draw. You do not invent new patterns."
+    - Scope: external veto sidecar only. No chart-drawing authority.
+
+[x] Review checklist defined (5 steps, 100 pts total)
+    Step 1: Opposite-direction swing before displacement — 25 pts
+    Step 2: Displacement strength (structure break + impulsive expansion) — 25 pts
+    Step 3: Structure break confirmation — 20 pts
+    Step 4: Wick-to-wick obviousness — 15 pts
+    Step 5: Higher-timeframe context agreement — 15 pts
+    Threshold: >= 70 = APPROVE, < 70 = VETO
+
+[x] Rejection triggers defined
+    - Choppy price action
+    - Multiple equally-likely anchors
+    - Swing too small
+    - Move already too extended
+    - Forced levels
+
+[x] What HERMES may infer: visual quality, displacement strength, wick clarity, HTF context,
+    structure break quality, recency of manipulation leg
+
+[x] What HERMES may NOT infer: new pattern families, ATR/VWAP/volatility concepts,
+    legacy anchor heuristics, autonomous rule changes, chart drawing
+
+[x] Continuous-improvement rules defined
+    - New examples calibrate judgment quality only
+    - Checklist items, point values, threshold, rejection triggers, doctrine text are frozen
+    - 10+ discrepancy pattern required before calibration review (never autonomous rewrite)
+
+[x] Versioning defined
+    - MAJOR.MINOR.PATCH format
+    - MAJOR = doctrine change (human approval required)
+    - MINOR = calibration improvement with evidence
+    - PATCH = wording/format only
+
+[x] Promotion gate defined
+    - Minimum 20 labeled examples in evaluation set
+    - New version must match or exceed prior version on false-approve rate AND false-veto rate
+    - Both metrics must hold or improve; either worsening = rejection
+
+[x] Must-not list defined (8 absolute constraints)
+    1. No chart drawing
+    2. No strategy logic generalization
+    3. No legacy anchor heuristics as hidden priors
+    4. No autonomous doctrine rewrite
+    5. No new pattern families
+    6. No ATR/VWAP/volatility overlay concepts
+    7. No override of Pine lifecycle state machine
+    8. No silent verdicts
+
+[x] Verbatim doctrine lock included:
+    "The core anchor doctrine is frozen. HERMES may only improve its judgment quality,
+    not rewrite the rules."
+
+[x] Downstream dependencies documented: T11 (Pine integration), T14 (training dataset pipeline)
+
+VERDICT FORMAT: machine-parseable structured block (VERDICT / SCORE / BREAKDOWN / VETO_REASONS / NOTES)
+
+ABSTAIN CONDITIONS: insufficient data to evaluate 2+ steps, or malformed candidate data
+
+ANCHOR LIFECYCLE AWARENESS: HERMES operates on candidate state only; Pine engine owns all
+lifecycle transitions
+
+DISAGREEMENT LOGGING: structured log format defined, feeds continuous-improvement dataset
+
+INTEGRATION REFERENCES: copilot/session.py, copilot/vision.py, copilot/vision_analysis.py,
+deep6v2/tradingview/client.py — infrastructure patterns only, no business logic import

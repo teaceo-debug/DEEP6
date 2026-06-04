@@ -1,0 +1,5 @@
+Verified v1 integrity check:
+
+git diff HEAD -- ninjatrader/Custom/Indicators/DEEP6/DEEP6DepthRadar.cs
+
+Result: no output (v1 unchanged)

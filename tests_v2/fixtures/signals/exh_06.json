@@ -1,0 +1,52 @@
+{
+  "name": "EXH_06_ask_volume_fade",
+  "description": "Ask/bid volume fade between consecutive bars. Ask volume declining across bars at the high — buying interest exhausting.",
+  "bar": {
+    "open": 21510.0,
+    "high": 21518.0,
+    "low": 21508.0,
+    "close": 21512.0,
+    "delta": 30,
+    "total_volume": 1400,
+    "bid_volumes": {
+      "21508.0": 100,
+      "21510.0": 200,
+      "21512.0": 180,
+      "21515.0": 120
+    },
+    "ask_volumes": {
+      "21510.0": 150,
+      "21512.0": 180,
+      "21515.0": 140,
+      "21518.0": 130
+    },
+    "poc_price": 21512.0,
+    "poc_volume": 360,
+    "vah": 21516.0,
+    "val": 21509.0,
+    "cvd": 480.0,
+    "bar_index": 60,
+    "timestamp": "2026-05-13T10:45:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 480.0,
+    "vah": 21516.0,
+    "val": 21509.0,
+    "poc": 21512.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "bar_history_summary": [
+      {"high": 21520.0, "ask_at_high": 400},
+      {"high": 21518.0, "ask_at_high": 250},
+      {"high": 21518.0, "ask_at_high": 130}
+    ]
+  },
+  "expected_signal": {
+    "signal_id": "EXH_06",
+    "direction": "BEARISH",
+    "strength_min": 0.25,
+    "strength_max": 0.45
+  }
+}

@@ -1,0 +1,11 @@
+Task 4 evidence
+
+Modified: ninjatrader/Custom/Indicators/DEEP6/DEEP6DepthRadarV2.cs
+Diagnostics: clean (no diagnostics found)
+v1 diff check: git diff -- ninjatrader/Custom/Indicators/DEEP6/DEEP6DepthRadar.cs returned no output
+
+Implemented:
+- OnBarUpdate cross detection for bid/ask levels using Close[0]
+- PriceTradedThrough and first-cross PriceCrossTime assignment
+- StaleCrossTimeoutSec property with default 30
+- Stale decay to WallClassification.Stale after timeout

@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DEEP6 Footprint Chart — Design Preview</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #1C1E26; font-family: 'Consolas', 'Courier New', monospace; color: #E8EDFF; overflow-x: auto; }
+
+  .header {
+    background: #14162A;
+    border-bottom: 1px solid #1E2336;
+    padding: 8px 16px;
+    font-size: 11px;
+    color: #6B7094;
+    display: flex;
+    gap: 24px;
+    align-items: center;
+  }
+  .header .sym { color: #E8EDFF; font-size: 13px; font-weight: bold; }
+  .header .tf  { color: #4FC3F7; }
+  .header .vwap-val { color: #C8A84A; }
+
+  .chart-area {
+    display: flex;
+    padding: 40px 20px 20px;
+    gap: 0;
+    position: relative;
+    align-items: flex-end;
+  }
+
+  /* ── Price axis ── */
+  .price-axis {
+    width: 64px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding-top: 24px;
+  }
+  .price-label {
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 8px;
+    font-size: 9px;
+    color: #4A5070;
+    border-right: 1px solid #1A1D28;
+  }
+
+  /* ── Bar column ── */
+  .bar-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    margin: 0 3px;
+  }
+
+  .score-badge {
+    font-size: 9px;
+    font-weight: bold;
+    padding: 2px 5px;
+    border-radius: 3px;
+    border: 1px solid;
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+    min-width: 42px;
+    text-align: center;
+  }
+  .badge-a-long  { color: #00FF88; border-color: #00FF88; background: rgba(0,255,136,0.08); }
+  .badge-b-long  { color: #00CC66; border-color: #00CC66; background: rgba(0,204,102,0.08); }
+  .badge-quiet   { color: #3A3D52; border-color: #3A3D52; background: transparent; }
+  .badge-b-short { color: #EE4455; border-color: #EE4455; background: rgba(238,68,85,0.08); }
+  .badge-a-short { color: #FF2244; border-color: #FF2244; background: rgba(255,34,68,0.08); }
+
+  .bar {
+    display: flex;
+    position: relative;
+  }
+
+  /* Left direction strip */
+  .dir-strip {
+    width: 5px;
+    border-radius: 1px 0 0 1px;
+    flex-shrink: 0;
+  }
+  .dir-bull { background: #00C040; }
+  .dir-bear { background: #C02000; }
+  .dir-neut { background: #2A2D3A; }
+
+  /* Footprint cells column */
+  .cells {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .cell {
+    height: 22px;
+    width: 110px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    border-bottom: 1px solid rgba(30,35,54,0.6);
+  }
+
+  /* Cell fills */
+  .cell-neutral  { background: transparent; }
+  .cell-ask-mild { background: #1A3A1A; }
+  .cell-ask-med  { background: #1E6B1E; }
+  .cell-ask-str  { background: #008C38; }
+  .cell-bid-mild { background: #3A1A1A; }
+  .cell-bid-med  { background: #6B1E1E; }
+  .cell-bid-str  { background: #9B1800; }
+
+  /* Stacked zones */
+  .cell-stack-buy  { background: rgba(0,200,255,0.55); }
+  .cell-stack-sell { background: rgba(255,120,0,0.55); }
+
+  /* Absorption split fill */
+  .cell-absorb {
+    background: linear-gradient(to right, transparent 50%, rgba(0,191,165,0.6) 50%);
+  }
+
+  /* POC */
+  .cell-poc {
+    outline: 2px solid #FFD700;
+    outline-offset: -2px;
+    z-index: 2;
+  }
+
+  /* Entry price line */
+  .cell-entry {
+    outline: 1.5px solid rgba(0,220,255,0.7);
+    outline-offset: -1px;
+    background: rgba(0,220,255,0.05);
+  }
+  .cell-entry::after {
+    content: '→ ENTRY';
+    position: absolute;
+    right: -52px;
+    font-size: 7px;
+    color: rgba(0,220,255,0.8);
+    white-space: nowrap;
+  }
+
+  /* Unfinished auction */
+  .cell-unfin { background: rgba(100,200,216,0.35); }
+
+  /* Trap marker */
+  .cell-trap::after {
+    content: '◁';
+    position: absolute;
+    right: 2px;
+    color: #FFB300;
+    font-size: 9px;
+  }
+
+  /* Iceberg */
+  .cell-ice .ask-num::after { content: '···'; color: #4FC3F7; font-size: 7px; }
+
+  /* Center wick */
+  .wick {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: #404860;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+
+  /* Numbers */
+  .bid-num, .ask-num {
+    flex: 1;
+    text-align: right;
+    font-size: 9px;
+    padding: 0 4px;
+    white-space: nowrap;
+    position: relative;
+    z-index: 1;
+  }
+  .ask-num { text-align: left; }
+
+  /* Number colors */
+  .num-white  { color: #FFFFFF; }
+  .num-normal { color: #ABAEB8; }
+  .num-dim    { color: #6B7094; }
+  .num-ask-imb { color: #00FF88; font-weight: bold; }
+  .num-bid-imb { color: #FF5566; font-weight: bold; }
+
+  /* Absorption marker */
+  .cell-absorb .bid-num::before {
+    content: 'A ';
+    color: #00BFA5;
+    font-size: 7px;
+    font-weight: bold;
+  }
+
+  /* Summary row */
+  .summary-row {
+    height: 16px;
+    width: 110px;
+    background: #0A0C14;
+    border-top: 1px solid #1A1D28;
+    display: flex;
+    align-items: center;
+    padding: 0 4px;
+    font-size: 7px;
+    color: #4A5070;
+    gap: 4px;
+    margin-left: 5px;
+  }
+  .sum-delta-pos { color: #00C878; }
+  .sum-delta-neg { color: #C83030; }
+
+  /* VWAP overlay */
+  .vwap-line {
+    position: absolute;
+    left: 0; right: 0;
+    height: 1.5px;
+    background: #C8A84A;
+    pointer-events: none;
+    z-index: 10;
+  }
+  .vwap-line::after {
+    content: 'VWAP';
+    position: absolute;
+    right: 8px;
+    top: -8px;
+    font-size: 8px;
+    color: #C8A84A;
+    font-family: 'Consolas', monospace;
+  }
+
+  /* IB lines */
+  .ib-line {
+    position: absolute;
+    left: 0; right: 0;
+    height: 1px;
+    border-top: 1px dashed #7A5800;
+    pointer-events: none;
+    z-index: 9;
+  }
+  .ib-line::after {
+    position: absolute;
+    right: 8px;
+    top: -8px;
+    font-size: 8px;
+    color: #7A5800;
+    font-family: 'Consolas', monospace;
+  }
+  .ib-high::after { content: 'IBH'; }
+  .ib-low::after  { content: 'IBL'; }
+
+  /* Prior day POC */
+  .pd-poc-line {
+    position: absolute;
+    left: 0; right: 0;
+    height: 1px;
+    border-top: 1px dotted #7B52CC;
+    z-index: 8;
+  }
+  .pd-poc-line::after {
+    content: 'PD POC';
+    position: absolute;
+    right: 8px;
+    top: -8px;
+    font-size: 8px;
+    color: #7B52CC;
+    font-family: 'Consolas', monospace;
+  }
+
+  /* Labels */
+  .bar-label {
+    font-size: 8px;
+    color: #4A5070;
+    text-align: center;
+    margin-top: 4px;
+    margin-left: 5px;
+  }
+
+  /* Tier stripe highlight on bar */
+  .stripe-a-long  { box-shadow: -3px 0 0 #00FF88 inset; }
+  .stripe-b-long  { box-shadow: -3px 0 0 #00BB44 inset; }
+  .stripe-b-short { box-shadow: -3px 0 0 #BB2222 inset; }
+  .stripe-a-short { box-shadow: -3px 0 0 #FF2244 inset; }
+
+  .zone-label {
+    position: absolute;
+    left: 2px;
+    font-size: 7px;
+    color: rgba(0,230,255,0.9);
+    font-weight: bold;
+    z-index: 3;
+  }
+  .zone-label-sell { color: rgba(255,130,0,0.9); }
+
+  .section-title {
+    font-size: 10px;
+    color: #4A5070;
+    padding: 8px 20px 4px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* Delta bar below bar */
+  .delta-bar-wrap {
+    height: 24px;
+    width: 115px;
+    background: #12141E;
+    border-top: 1px solid #1A1D28;
+    display: flex;
+    align-items: center;
+    padding: 0 4px;
+    position: relative;
+    gap: 6px;
+  }
+  .delta-bar {
+    height: 8px;
+    border-radius: 1px;
+    min-width: 2px;
+  }
+  .delta-pos { background: #00C040; }
+  .delta-neg { background: #C02000; }
+  .delta-text { font-size: 8px; color: #6B7094; }
+  .delta-pos-text { color: #00C040; }
+  .delta-neg-text { color: #C02000; }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px 20px;
+    border-top: 1px solid #1A1D28;
+    margin-top: 12px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 9px;
+    color: #8090A8;
+  }
+  .legend-color {
+    width: 16px;
+    height: 12px;
+    border-radius: 2px;
+  }
+  .legend-title {
+    font-size: 10px;
+    color: #4A5070;
+    padding: 8px 20px 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="sym">NQ 06-26</span>
+  <span class="tf">5 MIN</span>
+  <span>DEEP6 Footprint Chart</span>
+  <span style="margin-left:auto">VWAP <span class="vwap-val">21,448.50</span></span>
+  <span>09:45 ET</span>
+</div>
+
+<div class="section-title">Design Preview — Live Chart Appearance</div>
+
+<div class="chart-area" id="chartArea" style="position:relative; min-height: 360px;">
+
+  <!-- VWAP line (absolute positioned) -->
+  <div class="vwap-line" style="top: 175px;"></div>
+  <!-- IB High -->
+  <div class="ib-line ib-high" style="top: 88px;"></div>
+  <!-- IB Low -->
+  <div class="ib-line ib-low" style="top: 290px;"></div>
+  <!-- Prior Day POC -->
+  <div class="pd-poc-line" style="top: 220px;"></div>
+
+  <!-- Price axis -->
+  <div class="price-axis">
+    <div class="price-label">21458</div>
+    <div class="price-label">21456</div>
+    <div class="price-label">21454</div>
+    <div class="price-label">21452</div>
+    <div class="price-label">21450</div>
+    <div class="price-label" style="color:#C8A84A">21448</div><!-- VWAP -->
+    <div class="price-label">21446</div>
+    <div class="price-label">21444</div>
+    <div class="price-label">21442</div>
+    <div class="price-label">21440</div>
+    <div class="price-label">21438</div>
+    <div class="price-label">21436</div>
+  </div>
+
+  <!-- ════ BAR 1 — TYPE_A LONG ════ -->
+  <div class="bar-wrap">
+    <div class="score-badge badge-a-long">A 91</div>
+    <div class="bar">
+      <div class="dir-strip dir-bull"></div>
+      <div class="cells stripe-a-long">
+        <div class="wick"></div>
+        <div class="cell cell-neutral">
+          <span class="bid-num num-dim">12</span>
+          <span class="ask-num num-dim">8</span>
+        </div>
+        <div class="cell cell-neutral">
+          <span class="bid-num num-dim">28</span>
+          <span class="ask-num num-dim">19</span>
+        </div>
+        <div class="cell cell-ask-mild">
+          <span class="bid-num num-normal">45</span>
+          <span class="ask-num num-normal">67</span>
+        </div>
+        <div class="cell cell-ask-med">
+          <span class="bid-num num-normal">38</span>
+          <span class="ask-num num-normal">89</span>
+        </div>
+        <div class="cell cell-poc cell-absorb">
+          <span class="bid-num num-white">63</span>
+          <span class="ask-num num-white">141</span>
+        </div>
+        <div class="cell cell-entry">
+          <span class="bid-num num-white">77</span>
+          <span class="ask-num num-ask-imb">198</span>
+        </div>
+        <div class="cell cell-stack-buy">
+          <span class="bid-num num-white">44</span>
+          <span class="ask-num num-white">156</span>
+        </div>
+        <div class="cell cell-stack-buy" style="position:relative">
+          <span class="zone-label" style="top:2px">T2</span>
+          <span class="bid-num num-white" style="padding-left:14px">31</span>
+          <span class="ask-num num-white">122</span>
+        </div>
+        <div class="cell cell-stack-buy">
+          <span class="bid-num num-white">28</span>
+          <span class="ask-num num-white">97</span>
+        </div>
+        <div class="cell cell-neutral">
+          <span class="bid-num num-dim">18</span>
+          <span class="ask-num num-dim">22</span>
+        </div>
+        <div class="cell cell-neutral">
+          <span class="bid-num num-dim">9</span>
+          <span class="ask-num num-dim">11</span>
+        </div>
+        <div class="cell cell-unfin cell-trap">
+          <span class="bid-num num-dim">31</span>
+          <span class="ask-num num-dim">14</span>
+        </div>
+      </div>
+    </div>
+    <div class="delta-bar-wrap">
+      <div class="delta-bar delta-pos" style="width:52px"></div>
+      <span class="delta-text delta-pos-text">+312</span>
+      <span class="delta-text" style="margin-left:auto">14.2K</span>
+    </div>
+    <div class="bar-label">09:40<br>TYPE_A↑</div>
+  </div>
+
+  <!-- ════ BAR 2 — QUIET / NEUTRAL ════ -->
+  <div class="bar-wrap">
+    <div class="score-badge badge-quiet" style="visibility:hidden">Q</div>
+    <div class="bar">
+      <div class="dir-strip dir-neut"></div>
+      <div class="cells">
+        <div class="wick"></div>
+        <div class="cell cell-neutral">
+          <span class="bid-num num-dim">8</span>
+          <span class="ask-num num-dim">11</span>
+        </div>
+        <div class="cell cell-bid-mild">
+          <span class="bid-num num-normal">34</span>
+          <span class="ask-num num-normal">28</span>
+        </div>
+        <div class="cell cell-bid-mild">
+          <span class="bid-num num-normal">41</span>
+          <span class="ask-num num-normal">37</span>
+        </div>
+        <div class="cell cell-neutral">
+          <span class="bid-num num-normal">52</span>
+          <span class="ask-num num-normal">49</span>
+        </div>
+        <div class="cell cell-poc">
+          <span class="bid-num num-white">78</span>
+          <span class="ask-num num-white">81</span>
+        </div>
+        <div class="cell cell-ask-mild">
+          <span class="bid-num num-normal">44</span>
+          <span class="ask-num num-normal">56</span>
+        </div>
+        <div class="cell cell-neutral">
+          <span class="bid-num num-normal">33</span>
+          <span class="ask-num num-normal">31</span>
+        </div>
+        <div class="cell cell-neutral">
+          <span class="bid-num num-normal">22</span>
+          <span class="ask-num num-normal">19</span>
+        </div>
+        <div class="cell cell-bid-mild">
+          <span class="bid-num num-normal">29</span>
+          <span class="ask-num num-dim">14</span>
+        </div>
+        <div class="cell cell-neutral">
+          <span class="bid-num num-dim">11</span>
+          <span class="ask-num num-dim">9</span>
+        </div>
+        <div class="cell cell-neutral">
+          <span class="bid-num num-dim">5</span>
+          <span class="ask-num num-dim">7</span>
+        </div>
+        <div class="cell cell-neutral" style="border:none">
+          <span class="bid-num num-dim">—</span>
+          <span class="ask-num num-dim">—</span>
+        </div>
+      </div>
+    </div>
+    <div class="delta-bar-wrap">
+      <div style="width:26px"></div>
+      <div class="delta-bar delta-neg" style="width:18px; margin-left:0"></div>
+      <span class="delta-text delta-neg-text">-44</span>
+      <span class="delta-text" style="margin-left:auto">7.8K</span>
+    </div>
+    <div class="bar-label">09:41<br>Quiet</div>
+  </div>
+
+  <!-- ════ BAR 3 — TYPE_B SHORT ════ -->
+  <div class="bar-wrap">
+    <div class="score-badge badge-b-short">B 74</div>
+    <div class="bar">
+      <div class="dir-strip dir-bear"></div>
+      <div class="cells stripe-b-short">
+        <div class="wick"></div>
+        <div class="cell cell-neutral">
+          <span class="bid-num num-dim">14</span>
+          <span class="ask-num num-dim">9</span>
+        </div>
+        <div class="cell cell-bid-mild">
+          <span class="bid-num num-normal">38</span>
+          <span class="ask-num num-dim">19</span>
+        </div>
+        <div class="cell cell-bid-med">
+          <span class="bid-num num-white">72</span>
+          <span class="ask-num num-normal">31</span>
+        </div>
+        <div class="cell cell-bid-str">
+          <span class="bid-num num-white">119</span>
+          <span class="ask-num num-normal">22</span>
+        </div>
+        <div class="cell cell-poc">
+          <span class="bid-num num-white">144</span>
+          <span class="ask-num num-white">38</span>
+        </div>
+        <div class="cell cell-stack-sell">
+          <span class="bid-num num-white">88</span>
+          <span class="ask-num num-white">19</span>
+        </div>
+        <div class="cell cell-stack-sell" style="position:relative">
+          <span class="zone-label zone-label-sell" style="top:2px">T1</span>
+          <span class="bid-num num-white" style="padding-left:14px">61</span>
+          <span class="ask-num num-white">14</span>
+        </div>
+        <div class="cell cell-stack-sell">
+          <span class="bid-num num-white">44</span>
+          <span class="ask-num num-white">11</span>
+        </div>
+        <div class="cell cell-bid-mild">
+          <span class="bid-num num-normal">28</span>
+          <span class="ask-num num-normal">21</span>
+        </div>
+        <div class="cell cell-neutral">
+          <span class="bid-num num-dim">14</span>
+          <span class="ask-num num-dim">16</span>
+        </div>
+        <div class="cell cell-neutral">
+          <span class="bid-num num-dim">—</span>
+          <span class="ask-num num-dim">—</span>
+        </div>
+        <div class="cell cell-neutral" style="border:none">
+          <span class="bid-num num-dim">—</span>
+          <span class="ask-num num-dim">—</span>
+        </div>
+      </div>
+    </div>
+    <div class="delta-bar-wrap">
+      <div style="width:8px"></div>
+      <div class="delta-bar delta-neg" style="width:60px"></div>
+      <span class="delta-text delta-neg-text">-488</span>
+      <span class="delta-text" style="margin-left:auto">11.9K</span>
+    </div>
+    <div class="bar-label">09:42<br>TYPE_B↓</div>
+  </div>
+
+  <!-- ════ BAR 4 — TYPE_A SHORT / CLIMAX ════ -->
+  <div class="bar-wrap">
+    <div class="score-badge badge-a-short">A 88</div>
+    <div class="bar">
+      <div class="dir-strip dir-bear"></div>
+      <div class="cells stripe-a-short">
+        <div class="wick"></div>
+        <div class="cell cell-neutral">
+          <span class="bid-num num-dim">7</span>
+          <span class="ask-num num-dim">5</span>
+        </div>
+        <div class="cell cell-bid-mild">
+          <span class="bid-num num-normal">31</span>
+          <span class="ask-num num-dim">12</span>
+        </div>
+        <div class="cell cell-bid-med">
+          <span class="bid-num num-white">68</span>
+          <span class="ask-num num-normal">24</span>
+        </div>
+        <div class="cell cell-poc">
+          <span class="bid-num num-white">177</span>
+          <span class="ask-num num-white">44</span>
+        </div>
+        <div class="cell cell-stack-sell">
+          <span class="bid-num num-white">142</span>
+          <span class="ask-num num-white">28</span>
+        </div>
+        <div class="cell cell-stack-sell" style="position:relative">
+          <span class="zone-label zone-label-sell" style="top:2px">T3</span>
+          <span class="bid-num num-white" style="padding-left:14px">111</span>
+          <span class="ask-num num-white">19</span>
+        </div>
+        <div class="cell cell-stack-sell">
+          <span class="bid-num num-white">98</span>
+          <span class="ask-num num-white">14</span>
+        </div>
+        <div class="cell cell-stack-sell">
+          <span class="bid-num num-white">77</span>
+          <span class="ask-num num-white">11</span>
+        </div>
+        <div class="cell cell-stack-sell">
+          <span class="bid-num num-white">62</span>
+          <span class="ask-num num-white">8</span>
+        </div>
+        <div class="cell cell-bid-med">
+          <span class="bid-num num-white">88</span>
+          <span class="ask-num num-normal">21</span>
+        </div>
+        <!-- Volume climax line at bottom -->
+        <div class="cell cell-bid-str" style="border-bottom: 2.5px solid #FFD23F;">
+          <span class="bid-num num-white">241</span>
+          <span class="ask-num num-normal">38</span>
+        </div>
+        <div class="cell cell-bid-mild">
+          <span class="bid-num num-normal">44</span>
+          <span class="ask-num num-dim">31</span>
+        </div>
+      </div>
+    </div>
+    <div class="delta-bar-wrap">
+      <div style="width:4px"></div>
+      <div class="delta-bar delta-neg" style="width:76px"></div>
+      <span class="delta-text delta-neg-text">-892</span>
+      <span class="delta-text" style="margin-left:auto">18.7K</span>
+    </div>
+    <div class="bar-label">09:43<br>TYPE_A↓ CLMX</div>
+  </div>
+
+  <!-- ════ BAR 5 — REVERSAL / TYPE_A LONG ════ -->
+  <div class="bar-wrap">
+    <div class="score-badge badge-a-long">A 94</div>
+    <div class="bar">
+      <div class="dir-strip dir-bull"></div>
+      <div class="cells stripe-a-long">
+        <div class="wick"></div>
+        <div class="cell cell-neutral">
+          <span class="bid-num num-dim">9</span>
+          <span class="ask-num num-dim">14</span>
+        </div>
+        <div class="cell cell-ask-mild">
+          <span class="bid-num num-normal">22</span>
+          <span class="ask-num num-normal">38</span>
+        </div>
+        <div class="cell cell-ask-med">
+          <span class="bid-num num-normal">41</span>
+          <span class="ask-num num-normal">88</span>
+        </div>
+        <div class="cell cell-stack-buy">
+          <span class="bid-num num-white">58</span>
+          <span class="ask-num num-white">134</span>
+        </div>
+        <div class="cell cell-stack-buy">
+          <span class="bid-num num-white">44</span>
+          <span class="ask-num num-white">111</span>
+        </div>
+        <div class="cell cell-stack-buy cell-poc">
+          <span class="bid-num num-white">37</span>
+          <span class="ask-num num-white">122</span>
+        </div>
+        <div class="cell cell-stack-buy" style="position:relative">
+          <span class="zone-label" style="top:2px">T3</span>
+          <span class="bid-num num-white" style="padding-left:14px">29</span>
+          <span class="ask-num num-white">98</span>
+        </div>
+        <div class="cell cell-stack-buy">
+          <span class="bid-num num-white">21</span>
+          <span class="ask-num num-white">77</span>
+        </div>
+        <div class="cell cell-stack-buy">
+          <span class="bid-num num-white">18</span>
+          <span class="ask-num num-white">66</span>
+        </div>
+        <div class="cell cell-absorb cell-entry">
+          <span class="bid-num num-white">88</span>
+          <span class="ask-num num-white">141</span>
+        </div>
+        <div class="cell cell-ask-str">
+          <span class="bid-num num-white">111</span>
+          <span class="ask-num num-ask-imb">332</span>
+        </div>
+        <div class="cell cell-neutral">
+          <span class="bid-num num-dim">33</span>
+          <span class="ask-num num-dim">28</span>
+        </div>
+      </div>
+    </div>
+    <div class="delta-bar-wrap">
+      <div style="width:28px"></div>
+      <div class="delta-bar delta-pos" style="width:64px"></div>
+      <span class="delta-text delta-pos-text">+621</span>
+      <span class="delta-text" style="margin-left:auto">16.1K</span>
+    </div>
+    <div class="bar-label">09:44<br>TYPE_A↑ ABS</div>
+  </div>
+
+  <!-- Right price axis -->
+  <div class="price-axis" style="border-right:none; border-left: 1px solid #1A1D28; padding-left:8px; padding-right:0; align-items:flex-start; justify-content:flex-start;">
+    <div class="price-label" style="justify-content:flex-start; border-right:none; padding-left:0; color:#E8EDFF">21458</div>
+    <div class="price-label" style="justify-content:flex-start; border-right:none; padding-left:0; color:#E8EDFF">21456</div>
+    <div class="price-label" style="justify-content:flex-start; border-right:none; padding-left:0; color:#E8EDFF">21454</div>
+    <div class="price-label" style="justify-content:flex-start; border-right:none; padding-left:0; color:#E8EDFF">21452</div>
+    <div class="price-label" style="justify-content:flex-start; border-right:none; padding-left:0; color:#E8EDFF">21450</div>
+    <div class="price-label" style="justify-content:flex-start; border-right:none; padding-left:0; color:#C8A84A">21448 ←VWAP</div>
+    <div class="price-label" style="justify-content:flex-start; border-right:none; padding-left:0; color:#E8EDFF">21446</div>
+    <div class="price-label" style="justify-content:flex-start; border-right:none; padding-left:0; color:#E8EDFF">21444</div>
+    <div class="price-label" style="justify-content:flex-start; border-right:none; padding-left:0; color:#E8EDFF">21442</div>
+    <div class="price-label" style="justify-content:flex-start; border-right:none; padding-left:0; color:#E8EDFF">21440</div>
+    <div class="price-label" style="justify-content:flex-start; border-right:none; padding-left:0; color:#E8EDFF">21438</div>
+    <div class="price-label" style="justify-content:flex-start; border-right:none; padding-left:0; color:#E8EDFF">21436</div>
+  </div>
+
+</div>
+
+<!-- ── Legend ── -->
+<div class="legend-title">Cell Color Legend</div>
+<div class="legend">
+  <div class="legend-item"><div class="legend-color" style="background:transparent;border:1px solid #2A2D3A"></div>Neutral — balanced/low volume</div>
+  <div class="legend-item"><div class="legend-color" style="background:#1A3A1A"></div>Ask mild (1.2–3×)</div>
+  <div class="legend-item"><div class="legend-color" style="background:#1E6B1E"></div>Ask medium (3–5×)</div>
+  <div class="legend-item"><div class="legend-color" style="background:#008C38"></div>Ask strong (5×+)</div>
+  <div class="legend-item"><div class="legend-color" style="background:#3A1A1A"></div>Bid mild (1.2–3×)</div>
+  <div class="legend-item"><div class="legend-color" style="background:#6B1E1E"></div>Bid medium (3–5×)</div>
+  <div class="legend-item"><div class="legend-color" style="background:#9B1800"></div>Bid strong (5×+)</div>
+  <div class="legend-item"><div class="legend-color" style="background:rgba(0,200,255,0.55)"></div>Stacked BUY zone (cyan)</div>
+  <div class="legend-item"><div class="legend-color" style="background:rgba(255,120,0,0.55)"></div>Stacked SELL zone (orange)</div>
+  <div class="legend-item"><div class="legend-color" style="outline:2px solid #FFD700;outline-offset:-2px"></div>POC — highest volume row</div>
+  <div class="legend-item"><div class="legend-color" style="background:linear-gradient(to right,transparent 50%,rgba(0,191,165,0.6) 50%)"></div>Absorption (split fill)</div>
+  <div class="legend-item"><div class="legend-color" style="background:rgba(0,53,128,0.5)"></div>Unfinished auction</div>
+  <div class="legend-item"><div class="legend-color" style="outline:1.5px solid rgba(0,220,255,0.7);outline-offset:-1px;background:rgba(0,220,255,0.05)"></div>Entry price row</div>
+</div>
+
+<div class="legend-title">Signal Overlays</div>
+<div class="legend">
+  <div class="legend-item"><div class="legend-color" style="background:#00FF88;width:5px;height:22px;border-radius:0"></div>TYPE_A LONG stripe</div>
+  <div class="legend-item"><div class="legend-color" style="background:#FF2244;width:5px;height:22px;border-radius:0"></div>TYPE_A SHORT stripe</div>
+  <div class="legend-item"><div class="legend-color" style="border:1px solid #00FF88;background:rgba(0,255,136,0.08)"></div>Score badge TYPE_A long</div>
+  <div class="legend-item"><div class="legend-color" style="border:1px solid #FF2244;background:rgba(255,34,68,0.08)"></div>Score badge TYPE_A short</div>
+  <div class="legend-item"><div style="color:#00C040;font-size:10px;width:16px;text-align:center">▌</div>Bullish bar direction strip</div>
+  <div class="legend-item"><div style="color:#C02000;font-size:10px;width:16px;text-align:center">▌</div>Bearish bar direction strip</div>
+  <div class="legend-item"><div style="color:#FFD23F;font-size:9px;width:16px;text-align:center">━━</div>Volume climax line (gold)</div>
+  <div class="legend-item"><div style="color:#00BFA5;font-size:8px;width:16px">A</div>Absorption at price level</div>
+  <div class="legend-item"><div style="color:#FFB300;font-size:10px;width:16px">◁</div>Trapped trader at extreme</div>
+</div>
+
+<div style="padding: 12px 20px; font-size: 9px; color: #3A3D52; border-top: 1px solid #1A1D28; margin-top: 8px;">
+  DEEP6 Footprint Chart Design Preview — v1.0 — All colors match final NT8 implementation spec
+</div>
+
+</body>
+</html>

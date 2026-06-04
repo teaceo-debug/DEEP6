@@ -1,0 +1,15 @@
+TASK-16 CALIBRATION EVIDENCE
+=============================
+Tests run: python -m pytest tests_v2/dom_intelligence/test_calibration.py -v
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.0.3, pluggy-1.6.0 -- C:\Users\Tea\AppData\Local\Programs\Python\Python311\python.exe
+collected 4 items
+
+tests_v2/dom_intelligence/test_calibration.py::test_heuristic_detector_report_counts_and_fire_rate PASSED
+tests_v2/dom_intelligence/test_calibration.py::test_same_input_sequence_is_deterministic_and_serializable PASSED
+tests_v2/dom_intelligence/test_calibration.py::test_report_references_task_6b_labeled_set PASSED
+tests_v2/dom_intelligence/test_calibration.py::test_tier_one_mechanical_detector_is_rejected PASSED
+
+============================== 4 passed in 0.10s ==============================
+Threshold outputs: deterministic CONFIRMED
+Labeled set reference: task-6b golden sessions CONFIRMED

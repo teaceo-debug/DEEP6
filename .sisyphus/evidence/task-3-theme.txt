@@ -1,0 +1,2 @@
+Verified:
+- `python -c "from depth_radar_desktop.theme import COLORS; assert '#0d1117' in str(COLORS); print('theme OK')"` -> `theme OK`

@@ -23,3 +23,8 @@ Invoke this skill when the user reports a NinjaScript compile error, runtime cra
 - NEVER click Build in Visual Studio — NT8 owns compilation
 - After fixing, always call `nt8-ai-loop.ps1` to confirm the fix compiled cleanly
 - If errors remain after 3 iterations, escalate to the user with full error JSON and the current file state
+
+## OpenCode Skills (Universal NT8 Knowledge)
+For universal NT8 error knowledge, invoke these opencode skills:
+- `ninjatrader-error-doctor` — Error diagnosis, CS error codes, runtime exceptions
+- `ninjatrader-machine-profile` — NT8 platform, installation, lifecycle, namespaces

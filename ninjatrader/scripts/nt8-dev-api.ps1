@@ -1,18 +1,11 @@
 # nt8-dev-api.ps1 - Client for DEEP6DevAddon HTTP API (localhost:19206)
 #
-# The DEEP6DevAddon runs inside NT8's process and exposes a lightweight
-# HTTP server so you can check status, read compile errors, trigger compiles,
-# and tail logs without any UI automation or SendKeys.
-#
 # Usage:
 #   nt8-dev-api.ps1 -Action health
 #   nt8-dev-api.ps1 -Action status
 #   nt8-dev-api.ps1 -Action errors [-Format Text|Json]
 #   nt8-dev-api.ps1 -Action compile [-Wait] [-TimeoutSeconds 45]
 #   nt8-dev-api.ps1 -Action log [-Lines 50]
-#
-# Requires: DEEP6DevAddon compiled and loaded in NT8 (nt8-deploy.ps1 -Target AddOns)
-# Port:     19206  (DEEP6)
 
 param(
     [Parameter(Mandatory = $true)]
@@ -23,17 +16,12 @@ param(
     [string]$Format = "Text",
 
     [int]$Lines = 50,
-
-    # For -Action compile: poll /errors after triggering and wait up to N seconds
     [switch]$Wait,
     [int]$TimeoutSeconds = 45
 )
 
 $ErrorActionPreference = "Stop"
-
 $BaseUrl = "http://localhost:19206"
-
-# ── helpers ───────────────────────────────────────────────────────────────────
 
 function Invoke-Api {
     param(
@@ -46,36 +34,25 @@ function Invoke-Api {
     try {
         if ($Method -eq "POST") {
             $postBody = if ($Body -ne $null) { $Body } else { "{}" }
-            $response = Invoke-WebRequest -Uri $url -Method POST `
-                -ContentType "application/json" `
-                -Body $postBody `
-                -UseBasicParsing `
-                -TimeoutSec 10
-        } else {
-            $response = Invoke-WebRequest -Uri $url -Method GET `
-                -UseBasicParsing `
-                -TimeoutSec 10
+            $response = Invoke-WebRequest -Uri $url -Method POST -ContentType "application/json" -Body $postBody -UseBasicParsing -TimeoutSec 10
         }
-        return $response.Content | ConvertFrom-Json
-    } catch [System.Net.WebException] {
-        $status = $null
-        if ($_.Exception.Response -ne $null) { $status = $_.Exception.Response.StatusCode }
-        if ($null -eq $status) {
-            Write-Host "" -ForegroundColor Red
-            Write-Host "  Cannot reach DEEP6DevAddon on $BaseUrl" -ForegroundColor Red
-            Write-Host "  Is NT8 running with DEEP6DevAddon loaded?" -ForegroundColor Yellow
-            Write-Host "  Deploy: nt8-deploy.ps1 -Target AddOns" -ForegroundColor Yellow
-            Write-Host "  Compile: nt8-compile.ps1" -ForegroundColor Yellow
-        } else {
-            Write-Host "  API error: HTTP $status" -ForegroundColor Red
+        else {
+            $response = Invoke-WebRequest -Uri $url -Method GET -UseBasicParsing -TimeoutSec 10
         }
+        return ($response.Content | ConvertFrom-Json)
+    }
+    catch {
+        Write-Host ""
+        Write-Host "  Cannot reach DEEP6DevAddon on $BaseUrl" -ForegroundColor Red
+        Write-Host "  Is NT8 running with DEEP6DevAddon loaded?" -ForegroundColor Yellow
+        Write-Host "  Deploy: nt8-deploy.ps1 -Target AddOns" -ForegroundColor Yellow
+        Write-Host "  Compile: nt8-compile.ps1" -ForegroundColor Yellow
         exit 1
     }
 }
 
 function Format-Json-Pretty {
     param($obj)
-    # PowerShell 5.1 ConvertTo-Json depth default is 2 — use depth 10 to be safe
     $obj | ConvertTo-Json -Depth 10
 }
 
@@ -86,21 +63,18 @@ function Print-Header {
     Write-Host ("-" * 60) -ForegroundColor DarkGray
 }
 
-# ── /health ───────────────────────────────────────────────────────────────────
-
 function Action-Health {
     Print-Header "health"
     $r = Invoke-Api -Path "/health"
     if ($r.ok -eq $true) {
-        Write-Host "  DEEP6DevAddon is reachable — ok: true" -ForegroundColor Green
-    } else {
+        Write-Host "  DEEP6DevAddon is reachable - ok: true" -ForegroundColor Green
+    }
+    else {
         Write-Host "  Unexpected response: $(Format-Json-Pretty $r)" -ForegroundColor Yellow
         exit 1
     }
     Write-Host ""
 }
-
-# ── /status ───────────────────────────────────────────────────────────────────
 
 function Action-Status {
     Print-Header "status"
@@ -111,10 +85,10 @@ function Action-Status {
         return
     }
 
-    $nt8Color = if ($r.nt8_running) { "Green" } else { "Red" }
+    if ($r.nt8_running) { $nt8Color = "Green" } else { $nt8Color = "Red" }
     Write-Host "  NT8 running:      $($r.nt8_running)" -ForegroundColor $nt8Color
-    Write-Host "  Last compile:     $($r.last_compile)"  -ForegroundColor Cyan
-    Write-Host "  DLL mtime:        $($r.compile_dll_mtime)" -ForegroundColor Gray
+    Write-Host "  Last compile:     $($r.last_compile)" -ForegroundColor Cyan
+    Write-Host "  DLL mtime:        $($r.dll_mtime)" -ForegroundColor Gray
 
     $insts = $r.instruments
     if ($insts -and $insts.Count -gt 0) {
@@ -122,17 +96,16 @@ function Action-Status {
         foreach ($inst in $insts) {
             Write-Host "    $inst" -ForegroundColor Gray
         }
-    } else {
+    }
+    else {
         Write-Host "  Instruments:      (none loaded)" -ForegroundColor DarkGray
     }
     Write-Host ""
 }
 
-# ── /errors ───────────────────────────────────────────────────────────────────
-
 function Action-Errors {
     Print-Header "errors"
-    $errors = Invoke-Api -Path "/errors"
+    $errors = @(Invoke-Api -Path "/errors")
 
     if ($Format -eq "Json") {
         $errors | ConvertTo-Json -Depth 5
@@ -145,18 +118,16 @@ function Action-Errors {
         exit 0
     }
 
-    # Separate errors vs warnings
-    $errLines  = @($errors | Where-Object { $_ -match "(?i)\berror\b|CS\d{4}" })
+    $errLines = @($errors | Where-Object { ($_ -match "(?i)CS\d{4}|compile.*fail|failed.*compile|Unhandled exception|Exception:") -and ($_ -notmatch "(?i)no error") })
     $warnLines = @($errors | Where-Object { $_ -match "(?i)\bwarning\b" })
-    $otherLines= @($errors | Where-Object { $_ -notin $errLines -and $_ -notin $warnLines })
 
     Write-Host "  Lines: $($errors.Count)   Errors(est): $($errLines.Count)   Warnings(est): $($warnLines.Count)" -ForegroundColor White
     Write-Host ""
 
     foreach ($line in $errors) {
-        $color = if     ($line -match "(?i)\berror\b|CS\d{4}.*error") { "Red" }
-                 elseif ($line -match "(?i)\bwarning\b")               { "Yellow" }
-                 else                                                   { "Gray" }
+        if (($line -match "(?i)CS\d{4}|compile.*fail|failed.*compile|Unhandled exception|Exception:") -and ($line -notmatch "(?i)no error")) { $color = "Red" }
+        elseif ($line -match "(?i)\bwarning\b") { $color = "Yellow" }
+        else { $color = "Gray" }
         Write-Host "  $line" -ForegroundColor $color
     }
 
@@ -165,8 +136,6 @@ function Action-Errors {
     exit 0
 }
 
-# ── /compile ──────────────────────────────────────────────────────────────────
-
 function Action-Compile {
     Print-Header "compile"
     Write-Host "  Triggering compile via DEEP6DevAddon..." -ForegroundColor Cyan
@@ -174,38 +143,51 @@ function Action-Compile {
     $r = Invoke-Api -Method "POST" -Path "/compile"
     if ($r.triggered -eq $true) {
         Write-Host "  Compile triggered: true" -ForegroundColor Green
-    } else {
-        $errMsg = if ($r.error) { " ($($r.error))" } else { "" }
+        Write-Host "  Reason: $($r.reason)" -ForegroundColor Gray
+        Write-Host "  Telemetry: $($r.telemetry)" -ForegroundColor DarkGray
+    }
+    else {
+        if ($r.error) { $errMsg = " ($($r.error))" } else { $errMsg = "" }
         Write-Host "  Compile triggered: false$errMsg" -ForegroundColor Yellow
+        Write-Host "  Reason: $($r.reason)" -ForegroundColor Yellow
+        Write-Host "  Telemetry: $($r.telemetry)" -ForegroundColor DarkGray
         Write-Host "  Tip: open NinjaScript Editor in NT8 first (Tools > NinjaScript Editor)" -ForegroundColor Gray
     }
 
-    if (!$Wait) {
+    if (-not $Wait) {
         Write-Host "  Use -Wait to poll for errors after compile." -ForegroundColor DarkGray
         Write-Host ""
         return
     }
 
-    # Poll DLL mtime change via /status, then read /errors
+    if ($r.triggered -ne $true) {
+        Write-Host ""
+        exit 1
+    }
+
     Write-Host "  Waiting up to ${TimeoutSeconds}s for compile to finish..." -ForegroundColor Cyan
-
-    # Record DLL mtime before
     $statusBefore = Invoke-Api -Path "/status"
-    $mtimeBefore  = $statusBefore.compile_dll_mtime
-
-    $elapsed     = 0
-    $pollMs      = 1000
+    $mtimeBefore = $statusBefore.dll_mtime
+    $compileBefore = $statusBefore.last_compile
+    $elapsed = 0
+    $pollMs = 1000
     $compileReady = $false
 
     while ($elapsed -lt ($TimeoutSeconds * 1000)) {
         Start-Sleep -Milliseconds $pollMs
         $elapsed += $pollMs
-
         $statusNow = Invoke-Api -Path "/status"
-        $mtimeNow  = $statusNow.compile_dll_mtime
+        $mtimeNow = $statusNow.dll_mtime
+        $compileNow = $statusNow.last_compile
 
-        if ($mtimeNow -ne $mtimeBefore -and ![string]::IsNullOrEmpty($mtimeNow)) {
-            Write-Host "  DLL updated at: $mtimeNow" -ForegroundColor Green
+        if (($mtimeNow -ne $mtimeBefore -and -not [string]::IsNullOrEmpty($mtimeNow)) -or
+            ($compileNow -ne $compileBefore -and -not [string]::IsNullOrEmpty($compileNow))) {
+            if ($mtimeNow -ne $mtimeBefore -and -not [string]::IsNullOrEmpty($mtimeNow)) {
+                Write-Host "  DLL updated at: $mtimeNow" -ForegroundColor Green
+            }
+            if ($compileNow -ne $compileBefore -and -not [string]::IsNullOrEmpty($compileNow)) {
+                Write-Host "  Install.xml compile stamp advanced to: $compileNow" -ForegroundColor Green
+            }
             $compileReady = $true
             break
         }
@@ -214,66 +196,61 @@ function Action-Compile {
         Write-Host "`r  Polling${dots}   " -NoNewline
     }
 
-    Write-Host ""  # newline after dot progress
+    Write-Host ""
 
-    if (!$compileReady) {
-        Write-Host "  Timeout — DLL mtime unchanged after ${TimeoutSeconds}s." -ForegroundColor Red
+    if (-not $compileReady) {
+        Write-Host "  Timeout - DLL mtime unchanged after ${TimeoutSeconds}s." -ForegroundColor Red
         Write-Host "  Check NT8 Output Window for details." -ForegroundColor Yellow
         exit 1
     }
 
-    # Give NT8 a moment to finish writing error output
     Start-Sleep -Milliseconds 800
-
     Write-Host ""
     Write-Host "-- Compile Errors ------------------------------------------" -ForegroundColor DarkGray
-    $errors = Invoke-Api -Path "/errors"
+    $errors = @(Invoke-Api -Path "/errors")
 
     if ($errors.Count -eq 0) {
         Write-Host "  No compile errors found. Compile succeeded." -ForegroundColor Green
-    } else {
+    }
+    else {
         foreach ($line in $errors) {
-            $color = if     ($line -match "(?i)\berror\b|CS\d{4}") { "Red" }
-                     elseif ($line -match "(?i)\bwarning\b")        { "Yellow" }
-                     else                                            { "Gray" }
+            if (($line -match "(?i)CS\d{4}|compile.*fail|failed.*compile|Unhandled exception|Exception:") -and ($line -notmatch "(?i)no error")) { $color = "Red" }
+            elseif ($line -match "(?i)\bwarning\b") { $color = "Yellow" }
+            else { $color = "Gray" }
             Write-Host "  $line" -ForegroundColor $color
         }
-        $hasErrors = ($errors | Where-Object { $_ -match "(?i)\berror\b|CS\d{4}" }).Count -gt 0
+        $hasErrors = (@($errors | Where-Object { ($_ -match "(?i)CS\d{4}|compile.*fail|failed.*compile|Unhandled exception|Exception:") -and ($_ -notmatch "(?i)no error") })).Count -gt 0
         if ($hasErrors) { exit 1 }
     }
 
     Write-Host ""
 }
 
-# ── /log ─────────────────────────────────────────────────────────────────────
-
 function Action-Log {
     Print-Header "log (last $Lines lines)"
-    $lines = Invoke-Api -Path "/log?lines=$Lines"
+    $linesOut = @(Invoke-Api -Path "/log?lines=$Lines")
 
-    if ($lines.Count -eq 0) {
+    if ($linesOut.Count -eq 0) {
         Write-Host "  No log lines returned." -ForegroundColor Yellow
         Write-Host ""
         return
     }
 
-    foreach ($line in $lines) {
-        $color = if     ($line -match "(?i)\berror\b|CS\d{4}") { "Red" }
-                 elseif ($line -match "(?i)\bwarning\b")        { "Yellow" }
-                 elseif ($line -match "DEEP6-Addon")            { "Cyan" }
-                 else                                            { "Gray" }
+    foreach ($line in $linesOut) {
+        if ($line -match "(?i)\berror\b|CS\d{4}") { $color = "Red" }
+        elseif ($line -match "(?i)\bwarning\b") { $color = "Yellow" }
+        elseif ($line -match "DEEP6-Addon") { $color = "Cyan" }
+        else { $color = "Gray" }
         Write-Host "  $line" -ForegroundColor $color
     }
 
     Write-Host ""
 }
 
-# ── dispatch ──────────────────────────────────────────────────────────────────
-
 switch ($Action) {
-    "health"  { Action-Health  }
-    "status"  { Action-Status  }
-    "errors"  { Action-Errors  }
+    "health"  { Action-Health }
+    "status"  { Action-Status }
+    "errors"  { Action-Errors }
     "compile" { Action-Compile }
-    "log"     { Action-Log     }
+    "log"     { Action-Log }
 }

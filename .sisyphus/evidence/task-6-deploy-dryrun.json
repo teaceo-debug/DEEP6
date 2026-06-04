@@ -1,0 +1,23 @@
+{
+    "dryRun":  {
+                   "source":  "C:\\Users\\Tea\\DEEP6\\ninjatrader\\Custom\\Indicators\\DEEP6\\DEEP6Signal.cs",
+                   "target":  "C:\\Users\\Tea\\Documents\\NinjaTrader 8\\bin\\Custom\\Strategies\\DEEP6Signal.cs",
+                   "hash_match":  true,
+                   "already_deployed":  false,
+                   "target_subdir":  "Strategies"
+               },
+    "firstRun":  {
+                     "source":  "C:\\Users\\Tea\\DEEP6\\ninjatrader\\Custom\\Indicators\\DEEP6\\DEEP6Signal.cs",
+                     "target":  "C:\\Users\\Tea\\Documents\\NinjaTrader 8\\bin\\Custom\\Strategies\\DEEP6Signal.cs",
+                     "hash_match":  true,
+                     "already_deployed":  false,
+                     "target_subdir":  "Strategies"
+                 },
+    "secondRun":  {
+                      "source":  "C:\\Users\\Tea\\DEEP6\\ninjatrader\\Custom\\Indicators\\DEEP6\\DEEP6Signal.cs",
+                      "target":  "C:\\Users\\Tea\\Documents\\NinjaTrader 8\\bin\\Custom\\Strategies\\DEEP6Signal.cs",
+                      "hash_match":  true,
+                      "already_deployed":  true,
+                      "target_subdir":  "Strategies"
+                  }
+}

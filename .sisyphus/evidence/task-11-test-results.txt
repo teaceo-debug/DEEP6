@@ -1,0 +1,43 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.0.3, pluggy-1.6.0 -- C:\Users\Tea\AppData\Local\Programs\Python\Python311\python.exe
+cachedir: .pytest_cache
+benchmark: 5.2.3 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: C:\Users\Tea\DEEP6
+configfile: pyproject.toml
+plugins: anyio-4.13.0, asyncio-1.3.0, benchmark-5.2.3
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 31 items
+
+tests_nq_atlas/test_ai_bias.py::test_prompt_is_structured PASSED         [  3%]
+tests_nq_atlas/test_ai_bias.py::test_prompt_no_prose_wall PASSED         [  6%]
+tests_nq_atlas/test_ai_bias.py::test_fallback_on_timeout PASSED          [  9%]
+tests_nq_atlas/test_ai_bias.py::test_parses_valid_claude_response PASSED [ 12%]
+tests_nq_atlas/test_flow.py::test_buyer_initiated_call_is_bullish PASSED [ 16%]
+tests_nq_atlas/test_flow.py::test_seller_initiated_put_is_bullish PASSED [ 19%]
+tests_nq_atlas/test_flow.py::test_empty_engine_returns_zeros PASSED      [ 22%]
+tests_nq_atlas/test_flow.py::test_net_direction_threshold PASSED         [ 25%]
+tests_nq_atlas/test_flow.py::test_mixed_flow_premium PASSED              [ 29%]
+tests_nq_atlas/test_gex.py::test_known_test_vector PASSED                [ 32%]
+tests_nq_atlas/test_gex.py::test_degraded_on_thin_chain PASSED           [ 35%]
+tests_nq_atlas/test_gex.py::test_regime_sign_negative PASSED             [ 38%]
+tests_nq_atlas/test_gex.py::test_skips_missing_gamma PASSED              [ 41%]
+tests_nq_atlas/test_gex.py::test_call_wall_is_highest_positive_gex PASSED [ 45%]
+tests_nq_atlas/test_nq_mapper.py::test_map_qqq_to_nq_basic PASSED        [ 48%]
+tests_nq_atlas/test_nq_mapper.py::test_map_qqq_to_nq_same_price PASSED   [ 51%]
+tests_nq_atlas/test_nq_mapper.py::test_map_qqq_to_nq_zero_spot_raises PASSED [ 54%]
+tests_nq_atlas/test_nq_mapper.py::test_map_chain_levels_with_none_levels PASSED [ 58%]
+tests_nq_atlas/test_server.py::test_health_endpoint PASSED               [ 61%]
+tests_nq_atlas/test_server.py::test_bias_endpoint_returns_neutral_when_empty PASSED [ 64%]
+tests_nq_atlas/test_server.py::test_state_endpoint PASSED                [ 67%]
+tests_nq_atlas/test_server.py::test_dashboard_endpoint_returns_html PASSED [ 70%]
+tests_nq_atlas/test_state.py::test_fresh_state_is_degraded PASSED        [ 74%]
+tests_nq_atlas/test_state.py::test_state_with_chain_not_degraded PASSED  [ 77%]
+tests_nq_atlas/test_state.py::test_stale_state_is_degraded PASSED        [ 80%]
+tests_nq_atlas/test_state.py::test_snapshot_dict_contains_expected_keys PASSED [ 83%]
+tests_nq_atlas/test_state.py::test_log_error_ring_buffer PASSED          [ 87%]
+tests_nq_atlas/test_types.py::test_bias_output_serializes PASSED         [ 90%]
+tests_nq_atlas/test_types.py::test_bias_output_frozen PASSED             [ 93%]
+tests_nq_atlas/test_types.py::test_conviction_range PASSED               [ 96%]
+tests_nq_atlas/test_types.py::test_options_contract_optional_greeks PASSED [100%]
+
+============================= 31 passed in 2.87s ==============================

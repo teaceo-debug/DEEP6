@@ -1,0 +1,20 @@
+# GEX Doctor Configuration
+# Override any value with GEXDOCTOR_* environment variables
+
+polling:
+  interval: 15
+  source: "QQQ"
+
+output:
+  output_path: 'C:\Users\Public\Documents\NinjaTrader 8\bin\Custom\AddOns\gex_nq.json'
+  stale_after_seconds: 300
+
+scoring:
+  min_confidence: 0.65
+  anti_flicker_margin: 0.12
+
+data_quality:
+  stale_threshold_sec: 120
+
+logging:
+  log_dir: "logs"

@@ -1,0 +1,28 @@
+{
+  "reference_id": "ref_001",
+  "source": "user_drawn",
+  "symbol": "CME_MINI:NQ1!",
+  "timeframe": "1",
+  "capture_time": "2026-05-22T19:55:00Z",
+  "screenshot": "reference_001_two_valid_legs.png",
+  "setups": [
+    {
+      "direction": "bullish",
+      "manipulation_leg": "down (high wick to low wick)",
+      "displacement": "up",
+      "description": "Price swings down into a swing low, then displaces upward aggressively. Anchor from high wick of the down leg to low wick. Project -2/-2.5/-4 levels above.",
+      "fib_levels_visible": ["1", "0.705", "0.5", "0", "-1", "-2", "-2.5", "-3", "-3.25", "-3.5", "-4"],
+      "verdict": "VALID - user confirmed"
+    },
+    {
+      "direction": "bearish",
+      "manipulation_leg": "up (low wick to high wick)",
+      "displacement": "down",
+      "description": "Price pushes up into a spike high (the manipulation), then displaces downward aggressively. Anchor from low wick of the up leg to high wick. Project -2/-2.5/-4 levels below.",
+      "fib_levels_visible": ["1", "0.705", "0.5", "0", "-2", "-2.5", "-3", "-4"],
+      "verdict": "VALID - user confirmed"
+    }
+  ],
+  "indicator_result": "No Valid Leg (missed both setups)",
+  "notes": "Both are textbook manipulation legs that are obvious to a skilled trader. The indicator's detection criteria are too strict to catch either one. Visible price range: ~29502 to ~29601. Both setups occurred within the same session."
+}

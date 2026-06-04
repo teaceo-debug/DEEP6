@@ -1,0 +1,66 @@
+F3: Real Manual QA for GEX Doctor v2.0
+======================================
+Date: 2026-05-29
+Executor: Sisyphus-Junior (claude-opus-4-6)
+
+Scenarios [6/6 pass] | Integration [3/3] | Edge Cases [3 tested] | VERDICT: APPROVE
+
+---
+
+SCENARIO 1: Backend starts and health endpoint responds ✅ PASS
+  - Server started on port 8780
+  - GET /health → 200, status="degraded" (expected: no FlashAlpha key)
+  - Uptime reported: 5s
+  - GET /state → 503 (expected: no data ingested yet)
+  Evidence: Health returns correct structure, state correctly refuses pre-init
+
+SCENARIO 2: Dry-run validates config ✅ PASS
+  - python -m gex_terminal --dry-run → exit code 0
+  - Output: "GEX Terminal v2.0 — Config validated"
+  - All config fields printed: Port=8780, Refresh=30s, Claude model, DEEP6 URL
+  - API keys correctly shown as "NOT SET"
+  Evidence: Clean validation, informative output
+
+SCENARIO 3: PID lock prevents double launch ✅ PASS
+  - First instance started (PID 31072), PID file created at ~/.deep6/gexdoctor_v2.pid
+  - Second instance → exit code 1, message: "ERROR: GEX Terminal already running (PID 31072)"
+  - After force kill: PID file persists (expected — atexit doesn't fire on SIGKILL)
+  - Stale PID recovery: next launch detects dead PID, cleans up, starts normally
+  Edge cases tested:
+    - Double launch blocking ✅
+    - Stale PID detection and recovery ✅
+    - Force kill resilience ✅
+
+SCENARIO 4: All Python tests pass ✅ PASS
+  - 75/75 tests passed in 70.23s
+  - Test suites: analyzer, deep6_bridge, edge_cases, flashalpha_adapter,
+    interpreter, massive_adapter, orchestrator, signal_quality, uw_adapter
+  - Signal quality: 100% accuracy (10/10), pos gamma 5/5, neg gamma 5/5
+  - Catastrophic errors: 0
+  Evidence: Full green, no warnings, no skips
+
+SCENARIO 5: DEEP6 ingest endpoint works ✅ PASS
+  - DEEP6 API started on port 8765 (uvicorn)
+  - POST /api/gex/ingest → 200, {"status":"ok","domain":"gex_doctor","score":2}
+  - GET /api/v3/bias/domains → 200, gex_doctor domain present with correct payload
+  - Payload round-trip verified: score=2, max_range=3, regime="positive"
+  Integration points tested:
+    - GEX Terminal → DEEP6 API ingest ✅
+    - DEEP6 API → bias domains read-back ✅
+    - Payload structure fidelity ✅
+
+SCENARIO 6: Mock data fixture is valid JSON ✅ PASS
+  - gex_terminal/ui/public/mock-snapshot-bullish.json parsed successfully
+  - direction: BULLISH
+  - confidence: 82
+  - gamma_flip: 21380.0
+  Evidence: JSON valid, all expected fields present
+
+---
+
+SUMMARY:
+  Scenarios:    6/6 pass
+  Integration:  3/3 (health→state, ingest→domains, mock→parse)
+  Edge Cases:   3 tested (double launch, stale PID, force kill recovery)
+
+VERDICT: APPROVE

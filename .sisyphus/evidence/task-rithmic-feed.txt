@@ -1,0 +1,25 @@
+Rithmic feed task verification evidence
+=====================================
+
+LSP diagnostics
+- gex_terminal/config.py: clean
+- gex_terminal/engine/adapters/rithmic_feed.py: clean
+- gex_terminal/engine/orchestrator.py: clean
+- gex_terminal/engine/analyzer.py: clean
+
+HERMES verification attempts
+- Attempt 1: WSL default python missing project dependency `pydantic_settings`
+- Attempt 2: HERMES reached tool limit after inspecting the target files and planned smoke command
+
+Direct smoke verification (`py -3 -c ...`)
+RithmicNQFeed created OK
+Price: None
+Connected: False
+Settings loaded OK
+Rithmic enabled: True
+Orchestrator created OK
+
+Result
+- Feed class imports and instantiates without connecting
+- Settings loads with Rithmic fields
+- Orchestrator instantiates with Rithmic feed wiring present

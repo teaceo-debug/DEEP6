@@ -1,0 +1,119 @@
+DEEP6 compound absorption filter analysis
+========================================
+Source events: C:\Users\Tea\DEEP6\data\backtests\signal_events.csv
+Source bars:   C:\Users\Tea\DEEP6\data\backtests\nq_1yr_1m.csv
+Observation unit: unique absorption bar grouped by global_index + direction.
+Co-fire logic: same global_index + same direction as the absorption observation.
+ABS_04 filters use grouped absorption observations that include ABS_04 among the same-bar absorption variants.
+Primary ranking window: 5 bars. Additional forward windows shown in detail section.
+Status flags: VALIDATED = N>=30 and Wilson lower bound >50%; PROMISING = N>=15 and Wilson lower bound >45%; LOW_N = N<15.
+
+Absorption observations: 901
+5m bars built:  92,201
+15m bars built: 30,745
+60m bars built: 7,693
+
+Baseline (all absorption, 5-bar window)
+--------------------------------------
+N=901 | WR=46.3% | PF=0.95 | Avg=-3.24t | Med=-6.00t | CI=[43.0%, 49.5%] | Sharpe=-0.01
+  5b N=901 WR=46.3% Avg=-3.24 Med=-6.00 | 10b N=899 WR=47.4% Avg=-4.29 Med=-5.00 | 15b N=899 WR=46.4% Avg=-16.66 Med=-12.00 | 30b N=899 WR=45.6% Avg=-23.12 Med=-17.00
+ABS_04 subset: N=41 | WR=53.7% | PF=3.94 | Avg=199.78t | Med=65.00t | CI=[38.7%, 67.9%] | Sharpe=0.37
+  5b N=41 WR=53.7% Avg=199.78 Med=65.00 | 10b N=41 WR=63.4% Avg=202.90 Med=71.00 | 15b N=41 WR=58.5% Avg=172.24 Med=84.00 | 30b N=41 WR=53.7% Avg=127.41 Med=14.00
+
+Compound filters ranked by 5-bar average return
+-----------------------------------------------
+Filter                                                                    | N   | WR%    | PF    | Avg Ticks | Med Ticks | Wilson 95% CI   | Sharpe
+--------------------------------------------------------------------------+-----+--------+-------+-----------+-----------+-----------------+-------
+29. ABS_04 + 15m_trend_aligned + has_TRAP_05 [LOW_N]                      | 4   | 75.0%  | 6.96  | 469.25    | 501.00    | [30.1%, 95.4%]  | 0.76  
+20. absorption + 60m_extreme + mid_vol + has_TRAP_05 [LOW_N]              | 8   | 87.5%  | 16.26 | 425.25    | 58.00     | [52.9%, 97.8%]  | 0.68  
+28. ABS_04 + 60m_extreme + has_TRAP_05 [LOW_N]                            | 5   | 60.0%  | 7.85  | 390.60    | 303.00    | [23.1%, 88.2%]  | 0.70  
+27. ABS_04 + has_TRAP_05 [LOW_N]                                          | 12  | 58.3%  | 6.51  | 365.25    | 376.50    | [32.0%, 80.7%]  | 0.69  
+25. ABS_04 + 60m_extreme [LOW_N]                                          | 10  | 60.0%  | 10.98 | 346.30    | 83.50     | [31.3%, 83.2%]  | 0.62  
+12. absorption + 60m_extreme + has_EXH_03 [LOW_N]                         | 11  | 54.5%  | 9.28  | 305.00    | 35.00     | [28.0%, 78.7%]  | 0.56  
+23. absorption + 60m_extreme + delta_opposite + has_EXH_03 [LOW_N]        | 11  | 54.5%  | 9.28  | 305.00    | 35.00     | [28.0%, 78.7%]  | 0.56  
+26. ABS_04 + 15m_trend_aligned [PROMISING]                                | 24  | 66.7%  | 4.20  | 206.42    | 86.50     | [46.7%, 82.0%]  | 0.36  
+24. ABS_04 only                                                           | 41  | 53.7%  | 3.94  | 199.78    | 65.00     | [38.7%, 67.9%]  | 0.37  
+07. absorption + has_EXH_03                                               | 43  | 58.1%  | 3.94  | 194.33    | 35.00     | [43.3%, 71.6%]  | 0.37  
+06. absorption + has_TRAP_04                                              | 24  | 54.2%  | 3.42  | 158.17    | 69.00     | [35.1%, 72.1%]  | 0.28  
+17. absorption + 60m_extreme + mid_vol [VALIDATED]                        | 42  | 71.4%  | 6.43  | 157.10    | 40.50     | [56.4%, 82.8%]  | 0.39  
+15. absorption + mid_vol + has_TRAP_05                                    | 34  | 52.9%  | 3.17  | 125.82    | 5.00      | [36.7%, 68.5%]  | 0.29  
+11. absorption + 60m_extreme + has_TRAP_05 [PROMISING]                    | 26  | 65.4%  | 3.11  | 121.77    | 37.00     | [46.2%, 80.6%]  | 0.29  
+18. absorption + 60m_extreme + delta_opposite [VALIDATED]                 | 93  | 67.7%  | 3.45  | 100.30    | 39.00     | [57.7%, 76.4%]  | 0.30  
+14. absorption + 15m_trend_aligned + has_TRAP_05 [PROMISING]              | 40  | 65.0%  | 4.06  | 94.50     | 14.50     | [49.5%, 77.9%]  | 0.32  
+01. absorption + 60m_extreme [VALIDATED]                                  | 122 | 71.3%  | 3.91  | 92.71     | 42.50     | [62.7%, 78.6%]  | 0.31  
+30. ABS_04 + 60m_extreme + 15m_trend_aligned [LOW_N]                      | 1   | 100.0% | inf   | 85.00     | 85.00     | [20.7%, 100.0%] | 0.00  
+13. absorption + 60m_extreme + 15m_trend_aligned [VALIDATED]              | 50  | 88.0%  | 36.72 | 82.88     | 80.50     | [76.2%, 94.4%]  | 1.05  
+21. absorption + 60m_extreme + 15m_trend_aligned + has_TRAP_05 [LOW_N]    | 8   | 100.0% | inf   | 78.25     | 67.00     | [67.6%, 100.0%] | 1.99  
+19. absorption + 15m_trend_aligned + delta_opposite [VALIDATED]           | 84  | 77.4%  | 3.93  | 76.75     | 56.00     | [67.4%, 85.0%]  | 0.27  
+22. absorption + 15m_trend_aligned + delta_opposite + has_TRAP_05 [LOW_N] | 13  | 84.6%  | 3.52  | 65.92     | 57.00     | [57.8%, 95.7%]  | 0.40  
+10. absorption + has_AUCT_03 [LOW_N]                                      | 4   | 25.0%  | 4.15  | 48.75     | -11.00    | [4.6%, 69.9%]   | 0.35  
+05. absorption + has_TRAP_05                                              | 97  | 43.3%  | 1.73  | 44.18     | -21.00    | [33.9%, 53.2%]  | 0.14  
+16. absorption + delta_opposite + has_TRAP_05                             | 54  | 44.4%  | 1.58  | 42.31     | -16.50    | [32.0%, 57.6%]  | 0.12  
+04. absorption + delta_opposite                                           | 320 | 50.0%  | 1.32  | 24.31     | 0.50      | [44.6%, 55.4%]  | 0.06  
+03. absorption + mid_vol                                                  | 298 | 50.3%  | 1.26  | 16.64     | 1.50      | [44.7%, 56.0%]  | 0.05  
+02. absorption + 15m_trend_aligned [VALIDATED]                            | 490 | 58.2%  | 1.15  | 8.73      | 14.00     | [53.7%, 62.5%]  | 0.03  
+08. absorption + has_EXH_04 [LOW_N]                                       | 6   | 66.7%  | 0.31  | -40.50    | 11.50     | [30.0%, 90.3%]  | -0.37 
+09. absorption + has_VOLP_06 [LOW_N]                                      | 0   | 0.0%   | nan   | nan       | nan       | [0.0%, 0.0%]    | nan   
+
+Forward window detail (returns in ticks)
+----------------------------------------
+29. ABS_04 + 15m_trend_aligned + has_TRAP_05 [LOW_N]
+  5b N=4 WR=75.0% Avg=469.25 Med=501.00 | 10b N=4 WR=75.0% Avg=469.75 Med=447.50 | 15b N=4 WR=75.0% Avg=452.75 Med=362.50 | 30b N=4 WR=75.0% Avg=346.25 Med=76.00
+20. absorption + 60m_extreme + mid_vol + has_TRAP_05 [LOW_N]
+  5b N=8 WR=87.5% Avg=425.25 Med=58.00 | 10b N=8 WR=87.5% Avg=377.25 Med=107.00 | 15b N=8 WR=87.5% Avg=356.62 Med=120.00 | 30b N=8 WR=87.5% Avg=526.38 Med=370.50
+28. ABS_04 + 60m_extreme + has_TRAP_05 [LOW_N]
+  5b N=5 WR=60.0% Avg=390.60 Med=303.00 | 10b N=5 WR=80.0% Avg=397.00 Med=442.00 | 15b N=5 WR=80.0% Avg=391.20 Med=554.00 | 30b N=5 WR=80.0% Avg=476.40 Med=657.00
+27. ABS_04 + has_TRAP_05 [LOW_N]
+  5b N=12 WR=58.3% Avg=365.25 Med=376.50 | 10b N=12 WR=66.7% Avg=324.00 Med=429.50 | 15b N=12 WR=66.7% Avg=313.17 Med=362.50 | 30b N=12 WR=66.7% Avg=331.92 Med=76.00
+25. ABS_04 + 60m_extreme [LOW_N]
+  5b N=10 WR=60.0% Avg=346.30 Med=83.50 | 10b N=10 WR=80.0% Avg=371.80 Med=150.50 | 15b N=10 WR=70.0% Avg=347.80 Med=197.50 | 30b N=10 WR=70.0% Avg=434.50 Med=250.50
+12. absorption + 60m_extreme + has_EXH_03 [LOW_N]
+  5b N=11 WR=54.5% Avg=305.00 Med=35.00 | 10b N=11 WR=81.8% Avg=333.09 Med=84.00 | 15b N=11 WR=72.7% Avg=329.64 Med=167.00 | 30b N=11 WR=72.7% Avg=408.64 Med=236.00
+23. absorption + 60m_extreme + delta_opposite + has_EXH_03 [LOW_N]
+  5b N=11 WR=54.5% Avg=305.00 Med=35.00 | 10b N=11 WR=81.8% Avg=333.09 Med=84.00 | 15b N=11 WR=72.7% Avg=329.64 Med=167.00 | 30b N=11 WR=72.7% Avg=408.64 Med=236.00
+26. ABS_04 + 15m_trend_aligned [PROMISING]
+  5b N=24 WR=66.7% Avg=206.42 Med=86.50 | 10b N=24 WR=70.8% Avg=234.25 Med=111.50 | 15b N=24 WR=70.8% Avg=203.29 Med=163.50 | 30b N=24 WR=58.3% Avg=113.96 Med=76.00
+24. ABS_04 only
+  5b N=41 WR=53.7% Avg=199.78 Med=65.00 | 10b N=41 WR=63.4% Avg=202.90 Med=71.00 | 15b N=41 WR=58.5% Avg=172.24 Med=84.00 | 30b N=41 WR=53.7% Avg=127.41 Med=14.00
+07. absorption + has_EXH_03
+  5b N=43 WR=58.1% Avg=194.33 Med=35.00 | 10b N=43 WR=62.8% Avg=200.58 Med=68.00 | 15b N=43 WR=58.1% Avg=178.60 Med=54.00 | 30b N=43 WR=53.5% Avg=148.12 Med=31.00
+06. absorption + has_TRAP_04
+  5b N=24 WR=54.2% Avg=158.17 Med=69.00 | 10b N=24 WR=54.2% Avg=140.29 Med=30.00 | 15b N=24 WR=54.2% Avg=83.46 Med=28.00 | 30b N=24 WR=41.7% Avg=-22.33 Med=-36.00
+17. absorption + 60m_extreme + mid_vol [VALIDATED]
+  5b N=42 WR=71.4% Avg=157.10 Med=40.50 | 10b N=42 WR=81.0% Avg=165.14 Med=76.00 | 15b N=42 WR=81.0% Avg=218.00 Med=118.00 | 30b N=42 WR=83.3% Avg=333.79 Med=198.00
+15. absorption + mid_vol + has_TRAP_05
+  5b N=34 WR=52.9% Avg=125.82 Med=5.00 | 10b N=34 WR=50.0% Avg=112.24 Med=5.00 | 15b N=34 WR=52.9% Avg=92.56 Med=9.50 | 30b N=34 WR=52.9% Avg=92.82 Med=25.00
+11. absorption + 60m_extreme + has_TRAP_05 [PROMISING]
+  5b N=26 WR=65.4% Avg=121.77 Med=37.00 | 10b N=26 WR=76.9% Avg=159.00 Med=79.00 | 15b N=26 WR=69.2% Avg=169.77 Med=117.00 | 30b N=26 WR=76.9% Avg=188.42 Med=144.50
+18. absorption + 60m_extreme + delta_opposite [VALIDATED]
+  5b N=93 WR=67.7% Avg=100.30 Med=39.00 | 10b N=92 WR=77.2% Avg=153.01 Med=77.50 | 15b N=92 WR=70.7% Avg=160.24 Med=118.00 | 30b N=92 WR=78.3% Avg=230.72 Med=185.50
+14. absorption + 15m_trend_aligned + has_TRAP_05 [PROMISING]
+  5b N=40 WR=65.0% Avg=94.50 Med=14.50 | 10b N=40 WR=52.5% Avg=83.20 Med=11.00 | 15b N=40 WR=57.5% Avg=80.03 Med=41.00 | 30b N=40 WR=55.0% Avg=26.55 Med=50.50
+01. absorption + 60m_extreme [VALIDATED]
+  5b N=122 WR=71.3% Avg=92.71 Med=42.50 | 10b N=121 WR=78.5% Avg=136.43 Med=71.00 | 15b N=121 WR=76.0% Avg=177.21 Med=112.00 | 30b N=121 WR=81.0% Avg=243.26 Med=184.00
+30. ABS_04 + 60m_extreme + 15m_trend_aligned [LOW_N]
+  5b N=1 WR=100.0% Avg=85.00 Med=85.00 | 10b N=1 WR=100.0% Avg=230.00 Med=230.00 | 15b N=1 WR=100.0% Avg=228.00 Med=228.00 | 30b N=1 WR=100.0% Avg=229.00 Med=229.00
+13. absorption + 60m_extreme + 15m_trend_aligned [VALIDATED]
+  5b N=50 WR=88.0% Avg=82.88 Med=80.50 | 10b N=49 WR=85.7% Avg=133.90 Med=109.00 | 15b N=49 WR=89.8% Avg=185.84 Med=136.00 | 30b N=49 WR=91.8% Avg=250.73 Med=184.00
+21. absorption + 60m_extreme + 15m_trend_aligned + has_TRAP_05 [LOW_N]
+  5b N=8 WR=100.0% Avg=78.25 Med=67.00 | 10b N=8 WR=87.5% Avg=31.75 Med=108.00 | 15b N=8 WR=87.5% Avg=17.62 Med=89.50 | 30b N=8 WR=87.5% Avg=-1.62 Med=155.00
+19. absorption + 15m_trend_aligned + delta_opposite [VALIDATED]
+  5b N=84 WR=77.4% Avg=76.75 Med=56.00 | 10b N=83 WR=77.1% Avg=125.16 Med=72.00 | 15b N=83 WR=72.3% Avg=106.96 Med=81.00 | 30b N=83 WR=63.9% Avg=116.16 Med=94.00
+22. absorption + 15m_trend_aligned + delta_opposite + has_TRAP_05 [LOW_N]
+  5b N=13 WR=84.6% Avg=65.92 Med=57.00 | 10b N=13 WR=69.2% Avg=36.85 Med=87.00 | 15b N=13 WR=76.9% Avg=25.54 Med=81.00 | 30b N=13 WR=69.2% Avg=3.69 Med=109.00
+10. absorption + has_AUCT_03 [LOW_N]
+  5b N=4 WR=25.0% Avg=48.75 Med=-11.00 | 10b N=4 WR=50.0% Avg=79.75 Med=18.50 | 15b N=4 WR=75.0% Avg=23.50 Med=46.00 | 30b N=4 WR=25.0% Avg=-41.25 Med=-72.50
+05. absorption + has_TRAP_05
+  5b N=97 WR=43.3% Avg=44.18 Med=-21.00 | 10b N=97 WR=43.3% Avg=21.61 Med=-26.00 | 15b N=97 WR=42.3% Avg=-19.68 Med=-30.00 | 30b N=97 WR=48.5% Avg=-11.03 Med=-9.00
+16. absorption + delta_opposite + has_TRAP_05
+  5b N=54 WR=44.4% Avg=42.31 Med=-16.50 | 10b N=54 WR=48.1% Avg=12.48 Med=-9.00 | 15b N=54 WR=44.4% Avg=-54.35 Med=-19.50 | 30b N=54 WR=53.7% Avg=-38.26 Med=23.50
+04. absorption + delta_opposite
+  5b N=320 WR=50.0% Avg=24.31 Med=0.50 | 10b N=319 WR=49.5% Avg=22.31 Med=0.00 | 15b N=319 WR=47.0% Avg=-1.99 Med=-11.00 | 30b N=319 WR=49.8% Avg=11.00 Med=0.00
+03. absorption + mid_vol
+  5b N=298 WR=50.3% Avg=16.64 Med=1.50 | 10b N=298 WR=52.3% Avg=27.23 Med=9.00 | 15b N=298 WR=50.7% Avg=36.16 Med=6.50 | 30b N=298 WR=49.0% Avg=36.12 Med=-6.00
+02. absorption + 15m_trend_aligned [VALIDATED]
+  5b N=490 WR=58.2% Avg=8.73 Med=14.00 | 10b N=488 WR=59.6% Avg=24.18 Med=19.00 | 15b N=488 WR=57.8% Avg=15.89 Med=23.00 | 30b N=488 WR=51.8% Avg=6.16 Med=12.00
+08. absorption + has_EXH_04 [LOW_N]
+  5b N=6 WR=66.7% Avg=-40.50 Med=11.50 | 10b N=6 WR=66.7% Avg=-62.33 Med=10.00 | 15b N=6 WR=50.0% Avg=-39.83 Med=-5.00 | 30b N=6 WR=66.7% Avg=32.17 Med=8.50
+09. absorption + has_VOLP_06 [LOW_N]
+  5b N=0 WR=nan Avg=nan Med=nan | 10b N=0 WR=nan Avg=nan Med=nan | 15b N=0 WR=nan Avg=nan Med=nan | 30b N=0 WR=nan Avg=nan Med=nan

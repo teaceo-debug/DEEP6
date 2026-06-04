@@ -28,7 +28,7 @@ from __future__ import annotations
 import math
 import time
 from dataclasses import dataclass, field
-from typing import Any, Callable, Iterable, Optional
+from typing import Any, Callable, Optional
 
 import structlog
 
@@ -38,13 +38,12 @@ from deep6.execution.trade_state import (
     TRANSITION_TABLE,
     EntryTrigger,
     EntryTriggerType,
-    NARRATIVE_KIND_PRIORITY,
     TradeState,
-    TransitionId,
     guard_T2_ready,
     guard_T8_invalidated,
     narrative_priority,
 )
+from deep6.engines.bias_contracts import BiasMode, MarketBiasSnapshot
 from deep6.engines.level import Level, LevelKind, LevelState
 from deep6.scoring.scorer import ScorerResult, SignalTier
 
@@ -171,6 +170,7 @@ class TradeDecisionMachine:
         self._current_position_snapshot: Any = None    # set on T4
         self._last_order_intent: OrderIntent | None = None
         self._prior_annotations = None                  # for I2 / regime-drift
+        self._bias_snapshot: Optional[MarketBiasSnapshot] = None
 
     # ------------------------------------------------------------------
     # Introspection
@@ -183,6 +183,10 @@ class TradeDecisionMachine:
     @property
     def pending_count(self) -> int:
         return len(self._pending)
+
+    @property
+    def bias_snapshot(self) -> Optional[MarketBiasSnapshot]:
+        return self._bias_snapshot
 
     # ------------------------------------------------------------------
     # Primary per-bar entry point
@@ -298,6 +302,10 @@ class TradeDecisionMachine:
             payload={"reject": str(reject)},
         )
 
+    def update_bias(self, snapshot: MarketBiasSnapshot) -> None:
+        """Receive the latest v3 market-bias snapshot from the external engine."""
+        self._bias_snapshot = snapshot
+
     # ------------------------------------------------------------------
     # State handlers
     # ------------------------------------------------------------------
@@ -375,6 +383,13 @@ class TradeDecisionMachine:
             min_score=self.fsm_config.min_confluence_score_for_T2,
             enable_e10_gating=self.fsm_config.enable_e10_gating,
         )
+        if ready and self._bias_snapshot is not None:
+            if self._bias_snapshot.mode == BiasMode.STOP.value:
+                log.info(
+                    "bias_v3_t2_blocked",
+                    reason=self._bias_snapshot.mode_reason,
+                )
+                return
         if ready:
             self._armed_side = (
                 OrderSide.LONG if scorer_result.direction > 0 else OrderSide.SHORT
@@ -427,6 +442,15 @@ class TradeDecisionMachine:
         )
         if not triggers:
             return
+        if self._bias_snapshot is not None:
+            blocked_modes = {BiasMode.CAUTION.value, BiasMode.STOP.value}
+            if self._bias_snapshot.mode in blocked_modes:
+                log.info(
+                    "bias_v3_t3_blocked",
+                    mode=self._bias_snapshot.mode,
+                    reason=self._bias_snapshot.mode_reason,
+                )
+                return
         # Precedence: sort by narrative priority desc, then by a stable order
         triggers.sort(key=lambda t: (-t[2], t[0].value))
         chosen_et, side, _priority = triggers[0]

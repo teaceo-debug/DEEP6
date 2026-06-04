@@ -1,0 +1,43 @@
+{
+  "task": "T11 — HERMES Standard-Deviation Expert Workflow",
+  "file": "deep6/sd_anchor/hermes_workflow.py",
+  "sample_approve_verdict": {
+    "verdict": "approve",
+    "reasons": [
+      "STRUCTURE_CLEAR",
+      "DISPLACEMENT_CONFIRMED",
+      "ANCHOR_ALIGNMENT_VALID",
+      "MTF_SUPPORT_PRESENT",
+      "CONFIDENCE_SUFFICIENT"
+    ],
+    "version": "1.0.0",
+    "timestamp": "2026-05-22T02:30:00+00:00"
+  },
+  "sample_veto_verdict": {
+    "verdict": "veto",
+    "reasons": [
+      "STRUCTURE_UNCLEAR",
+      "DISPLACEMENT_WEAK",
+      "ANCHOR_ALIGNMENT_INVALID",
+      "MTF_SUPPORT_ABSENT",
+      "CONFIDENCE_INSUFFICIENT"
+    ],
+    "version": "1.0.0",
+    "timestamp": "2026-05-22T02:30:00+00:00"
+  },
+  "checklist_scoring": {
+    "step1_swing_clarity": "0 or 25 pts",
+    "step2_displacement_strength": "0 or 25 pts",
+    "step3_structure_break": "0 or 20 pts",
+    "step4_wick_to_wick": "0 or 15 pts",
+    "step5_htf_context": "0 or 15 pts",
+    "approval_threshold": 70
+  },
+  "rejection_triggers": [
+    "pine_confidence_score < 40 (clearly forced)",
+    "range < 0.5 (swing too small)",
+    "pine_state == invalidated (already invalid)"
+  ],
+  "lsp_errors": 0,
+  "tests_pass": "8/8"
+}

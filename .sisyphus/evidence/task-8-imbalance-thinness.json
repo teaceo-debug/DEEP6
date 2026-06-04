@@ -1,0 +1,7 @@
+{
+  "task": "task-8-imbalance-thinness",
+  "detectors": ["dom.imbalance.v1", "dom.thinness.v1"],
+  "result": "PASS",
+  "positive_fixtures": "fire on intended patterns",
+  "negative_fixtures": "silent on controls"
+}

@@ -53,6 +53,8 @@ echo -e "${BLD}Stopping DEEP6${RST}"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 stop_pid_file "Demo       " "$PID_DIR/demo.pid"
+stop_pid_file "Bias Bridge" "$PID_DIR/bias_bridge.pid"
+stop_pid_file "NQ Atlas   " "$PID_DIR/atlas.pid"
 stop_pid_file "Frontend   " "$PID_DIR/frontend.pid"
 stop_pid_file "Backend    " "$PID_DIR/backend.pid"
 

@@ -1,0 +1,49 @@
+{
+  "name": "gex-doctor",
+  "version": "2.0.0",
+  "description": "GEX Doctor v2.0 — Institutional Options Bias Terminal",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:app": "electron-builder build --win --x64"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "com.deep6.gexdoctor",
+    "productName": "GEX Doctor",
+    "files": [
+      "main.js",
+      "preload.js",
+      "loading.html",
+      "assets/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "../../",
+        "to": "backend",
+        "filter": [
+          "gex_terminal/**/*",
+          "nq_atlas/**/*",
+          "scripts/gex_terminal_nt8_bridge.py",
+          ".env.gex_terminal",
+          "!**/node_modules",
+          "!**/__pycache__",
+          "!**/*.pyc",
+          "!gex_terminal/ui/node_modules",
+          "!gex_terminal/desktop/**"
+        ]
+      }
+    ],
+    "win": {
+      "icon": "assets/icon.ico",
+      "target": [
+        { "target": "portable", "arch": ["x64"] }
+      ]
+    },
+    "icon": "assets/icon.ico"
+  }
+}

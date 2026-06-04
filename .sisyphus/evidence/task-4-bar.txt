@@ -1,0 +1,30 @@
+Task 4: OHLCV Bar Accumulator — Evidence
+=========================================
+Date: 2026-05-12
+
+Files created:
+  - deep6/engines/ohlcv_accumulator.py  (OHLCVBar dataclass + OHLCVAccumulator class)
+  - tests/test_ohlcv_accumulator.py     (10 tests)
+
+Test results:
+  10 passed in 0.08s
+
+  tests/test_ohlcv_accumulator.py::TestOHLCVAccumulator::test_first_tick_opens_bar_returns_none PASSED
+  tests/test_ohlcv_accumulator.py::TestOHLCVAccumulator::test_ten_ticks_in_single_bar PASSED
+  tests/test_ohlcv_accumulator.py::TestOHLCVAccumulator::test_boundary_crossing_returns_completed_bar PASSED
+  tests/test_ohlcv_accumulator.py::TestOHLCVAccumulator::test_ohlcv_correct_after_ten_ticks PASSED
+  tests/test_ohlcv_accumulator.py::TestOHLCVAccumulator::test_flush_returns_partial_bar PASSED
+  tests/test_ohlcv_accumulator.py::TestOHLCVAccumulator::test_flush_empty_returns_none PASSED
+  tests/test_ohlcv_accumulator.py::TestOHLCVAccumulator::test_high_low_tracking PASSED
+  tests/test_ohlcv_accumulator.py::TestOHLCVAccumulator::test_bar_end_ts_equals_start_plus_interval PASSED
+  tests/test_ohlcv_accumulator.py::TestOHLCVAccumulator::test_flush_resets_state PASSED
+  tests/test_ohlcv_accumulator.py::TestOHLCVAccumulator::test_multiple_bar_closures PASSED
+
+LSP diagnostics: clean (0 errors)
+
+API surface:
+  OHLCVBar(symbol, open, high, low, close, volume, bar_start_ts, bar_end_ts, tick_count)
+  OHLCVAccumulator(symbol, interval_sec=60)
+    .feed_tick(price, volume, timestamp) -> Optional[OHLCVBar]
+    .flush() -> Optional[OHLCVBar]
+    .current_bar_start -> Optional[float]

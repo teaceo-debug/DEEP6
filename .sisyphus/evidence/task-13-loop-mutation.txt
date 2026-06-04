@@ -1,0 +1,11 @@
+Task 13 — mutation parent linkage test
+
+Flow:
+- Run generate iteration against fresh temp DB/vault
+- Run mutate iteration against same DB/vault
+
+Observed result:
+- iterations rows: [(1, None), (2, 1)] for (id, parent_iteration_id)
+- mutate run selected prior strategy hash when no passing best strategy existed yet
+
+Status: PASS

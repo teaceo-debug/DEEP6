@@ -1,0 +1,36 @@
+spoof:
+  life_ms_threshold: 5000
+  size_multiplier: 5.0
+  fill_threshold: 0.05
+  tick_distance: 5
+
+iceberg:
+  ratio_threshold: 2.0
+  min_refreshes: 2
+  refresh_window_ms: 500
+
+absorption:
+  min_trades: 50
+  hold_threshold: 0.80
+  min_aggressive_volume: 50
+
+sweep:
+  min_levels: 3
+  time_span_ms: 2000
+
+layering:
+  min_levels: 3
+  size_multiplier: 5.0
+  max_orders_per_level: 4
+
+vacuum:
+  depth_collapse_pct: 0.70
+  cancel_wave_count: 5
+
+confluence:
+  madlevel_weight: 25
+  gex_weight: 20
+  dom_absorption_weight: 20
+  iceberg_weight: 15
+  options_flow_weight: 15
+  prior_session_weight: 5

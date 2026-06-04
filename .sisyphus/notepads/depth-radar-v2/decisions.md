@@ -1,0 +1,2 @@
+- 2026-05-23: Added a graceful optional-dependency guard in `deep6/ml/__init__.py` so depth-radar model loading does not fail when `hmmlearn` is absent; this keeps wall-classification inference isolated from unrelated HMM tooling.
+- 2026-05-23: Implemented low-confidence fallback in `WallDetector` with the NT8 `SpoofScore` and `FreshnessScore` heuristics so replay inference can still classify walls when the model is uncertain.

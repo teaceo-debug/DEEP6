@@ -1,0 +1,26 @@
+F3: QA/Parity Review
+Date: 2026-05-27
+Status: APPROVE (pending agent confirmation)
+
+Parity (Task 21): 23/23 tests pass
+  - Deterministic replay: identical event counts across runs
+  - Direction mismatch: 0 across all 3 golden sessions
+  - Confidence diff: ≤0.10 (0.0 actual — deterministic)
+  - LIVE_ONLY excluded from parity scoring
+  - REPLAY_DEGRADED reported separately
+
+False Positives (Task 22): 7/7 tests pass
+  - Approach: raw count ceiling on synthetic fixture (≤60 per detector)
+  - Limitation documented: synthetic random volumes create inherent imbalance
+  - Live RTH threshold (≤12/hr) declared for real market data
+  - All detectors produce bounded output
+
+Performance (Task 23): 3/3 tests pass
+  - Individual detector latency: ≤0.08ms mean
+  - Memory growth: ≤10% over 1000 updates
+  - Total wall time: <5s for 9 detectors × 1000 updates
+
+Replay Safety (Task 24): 15/15 tests pass
+  - All 16 detectors classified with evidence
+  - Tier 1: 6 REPLAY_SAFE, Tier 2: 5 REPLAY_DEGRADED, Tier 3: 5 LIVE_ONLY
+  - Classification consistent with taxonomy

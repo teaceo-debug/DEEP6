@@ -1,0 +1,25 @@
+TASK-2 TAXONOMY EVIDENCE
+=========================
+Tests run: python -m pytest tests_v2/dom_intelligence/test_taxonomy.py -v
+Result: PASS
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.0.3, pluggy-1.6.0 -- C:\Users\Tea\AppData\Local\Programs\Python\Python311\python.exe
+cachedir: .pytest_cache
+benchmark: 5.2.3 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: C:\Users\Tea\DEEP6
+configfile: pyproject.toml
+plugins: anyio-4.13.0, asyncio-1.3.0, benchmark-5.2.3
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 7 items
+
+tests_v2/dom_intelligence/test_taxonomy.py::test_enums_have_exact_members PASSED [ 14%]
+tests_v2/dom_intelligence/test_taxonomy.py::test_all_detectors_have_required_fields PASSED [ 28%]
+tests_v2/dom_intelligence/test_taxonomy.py::test_tier_one_detectors_are_replay_safe PASSED [ 42%]
+tests_v2/dom_intelligence/test_taxonomy.py::test_tier_three_detectors_are_not_first_release PASSED [ 57%]
+tests_v2/dom_intelligence/test_taxonomy.py::test_first_release_helper_returns_only_first_release_detectors PASSED [ 71%]
+tests_v2/dom_intelligence/test_taxonomy.py::test_no_duplicate_detector_ids_exist PASSED [ 85%]
+tests_v2/dom_intelligence/test_taxonomy.py::test_helper_counts_match_taxonomy PASSED [100%]
+
+============================== 7 passed in 0.20s ==============================
+Detector count: Tier1=6, Tier2=5, Tier3=5
+First release scope: 11 detectors

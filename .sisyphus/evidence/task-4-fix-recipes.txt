@@ -1,0 +1,21 @@
+﻿Task 4 — Fix Recipe QA Evidence
+Generated: 2026-05-13 21:28:23
+
+File count: 8 (expected: 8)
+
+Section check (Pattern / Root Causes / Fix Strategies / Example Fix):
+  BRACE_MISMATCH.md: Pattern=PASS  RootCauses=PASS  FixStrategies=PASS  ExampleFix=PASS
+  CS0019.md: Pattern=PASS  RootCauses=PASS  FixStrategies=PASS  ExampleFix=PASS
+  CS0101.md: Pattern=PASS  RootCauses=PASS  FixStrategies=PASS  ExampleFix=PASS
+  CS0103.md: Pattern=PASS  RootCauses=PASS  FixStrategies=PASS  ExampleFix=PASS
+  CS0246.md: Pattern=PASS  RootCauses=PASS  FixStrategies=PASS  ExampleFix=PASS
+  CS0535.md: Pattern=PASS  RootCauses=PASS  FixStrategies=PASS  ExampleFix=PASS
+  CS1061.md: Pattern=PASS  RootCauses=PASS  FixStrategies=PASS  ExampleFix=PASS
+  MISSING_ATTRIBUTE.md: Pattern=PASS  RootCauses=PASS  FixStrategies=PASS  ExampleFix=PASS
+
+CS0246.md namespace map check:
+  Contains 'Indicators': PASS
+  Contains 'Strategies': PASS
+  Has namespace map section: PASS
+
+All checks: PASS

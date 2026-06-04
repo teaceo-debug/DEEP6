@@ -1,0 +1,27 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.0.3, pluggy-1.6.0 -- C:\Users\Tea\AppData\Local\Programs\Python\Python311\python.exe
+cachedir: .pytest_cache
+benchmark: 5.2.3 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: C:\Users\Tea\DEEP6
+configfile: pyproject.toml
+plugins: anyio-4.13.0, asyncio-1.3.0, benchmark-5.2.3
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 15 items
+
+gex_terminal/tests/test_uw_adapter.py::test_cluster_prints_groups_nearby_prices PASSED [  6%]
+gex_terminal/tests/test_uw_adapter.py::test_cluster_prints_empty_input PASSED [ 13%]
+gex_terminal/tests/test_uw_adapter.py::test_cluster_prints_invalid_data_skipped PASSED [ 20%]
+gex_terminal/tests/test_uw_adapter.py::test_cluster_converts_to_nq PASSED [ 26%]
+gex_terminal/tests/test_uw_adapter.py::test_cluster_premium_weighted_center PASSED [ 33%]
+gex_terminal/tests/test_uw_adapter.py::test_poll_normalizes_dark_pool_data PASSED [ 40%]
+gex_terminal/tests/test_uw_adapter.py::test_poll_returns_pending_without_api_key PASSED [ 46%]
+gex_terminal/tests/test_uw_adapter.py::test_poll_degrades_on_auth_error PASSED [ 53%]
+gex_terminal/tests/test_uw_adapter.py::test_poll_degrades_on_rate_limit PASSED [ 60%]
+gex_terminal/tests/test_uw_adapter.py::test_poll_returns_last_known_on_error PASSED [ 66%]
+gex_terminal/tests/test_uw_adapter.py::test_error_count_tracks_consecutive_failures PASSED [ 73%]
+gex_terminal/tests/test_uw_adapter.py::test_nq_conversion_math PASSED    [ 80%]
+gex_terminal/tests/test_uw_adapter.py::test_custom_symbol PASSED         [ 86%]
+gex_terminal/tests/test_uw_adapter.py::test_bias_from_premium PASSED     [ 93%]
+gex_terminal/tests/test_uw_adapter.py::test_empty_response PASSED        [100%]
+
+============================= 15 passed in 2.86s ==============================

@@ -1,0 +1,49 @@
+{
+  "name": "EXH_03_thin_print_at_extreme",
+  "description": "Thin print: volume at bar extreme level < 5% of max_row_vol. Auction tested the level with minimal commitment.",
+  "bar": {
+    "open": 21460.0,
+    "high": 21478.0,
+    "low": 21455.0,
+    "close": 21462.0,
+    "delta": 100,
+    "total_volume": 2200,
+    "bid_volumes": {
+      "21455.0": 50,
+      "21457.0": 150,
+      "21460.0": 400,
+      "21463.0": 350,
+      "21465.0": 250
+    },
+    "ask_volumes": {
+      "21460.0": 200,
+      "21465.0": 300,
+      "21470.0": 250,
+      "21475.0": 200,
+      "21478.0": 15
+    },
+    "poc_price": 21460.0,
+    "poc_volume": 600,
+    "vah": 21472.0,
+    "val": 21458.0,
+    "cvd": 200.0,
+    "bar_index": 40,
+    "timestamp": "2026-05-13T10:25:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 9.0,
+    "cvd": 200.0,
+    "vah": 21472.0,
+    "val": 21458.0,
+    "poc": 21460.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0
+  },
+  "expected_signal": {
+    "signal_id": "EXH_03",
+    "direction": "BEARISH",
+    "strength_min": 0.25,
+    "strength_max": 0.45
+  }
+}

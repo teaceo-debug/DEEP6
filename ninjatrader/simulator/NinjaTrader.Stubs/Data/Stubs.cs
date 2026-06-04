@@ -45,8 +45,23 @@ namespace NinjaTrader.Data
         private readonly DataSeries<double> _close = new();
         private readonly DataSeries<long> _volume = new();
         private readonly DataSeries<System.DateTime> _time = new();
+        private int _currentBar = -1;
 
         public int Count => _close.Count;
+
+        // NT8 compatibility helper used by indicators/strategies for session-boundary resets.
+        // In the simulator, treat the first bar overall or a date change as a new session.
+        public bool IsFirstBarOfSession
+        {
+            get
+            {
+                if (_currentBar <= 0 || _currentBar >= _time.Count)
+                    return _currentBar == 0;
+                var cur = _time.GetDirect(_currentBar);
+                var prev = _time.GetDirect(_currentBar - 1);
+                return cur.Date != prev.Date;
+            }
+        }
 
         public double GetOpen(int idx) => _open.GetDirect(idx);
         public double GetHigh(int idx) => _high.GetDirect(idx);
@@ -68,6 +83,7 @@ namespace NinjaTrader.Data
 
         internal void SetCurrentBar(int idx)
         {
+            _currentBar = idx;
             _open.SetCurrentBar(idx);
             _high.SetCurrentBar(idx);
             _low.SetCurrentBar(idx);

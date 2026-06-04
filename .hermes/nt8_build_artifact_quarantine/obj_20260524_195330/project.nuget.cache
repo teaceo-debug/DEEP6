@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "dgSpecHash": "7PmEKq4Rnlw=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Tea\\Documents\\NinjaTrader 8\\bin\\Custom\\NinjaTrader.Custom.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Tea\\.nuget\\packages\\actiprosoftware.controls.wpf.shared\\25.1.1\\actiprosoftware.controls.wpf.shared.25.1.1.nupkg.sha512",
+    "C:\\Users\\Tea\\.nuget\\packages\\actiprosoftware.controls.wpf.syntaxeditor\\25.1.1\\actiprosoftware.controls.wpf.syntaxeditor.25.1.1.nupkg.sha512",
+    "C:\\Users\\Tea\\.nuget\\packages\\actiprosoftware.controls.wpf.syntaxeditor.addons.dotnet\\25.1.1\\actiprosoftware.controls.wpf.syntaxeditor.addons.dotnet.25.1.1.nupkg.sha512",
+    "C:\\Users\\Tea\\.nuget\\packages\\microsoft.netframework.referenceassemblies\\1.0.3\\microsoft.netframework.referenceassemblies.1.0.3.nupkg.sha512",
+    "C:\\Users\\Tea\\.nuget\\packages\\microsoft.netframework.referenceassemblies.net48\\1.0.3\\microsoft.netframework.referenceassemblies.net48.1.0.3.nupkg.sha512",
+    "C:\\Users\\Tea\\.nuget\\packages\\system.componentmodel.annotations\\5.0.0\\system.componentmodel.annotations.5.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

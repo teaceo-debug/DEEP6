@@ -1,0 +1,15 @@
+Task 1 scaffold created.
+
+Created files:
+- gex_terminal/desktop/package.json
+- gex_terminal/desktop/main.js
+- gex_terminal/desktop/preload.js
+- gex_terminal/desktop/loading.html
+- gex_terminal/desktop/.gitignore
+
+Verification:
+- File existence confirmed.
+- LSP diagnostics on gex_terminal/desktop: 0 errors, 0 total diagnostics.
+
+Note:
+- npm install was not run per instruction.

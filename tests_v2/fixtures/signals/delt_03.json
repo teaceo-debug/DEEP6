@@ -1,0 +1,52 @@
+{
+  "name": "DELT_03_delta_flip_price_continues",
+  "description": "Delta flips sign between bars but price continues same direction. Prior bar positive delta, current bar negative, yet price still up — divergence.",
+  "bar": {
+    "open": 21510.0,
+    "high": 21522.0,
+    "low": 21508.0,
+    "close": 21520.0,
+    "delta": -150,
+    "total_volume": 2200,
+    "bid_volumes": {
+      "21508.0": 150,
+      "21510.0": 250,
+      "21512.0": 200,
+      "21515.0": 300,
+      "21518.0": 250
+    },
+    "ask_volumes": {
+      "21510.0": 100,
+      "21512.0": 150,
+      "21515.0": 200,
+      "21518.0": 180,
+      "21520.0": 120,
+      "21522.0": 100
+    },
+    "poc_price": 21515.0,
+    "poc_volume": 500,
+    "vah": 21520.0,
+    "val": 21510.0,
+    "cvd": 350.0,
+    "bar_index": 44,
+    "timestamp": "2026-05-13T10:29:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 350.0,
+    "vah": 21520.0,
+    "val": 21510.0,
+    "poc": 21515.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "bar_history_deltas": [300, 250, -150],
+    "bar_history_closes": [21500.0, 21510.0, 21520.0]
+  },
+  "expected_signal": {
+    "signal_id": "DELT_03",
+    "direction": "BEARISH",
+    "strength_min": 0.30,
+    "strength_max": 0.50
+  }
+}

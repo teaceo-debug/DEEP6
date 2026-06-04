@@ -2,7 +2,7 @@
 # Usage: nt8-ui.ps1 -Action <action> [options]
 #
 # Actions: Status | BringToFront | OpenEditor | Compile | OpenOutputWindow |
-#          AddIndicator | AddStrategy | Screenshot
+#          AddIndicator | AddStrategy | Screenshot | (see nt8-replay-download.ps1 for replay downloads)
 
 param(
     [Parameter(Mandatory)]

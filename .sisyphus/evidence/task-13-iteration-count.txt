@@ -1,0 +1,2 @@
+completed_iterations=100
+stop_reason=plateau>20 after minimum iteration gate

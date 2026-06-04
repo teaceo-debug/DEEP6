@@ -1,0 +1,6 @@
+- Chose to keep `brain/Backtest-Loop.md` as an index note, not an activity log, to match the existing `brain/Memories.md` pattern and avoid mixing iteration content into the index.
+- Chose to use compact section headers and minimal starter rows in the templates so Hermes can append iteration data without reformatting the file structure.
+- Chose to store preprocessed session payloads as pickled `deep6.state.footprint.FootprintBar` objects plus `VolumeZone`/wall artifacts so `SessionProfile.add_bar()` works without a lossy conversion layer.
+- Chose to group sessions by Eastern calendar date while using absolute nanosecond bucket boundaries for 1-minute bar closes, preserving Databento `ts_event` ordering without real-time scheduling.
+- Chose to keep `backtest_loop.py` thin and stateless: config generation/mutation, semantic validation, harness execution, fitness scoring, and persistence are delegated to the existing backtest modules rather than duplicated in the script.
+- Chose to persist rejected/failed iterations too, so Hermes still gets lineage, budget accounting, and Obsidian artifacts even when the harness has no sessions or a config is invalid.

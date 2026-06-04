@@ -1,0 +1,41 @@
+{
+  "anchor_id": "5cd84ff5-15b9-4467-8f42-cf5b9243091c",
+  "captured_at": "2026-05-21T14:31:00Z",
+  "mode": "replay",
+  "label_timing": "decision_time",
+  "symbol": "NQ1!",
+  "timeframe_primary": "1",
+  "timeframe_context": "5",
+  "direction": "bullish",
+  "anchor_low_price": 21450.25,
+  "anchor_high_price": 21478.5,
+  "anchor_low_bar_time": 1779373860,
+  "anchor_high_bar_time": 1779374040,
+  "range": 28.25,
+  "level_minus2": 21535.0,
+  "level_minus2_5": 21549.125,
+  "level_minus4": 21591.5,
+  "pine_confidence_score": 88,
+  "pine_state": "confirmed",
+  "screenshot_path": "data/sd_anchor/screenshots/2026-05-21/5cd84ff5-15b9-4467-8f42-cf5b9243091c.png",
+  "chart_metadata": {
+    "zoom_level": 160,
+    "visible_bar_range_start": 1779373200,
+    "visible_bar_range_end": 1779374400,
+    "candle_style": "candles",
+    "theme": "dark",
+    "chart_width_px": 1920,
+    "chart_height_px": 1080
+  },
+  "hermes_verdict": "approve",
+  "hermes_reasons": [
+    "Clean manipulation leg",
+    "Strong bullish displacement",
+    "Context agrees with 5m"
+  ],
+  "hermes_version": "hermes-sd-anchor-1.0.0",
+  "human_override": false,
+  "human_override_reason": null,
+  "outcome_label": null,
+  "outcome_resolved_at": null
+}

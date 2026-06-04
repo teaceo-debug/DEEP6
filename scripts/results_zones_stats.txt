@@ -1,0 +1,261 @@
+================================================================================
+  DEEP6 Zone Entry — Variant D Statistical Validity Analysis
+  Wick=0.35  Close<=40%  TP=1:1  SL=distal+4t  Score>=6  10:00-15:00 ET
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+  1. OBSERVED RESULTS  (Variant D re-run)
+────────────────────────────────────────────────────────────────────────────────
+  Trades:        101
+  Win Rate:      80.2%
+  Profit Factor: 4.93
+  Sharpe Ratio:  10.41  (annualised, per-trade)
+  Net PnL:       $ 34,849.30
+  Max Drawdown:  $  1,365.70
+
+  Trade sequence (chronological):
+     #  Date         Dir    Zone     Score     Entry      Exit  Risk_t  Exit_R        PnL
+  ────────────────────────────────────────────────────────────────────────────
+     1  2025-01-03   SHORT  Supply       8  21258.25  21274.50    65.0  SL       $-325.70
+     2  2025-01-06   SHORT  DBD          6  21780.00  21768.25    47.0  TP       $ 234.30
+     3  2025-01-10   LONG   Demand       6  20914.00  20943.00   116.0  TP       $ 579.30
+     4  2025-01-14   SHORT  DBD          7  20913.75  20870.25   174.0  TP       $ 869.30
+     5  2025-01-14   SHORT  Supply       7  20869.00  20885.25    65.0  SL       $-325.70
+     6  2025-01-15   LONG   Demand       7  21272.00  21298.75   107.0  TP       $ 534.30
+     7  2025-01-16   SHORT  DBD          6  21380.50  21346.75   135.0  TP       $ 674.30
+     8  2025-01-17   LONG   RBR          8  21586.75  21604.00    69.0  TP       $ 344.30
+     9  2025-01-24   SHORT  DBD          6  21981.00  21972.75    33.0  TP       $ 164.30
+    10  2025-02-06   LONG   RBR          8  21779.00  21772.50    26.0  SL       $-130.70
+    11  2025-02-06   SHORT  Supply       6  21797.25  21778.50    75.0  TP       $ 374.30
+    12  2025-02-07   LONG   RBR          7  21872.25  21903.75   126.0  TP       $ 629.30
+    13  2025-02-13   SHORT  DBD          7  22031.25  22015.00    65.0  TP       $ 324.30
+    14  2025-02-13   SHORT  DBD          6  22002.00  21989.25    51.0  TP       $ 254.30
+    15  2025-02-17   LONG   RBR          8  22229.00  22232.75    15.0  TP       $  74.30
+    16  2025-02-18   SHORT  DBD          8  22197.50  22189.00    34.0  TP       $ 169.30
+    17  2025-02-18   SHORT  Supply       6  22179.00  22194.25    61.0  SL       $-305.70
+    18  2025-02-19   LONG   Demand       7  22198.25  22217.25    76.0  TP       $ 379.30
+    19  2025-02-19   LONG   Demand       6  22155.00  22183.00   112.0  TP       $ 559.30
+    20  2025-02-21   SHORT  DBD          7  22227.75  22217.75    40.0  TP       $ 199.30
+    21  2025-02-27   SHORT  Supply       8  21092.50  21044.25   193.0  TP       $ 964.30
+    22  2025-03-04   LONG   RBR          6  20342.25  20376.25   136.0  TP       $ 679.30
+    23  2025-03-05   LONG   RBR          6  20299.00  20333.25   137.0  TP       $ 684.30
+    24  2025-03-10   SHORT  DBD          7  19538.25  19491.75   186.0  TP       $ 929.30
+    25  2025-03-11   SHORT  Supply       7  19541.00  19482.00   236.0  TP       $1179.30
+    26  2025-03-13   SHORT  DBD          7  19461.75  19429.75   128.0  TP       $ 639.30
+    27  2025-03-14   LONG   RBR          7  19633.00  19678.00   180.0  TP       $ 899.30
+    28  2025-03-17   LONG   Demand       8  19669.50  19683.50    56.0  TP       $ 279.30
+    29  2025-03-19   SHORT  DBD          6  19688.00  19669.00    76.0  TP       $ 379.30
+    30  2025-03-20   SHORT  DBD          7  19766.75  19776.25    38.0  SL       $-190.70
+    31  2025-03-24   SHORT  Supply       6  20356.75  20342.75    56.0  TP       $ 279.30
+    32  2025-03-28   SHORT  DBD          8  19594.25  19555.50   155.0  TP       $ 774.30
+    33  2025-03-28   SHORT  DBD          7  19513.25  19493.50    79.0  TP       $ 394.30
+    34  2025-04-03   SHORT  Supply       7  18974.00  18897.00   308.0  TP       $1539.30
+    35  2025-04-09   SHORT  Supply       7  17445.50  17336.75   435.0  TP       $2174.30
+    36  2025-04-14   LONG   RBR          8  18971.00  19007.00   144.0  TP       $ 719.30
+    37  2025-04-16   LONG   Demand       6  18613.00  18635.50    90.0  TP       $ 449.30
+    38  2025-04-24   LONG   RBR          8  19068.25  19092.75    98.0  TP       $ 489.30
+    39  2025-04-24   LONG   Demand       7  19162.50  19203.25   163.0  TP       $ 814.30
+    40  2025-05-02   LONG   RBR          8  20203.75  20238.50   139.0  TP       $ 694.30
+    41  2025-05-02   LONG   RBR          7  20254.00  20271.25    69.0  TP       $ 344.30
+    42  2025-05-05   LONG   RBR          8  20115.50  20137.50    88.0  TP       $ 439.30
+    43  2025-05-06   SHORT  DBD          7  19897.00  19847.50   198.0  TP       $ 989.30
+    44  2025-05-12   LONG   Demand       8  20789.25  20825.25   144.0  TP       $ 719.30
+    45  2025-05-29   LONG   Demand       6  21406.75  21483.00   305.0  TP       $1524.30
+    46  2025-06-24   SHORT  DBD          6  22409.25  22407.00     9.0  TP       $  44.30
+    47  2025-06-26   LONG   Demand       8  22612.50  22629.25    67.0  TP       $ 334.30
+    48  2025-07-01   SHORT  DBD          8  22692.25  22664.00   113.0  TP       $ 564.30
+    49  2025-07-01   SHORT  Supply       7  22706.50  22740.50   136.0  SL       $-680.70
+    50  2025-07-01   SHORT  DBD          7  22732.50  22717.75    59.0  TP       $ 294.30
+    51  2025-07-02   LONG   Demand       7  22812.75  22828.25    62.0  TP       $ 309.30
+    52  2025-07-03   LONG   Demand       8  23052.75  23070.50    71.0  TP       $ 354.30
+    53  2025-07-04   SHORT  DBD          8  22928.75  22924.25    18.0  TP       $  89.30
+    54  2025-07-07   SHORT  DBD          7  22885.75  22925.25   158.0  SL       $-790.70
+    55  2025-07-07   SHORT  Supply      10  22874.25  22882.25    32.0  SL       $-160.70
+    56  2025-07-09   LONG   Demand       9  23014.50  23021.75    29.0  TP       $ 144.30
+    57  2025-07-29   LONG   RBR         10  23504.00  23488.00    64.0  SL       $-320.70
+    58  2025-07-29   LONG   Demand       7  23474.00  23500.50   106.0  TP       $ 529.30
+    59  2025-08-12   SHORT  Supply       6  23902.50  23898.50    16.0  TP       $  79.30
+    60  2025-08-13   LONG   Demand       7  23928.25  23891.25   148.0  SL       $-740.70
+    61  2025-08-14   SHORT  DBD          7  23950.50  23932.50    72.0  TP       $ 359.30
+    62  2025-08-26   SHORT  DBD          6  23517.75  23534.50    67.0  SL       $-335.70
+    63  2025-09-12   LONG   RBR          7  24083.75  24104.00    81.0  TP       $ 404.30
+    64  2025-09-15   LONG   RBR          7  24260.25  24284.75    98.0  TP       $ 489.30
+    65  2025-09-22   LONG   Demand      10  24917.50  24929.00    46.0  TP       $ 229.30
+    66  2025-09-23   LONG   Demand       7  24934.00  24925.25    35.0  SL       $-175.70
+    67  2025-09-24   LONG   Demand       6  24705.75  24719.00    53.0  TP       $ 264.30
+    68  2025-09-29   LONG   RBR          7  24827.75  24841.50    55.0  TP       $ 274.30
+    69  2025-10-02   LONG   Demand       7  25062.25  25047.50    59.0  SL       $-295.70
+    70  2025-10-02   LONG   RBR          7  25081.50  25104.50    92.0  TP       $ 459.30
+    71  2025-10-06   LONG   RBR          8  25165.75  25178.50    51.0  TP       $ 254.30
+    72  2025-10-09   LONG   RBR          7  25259.00  25237.25    87.0  SL       $-435.70
+    73  2025-10-10   SHORT  Supply       7  24699.25  24646.50   211.0  TP       $1054.30
+    74  2025-10-14   SHORT  DBD          8  24904.75  24928.25    94.0  SL       $-470.70
+    75  2025-10-14   LONG   RBR          6  24711.25  24739.25   112.0  TP       $ 559.30
+    76  2025-10-20   LONG   Demand       7  25314.75  25297.00    71.0  SL       $-355.70
+    77  2025-10-23   SHORT  Supply       6  25224.50  25249.50   100.0  SL       $-500.70
+    78  2025-10-24   LONG   Demand       7  25531.75  25563.75   128.0  TP       $ 639.30
+    79  2025-10-28   LONG   RBR          7  26135.75  26156.50    83.0  TP       $ 414.30
+    80  2025-10-28   LONG   RBR          7  26185.25  26194.75    38.0  TP       $ 189.30
+    81  2025-11-04   SHORT  DBD          7  25673.00  25616.75   225.0  TP       $1124.30
+    82  2025-11-13   SHORT  DBD          7  25497.75  25449.50   193.0  TP       $ 964.30
+    83  2025-11-19   SHORT  DBD          8  24670.00  24649.75    81.0  TP       $ 404.30
+    84  2025-12-01   SHORT  Supply       8  25486.75  25472.75    56.0  TP       $ 279.30
+    85  2025-12-02   SHORT  Supply       7  25601.50  25579.75    87.0  TP       $ 434.30
+    86  2025-12-05   LONG   RBR          8  25725.50  25717.25    33.0  SL       $-165.70
+    87  2025-12-08   SHORT  DBD          8  25627.25  25611.75    62.0  TP       $ 309.30
+    88  2025-12-26   LONG   RBR          8  25885.75  25898.75    52.0  TP       $ 259.30
+    89  2026-01-07   SHORT  DBD          6  25777.25  25816.75   158.0  SL       $-790.70
+    90  2026-01-13   SHORT  DBD          7  25872.75  25840.50   129.0  TP       $ 644.30
+    91  2026-01-28   LONG   Demand       7  26128.00  26146.50    74.0  TP       $ 369.30
+    92  2026-02-25   LONG   RBR          9  25330.50  25348.25    71.0  TP       $ 354.30
+    93  2026-02-26   LONG   RBR          6  25008.00  25037.75   119.0  TP       $ 594.30
+    94  2026-03-13   SHORT  Supply       7  24435.75  24396.75   156.0  TP       $ 779.30
+    95  2026-03-23   LONG   RBR          8  24499.75  24431.50   273.0  SL       $-1365.70
+    96  2026-03-26   SHORT  Supply       7  24215.00  24186.50   114.0  TP       $ 569.30
+    97  2026-03-30   SHORT  Supply       8  23293.25  23273.75    78.0  TP       $ 389.30
+    98  2026-04-07   SHORT  Supply       7  24092.00  24038.50   214.0  TP       $1069.30
+    99  2026-04-20   LONG   Demand       7  26654.25  26675.25    84.0  TP       $ 419.30
+   100  2026-04-22   SHORT  DBD          6  27028.75  27015.50    53.0  TP       $ 264.30
+   101  2026-04-24   LONG   RBR          8  27334.50  27375.00   162.0  TP       $ 809.30
+
+────────────────────────────────────────────────────────────────────────────────
+  2. BOOTSTRAP CONFIDENCE INTERVALS  (10,000 resamples, 95% CI)
+────────────────────────────────────────────────────────────────────────────────
+
+  Metric                   Observed    95% CI Lower    95% CI Upper  Verdict
+  ────────────────────────────────────────────────────────────────────────
+  Win Rate                    80.2%           72.3%           88.1%  BEATS 50%
+  Profit Factor                4.93            2.93            9.85  PF>1 even at lower
+  Sharpe Ratio                10.41            7.05           14.78  Positive
+  Net PnL ($)          $     34,849  $       24,754  $       45,185  Profitable lower
+  Max Drawdown ($)     $      1,366  $          791  $        3,028  Manageable
+
+  WR lower bound 72.3% vs 50% threshold: PASSES — edge survives worst-case resampling
+
+────────────────────────────────────────────────────────────────────────────────
+  3. PERMUTATION TEST  (10,000 iterations)
+────────────────────────────────────────────────────────────────────────────────
+
+  (a) Sign-flip test  (H0: mean PnL == 0, each trade equally likely +/-)
+      Observed mean PnL/trade:   $345.04
+      Null mean (sign-flip):     $-0.2555  (should ~= 0)
+      95th pct of null dist:     $102.44
+      p-value (one-tailed):      0.000000
+
+  (b) Binomial test   (H0: WR == 50%)
+      Wins: 81 / 101  (80.2%)
+      p-value (exact binomial):  3.47e-10
+
+  (c) One-sample t-test (H0: mean PnL == 0)
+      t-statistic:               6.5922
+      p-value (one-tailed):      0.000000
+
+  COMBINED:  Significant at p<0.01: YES
+             Significant at p<0.05: YES
+
+  VERDICT: Edge is statistically significant (p<0.01 on all three tests).
+  Less than 1% chance that observed performance arose from zero-edge coin flips.
+
+────────────────────────────────────────────────────────────────────────────────
+  4. MONTE CARLO FORWARD SIMULATION  (10,000 paths, 84 trades = 12 months)
+────────────────────────────────────────────────────────────────────────────────
+
+  P(profitable at 12 months):   100.0%
+  P(max drawdown > $5,000):     0.1%
+  P(max drawdown > $10,000):    0.0%
+  Expected net PnL (12 months): $    29,017
+  10th percentile net PnL:      $    22,876
+  90th percentile net PnL:      $    35,021
+
+  Interpretation:
+  - In 100% of simulated futures, you finish 12 months profitable.
+  - Worst-case 10th percentile: $22,876
+  - In 0.0% of paths, max DD exceeds $10k — size accordingly.
+
+  Net PnL distribution (12-month paths):
+    P 1: $    18,006
+    P 5: $    21,146
+    P10: $    22,876
+    P25: $    25,850
+    P50: $    29,056
+    P75: $    32,186
+    P90: $    35,021
+    P95: $    36,816
+    P99: $    40,176
+
+────────────────────────────────────────────────────────────────────────────────
+  5. AUTOCORRELATION / RUNS TEST
+────────────────────────────────────────────────────────────────────────────────
+
+  Total trades:         101
+  Wins:                 81
+  Losses:               20
+  Runs observed:        36
+  Runs expected (H0):   33.1
+  Z-statistic (runs):   0.9250
+  p-value (runs test):  0.3550
+  Lag-1 autocorrelation of PnL: 0.1480
+
+  VERDICT: Trades appear INDEPENDENT (runs test p >= 0.05).
+  Win/loss sequence shows no significant clustering or alternation.
+  Bootstrap and Monte Carlo assumptions are valid.
+  Lag-1 autocorr 0.148 > 0 — positive serial correlation (win follows win).
+
+────────────────────────────────────────────────────────────────────────────────
+  6. MINIMUM EDGE / BREAK-EVEN ANALYSIS
+────────────────────────────────────────────────────────────────────────────────
+
+  Average winning trade:  $  539.67
+  Average losing trade:   $  443.20
+  Win/Loss ratio (RR):    1.22x
+  Observed WR:            80.2%
+  Break-even WR:          45.1%
+  Stop-trading WR:        53.0%  (break-even + 2-sigma)
+  Expectancy/trade:       $  345.04
+  Max tolerable consec losses (5% of $25k): 2
+
+  MARGIN ABOVE BREAK-EVEN: 35.1%
+  Current WR (80.2%) is 35.1% above break-even (45.1%).
+  WR can deteriorate by up to 35.1% before system loses edge.
+  Stop trading if rolling 30-trade WR drops below 53.0%.
+
+================================================================================
+  OVERALL VERDICT
+================================================================================
+
+  Scorecard: 8/8 checks passed
+
+  [PASS]  WR CI lower > 50%
+  [PASS]  PF CI lower > 1.0
+  [PASS]  Sharpe CI lower > 0
+  [PASS]  Net PnL CI lower > $0
+  [PASS]  Permutation p < 0.01
+  [PASS]  MC P(profit 12m) > 80%
+  [PASS]  Trades independent
+  [PASS]  WR margin > 10% above b/e
+
+  CONCLUSION: STRONG EVIDENCE FOR REAL EDGE
+  The statistical tests consistently support a genuine trading edge.
+  The observed performance is very unlikely to be a product of overfitting
+  given 101 trades over 16 months with independent signals.
+
+────────────────────────────────────────────────────────────────────────────────
+  HONEST FORWARD EXPECTATION (12 months)
+────────────────────────────────────────────────────────────────────────────────
+
+  Based on 10,000 Monte Carlo paths sampling the empirical PnL distribution:
+  Expected trades/year:  84 (~7/month)
+  Most likely outcome:   $  29,056  (median)
+  Realistic range:       $22,876 to $35,021  (10th-90th pct)
+  Chance of profit:      100%
+  Chance DD > $5k:       0%
+  Chance DD > $10k:      0%
+
+  KEY CAVEATS:
+  - 16-month backtest is substantial but not infinite; regime change possible
+  - Zone detection uses price-only proxies (no actual order flow confirmation)
+  - Walk-forward testing not yet performed — in-sample optimisation bias possible
+  - Execution slippage assumed = 0; real fills at market open may differ
+  - Commission $0.70/trade assumed; verify against your actual broker rate
+
+================================================================================

@@ -1,0 +1,13 @@
+Task 19: Layout Integration — PASS
+Date: 2026-05-27
+Tests: 8/8 pass (vitest)
+
+Page: dashboard/app/dom-intelligence/page.tsx
+Test: dashboard/app/dom-intelligence/page.test.tsx
+
+Layout:
+- 3-column grid: Chart area | DOM Ladder (280px) | Intelligence Rail (260px)
+- All fixture-fed from dom-mock-state.ts
+- No detector imports in page component
+- NQ-only heading displayed
+- Integrates DOMLadder + IntelligenceRail components

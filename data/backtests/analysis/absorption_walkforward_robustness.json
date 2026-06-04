@@ -1,0 +1,576 @@
+{
+  "inputs": {
+    "events_csv": "/mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv",
+    "telegram_json": "/mnt/c/Users/Tea/DEEP6/data/telegram_levels/raw_nq.json",
+    "absorption_rows": 901,
+    "range_cutoffs": {
+      "q1": 10.5,
+      "q2": 15.75,
+      "q3": 24.25
+    },
+    "type_b_strength_overlap": 16,
+    "telegram": {
+      "total_nq_absorption_alerts": 3267,
+      "period_counts": {
+        "P1": 896,
+        "P2": 1047,
+        "P3": 779
+      }
+    }
+  },
+  "findings": [
+    {
+      "label": "1. TYPE_B absorption",
+      "kind": "single",
+      "full": {
+        "n": 45,
+        "win_rate": 0.5777777777777777,
+        "avg_ticks": 162.82222222222222,
+        "median_ticks": 24.0
+      },
+      "periods": {
+        "P1": {
+          "n": 18,
+          "win_rate": 0.3888888888888889,
+          "avg_ticks": 94.88888888888889,
+          "median_ticks": -20.5
+        },
+        "P2": {
+          "n": 12,
+          "win_rate": 0.75,
+          "avg_ticks": 405.3333333333333,
+          "median_ticks": 32.0
+        },
+        "P3": {
+          "n": 15,
+          "win_rate": 0.6666666666666666,
+          "avg_ticks": 50.333333333333336,
+          "median_ticks": 60.0
+        }
+      },
+      "halves": {
+        "P1": [
+          {
+            "n": 9,
+            "win_rate": 0.3333333333333333,
+            "avg_ticks": -177.0,
+            "median_ticks": -53.0,
+            "label": "H1"
+          },
+          {
+            "n": 9,
+            "win_rate": 0.4444444444444444,
+            "avg_ticks": 366.77777777777777,
+            "median_ticks": -4.0,
+            "label": "H2"
+          }
+        ],
+        "P2": [
+          {
+            "n": 6,
+            "win_rate": 0.8333333333333334,
+            "avg_ticks": 505.5,
+            "median_ticks": 64.0,
+            "label": "H1"
+          },
+          {
+            "n": 6,
+            "win_rate": 0.6666666666666666,
+            "avg_ticks": 305.1666666666667,
+            "median_ticks": 25.5,
+            "label": "H2"
+          }
+        ],
+        "P3": [
+          {
+            "n": 7,
+            "win_rate": 0.8571428571428571,
+            "avg_ticks": 153.42857142857142,
+            "median_ticks": 76.0,
+            "label": "H1"
+          },
+          {
+            "n": 8,
+            "win_rate": 0.5,
+            "avg_ticks": -39.875,
+            "median_ticks": -4.5,
+            "label": "H2"
+          }
+        ]
+      },
+      "trimmed": {
+        "n": 41,
+        "win_rate": 0.5853658536585366,
+        "avg_ticks": 102.39024390243902,
+        "median_ticks": 24.0,
+        "trim_each_side": 2
+      },
+      "flipped": {
+        "n": 45,
+        "win_rate": 0.4222222222222222,
+        "avg_ticks": -162.82222222222222,
+        "median_ticks": -24.0
+      },
+      "verdict": "FAIL",
+      "reasons": [
+        "P1: WR=38.9%, Avg=+94.89t",
+        "random half-split instability"
+      ]
+    },
+    {
+      "label": "2. Strength >= 0.20",
+      "kind": "single",
+      "full": {
+        "n": 45,
+        "win_rate": 0.5333333333333333,
+        "avg_ticks": 151.3111111111111,
+        "median_ticks": 8.0
+      },
+      "periods": {
+        "P1": {
+          "n": 25,
+          "win_rate": 0.4,
+          "avg_ticks": 52.68,
+          "median_ticks": -13.0
+        },
+        "P2": {
+          "n": 7,
+          "win_rate": 0.8571428571428571,
+          "avg_ticks": 253.14285714285714,
+          "median_ticks": 141.0
+        },
+        "P3": {
+          "n": 13,
+          "win_rate": 0.6153846153846154,
+          "avg_ticks": 286.15384615384613,
+          "median_ticks": 60.0
+        }
+      },
+      "halves": {
+        "P1": [
+          {
+            "n": 12,
+            "win_rate": 0.16666666666666666,
+            "avg_ticks": -127.08333333333333,
+            "median_ticks": -50.5,
+            "label": "H1"
+          },
+          {
+            "n": 13,
+            "win_rate": 0.6153846153846154,
+            "avg_ticks": 218.6153846153846,
+            "median_ticks": 82.0,
+            "label": "H2"
+          }
+        ],
+        "P2": [
+          {
+            "n": 3,
+            "win_rate": 0.6666666666666666,
+            "avg_ticks": 57.0,
+            "median_ticks": 92.0,
+            "label": "H1"
+          },
+          {
+            "n": 4,
+            "win_rate": 1.0,
+            "avg_ticks": 400.25,
+            "median_ticks": 501.0,
+            "label": "H2"
+          }
+        ],
+        "P3": [
+          {
+            "n": 6,
+            "win_rate": 0.8333333333333334,
+            "avg_ticks": 187.5,
+            "median_ticks": 62.5,
+            "label": "H1"
+          },
+          {
+            "n": 7,
+            "win_rate": 0.42857142857142855,
+            "avg_ticks": 370.7142857142857,
+            "median_ticks": -43.0,
+            "label": "H2"
+          }
+        ]
+      },
+      "trimmed": {
+        "n": 41,
+        "win_rate": 0.5365853658536586,
+        "avg_ticks": 117.36585365853658,
+        "median_ticks": 8.0,
+        "trim_each_side": 2
+      },
+      "flipped": {
+        "n": 45,
+        "win_rate": 0.4666666666666667,
+        "avg_ticks": -151.3111111111111,
+        "median_ticks": -8.0
+      },
+      "verdict": "FAIL",
+      "reasons": [
+        "P1: WR=40.0%, Avg=+52.68t",
+        "random half-split instability"
+      ]
+    },
+    {
+      "label": "3. ABS_04 in 15:30 ET half-hour bucket",
+      "kind": "single",
+      "full": {
+        "n": 29,
+        "win_rate": 0.6551724137931034,
+        "avg_ticks": 289.62068965517244,
+        "median_ticks": 92.0
+      },
+      "periods": {
+        "P1": {
+          "n": 16,
+          "win_rate": 0.5,
+          "avg_ticks": 165.0625,
+          "median_ticks": 7.0
+        },
+        "P2": {
+          "n": 5,
+          "win_rate": 1.0,
+          "avg_ticks": 365.8,
+          "median_ticks": 450.0
+        },
+        "P3": {
+          "n": 8,
+          "win_rate": 0.75,
+          "avg_ticks": 491.125,
+          "median_ticks": 480.5
+        }
+      },
+      "halves": {
+        "P1": [
+          {
+            "n": 8,
+            "win_rate": 0.5,
+            "avg_ticks": 212.25,
+            "median_ticks": 7.0,
+            "label": "H1"
+          },
+          {
+            "n": 8,
+            "win_rate": 0.5,
+            "avg_ticks": 117.875,
+            "median_ticks": 21.0,
+            "label": "H2"
+          }
+        ],
+        "P2": [
+          {
+            "n": 2,
+            "win_rate": 1.0,
+            "avg_ticks": 346.5,
+            "median_ticks": 346.5,
+            "label": "H1"
+          },
+          {
+            "n": 3,
+            "win_rate": 1.0,
+            "avg_ticks": 378.6666666666667,
+            "median_ticks": 450.0,
+            "label": "H2"
+          }
+        ],
+        "P3": [
+          {
+            "n": 4,
+            "win_rate": 0.75,
+            "avg_ticks": 210.5,
+            "median_ticks": 138.5,
+            "label": "H1"
+          },
+          {
+            "n": 4,
+            "win_rate": 0.75,
+            "avg_ticks": 771.75,
+            "median_ticks": 967.5,
+            "label": "H2"
+          }
+        ]
+      },
+      "trimmed": {
+        "n": 27,
+        "win_rate": 0.6666666666666666,
+        "avg_ticks": 237.96296296296296,
+        "median_ticks": 92.0,
+        "trim_each_side": 1
+      },
+      "flipped": {
+        "n": 29,
+        "win_rate": 0.3448275862068966,
+        "avg_ticks": -289.62068965517244,
+        "median_ticks": -92.0
+      },
+      "verdict": "FAIL",
+      "reasons": [
+        "P1: WR=50.0%, Avg=+165.06t"
+      ]
+    },
+    {
+      "label": "4. Tight bar range (Q1/Q2) vs wide (Q3/Q4)",
+      "kind": "comparison",
+      "full": {
+        "target": {
+          "n": 457,
+          "win_rate": 0.49452954048140046,
+          "avg_ticks": 22.00656455142232,
+          "median_ticks": 0.0
+        },
+        "compare": {
+          "n": 444,
+          "win_rate": 0.43018018018018017,
+          "avg_ticks": -29.22747747747748,
+          "median_ticks": -16.5
+        }
+      },
+      "periods": {
+        "P1": {
+          "target": {
+            "n": 165,
+            "win_rate": 0.509090909090909,
+            "avg_ticks": 23.78181818181818,
+            "median_ticks": 3.0
+          },
+          "compare": {
+            "n": 180,
+            "win_rate": 0.3888888888888889,
+            "avg_ticks": -65.8,
+            "median_ticks": -24.0
+          }
+        },
+        "P2": {
+          "target": {
+            "n": 191,
+            "win_rate": 0.4607329842931937,
+            "avg_ticks": 1.712041884816754,
+            "median_ticks": -4.0
+          },
+          "compare": {
+            "n": 125,
+            "win_rate": 0.52,
+            "avg_ticks": 35.184,
+            "median_ticks": 15.0
+          }
+        },
+        "P3": {
+          "target": {
+            "n": 101,
+            "win_rate": 0.5346534653465347,
+            "avg_ticks": 57.48514851485149,
+            "median_ticks": 6.0
+          },
+          "compare": {
+            "n": 139,
+            "win_rate": 0.4028776978417266,
+            "avg_ticks": -39.79136690647482,
+            "median_ticks": -18.0
+          }
+        }
+      },
+      "halves": {
+        "P1": [
+          {
+            "n": 82,
+            "win_rate": 0.47560975609756095,
+            "avg_ticks": 32.5,
+            "median_ticks": -2.5,
+            "label": "H1"
+          },
+          {
+            "n": 83,
+            "win_rate": 0.5421686746987951,
+            "avg_ticks": 15.168674698795181,
+            "median_ticks": 6.0,
+            "label": "H2"
+          }
+        ],
+        "P2": [
+          {
+            "n": 95,
+            "win_rate": 0.47368421052631576,
+            "avg_ticks": 2.305263157894737,
+            "median_ticks": -4.0,
+            "label": "H1"
+          },
+          {
+            "n": 96,
+            "win_rate": 0.4479166666666667,
+            "avg_ticks": 1.125,
+            "median_ticks": -3.0,
+            "label": "H2"
+          }
+        ],
+        "P3": [
+          {
+            "n": 50,
+            "win_rate": 0.56,
+            "avg_ticks": 82.04,
+            "median_ticks": 7.0,
+            "label": "H1"
+          },
+          {
+            "n": 51,
+            "win_rate": 0.5098039215686274,
+            "avg_ticks": 33.411764705882355,
+            "median_ticks": 1.0,
+            "label": "H2"
+          }
+        ]
+      },
+      "trimmed": {
+        "n": 413,
+        "win_rate": 0.4939467312348668,
+        "avg_ticks": 2.6803874092009687,
+        "median_ticks": 0.0,
+        "trim_each_side": 22
+      },
+      "flipped": {
+        "n": 457,
+        "win_rate": 0.4989059080962801,
+        "avg_ticks": -22.00656455142232,
+        "median_ticks": 0.0
+      },
+      "verdict": "FAIL",
+      "reasons": [
+        "P2: target WR/Avg 46.1%/+1.71t vs comparator 52.0%/+35.18t"
+      ]
+    },
+    {
+      "label": "5. Clustering: >=3 prior absorptions in 30 bars",
+      "kind": "comparison",
+      "full": {
+        "target": {
+          "n": 37,
+          "win_rate": 0.5945945945945946,
+          "avg_ticks": 79.02702702702703,
+          "median_ticks": 19.0
+        },
+        "compare": {
+          "n": 864,
+          "win_rate": 0.45717592592592593,
+          "avg_ticks": -6.763888888888889,
+          "median_ticks": -7.0
+        }
+      },
+      "periods": {
+        "P1": {
+          "target": {
+            "n": 9,
+            "win_rate": 0.4444444444444444,
+            "avg_ticks": -2.3333333333333335,
+            "median_ticks": -12.0
+          },
+          "compare": {
+            "n": 336,
+            "win_rate": 0.44642857142857145,
+            "avg_ticks": -23.508928571428573,
+            "median_ticks": -9.0
+          }
+        },
+        "P2": {
+          "target": {
+            "n": 14,
+            "win_rate": 0.7142857142857143,
+            "avg_ticks": 279.2142857142857,
+            "median_ticks": 135.5
+          },
+          "compare": {
+            "n": 302,
+            "win_rate": 0.4735099337748344,
+            "avg_ticks": 2.7019867549668874,
+            "median_ticks": -3.5
+          }
+        },
+        "P3": {
+          "target": {
+            "n": 14,
+            "win_rate": 0.5714285714285714,
+            "avg_ticks": -68.85714285714286,
+            "median_ticks": 8.5
+          },
+          "compare": {
+            "n": 226,
+            "win_rate": 0.45132743362831856,
+            "avg_ticks": 5.482300884955753,
+            "median_ticks": -11.0
+          }
+        }
+      },
+      "halves": {
+        "P1": [
+          {
+            "n": 4,
+            "win_rate": 0.25,
+            "avg_ticks": -22.25,
+            "median_ticks": -35.0,
+            "label": "H1"
+          },
+          {
+            "n": 5,
+            "win_rate": 0.6,
+            "avg_ticks": 13.6,
+            "median_ticks": 5.0,
+            "label": "H2"
+          }
+        ],
+        "P2": [
+          {
+            "n": 7,
+            "win_rate": 0.7142857142857143,
+            "avg_ticks": 289.7142857142857,
+            "median_ticks": 118.0,
+            "label": "H1"
+          },
+          {
+            "n": 7,
+            "win_rate": 0.7142857142857143,
+            "avg_ticks": 268.7142857142857,
+            "median_ticks": 153.0,
+            "label": "H2"
+          }
+        ],
+        "P3": [
+          {
+            "n": 7,
+            "win_rate": 0.42857142857142855,
+            "avg_ticks": -91.85714285714286,
+            "median_ticks": -10.0,
+            "label": "H1"
+          },
+          {
+            "n": 7,
+            "win_rate": 0.7142857142857143,
+            "avg_ticks": -45.857142857142854,
+            "median_ticks": 19.0,
+            "label": "H2"
+          }
+        ]
+      },
+      "trimmed": {
+        "n": 35,
+        "win_rate": 0.6,
+        "avg_ticks": 54.05714285714286,
+        "median_ticks": 19.0,
+        "trim_each_side": 1
+      },
+      "flipped": {
+        "n": 37,
+        "win_rate": 0.40540540540540543,
+        "avg_ticks": -79.02702702702703,
+        "median_ticks": -19.0
+      },
+      "verdict": "FAIL",
+      "reasons": [
+        "P1: target WR/Avg 44.4%/-2.33t vs comparator 44.6%/-23.51t",
+        "P3: target WR/Avg 57.1%/-68.86t vs comparator 45.1%/+5.48t",
+        "random half-split instability"
+      ]
+    }
+  ]
+}

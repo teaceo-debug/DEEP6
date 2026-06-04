@@ -1,0 +1,56 @@
+{
+  "name": "composite_auction_multiple_signals",
+  "description": "Multiple auction signals: AUCT_01 + AUCT_02 + AUCT_05. Single-print + completed auction + sweep all at bar high — strong bearish reversal signal.",
+  "bar": {
+    "open": 21500.0,
+    "high": 21528.0,
+    "low": 21498.0,
+    "close": 21502.0,
+    "delta": 50,
+    "total_volume": 1800,
+    "bid_volumes": {
+      "21498.0": 100,
+      "21500.0": 200,
+      "21505.0": 250,
+      "21510.0": 150
+    },
+    "ask_volumes": {
+      "21500.0": 150,
+      "21505.0": 200,
+      "21510.0": 150,
+      "21515.0": 100,
+      "21520.0": 50,
+      "21524.0": 20,
+      "21526.0": 10,
+      "21528.0": 3
+    },
+    "poc_price": 21505.0,
+    "poc_volume": 450,
+    "vah": 21512.0,
+    "val": 21500.0,
+    "cvd": 300.0,
+    "bar_index": 55,
+    "timestamp": "2026-05-13T10:40:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 12.0,
+    "cvd": 300.0,
+    "vah": 21512.0,
+    "val": 21500.0,
+    "poc": 21505.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0
+  },
+  "expected_signals": [
+    {"signal_id": "AUCT_01", "direction": "BULLISH", "strength_min": 0.25, "strength_max": 0.45},
+    {"signal_id": "AUCT_02", "direction": "BEARISH", "strength_min": 0.25, "strength_max": 0.45},
+    {"signal_id": "AUCT_05", "direction": "BEARISH", "strength_min": 0.30, "strength_max": 0.50}
+  ],
+  "expected_signal": {
+    "signal_id": "AUCT_02",
+    "direction": "BEARISH",
+    "strength_min": 0.25,
+    "strength_max": 0.45
+  }
+}

@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NQ ATLAS</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d1117;--card:#161b22;--border:#30363d;
+  --green:#22c55e;--red:#ef4444;--neutral:#8b949e;
+  --yellow:#f59e0b;--text:#e6edf3;--text2:#8b949e;
+  --accent:#388bfd;
+  --radius:8px;
+  --space-xs:4px;--space-sm:8px;--space-md:16px;--space-lg:24px;--space-xl:32px;--space-2xl:48px;
+}
+html{font-size:16px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'SF Mono','Cascadia Code','Fira Code','JetBrains Mono',ui-monospace,monospace;
+  line-height:1.5;min-height:100vh;
+}
+
+/* ── HEADER ── */
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:var(--space-md) var(--space-lg);
+  border-bottom:1px solid var(--border);
+  background:var(--card);
+  position:sticky;top:0;z-index:100;
+}
+.header-left{display:flex;align-items:center;gap:var(--space-sm)}
+.header-logo{font-size:1.125rem;font-weight:700;letter-spacing:.04em;color:var(--text)}
+.header-right{display:flex;align-items:center;gap:var(--space-md);font-size:.8125rem;color:var(--text2)}
+
+.connection-status{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:2px var(--space-sm);border-radius:20px;
+  font-size:.75rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+}
+.connection-status .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.connection-status.live .dot{background:var(--green);box-shadow:0 0 6px var(--green)}
+.connection-status.polling .dot{background:var(--yellow);box-shadow:0 0 6px var(--yellow)}
+.connection-status.error .dot{background:var(--red);box-shadow:0 0 6px var(--red)}
+.connection-status.live{color:var(--green)}
+.connection-status.polling{color:var(--yellow)}
+.connection-status.error{color:var(--red)}
+
+/* ── DEGRADED BANNER ── */
+.degraded-banner{
+  display:none;
+  background:rgba(245,158,11,.12);border-bottom:1px solid rgba(245,158,11,.3);
+  color:var(--yellow);text-align:center;
+  padding:var(--space-sm) var(--space-md);font-size:.8125rem;font-weight:600;
+}
+
+/* ── MARKET CLOSED BANNER ── */
+.market-closed-banner{
+  display:none;
+  background:rgba(139,148,158,.08);border-bottom:1px solid var(--border);
+  color:var(--text2);text-align:center;
+  padding:var(--space-sm) var(--space-md);font-size:.8125rem;font-weight:600;
+}
+
+/* ── MAIN ── */
+.main{max-width:1200px;margin:0 auto;padding:var(--space-lg)}
+
+/* ── HERO ── */
+.hero{text-align:center;padding:var(--space-2xl) 0 var(--space-lg)}
+
+.bias-direction{
+  font-size:clamp(3rem,8vw,5.5rem);font-weight:900;letter-spacing:.08em;
+  line-height:1.1;text-transform:uppercase;
+  text-shadow:0 0 40px rgba(0,0,0,.5);
+  transition:color .3s ease;
+}
+.bias-direction.bullish{color:var(--green)}
+.bias-direction.bearish{color:var(--red)}
+.bias-direction.neutral{color:var(--neutral)}
+
+/* ── CONVICTION BAR ── */
+.conviction-row{
+  display:flex;align-items:center;justify-content:center;
+  gap:var(--space-md);margin-top:var(--space-lg);
+}
+.conviction-label{font-size:.75rem;color:var(--text2);text-transform:uppercase;letter-spacing:.1em;font-weight:600}
+.conviction-bar{
+  width:min(400px,60vw);height:12px;
+  background:var(--border);border-radius:6px;overflow:hidden;
+  position:relative;
+}
+.conviction-fill{
+  height:100%;border-radius:6px;
+  transition:width .5s cubic-bezier(.4,0,.2,1),background .3s ease;
+}
+.conviction-fill.bullish{background:linear-gradient(90deg,#166534,var(--green))}
+.conviction-fill.bearish{background:linear-gradient(90deg,#991b1b,var(--red))}
+.conviction-fill.neutral{background:linear-gradient(90deg,#4b5563,var(--neutral))}
+.conviction-value{font-size:.875rem;color:var(--text2);font-weight:600;min-width:60px}
+
+/* ── NQ LEVELS ── */
+.nq-levels{
+  display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
+  gap:var(--space-sm) var(--space-lg);
+  margin-top:var(--space-lg);
+  font-size:.8125rem;color:var(--text2);
+}
+.nq-levels .level{display:flex;align-items:center;gap:6px}
+.nq-levels .level-label{color:var(--text2);font-weight:500}
+.nq-levels .level-value{color:var(--text);font-weight:700}
+.nq-levels .sep{color:var(--border);user-select:none}
+
+/* ── NARRATIVE ── */
+.ai-narrative{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:var(--space-md) var(--space-lg);
+  margin-top:var(--space-lg);
+  position:relative;
+}
+.ai-narrative::before{
+  content:'\201C';position:absolute;top:-8px;left:var(--space-md);
+  font-size:2.5rem;color:var(--accent);opacity:.5;line-height:1;
+}
+.narrative-text{
+  font-size:.875rem;color:var(--text2);line-height:1.7;
+  font-style:italic;padding-left:var(--space-md);
+}
+
+/* ── ANALYTICS GRID ── */
+.analytics-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-md);
+  margin-top:var(--space-lg);
+}
+
+.analytics-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:var(--space-md);
+}
+.card-header{
+  font-size:.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;
+  color:var(--accent);margin-bottom:var(--space-md);
+  padding-bottom:var(--space-sm);border-bottom:1px solid var(--border);
+}
+.card-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:var(--space-xs) 0;font-size:.8125rem;
+}
+.card-row .label{color:var(--text2)}
+.card-row .value{font-weight:600;color:var(--text);text-align:right}
+.card-row .value.positive{color:var(--green)}
+.card-row .value.negative{color:var(--red)}
+.card-row .value.buy{color:var(--green)}
+.card-row .value.sell{color:var(--red)}
+
+.direction-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  font-weight:700;font-size:.75rem;
+}
+.direction-badge.bullish{color:var(--green)}
+.direction-badge.bearish{color:var(--red)}
+.direction-badge.neutral{color:var(--neutral)}
+
+/* ── RISK FLAGS ── */
+.risk-section{
+  margin-top:var(--space-md);
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:var(--space-sm) var(--space-md);
+  font-size:.8125rem;
+}
+.risk-flags{display:flex;flex-wrap:wrap;gap:var(--space-sm);align-items:center}
+.risk-flags .flag{
+  background:rgba(239,68,68,.12);color:var(--red);
+  padding:2px var(--space-sm);border-radius:4px;font-size:.75rem;font-weight:600;
+}
+.risk-flags .no-flags{color:var(--text2)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .analytics-grid{grid-template-columns:1fr}
+  .header{flex-direction:column;gap:var(--space-sm);text-align:center}
+  .hero{padding:var(--space-lg) 0 var(--space-md)}
+  .nq-levels{flex-direction:column;gap:var(--space-sm)}
+  .nq-levels .sep{display:none}
+  .main{padding:var(--space-md)}
+  .conviction-row{flex-direction:column;gap:var(--space-sm)}
+}
+@media(min-width:769px) and (max-width:1024px){
+  .analytics-grid{grid-template-columns:1fr 1fr}
+  .analytics-card:last-child{grid-column:1/-1}
+}
+
+/* ── PULSE ANIMATION ── */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.connection-status.live .dot{animation:pulse 2s ease-in-out infinite}
+
+/* ── LOADING SKELETON ── */
+.skeleton{
+  background:linear-gradient(90deg,var(--border) 25%,#21262d 50%,var(--border) 75%);
+  background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:4px;
+}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-left">
+    <span class="header-logo">NQ ATLAS</span>
+  </div>
+  <div class="header-right">
+    <span class="connection-status error">
+      <span class="dot"></span>
+      <span class="status-text">CONNECTING</span>
+    </span>
+    <span class="last-update">Last: --</span>
+  </div>
+</header>
+
+<!-- BANNERS -->
+<div class="degraded-banner">Data degraded — one or more feeds unavailable</div>
+<div class="market-closed-banner">Market closed — showing last session data</div>
+
+<main class="main">
+  <!-- HERO -->
+  <section class="hero">
+    <div class="bias-direction neutral">---</div>
+    <div class="conviction-row">
+      <span class="conviction-label">Conviction</span>
+      <div class="conviction-bar">
+        <div class="conviction-fill neutral" style="width:0%"></div>
+      </div>
+      <span class="conviction-value">--/100</span>
+    </div>
+    <div class="nq-levels">
+      <span class="level"><span class="level-label">GEX Flip:</span> <span class="level-value" data-level="gex_flip">--</span></span>
+      <span class="sep">&bull;</span>
+      <span class="level"><span class="level-label">Call Wall:</span> <span class="level-value" data-level="call_wall">--</span></span>
+      <span class="sep">&bull;</span>
+      <span class="level"><span class="level-label">Put Wall:</span> <span class="level-value" data-level="put_wall">--</span></span>
+    </div>
+  </section>
+
+  <!-- NARRATIVE -->
+  <section class="ai-narrative">
+    <div class="narrative-text">Waiting for data&hellip;</div>
+  </section>
+
+  <!-- ANALYTICS GRID -->
+  <div class="analytics-grid">
+    <!-- GEX -->
+    <div class="analytics-card" id="gex-card">
+      <div class="card-header">GEX</div>
+      <div class="card-row"><span class="label">Net GEX</span><span class="value" id="gex-net">--</span></div>
+      <div class="card-row"><span class="label">Regime</span><span class="value" id="gex-regime">--</span></div>
+      <div class="card-row"><span class="label">Flip Level</span><span class="value" id="gex-flip">--</span></div>
+      <div class="card-row"><span class="label">Call Wall</span><span class="value" id="gex-cw">--</span></div>
+      <div class="card-row"><span class="label">Put Wall</span><span class="value" id="gex-pw">--</span></div>
+    </div>
+    <!-- VANNA / CHARM -->
+    <div class="analytics-card" id="vc-card">
+      <div class="card-header">Vanna / Charm</div>
+      <div class="card-row"><span class="label">Vanna</span><span class="value" id="vc-vanna">--</span></div>
+      <div class="card-row"><span class="label">Charm</span><span class="value" id="vc-charm">--</span></div>
+      <div class="card-row"><span class="label">Dealer Hedge</span><span class="value" id="vc-dealer">--</span></div>
+    </div>
+    <!-- FLOW -->
+    <div class="analytics-card" id="flow-card">
+      <div class="card-header">Flow</div>
+      <div class="card-row"><span class="label">5m Premium</span><span class="value" id="flow-5m">--</span></div>
+      <div class="card-row"><span class="label">15m Premium</span><span class="value" id="flow-15m">--</span></div>
+      <div class="card-row"><span class="label">Z-Score</span><span class="value" id="flow-z">--</span></div>
+      <div class="card-row"><span class="label">Direction</span><span class="value" id="flow-dir">--</span></div>
+    </div>
+  </div>
+
+  <!-- RISK FLAGS -->
+  <section class="risk-section">
+    <div class="risk-flags">
+      <span class="no-flags">No risk flags</span>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ── FORMAT HELPERS ── */
+  function fmtBillions(val){
+    if(val===null||val===undefined)return'N/A';
+    var b=val/1e9;return(b>=0?'+':'')+b.toFixed(2)+'B';
+  }
+  function fmtMillions(val){
+    if(val===null||val===undefined)return'N/A';
+    var m=val/1e6;return(m>=0?'+':'')+m.toFixed(1)+'M';
+  }
+  function fmtNQ(val){
+    if(val===null||val===undefined)return'N/A';
+    return val.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+  }
+  function signClass(val){return val>=0?'positive':'negative'}
+
+  /* ── DOM REFS ── */
+  var $=function(s){return document.querySelector(s)};
+  var biasDir=$('.bias-direction');
+  var convFill=$('.conviction-fill');
+  var convVal=$('.conviction-value');
+  var narrative=$('.narrative-text');
+  var lastUpdate=$('.last-update');
+  var connStatus=$('.connection-status');
+  var statusText=$('.connection-status .status-text');
+  var degradedBanner=$('.degraded-banner');
+  var closedBanner=$('.market-closed-banner');
+
+  /* ── CONNECTION STATUS ── */
+  function setConnectionStatus(state){
+    connStatus.className='connection-status '+state;
+    var labels={live:'LIVE',polling:'POLLING',error:'DISCONNECTED',connecting:'CONNECTING'};
+    statusText.textContent=labels[state]||state.toUpperCase();
+  }
+
+  /* ── LEVEL FORMATTING ── */
+  function formatLevels(levels){
+    if(!levels)return'';
+    var items=[
+      {label:'GEX Flip',key:'gex_flip'},
+      {label:'Call Wall',key:'call_wall'},
+      {label:'Put Wall',key:'put_wall'}
+    ];
+    return items.map(function(it,i){
+      var val=levels[it.key];
+      var html='<span class="level"><span class="level-label">'+it.label+':</span> <span class="level-value" data-level="'+it.key+'">'+fmtNQ(val)+'</span></span>';
+      if(i<items.length-1)html+='<span class="sep">&bull;</span>';
+      return html;
+    }).join('');
+  }
+
+  /* ── UPDATE GEX CARD ── */
+  function updateGEXCard(gex){
+    var net=$('#gex-net');net.textContent='$'+fmtBillions(gex.net_gex);net.className='value '+signClass(gex.net_gex);
+    var regime=$('#gex-regime');
+    var sign=gex.regime_sign;
+    if(sign>0){regime.textContent='\u2191 +\u03B3';regime.className='value positive'}
+    else if(sign<0){regime.textContent='\u2193 -\u03B3';regime.className='value negative'}
+    else{regime.textContent='\u2194 0\u03B3';regime.className='value'}
+    $('#gex-flip').textContent=fmtNQ(gex.flip_level);
+    $('#gex-cw').textContent=fmtNQ(gex.call_wall);
+    $('#gex-pw').textContent=fmtNQ(gex.put_wall);
+  }
+
+  /* ── UPDATE VANNA/CHARM CARD ── */
+  function updateVCCard(vc){
+    var v=$('#vc-vanna');v.textContent='$'+fmtBillions(vc.net_vanna_exposure);v.className='value '+signClass(vc.net_vanna_exposure);
+    var c=$('#vc-charm');c.textContent='$'+fmtBillions(vc.net_charm_exposure);c.className='value '+signClass(vc.net_charm_exposure);
+    var d=$('#vc-dealer');
+    var dir=vc.dealer_hedge_direction;
+    if(dir>0){d.innerHTML='<span class="direction-badge bullish">\u25CF BUY</span>';d.className='value buy'}
+    else if(dir<0){d.innerHTML='<span class="direction-badge bearish">\u25CF SELL</span>';d.className='value sell'}
+    else{d.innerHTML='<span class="direction-badge neutral">\u25CF FLAT</span>';d.className='value'}
+  }
+
+  /* ── UPDATE FLOW CARD ── */
+  function updateFlowCard(flow){
+    var f5=$('#flow-5m');f5.textContent='$'+fmtMillions(flow.signed_premium_5m);f5.className='value '+signClass(flow.signed_premium_5m);
+    var f15=$('#flow-15m');f15.textContent='$'+fmtMillions(flow.signed_premium_15m);f15.className='value '+signClass(flow.signed_premium_15m);
+    var z=$('#flow-z');z.textContent=flow.z_score!==null&&flow.z_score!==undefined?flow.z_score.toFixed(2):'N/A';z.className='value '+signClass(flow.z_score);
+    var fd=$('#flow-dir');
+    var nd=flow.net_direction;
+    if(nd>0){fd.innerHTML='<span class="direction-badge bullish">\u25CF BULLISH</span>';fd.className='value'}
+    else if(nd<0){fd.innerHTML='<span class="direction-badge bearish">\u25CF BEARISH</span>';fd.className='value'}
+    else{fd.innerHTML='<span class="direction-badge neutral">\u25CF NEUTRAL</span>';fd.className='value'}
+  }
+
+  /* ── STALE CHECK ── */
+  function checkStale(updatedAt){
+    if(!updatedAt)return;
+    var diff=Date.now()-new Date(updatedAt).getTime();
+    closedBanner.style.display=diff>30*60*1000?'block':'none';
+  }
+
+  /* ── MAIN UPDATE ── */
+  function updateDashboard(data){
+    var bias=data.bias||data;
+
+    if(bias.direction){
+      var dir=bias.direction.toUpperCase();
+      biasDir.textContent=dir;
+      biasDir.className='bias-direction '+dir.toLowerCase();
+
+      var conv=bias.conviction||0;
+      convVal.textContent=conv+'/100';
+      convFill.style.width=conv+'%';
+      convFill.className='conviction-fill '+dir.toLowerCase();
+
+      narrative.textContent=bias.narrative||'';
+    }
+
+    var levels=bias.levels||{};
+    $('.nq-levels').innerHTML=formatLevels(levels);
+
+    if(data.gex)updateGEXCard(data.gex);
+    if(data.vanna_charm)updateVCCard(data.vanna_charm);
+    if(data.flow)updateFlowCard(data.flow);
+
+    var ts=bias.updated_at?new Date(bias.updated_at).toLocaleTimeString('en-US',{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',second:'2-digit'}):'--';
+    lastUpdate.textContent='Last: '+ts+' ET';
+
+    degradedBanner.style.display=(bias.degraded||data.degraded)?'block':'none';
+    checkStale(bias.updated_at);
+
+    var flags=bias.risk_flags||[];
+    $('.risk-flags').innerHTML=flags.length>0
+      ?flags.map(function(f){return'<span class="flag">'+f+'</span>'}).join('')
+      :'<span class="no-flags">No risk flags</span>';
+  }
+
+  /* ── SSE + POLLING ── */
+  var useSSE=true;
+  var evtSource;
+
+  function startSSE(){
+    try{
+      evtSource=new EventSource('/stream');
+      evtSource.onopen=function(){setConnectionStatus('live');useSSE=true};
+      evtSource.onmessage=function(e){
+        try{
+          var data=JSON.parse(e.data);
+          updateDashboard(data);
+          setConnectionStatus('live');
+        }catch(err){/* parse error */}
+      };
+      evtSource.onerror=function(){
+        useSSE=false;
+        if(evtSource)evtSource.close();
+        setConnectionStatus('polling');
+        setTimeout(startSSE,10000);
+      };
+    }catch(err){
+      useSSE=false;
+      setConnectionStatus('polling');
+    }
+  }
+
+  startSSE();
+
+  setInterval(function(){
+    if(useSSE)return;
+    Promise.all([
+      fetch('/bias').then(function(r){return r.json()}),
+      fetch('/state').then(function(r){return r.json()})
+    ]).then(function(results){
+      var merged=Object.assign({},results[1],{bias:results[0]});
+      updateDashboard(merged);
+      setConnectionStatus('polling');
+    }).catch(function(){
+      setConnectionStatus('error');
+    });
+  },1000);
+
+})();
+</script>
+</body>
+</html>

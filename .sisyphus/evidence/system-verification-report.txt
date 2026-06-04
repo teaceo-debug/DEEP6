@@ -1,0 +1,46 @@
+GEX Doctor System Verification Report
+Generated: 2026-06-01
+Workspace: C:\Users\Tea\DEEP6
+
+Component                    Status    Details
+─────────────────────────── ──────── ─────────────────────────────────────────────────────────────────────
+Backend health               ❌        Port 8780 not listening at final check. Earlier successful /state read showed full snapshot, but service is down now.
+Python tests                 ❌        105 passed / 1 failed. Failing test: gex_terminal/tests/test_analyzer.py::test_vanna_charm_alignment_boosts_confidence (expected +10 confidence boost; got 95 vs expected 87 from divergent 77).
+NT8 JSON freshness           ❌        File exists and fields are populated; direction_signal=FLAT. Age was 83s during verification and 188.5s on follow-up, over 30s threshold.
+Electron running             ✅        Electron processes detected. Example PID: 16828 (multiple electron processes active).
+Static export                ✅        Exists: C:\Users\Tea\DEEP6\gex_terminal\ui\out\index.html
+NT8 DLL compile time         ✅        Exists. Last write: 2026-06-01T15:34:39 (about 0.11 hours old when checked).
+Direction engine             ✅        DirectionEngine().compute(gex_regime='positive', flow_direction='bullish', dp_bias='bullish') -> LONG, confidence=80.
+FlashAlpha MCP client        ✅        FlashAlphaMCPClient instantiated successfully.
+UW MCP client                ✅        UWMCPClient instantiated successfully.
+Knowledge brains             ✅        _KNOWLEDGE_YAML=9478 chars; _DARK_POOL_BRAIN=9937 chars.
+Session learner              ✅        SessionLearner instantiated successfully; recall context returned str length 190.
+All engines                  ✅        7/7 instantiated: SignalGridEngine, DarkPoolLevelEngine, SwingEquilibriumEngine, GEXMagnetSelector, HMMRegimeGate, ConvictionScorer, PO3Gate.
+Level price range            ✅        Last live/bridge levels were in valid NQ range: gamma_flip 30069.34 below ~30210.91, call_wall 30540.72 above, put_wall 29017.8 below, dark pool levels 30631.0 and 30387.0 within 2000 pts.
+Direction signal live        ⚠️        Latest bridge file shows FLAT, confidence=6, reason="Weak long — stand aside". Earlier successful backend /state read also showed FLAT with low confidence.
+Narrative live               ❌        Earlier successful backend /state read showed narrative cached=true, cost_usd=0.0. Final live re-check unavailable because backend was down.
+
+Observed backend data before outage
+-----------------------------------
+- Earlier /state retrieval succeeded from Windows localhost.
+- Snapshot contained expected top-level fields: timestamp, bias, levels, dealer, flow, vanna_charm, zero_dte, dark_pool, institutional, narrative, sources, hmm_regime, conviction_grade, direction_signal, direction_confidence, primary_magnet, magnet_confidence, cost_today_usd.
+- Source health at that time was degraded because FlashAlpha quota was exhausted; Massive and Unusual Whales were OK.
+- Observed dealer regime: positive gamma.
+- Observed dark pool institutional bias: bullish.
+
+Remaining issues
+----------------
+1. Backend is currently down: localhost:8780 is not listening. This blocks final live state verification.
+2. FlashAlpha source was degraded due to daily quota exhaustion, reducing live data quality.
+3. NT8 bridge JSON is stale (>30s), suggesting the bridge/backend refresh loop is not updating reliably.
+4. Test suite is not clean: 1 failing analyzer test around vanna/charm confidence logic.
+5. Narrative path is only confirmed as cached from the last successful /state read; no fresh live confirmation was possible after backend went down.
+6. Minor text encoding artifact was previously observed in the backend direction reason output around the em dash.
+
+Recommended next actions
+------------------------
+1. Restart GEX Doctor backend/Electron sidecar and confirm port 8780 is listening.
+2. Re-run /state and /health immediately after restart to confirm stable live snapshot delivery.
+3. Fix the failing analyzer confidence expectation or the analyzer logic, then re-run pytest.
+4. Investigate why NT8 JSON stopped refreshing and why the bridge became stale.
+5. Address FlashAlpha quota exhaustion or add quota-aware degradation handling.

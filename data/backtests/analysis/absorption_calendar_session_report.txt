@@ -1,0 +1,108 @@
+ABSORPTION CALENDAR + SESSION-TYPE ANALYSIS
+================================================
+Absorption sample: N=901, WR=46.28%, AvgPnL=$-16.90, Range=2025-01-03..2026-04-24
+Best month: Dec (N=93, WR=53.76%)
+Worst month: Oct (N=42, WR=40.48%)
+Best month-bucket: opex_week (N=300, WR=48.67%)
+Ranging vs trending WR: trending_q4=46.60% / ranging_q1=43.84%
+Gap-day WR spread: gap_gt_50t=46.06% vs no_gap=51.35%
+
+1) Monthly seasonality
+----------------------
+month_name   N   WR%    Avg$    Med$
+       Jan 105 40.95   96.11  -85.70
+       Feb  80 50.00   69.36    1.80
+       Mar 152 43.42 -188.86 -140.70
+       Apr  94 47.87  -43.68  -38.20
+       May  62 46.77 -191.99  -15.70
+       Jun  92 44.57 -103.91  -55.70
+       Jul  46 45.65   89.73  -15.70
+       Aug  34 50.00  -59.82   16.80
+       Sep  63 46.03  -79.99  -30.70
+       Oct  42 40.48 -206.18  -70.70
+       Nov  38 50.00  173.12   -0.70
+       Dec  93 53.76  305.70   39.30
+
+2) Week-of-month / OpEx effect
+------------------------------
+month_bucket   N   WR%    Avg$   Med$
+  first_week 154 46.75   78.98 -23.20
+   mid_month 200 44.50 -258.45 -50.70
+   opex_week 300 48.67  100.30 -20.70
+  late_month 247 44.53  -23.45 -35.70
+
+3) Day-of-week
+--------------
+  weekday   N   WR%    Avg$   Med$
+   Monday 171 44.44  -53.39 -20.70
+  Tuesday 183 48.09   43.07 -15.70
+Wednesday 211 45.97 -182.15 -50.70
+ Thursday 185 47.03  164.71 -25.70
+   Friday 151 45.70  -39.87 -45.70
+
+3b) Day-of-week by quarter
+--------------------------
+Quarter   Weekday  N   WR%
+ 2025Q1    Monday 23 39.13
+ 2025Q1   Tuesday 29 55.17
+ 2025Q1 Wednesday 32 34.38
+ 2025Q1  Thursday 29 44.83
+ 2025Q1    Friday 27 40.74
+ 2025Q2    Monday 41 43.90
+ 2025Q2   Tuesday 43 44.19
+ 2025Q2 Wednesday 48 41.67
+ 2025Q2  Thursday 36 61.11
+ 2025Q2    Friday 37 40.54
+ 2025Q3    Monday 27 44.44
+ 2025Q3   Tuesday 32 59.38
+ 2025Q3 Wednesday 34 52.94
+ 2025Q3  Thursday 29 37.93
+ 2025Q3    Friday 21 33.33
+ 2025Q4    Monday 46 43.48
+ 2025Q4   Tuesday 43 44.19
+ 2025Q4 Wednesday 36 52.78
+ 2025Q4  Thursday 26 53.85
+ 2025Q4    Friday 22 63.64
+ 2026Q1    Monday 28 46.43
+ 2026Q1   Tuesday 28 42.86
+ 2026Q1 Wednesday 50 48.00
+ 2026Q1  Thursday 54 40.74
+ 2026Q1    Friday 37 48.65
+ 2026Q2    Monday  6 66.67
+ 2026Q2   Tuesday  8 37.50
+ 2026Q2 Wednesday 11 45.45
+ 2026Q2  Thursday 11 45.45
+ 2026Q2    Friday  7 57.14
+
+4) FOMC / post-FOMC
+-------------------
+     fomc_flag   N   WR%   Avg$    Med$
+      fomc_day  68 44.12 -55.92  -40.70
+day_after_fomc  57 47.37 -72.98 -150.70
+      non_fomc 776 46.39  -9.37  -30.70
+
+5) Contract rollover week
+-------------------------
+rollover_flag   N   WR%    Avg$   Med$
+rollover_week  71 46.48 -145.49 -40.70
+ non_rollover 830 46.27   -5.90 -30.70
+
+6) Trending vs ranging sessions
+-------------------------------
+trend_bucket   N   WR%   Avg$   Med$
+  ranging_q1 203 43.84 -18.43 -25.70
+ trending_q4 206 46.60 -24.12 -53.20
+
+7) Gap days
+-----------
+  gap_flag   N   WR%   Avg$   Med$
+gap_gt_50t 864 46.06 -25.75 -35.70
+    no_gap  37 51.35 189.57   4.30
+
+8) Volume profile shape
+-----------------------
+      profile_shape   N   WR%    Avg$   Med$
+                  P 273 41.03 -199.66 -50.70
+                  b 206 52.43   60.63  26.80
+                  D  95 51.58  264.19  29.30
+double_distribution 327 45.26    5.16 -45.70

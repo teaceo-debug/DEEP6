@@ -1,0 +1,31 @@
+Task 6: Institutional Dark Pool UI Panels
+==========================================
+Date: 2026-06-01
+Status: COMPLETE
+
+Files Created:
+  - gex_terminal/ui/components/InstitutionalHUD.tsx (new component)
+
+Files Modified:
+  - gex_terminal/ui/types/gex.ts — added 9 institutional interfaces + institutional? field on GEXTerminalSnapshot
+  - gex_terminal/ui/app/page.tsx — import InstitutionalHUD, render below DarkPoolPanel when snapshot.institutional exists
+  - gex_terminal/ui/app/globals.css — changed height→min-height, overflow:hidden→overflow-y:auto for scrolling
+  - gex_terminal/ui/public/mock-snapshot-bullish.json — added full institutional mock data
+
+Verification:
+  - LSP diagnostics: 0 errors on all 3 changed TS/TSX files
+  - npm run build: ✓ Compiled successfully, static export complete
+  - Route / : 5.76 kB, First Load JS 107 kB
+
+Component Features:
+  - Section header with box-drawing chars
+  - INST FLOW direction with bias coloring
+  - DP TODAY: print count, net premium, session bias
+  - MARKET TIDE: direction + bull/bear premium
+  - SIGNAL GRID: 10 rows in 2-column layout, color-coded BUY/SELL/HOLD/MIXED/NEUTRAL
+  - CONFLUENCE: X/10 BUY | X/10 SELL summary
+  - DP LEVELS: price, premium, prints, multiplier per level (SUPPORT=green, RESIST=red)
+  - SWING EQUILIBRIUM: price + period
+  - DP BIAS: overall bias with glow
+  - All using design system tokens (--terminal-green, --terminal-red, --terminal-amber, etc.)
+  - data-testid attributes on all key elements

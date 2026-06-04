@@ -1,0 +1,54 @@
+{
+  "name": "IMB_06_extreme_oversized_ratio",
+  "description": "Extreme oversized imbalance: ratio >= 10:1 ask/bid at a key level. Overwhelming directional aggression.",
+  "bar": {
+    "open": 21490.0,
+    "high": 21510.0,
+    "low": 21488.0,
+    "close": 21508.0,
+    "delta": 500,
+    "total_volume": 3200,
+    "bid_volumes": {
+      "21488.0": 30,
+      "21490.0": 40,
+      "21493.0": 50,
+      "21495.0": 80,
+      "21498.0": 100,
+      "21500.0": 150,
+      "21505.0": 200
+    },
+    "ask_volumes": {
+      "21490.0": 500,
+      "21493.0": 400,
+      "21495.0": 350,
+      "21498.0": 300,
+      "21500.0": 350,
+      "21505.0": 400,
+      "21508.0": 200,
+      "21510.0": 100
+    },
+    "poc_price": 21495.0,
+    "poc_volume": 430,
+    "vah": 21506.0,
+    "val": 21491.0,
+    "cvd": 550.0,
+    "bar_index": 36,
+    "timestamp": "2026-05-13T10:21:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 550.0,
+    "vah": 21506.0,
+    "val": 21491.0,
+    "poc": 21495.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0
+  },
+  "expected_signal": {
+    "signal_id": "IMB_06",
+    "direction": "BULLISH",
+    "strength_min": 0.45,
+    "strength_max": 0.65
+  }
+}

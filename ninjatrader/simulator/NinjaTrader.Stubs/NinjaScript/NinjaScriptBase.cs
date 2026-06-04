@@ -109,5 +109,9 @@ namespace NinjaTrader.NinjaScript
 
         // ── Helpers used by NinjaScript code ──
         public bool EqualsInput(ISeries<double> input) => input == Input;
+
+        // NT8 exposes CopyTo during cloning/optimization flows. The simulator only needs a no-op
+        // virtual so strategy overrides compile under NINJASCRIPT_SIM.
+        public virtual void CopyTo(NinjaScriptBase ninjaScript) { }
     }
 }

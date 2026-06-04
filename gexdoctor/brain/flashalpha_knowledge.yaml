@@ -1,0 +1,145 @@
+# FlashAlpha Exposure/Flow Interpretation Knowledge Base
+# Rebuilt from the GexBot orderflow concept onto FlashAlpha's data model.
+# Source of truth: flashalpha.com Lab API (exposure/* settled, flow/* live, flow/live bundle).
+#
+# KEY DIFFERENCE FROM GEXBOT: there is no per-order classification here. FlashAlpha
+# computes dealer exposure (GEX/DEX/VEX/CHEX) from open interest, then a "flow" layer
+# recomputes the same metrics on an OI-simulator's EFFECTIVE OI that moves intraday.
+# So every read here ties to a DEALER-HEDGING MECHANISM, not to "this order was a short put."
+#
+#   lookups[]   = deterministic. Agent reads, never infers.
+#   heuristics[]= contextual. Caveats are mandatory.
+#   modifiers[] = instrument + vol-regime overrides applied last.
+
+version: 1
+
+# ----------------------------------------------------------------------------
+# CONTROLLED VOCABULARY — exact terms, no synonyms
+# ----------------------------------------------------------------------------
+vocabulary:
+  gamma_regime:
+    positive_gex:
+      label: "long gamma"
+      mechanic: "dealers buy dips / sell rips to stay hedged -> DAMPENS vol"
+      behavior: "mean-reverting, range-bound; extremes get absorbed"
+    negative_gex:
+      label: "short gamma"
+      mechanic: "dealers hedge WITH the move -> AMPLIFIES vol"
+      behavior: "trending, volatile; breakouts extend"
+  gamma_flip:
+    def: "strike where net GEX crosses zero; the regime boundary + a common pivot"
+    rule: "price ABOVE flip = long-gamma side; price BELOW flip = short-gamma side"
+  walls:
+    call_wall: "high-GEX strike above price -> magnet/resistance/cap (esp. in long gamma)"
+    put_wall:  "high-GEX strike below price -> magnet/support/floor (esp. in long gamma)"
+  max_pain: "strike minimizing aggregate option value at expiry; pin target into expiry"
+  pin_risk: "0-100 score; high = price magnetizes to the magnet strike near expiry"
+  net_dex: "net dealer delta exposure; sign/shift = directional hedging pressure"
+  vex: "vanna exposure: how dealer delta moves as IV changes -> vol-driven hedge flows"
+  chex: "charm exposure: how dealer delta decays over time -> predictable EOD/OPEX drift"
+  flow_direction:                     # from flow_adjusted_dealer_risk.flow_direction
+    amplifying:  "today's flow pushed dealer GEX MORE extreme -> current regime intensifying"
+    dampening:   "flow is NEUTRALIZING the settled regime -> drifting toward neutral"
+    regime_flip: "positioning FLIPPED the GEX sign / crossed flip -> behavior change incoming"
+    neutral:     "no meaningful repositioning -> trust the settled picture"
+  settled_vs_flow:
+    settled: "morning OPRA OI; static all session; the anchor MMs reference at open"
+    flow:    "live recompute on effective OI; the real-time picture by mid-session"
+
+# ----------------------------------------------------------------------------
+# DETERMINISTIC LOOKUPS — exact-match, agent resolves directly
+# ----------------------------------------------------------------------------
+lookups:
+
+  # gamma_regime x flow_direction -> playbook (replaces GexBot's trade-type table)
+  regime_playbook:
+    - {gex: positive, flow: amplifying,  state: range_tightening, play: "long gamma intensifying -> tighter range, stronger pin; fade extremes toward flip/between walls"}
+    - {gex: positive, flow: dampening,   state: range_eroding,    play: "long gamma weakening -> range may break down; reduce mean-reversion conviction, watch transition"}
+    - {gex: negative, flow: amplifying,  state: trend_expanding,  play: "short gamma intensifying -> trend/vol expansion; respect momentum, widen stops, don't fade"}
+    - {gex: negative, flow: dampening,   state: trend_exhausting, play: "short gamma weakening -> vol may be topping, trend tiring; watch for stabilization"}
+    - {gex: any,      flow: regime_flip, state: regime_change,    play: "GEX sign flipped -> behavior is changing (range<->trend); drop prior-regime assumptions, trade the new side of the flip"}
+
+  # price location relative to flip + walls -> tactical zone
+  price_zone:
+    - {cond: "price > call_wall",                 zone: above_call_wall, read: "beyond the cap; long-gamma=stretched/likely rejected, short-gamma=breakout-chase risk"}
+    - {cond: "gamma_flip < price < call_wall",    zone: long_gamma_upper, read: "long-gamma zone, upper half -> mean-revert down toward flip, call wall caps"}
+    - {cond: "put_wall < price < gamma_flip",     zone: short_gamma_lower, read: "short-gamma zone -> trending/volatile, put wall is the next magnet below"}
+    - {cond: "price < put_wall",                  zone: below_put_wall,  read: "beneath the floor; long-gamma=stretched/likely bounced, short-gamma=breakdown-cascade risk"}
+
+  # flow_direction x current regime -> volatility expectation
+  vol_outlook:
+    - {flow: amplifying, gex: negative, vol: "EXPANDING -> expect larger ranges, faster moves"}
+    - {flow: amplifying, gex: positive, vol: "COMPRESSING harder -> tighter pin, smaller ranges"}
+    - {flow: dampening,  gex: negative, vol: "topping/normalizing -> range may return"}
+    - {flow: dampening,  gex: positive, vol: "loosening -> range may widen"}
+
+# ----------------------------------------------------------------------------
+# HEURISTICS — contextual, probabilistic. Caveats mandatory.
+# ----------------------------------------------------------------------------
+heuristics:
+
+  pin_into_expiry:
+    trigger: "live_pin_risk high (>~65) AND near expiry (0-1 DTE)"
+    meaning: "price likely magnetizes to the magnet/max_pain strike; range tightens into close"
+    caveat: "pin breaks on a genuine catalyst or in short-gamma regime; pin risk is a tendency, not a fence"
+
+  stale_anchor:
+    trigger: "abs(flow_gex_pct_shift) large (>~10-15%) OR many contracts_with_flow"
+    meaning: "positioning has moved materially since open -> the SETTLED picture is stale; weight the LIVE/flow values"
+    caveat: "scale trust by oi_delta_confidence; low confidence -> the simulator is guessing, lean back toward settled"
+
+  low_confidence:
+    trigger: "oi_delta_confidence low (e.g. <~0.3)"
+    meaning: "simulator's intraday OI adjustment is weak -> treat flow deltas as soft; defer to settled exposure"
+
+  flip_proximity:
+    trigger: "price within a small band of gamma_flip"
+    meaning: "regime is unstable here; small moves flip dealer hedging sign -> whippy, high-tension zone"
+    caveat: "this is a pivot, not a direction; wait for resolution above/below flip"
+
+  vanna_regime:
+    trigger: "read VEX sign alongside an IV move"
+    meaning: "vol DROP releases vanna-driven dealer buying (supportive); vol SPIKE forces vanna-driven selling"
+    caveat: "second-order; only material on real IV moves, strongest near large VEX concentrations"
+
+  charm_drift:
+    trigger: "into the last hour and into OPEX (esp. Thu/Fri)"
+    meaning: "charm bleeds dealer delta -> predictable hedging drift, reinforces pin toward max_pain"
+    caveat: "magnitude scales with time-to-expiry shrinking; biggest on expiration day"
+
+  dex_direction:
+    trigger: "net_dex sign + shift"
+    meaning: "net dealer delta tilt; large negative DEX shift = dealers getting shorter delta (selling pressure into hedges) and vice versa"
+    caveat: "DEX is positioning, not a price prediction; pair with regime before drawing a directional lean"
+
+# ----------------------------------------------------------------------------
+# MODIFIERS — instrument + vol regime, applied last
+# ----------------------------------------------------------------------------
+modifiers:
+  index_etf_SPX_SPY_QQQ_NDX:
+    note: "heavy, liquid, dealer-dominated chains -> GEX/flip/walls are reliable; pin + charm strong into OPEX"
+  single_name_equities:
+    note: "thinner OI, event-driven (earnings) -> walls/flip less reliable; a single block can swing flow metrics. Trust dealer-risk % shift less."
+  vix_regime:
+    low_vix_below_20: "long-gamma/dampening reads are higher-confidence; grind/pin base case"
+    high_vix_above_20: "short-gamma/amplifying dominates; trend & breakout reads weighted up, pin/mean-reversion weighted down"
+  cross_check:
+    note: "for index, the futures (ES/NQ) trade off the same SPX/NDX dealer positioning. Use the index bundle to frame the futures session; don't expect per-strike walls to map to futures ticks 1:1."
+
+# ----------------------------------------------------------------------------
+# ROUTINE — stateful workflow; each phase consumes prior output
+# ----------------------------------------------------------------------------
+routine:
+  pre_market:
+    - "Pull SETTLED exposure (/v1/exposure/gex + /levels): net GEX sign -> regime; gamma flip, call/put walls, max pain -> the map."
+    - "Note VIX/IV level -> sets confidence weighting for range vs trend reads."
+  open:
+    - "Pull flow live bundle: where is price vs flip and walls (price_zone)? what is flow_direction?"
+    - "regime x flow_direction -> regime_playbook state for the session."
+  intraday:
+    - "Re-poll bundle on each tick. Track flow_gex_pct_shift (stale_anchor) and oi_delta_confidence (low_confidence)."
+    - "Watch for flow_direction = regime_flip OR price crossing gamma_flip -> behavior change."
+    - "Locate price each tick via price_zone; derive mean-revert vs momentum stance."
+  into_close:
+    - "If near expiry: live_pin_risk + max_pain -> pin_into_expiry; charm_drift reinforces."
+    - "Large late flow_*_pct_shift with price divergence -> positioning-driven fade/continuation setup."

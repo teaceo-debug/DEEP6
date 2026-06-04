@@ -1,0 +1,32 @@
+{
+  "task": "T10 — parse_errors.py",
+  "file": ".claude/skills/nt8-build-verify/scripts/parse_errors.py",
+  "status": "PASS",
+  "tests": {
+    "test1_single_error_enrichment": {
+      "input": "[{\"file\":\"test.cs\",\"message\":\"type not found\",\"code\":\"CS0246\",\"line\":10,\"col\":5}]",
+      "result": "fixable_count=1, fix_recipe=fixes/CS0246.md, no warnings",
+      "pass": true
+    },
+    "test2_error_vs_warning_separation": {
+      "input": "[{\"file\":\"a.cs\",\"message\":\"type not found\",\"code\":\"CS0246\",\"line\":1,\"col\":1},{\"file\":\"b.cs\",\"message\":\"unused var\",\"code\":\"CS0168\",\"line\":5,\"col\":1}]",
+      "result": "CS0246 in errors (fixable=true), CS0168 in warnings array",
+      "pass": true
+    },
+    "test3_test_flag_with_cascades": {
+      "input": "--test (built-in sample: 2x CS0246 in test.cs + 1x CS0168 in b.cs)",
+      "result": "fixable_count=2, cascade_groups=[{file:test.cs, code:CS0246, count:2}], CS0168 in warnings",
+      "pass": true
+    }
+  },
+  "features_verified": [
+    "stdin JSON input",
+    "CompileError dataclass deserialization",
+    "Warning code separation (WARNING_CODES set)",
+    "Fix recipe enrichment (checks fixes/*.md existence)",
+    "Fixable-first sorting",
+    "Cascade group detection (2+ errors same file+code)",
+    "--test flag with built-in sample data",
+    "Stdlib-only dependencies + lib/diagnostics.py"
+  ]
+}

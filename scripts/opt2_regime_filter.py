@@ -1,3 +1,4 @@
+from pathlib import Path
 #!/usr/bin/env python3
 """
 opt2_regime_filter.py — Regime Filter Optimization for ChNavy6 VWAP Bounce Strategy
@@ -28,8 +29,9 @@ TRADE_START_H = 9.5   # 9:30 ET
 TRADE_END_H = 14.5    # 14:30 ET
 FLATTEN_H = 16.0      # 16:00 ET
 
-CSV_PATH = '/Users/teaceo/DEEP6/data/backtests/nq_3mo_1m.csv'
-OUT_PATH = '/Users/teaceo/DEEP6/scripts/opt2_regime_filter.txt'
+ROOT = Path(__file__).resolve().parents[1]
+CSV_PATH = ROOT / "data/backtests/nq_3mo_1m.csv"
+OUT_PATH = ROOT / "scripts/opt2_regime_filter.txt"
 
 # ── Load & Prepare Data ───────────────────────────────────────────
 def load_data():

@@ -1,0 +1,52 @@
+{
+  "name": "AUCT_01_single_print_unfinished",
+  "description": "Bar high has only 1 trade at extreme — single-print indicates unfinished auction. Market likely to revisit this level.",
+  "bar": {
+    "open": 21490.0,
+    "high": 21510.0,
+    "low": 21488.0,
+    "close": 21495.0,
+    "delta": 150,
+    "total_volume": 2400,
+    "bid_volumes": {
+      "21488.0": 100,
+      "21490.0": 200,
+      "21493.0": 250,
+      "21495.0": 300,
+      "21498.0": 200
+    },
+    "ask_volumes": {
+      "21490.0": 150,
+      "21493.0": 200,
+      "21495.0": 250,
+      "21498.0": 300,
+      "21500.0": 200,
+      "21505.0": 100,
+      "21508.0": 40,
+      "21510.0": 5
+    },
+    "poc_price": 21495.0,
+    "poc_volume": 550,
+    "vah": 21500.0,
+    "val": 21490.0,
+    "cvd": 300.0,
+    "bar_index": 35,
+    "timestamp": "2026-05-13T10:20:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 300.0,
+    "vah": 21500.0,
+    "val": 21490.0,
+    "poc": 21495.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0
+  },
+  "expected_signal": {
+    "signal_id": "AUCT_01",
+    "direction": "BULLISH",
+    "strength_min": 0.25,
+    "strength_max": 0.45
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "bias_v3.schema.json",
+  "title": "DEEP6 Bias v3 Snapshot",
+  "description": "Documentation-first contract for bias_v3.json consumed by NinjaTrader 8 and written by Python BiasJsonWriter.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "bias_label",
+    "bias_score",
+    "confidence",
+    "confidence_pct",
+    "mode",
+    "mode_reason",
+    "session_label",
+    "xamd_phase",
+    "domain_scores",
+    "setup_quality",
+    "updated_ts",
+    "version"
+  ],
+  "properties": {
+    "bias_label": {
+      "type": "string",
+      "description": "Human-readable bias label.",
+      "examples": ["STRONG BULL", "LEAN BULL", "NEUTRAL", "LEAN BEAR", "STRONG BEAR"]
+    },
+    "bias_score": {
+      "type": "integer",
+      "description": "Signed bias score emitted by the Python writer.",
+      "minimum": -9,
+      "maximum": 9
+    },
+    "confidence": {
+      "type": "number",
+      "description": "Normalized confidence in the bias snapshot.",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "confidence_pct": {
+      "type": "integer",
+      "description": "Display-friendly confidence percentage.",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "mode": {
+      "type": "string",
+      "description": "Execution posture mode.",
+      "enum": ["GO", "CAUTION", "STOP"]
+    },
+    "mode_reason": {
+      "type": "string",
+      "description": "Human-readable explanation for the current mode."
+    },
+    "session_label": {
+      "type": "string",
+      "description": "Session bucket label used on the HUD.",
+      "examples": ["A+ OPEN", "MID-AM", "LUNCH", "POWER", "AVOID"]
+    },
+    "xamd_phase": {
+      "type": "string",
+      "description": "XAMD phase label emitted by the market-bias engine.",
+      "examples": ["ACCUMULATION", "MANIPULATION", "DISTRIBUTION", "BETWEEN"]
+    },
+    "domain_scores": {
+      "type": "object",
+      "description": "Per-domain signed scores used by the HUD display.",
+      "additionalProperties": false,
+      "required": ["ict", "macro", "flow", "kronos"],
+      "properties": {
+        "ict": {
+          "type": "integer",
+          "description": "ICT domain score.",
+          "minimum": -4,
+          "maximum": 4
+        },
+        "macro": {
+          "type": "integer",
+          "description": "Macro / intermarket domain score.",
+          "minimum": -3,
+          "maximum": 3
+        },
+        "flow": {
+          "type": "integer",
+          "description": "Intraday flow domain score.",
+          "minimum": -2,
+          "maximum": 2
+        },
+        "kronos": {
+          "type": "integer",
+          "description": "Kronos model domain score.",
+          "minimum": -3,
+          "maximum": 3
+        }
+      }
+    },
+    "setup_quality": {
+      "type": "integer",
+      "description": "Setup quality score used for display gating.",
+      "minimum": 0,
+      "maximum": 5
+    },
+    "updated_ts": {
+      "type": "number",
+      "description": "Unix timestamp for the snapshot update."
+    },
+    "version": {
+      "type": "string",
+      "description": "Payload version tag.",
+      "enum": ["v3"]
+    }
+  }
+}

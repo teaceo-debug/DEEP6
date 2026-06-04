@@ -1,83 +1,137 @@
-# DEEP6 v2.0
+# DEEP6
 
-> Institutional-grade footprint auto-trading system for NQ futures — pure Python, macOS native.
+Institutional-style order-flow trading system for NQ futures, centered on absorption/exhaustion detection, confluence scoring, replay validation, and controlled execution workflows.
 
-DEEP6 connects directly to Rithmic via `async-rithmic` for real-time Level 2 DOM data
-and order execution. 44 independent market microstructure signals across 11 phases —
-plus VPIN toxicity, Kronos E10 directional bias, and a WalkForwardTracker — are
-synthesized into a two-layer confluence score that drives automated entries on
-Tradovate accounts (routed over Rithmic infrastructure).
+## What DEEP6 is today
 
-## Core stack
+DEEP6 currently has three distinct layers:
 
-- **Python 3.12** — entire system, single codebase for live and backtest
-- **async-rithmic 1.5.9** — L2 DOM (40+ levels), tick data, order execution
-- **Databento MBO** — historical L3 data for backtesting and replay
-- **Polygon** — supplementary market data and corporate-action context
-- **Kronos-small** — 24.7M-param foundation model for directional bias (E10)
-- **FastAPI + Next.js 15** — operator dashboard, SSE + WebSocket push
-- **SQLite (WAL)** — session persistence and ML weights store
+1. Python reference engine
+- Research, signal logic, replay, backtesting, API surfaces, and dashboard integration.
+- This is the most complete architecture layer in the repository.
 
-## Signal surface
+2. NinjaTrader / NinjaScript implementation
+- Active execution-oriented runtime path.
+- Intended paper/live trading path where direct Python broker/API execution is constrained.
 
-11 engine phases plus ML-quality overlay:
+3. Dashboard / replay UI
+- Operator-facing visualization layer for footprint data, scores, signals, and session replay.
 
-1. Absorption / exhaustion (the alpha core)
-2. Imbalance (9 variants) + LVN/HVN volume profile
-3. Delta (11 types) + auction theory + POC/VA
-4. GEX (gamma exposure from options chain)
-5. VPIN — volume-synchronized probability of informed trading
-6. Two-layer confluence scorer + Kronos E10 bias
-7. WalkForwardTracker — rolling out-of-sample performance monitor
-8. Imbalance cascade and narrative detection
-9. Auction FSM (E9) — initiative/responsive state machine
-10. Kronos E10 — foundation-model directional probability
-11. Execution + risk layer (bracket orders via Rithmic ORDER_PLANT)
+DEEP6 is not yet a single unified runtime with one fully consolidated startup path. It is a serious, evolving system with:
+- a substantial Python reference core,
+- an active NT8 execution path,
+- and an operator/replay dashboard.
 
-## Quick start
-
-```bash
-git clone <repo> DEEP6 && cd DEEP6
-python3.12 -m venv .venv && source .venv/bin/activate
-pip install -e .[dev]
-cp .env.example .env           # fill in Rithmic creds, DB paths, API keys
-python -m deep6                # runs the live pipeline
-```
-
-## Running components
-
-| Command | Purpose |
-|---------|---------|
-| `python -m deep6` | Live Rithmic pipeline (DOM + bars + signals + execution) |
-| `pytest tests/` | Unit and integration tests |
-| `uvicorn deep6.api.app:app --port 8765` | FastAPI backend (SSE + REST) |
-| `cd dashboard && npm run dev` | Next.js 15 operator dashboard |
-
-## Graceful shutdown
-
-SIGTERM and SIGINT are handled by asyncio signal handlers. On shutdown DEEP6
-cancels every task, closes SQLite persistence, checkpoints the WAL, and logs
-final metrics before exiting.
-
-## Operational procedures
-
-See [docs/RUNBOOK.md](docs/RUNBOOK.md) for:
-
-- Starting and stopping the system
-- Enabling live mode (30-day paper gate)
-- Rolling back ML weights
-- Investigating drawdown
-- Handling Rithmic disconnects
-- Backing up SQLite DBs
-- Rotating API keys
-
-## Thesis
+## Core thesis
 
 Absorption and exhaustion are the highest-alpha reversal signals in order flow.
-Everything else exists to confirm or contextualize them. DEEP6 is built to detect
-both with the highest accuracy of any footprint system, and to auto-execute the
-resulting trades without human latency.
 
-## License
+Everything else in DEEP6 exists to:
+- confirm them,
+- contextualize them,
+- suppress weak setups,
+- and route only the highest-quality opportunities into execution.
 
-Proprietary — Peak Asset Performance LLC.
+## Current subsystem status
+
+| Subsystem | Role | Status |
+|----------|------|--------|
+| `deep6/` | Python reference engine, replay, scoring, API | Substantial |
+| `ninjatrader/` | NT8/NinjaScript execution-oriented implementation | Active |
+| `dashboard/` | Operator dashboard and replay UI | Substantial |
+| Backtesting / replay | Validation and iteration | Present |
+| Execution safety | Risk and gate framework | Partial / needs hardening |
+| Paper-to-live promotion | Operational gate | Needs clearer implementation |
+| Advanced ML overlays | Extended capability | Mixed / partial / some deferred |
+
+## What DEEP6 is not yet
+
+DEEP6 is not yet a fully unified, turnkey, single-command production trading platform.
+
+The main gaps are:
+- canonical runtime clarity,
+- docs/code alignment,
+- operational hardening,
+- and explicit verification gates.
+
+## Repository structure
+
+- `deep6/`
+  Python reference engine: data, state, signal engines, scoring, execution, backtest, API
+
+- `dashboard/`
+  Next.js operator dashboard and replay UI
+
+- `ninjatrader/`
+  NinjaScript / NT8 implementation and execution-facing work
+
+- `tests/`
+  Python test suite
+
+- `docs/`
+  System and operations docs
+
+- `scripts/`
+  Startup helpers, replay/demo utilities, diagnostics
+
+- `.planning/`
+  Research, planning, architecture history, and phased work artifacts
+
+## Recommended reading order
+
+If you are evaluating DEEP6 for the first time:
+
+1. `docs/CURRENT-STATE.md`
+2. this README
+3. `docs/VERIFICATION-LADDER.md`
+4. `docs/REPO-GUIDE.md`
+
+Then inspect:
+- `deep6/` for reference architecture
+- `ninjatrader/` for execution/runtime direction
+- `dashboard/` for operator/replay UX
+
+## Current priorities
+
+Highest-priority work:
+- unify runtime/documentation truth
+- standardize startup paths, ports, and env configuration
+- tighten replay/live parity verification
+- harden paper-trade and live promotion gates
+- improve operator observability and fault detection
+
+## Running the project
+
+Important:
+There are currently multiple entrypoints in the repo. Until runtime consolidation is complete, treat startup instructions as subsystem-specific.
+
+Recommended next docs:
+- `docs/CURRENT-STATE.md`
+- `docs/RUNBOOK.md`
+- `dashboard/README.md`
+- `ninjatrader/README.md`
+
+## Validation philosophy
+
+DEEP6 should only promote behavior upward through evidence:
+
+- unit tests
+- integration tests
+- replay verification
+- parity checks
+- paper trading
+- constrained live exposure
+
+No subsystem should be trusted because it is sophisticated.
+It should be trusted because it has been verified.
+
+## Direction
+
+The goal is to turn DEEP6 into a trustable order-flow operating system:
+- strong signal detection
+- strong operator visibility
+- strong replay/live parity
+- strong risk discipline
+- strong promotion gates
+
+That is more important than adding more features.

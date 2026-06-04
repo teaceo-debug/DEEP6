@@ -1,0 +1,51 @@
+{
+  "name": "TRAP_04_high_volume_extreme_reversal",
+  "description": "High volume bar at extreme followed by reversal. Massive volume at the high, then price dumps — distribution.",
+  "bar": {
+    "open": 21530.0,
+    "high": 21535.0,
+    "low": 21510.0,
+    "close": 21515.0,
+    "delta": -350,
+    "total_volume": 4500,
+    "bid_volumes": {
+      "21510.0": 400,
+      "21515.0": 500,
+      "21520.0": 450,
+      "21525.0": 350,
+      "21530.0": 600,
+      "21535.0": 500
+    },
+    "ask_volumes": {
+      "21515.0": 200,
+      "21520.0": 250,
+      "21525.0": 300,
+      "21530.0": 350,
+      "21535.0": 250
+    },
+    "poc_price": 21530.0,
+    "poc_volume": 950,
+    "vah": 21533.0,
+    "val": 21515.0,
+    "cvd": 200.0,
+    "bar_index": 72,
+    "timestamp": "2026-05-13T10:57:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 12.0,
+    "cvd": 200.0,
+    "vah": 21533.0,
+    "val": 21515.0,
+    "poc": 21530.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "vol_history": [2000, 2200, 2500, 4500]
+  },
+  "expected_signal": {
+    "signal_id": "TRAP_04",
+    "direction": "BEARISH",
+    "strength_min": 0.40,
+    "strength_max": 0.60
+  }
+}

@@ -1,0 +1,24 @@
+Task: Add rule-based spoof scoring engine to DEEP6DepthRadarV2.cs
+Date: 2026-05-22
+
+Modified file:
+- ninjatrader/Custom/Indicators/DEEP6/DEEP6DepthRadarV2.cs
+
+Implemented:
+- Added _bestBid, _bestAsk, and cached _avgWallSize fields
+- Added private static ComputeSpoofScore(L2LevelStateV2 st, double avgWallSize, double ticksFromBBO)
+- Added private ScoreAllWalls() on the 30s prune cadence only
+- Wired ScoreAllWalls() after PruneL2(_l2Bids) and PruneL2(_l2Asks) inside OnMarketDepth lock
+- Updated top-of-book tracking when e.Position == 0
+- Reset cached spoof-scoring state in ClearBooks()
+
+Verification:
+- lsp_diagnostics: No diagnostics found
+- git diff HEAD -- ninjatrader/Custom/Indicators/DEEP6/DEEP6DepthRadar.cs: no output (v1 untouched)
+
+Constraints honored:
+- DEEP6DepthRadar.cs not modified
+- DEEP6DepthRadarV2Types.cs not modified
+- Spoof scoring runs on prune cycle, not per callback
+- No LINQ added in scoring path
+- No classification assignment added here

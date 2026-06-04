@@ -1,0 +1,5 @@
+rth_start: "09:30"
+rth_end: "16:15"
+timezone: "America/New_York"
+midday_start: "11:00"
+midday_end: "14:30"

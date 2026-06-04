@@ -1,0 +1,53 @@
+{
+  "name": "IMB_07_persistent_imbalance_consecutive_bars",
+  "description": "Same level shows imbalance in 2+ consecutive bars. Persistent directional pressure at 21500 over multiple bars.",
+  "bar": {
+    "open": 21498.0,
+    "high": 21508.0,
+    "low": 21496.0,
+    "close": 21506.0,
+    "delta": 250,
+    "total_volume": 2600,
+    "bid_volumes": {
+      "21496.0": 60,
+      "21498.0": 80,
+      "21500.0": 100,
+      "21502.0": 150,
+      "21505.0": 200
+    },
+    "ask_volumes": {
+      "21498.0": 200,
+      "21500.0": 400,
+      "21502.0": 350,
+      "21505.0": 300,
+      "21508.0": 260
+    },
+    "poc_price": 21500.0,
+    "poc_volume": 500,
+    "vah": 21506.0,
+    "val": 21498.0,
+    "cvd": 400.0,
+    "bar_index": 62,
+    "timestamp": "2026-05-13T10:47:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 400.0,
+    "vah": 21506.0,
+    "val": 21498.0,
+    "poc": 21500.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "imbalance_history": [
+      {"21500.0": 4.0},
+      {"21500.0": 3.8}
+    ]
+  },
+  "expected_signal": {
+    "signal_id": "IMB_07",
+    "direction": "BULLISH",
+    "strength_min": 0.35,
+    "strength_max": 0.55
+  }
+}

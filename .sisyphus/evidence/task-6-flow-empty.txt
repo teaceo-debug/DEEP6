@@ -1,0 +1,1 @@
+﻿empty state: direction=0, z=0.0

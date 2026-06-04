@@ -1,0 +1,27 @@
+Task: Fix NT8 GEXTerminal.cs and DEEP6DarkPoolOverlay.cs level rendering + unified direction signal
+Date: 2026-06-01
+
+Files changed:
+- ninjatrader/Custom/Indicators/DEEP6/GEXTerminal.cs
+- ninjatrader/Custom/Indicators/DEEP6/DEEP6DarkPoolOverlay.cs
+
+Implementation summary:
+- Removed timer-thread drawing behavior.
+- Moved level drawing to OnBarUpdate only.
+- Simplified level rendering to direct Draw.HorizontalLine(...) calls with stable tags.
+- Added direction_signal, direction_confidence, and direction_reason DTO fields.
+- Updated HUD / bias box to show unified LONG/SHORT/FLAT direction.
+- Added Print() state summaries for visual/runtime confirmation when draw state changes.
+- Timer now refreshes JSON + invalidates chart only.
+
+LSP diagnostics:
+- GEXTerminal.cs: clean
+- DEEP6DarkPoolOverlay.cs: clean
+
+Deploy evidence:
+[DEPLOY-RESULT] SUCCESS GEXTerminal.cs -> C:\Users\Tea\Documents\NinjaTrader 8\bin\Custom\Indicators\DEEP6\GEXTerminal.cs SHA256=DB871322EA668CC7B4E20B9EAA55F907D42A9EAAA5CE9507B9F828C21E609A7C
+[DEPLOY-RESULT] SUCCESS DEEP6DarkPoolOverlay.cs -> C:\Users\Tea\Documents\NinjaTrader 8\bin\Custom\Indicators\DEEP6\DEEP6DarkPoolOverlay.cs SHA256=F89158416E6B4952340337ACA97E2AD78CD39F0B041A20AE3E84048C0812959A
+
+Compile evidence:
+[COMPILE-RESULT] SUCCESS 2026-06-01 13:57:17.226
+COMPILE SUCCEEDED  (DLL updated at 13:57:17.226)

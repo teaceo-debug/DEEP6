@@ -1,0 +1,21 @@
+Task 7: Wire MagnetScorer into gex_terminal
+============================================
+Completed: 2026-05-31 23:26
+
+Files created/modified:
+  [NEW] gex_terminal/engine/magnet.py — GEXMagnetSelector wrapper
+  [MOD] gex_terminal/schemas.py — added primary_magnet + magnet_confidence fields
+  [MOD] gex_terminal/engine/orchestrator.py — import + init + call in _run_cycle
+  [MOD] scripts/gex_terminal_nt8_bridge.py — added primary_magnet to NT8 JSON payload
+
+Design decisions:
+  - Did NOT use gexdoctor MagnetScorer.score() directly (requires FlashAlphaSnapshot schema)
+  - Imports constants (LEVEL_TYPE_WEIGHTS, ANTI_FLICKER_MARGIN) from gexdoctor when available
+  - Fallback scoring mirrors same logic: base_weight x distance_relevance x regime_alignment
+  - Anti-flicker: new candidate needs +0.12 margin over current score to switch
+  - Stale threshold: 300s without update forces recalculation
+  - gexdoctor dependency is fully optional (graceful try/except on import)
+
+Verification:
+  - LSP diagnostics: 0 errors on all 4 files
+  - pytest gex_terminal/tests/: 86 passed in 71.80s

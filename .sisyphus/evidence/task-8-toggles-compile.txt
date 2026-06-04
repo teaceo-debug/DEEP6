@@ -1,0 +1,15 @@
+﻿[COMPILE-RESULT] SUCCESS 2026-05-24 11:44:44.801
+
+Task 8: 10 granular per-variant visibility toggles added to DEEP6FootprintV8.cs
+- ShowClassicAbsorption (default false)
+- ShowPassiveAbsorption (default false)
+- ShowStoppingVolume (default false)
+- ShowEffortVsResult (default false)
+- ShowZeroPrint (default false)
+- ShowExhaustionPrint (default true)
+- ShowThinPrint (default false)
+- ShowFatPrint (default false)
+- ShowFadingMomentum (default false)
+- ShowBidAskFade (default true)
+
+All toggles wired with early-exit switch in DrawAbsorptionMarker() and DrawExhaustionMarker().

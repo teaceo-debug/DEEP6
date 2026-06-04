@@ -1,0 +1,6 @@
+Task: intermarket registry staleness
+Status: implemented
+Checks:
+- registry created with ZN, DXY, VIX, RTY, TICK, VOLD, AD
+- staleness boundary verified at 299s vs 301s
+- expected stale detection verified for TICK outside RTH

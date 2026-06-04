@@ -1,0 +1,54 @@
+{
+  "name": "ABS_03_poc_in_wick_stopping_volume",
+  "description": "POC sits in the wick zone with high stopping volume. Aggressive selling absorbed at the low wick, creating a POC there.",
+  "bar": {
+    "open": 21510.0,
+    "high": 21515.0,
+    "low": 21488.0,
+    "close": 21508.0,
+    "delta": -120,
+    "total_volume": 3800,
+    "bid_volumes": {
+      "21488.0": 700,
+      "21488.25": 550,
+      "21490.0": 450,
+      "21492.0": 200,
+      "21495.0": 150,
+      "21500.0": 120,
+      "21505.0": 80,
+      "21510.0": 60
+    },
+    "ask_volumes": {
+      "21488.0": 50,
+      "21490.0": 100,
+      "21495.0": 180,
+      "21500.0": 250,
+      "21505.0": 300,
+      "21510.0": 350,
+      "21515.0": 260
+    },
+    "poc_price": 21488.0,
+    "poc_volume": 750,
+    "vah": 21510.0,
+    "val": 21490.0,
+    "cvd": -80.0,
+    "bar_index": 55,
+    "timestamp": "2026-05-13T10:40:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 12.0,
+    "cvd": -80.0,
+    "vah": 21510.0,
+    "val": 21490.0,
+    "poc": 21488.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0
+  },
+  "expected_signal": {
+    "signal_id": "ABS_03",
+    "direction": "BULLISH",
+    "strength_min": 0.30,
+    "strength_max": 0.50
+  }
+}

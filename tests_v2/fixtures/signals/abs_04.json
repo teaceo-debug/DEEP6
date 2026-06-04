@@ -1,0 +1,49 @@
+{
+  "name": "ABS_04_effort_vs_result_compressed",
+  "description": "Effort vs Result: high volume but small range (compressed bar). Massive effort produced minimal price movement — absorption on both sides.",
+  "bar": {
+    "open": 21492.0,
+    "high": 21495.0,
+    "low": 21490.0,
+    "close": 21493.0,
+    "delta": 20,
+    "total_volume": 4500,
+    "bid_volumes": {
+      "21490.0": 800,
+      "21490.25": 600,
+      "21491.0": 500,
+      "21492.0": 400,
+      "21493.0": 300
+    },
+    "ask_volumes": {
+      "21492.0": 350,
+      "21493.0": 400,
+      "21494.0": 500,
+      "21494.5": 350,
+      "21495.0": 300
+    },
+    "poc_price": 21491.0,
+    "poc_volume": 1100,
+    "vah": 21494.0,
+    "val": 21490.5,
+    "cvd": 100.0,
+    "bar_index": 65,
+    "timestamp": "2026-05-13T10:50:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 100.0,
+    "vah": 21494.0,
+    "val": 21490.5,
+    "poc": 21491.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0
+  },
+  "expected_signal": {
+    "signal_id": "ABS_04",
+    "direction": "NEUTRAL",
+    "strength_min": 0.25,
+    "strength_max": 0.45
+  }
+}

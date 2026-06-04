@@ -1,0 +1,58 @@
+Task T15+T16: IPC Client Integration + Graceful Degradation
+============================================================
+Date: 2026-05-22
+File: ninjatrader/Custom/Indicators/DEEP6/DEEP6DepthRadarV2.cs
+
+Changes Made:
+-------------
+1. EnableML NinjaScriptProperty (bool, default true, Group "2. Display", Order 4)
+   - Controls whether bridge starts and snapshots are sent
+   - When false: no bridge, HUD shows "ML:OFF", pure rule-based mode
+
+2. Conditional bridge startup in State.Realtime
+   - Bridge only created/started when EnableML == true
+   - Logs "ML classification disabled" when false
+
+3. Dynamic HUD ML status
+   - !EnableML -> "ML:OFF"
+   - EnableML && connected && latency > 0 -> "ML:ON [Xms]"
+   - EnableML && connected && latency == 0 -> "ML:ON"
+   - EnableML && !connected -> "ML:OFF"
+
+4. RevertToRuleBased() method
+   - Iterates all walls in _l2Bids and _l2Asks
+   - Sets IsMLClassified = false on each
+   - Called under _l2Lock (ScoreAllWalls already holds lock)
+   - Next ClassifyWall() call recomputes rule-based values
+
+5. Disconnect/reconnect detection in ScoreAllWalls()
+   - Added _wasBridgeConnected volatile bool field
+   - On disconnect (was connected, now not): calls RevertToRuleBased(), logs transition
+   - On reconnect (was not connected, now is): logs reconnection
+   - Updates _wasBridgeConnected at end of check
+
+6. SendWallSnapshots() guard
+   - Early return if !EnableML (before bridge null check)
+
+7. Logging via Print():
+   - "[DEEP6DepthRadarV2] ML classification disabled — rule-based only"
+   - "[DEEP6DepthRadarV2] ML service disconnected — reverting to rule-based"
+   - "[DEEP6DepthRadarV2] ML service reconnected"
+
+Verification:
+-------------
+- LSP diagnostics: CLEAN (no errors)
+- v1 (DEEP6DepthRadar.cs): UNTOUCHED (git diff empty)
+- DEEP6DepthRadarV2Types.cs: NOT MODIFIED
+
+Behavior Summary:
+-----------------
+- Cold start without Python: bridge listens, no client connects, _bridgeConnected=false,
+  all walls use rule-based, HUD shows "ML:OFF". No exceptions.
+- Python connects: _bridgeConnected=true via ProcessInboundClassification, HUD shows "ML:ON [Xms]"
+- Python disconnects: bridge.IsConnected->false, next ScoreAllWalls detects transition,
+  calls RevertToRuleBased(), walls revert to rule-based on next ClassifyWall cycle
+- Python reconnects: next ScoreAllWalls detects reconnection, ML resumes on next 30s cycle
+- EnableML=false: bridge never starts, pure rule-based, no IPC overhead
+- Smooth transition: RevertToRuleBased only clears IsMLClassified flag, does not change
+  Classification field. Next ClassifyWall call sets rule-based values naturally.

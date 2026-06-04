@@ -1,0 +1,19 @@
+Task 6 - Bias Hysteresis FSM Evidence
+
+Files created:
+- deep6/engines/bias_hysteresis.py
+- tests/test_bias_hysteresis.py
+
+Verification:
+- lsp_diagnostics deep6/engines/bias_hysteresis.py -> clean
+- lsp_diagnostics tests/test_bias_hysteresis.py -> clean
+- pytest tests/test_bias_hysteresis.py -q -> 16 passed
+
+Behavior highlights:
+- Config-driven thresholds from BiasHysteresisConfig; no hard-coded FSM thresholds.
+- Strong states degrade to NEUTRAL when they lose strong conviction, preventing immediate flip into lean state noise.
+- Emergency delta bypasses hysteresis and uses naive target mapping.
+
+Required sequence check:
+- Input: [3, 5, 7, 5, 3, 1, -1, -3]
+- Output: [LEAN_BULL, LEAN_BULL, STRONG_BULL, STRONG_BULL, NEUTRAL, NEUTRAL, NEUTRAL, LEAN_BEAR]

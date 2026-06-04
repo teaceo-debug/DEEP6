@@ -1,0 +1,27 @@
+Task 4 compile verification - 2026-05-13
+
+Run 1 (normal environment):
+- Deploy: nt8-deploy.ps1 -Target Indicators -> success
+- Compile: nt8-compile.ps1 -TimeoutSeconds 45 -> FAILED timeout, DLL unchanged
+- Full current errors from nt8-errors-full.ps1:
+  * CS0246 AA_DEEP6NQBiasEngineV2.cs line 9 col 43
+  * CS0119 AA_DEEP6NQBiasEngineV2.cs line 15 col 17
+  * CS0103 AA_DEEP6NQBiasEngineV2.cs line 17 col 17
+  * CS0103 AA_DEEP6NQBiasEngineV2.cs line 18 col 17
+  * CS1501 DEEP6GexLevels.cs line 806 col 56
+
+Run 2 (external file sidelined temporarily):
+- Temporarily renamed Documents\\NinjaTrader 8\\bin\\Custom\\Indicators\\AA_DEEP6NQBiasEngineV2.cs
+- Compile: nt8-compile.ps1 -TimeoutSeconds 45 -> FAILED timeout, DLL unchanged
+- Full current errors from nt8-errors-full.ps1:
+  * CS1061 DEEP6MarketInternals.cs line 86 col 21
+  * CS1501 DEEP6GexLevelsV2.cs line 189 col 56
+  * CS1501 DEEP6GexLevels.cs line 806 col 56
+  * CS0117 DEEP6GexLevelsV2.cs line 278 col 17
+  * CS0117 DEEP6GexLevelsV2.cs line 279 col 17
+- External file was restored immediately after the check.
+
+Interpretation:
+- Output Window errors are current, not stale: after sidelining the external file, the error set changed.
+- DEEP6BiasV3.cs did not appear in either current error set.
+- Global NT8 compile drift remains, but the blocker is not DEEP6BiasV3.cs.

@@ -1,0 +1,58 @@
+{
+  "name": "composite_exhaustion_multiple_signals",
+  "description": "Multiple exhaustion signals: EXH_01 + EXH_02 + EXH_03. Zero print at top, single-side extreme volume, and thin print — all confirming exhaustion.",
+  "bar": {
+    "open": 21500.0,
+    "high": 21530.0,
+    "low": 21498.0,
+    "close": 21505.0,
+    "delta": 400,
+    "total_volume": 3500,
+    "bid_volumes": {
+      "21498.0": 150,
+      "21500.0": 300,
+      "21505.0": 350,
+      "21510.0": 250,
+      "21515.0": 200,
+      "21520.0": 100
+    },
+    "ask_volumes": {
+      "21500.0": 200,
+      "21505.0": 300,
+      "21510.0": 350,
+      "21515.0": 250,
+      "21520.0": 150,
+      "21525.0": 50,
+      "21528.0": 15,
+      "21529.5": 5
+    },
+    "poc_price": 21505.0,
+    "poc_volume": 650,
+    "vah": 21518.0,
+    "val": 21501.0,
+    "cvd": 500.0,
+    "bar_index": 45,
+    "timestamp": "2026-05-13T10:30:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 12.0,
+    "cvd": 500.0,
+    "vah": 21518.0,
+    "val": 21501.0,
+    "poc": 21505.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0
+  },
+  "expected_signals": [
+    {"signal_id": "EXH_01", "direction": "BEARISH", "strength_min": 0.40, "strength_max": 0.60},
+    {"signal_id": "EXH_02", "direction": "BEARISH", "strength_min": 0.35, "strength_max": 0.55},
+    {"signal_id": "EXH_03", "direction": "BEARISH", "strength_min": 0.25, "strength_max": 0.45}
+  ],
+  "expected_signal": {
+    "signal_id": "EXH_01",
+    "direction": "BEARISH",
+    "strength_min": 0.40,
+    "strength_max": 0.60
+  }
+}

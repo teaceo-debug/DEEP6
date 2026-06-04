@@ -1,0 +1,33 @@
+Task 10 — Bias box compile evidence
+Date: 2026-05-24
+
+Compile command:
+powershell -ExecutionPolicy Bypass -File "ninjatrader/scripts/nt8-compile.ps1"
+
+Compile output:
+NT8 Compile -- 11:49:18
+---------------------------------------------
+  DLL pre-mtime : 11:46:31.698
+  Install.xml pre: 2026-04-14 14:38:43
+  NT8 found: PID 5012
+  Bringing NT8 to foreground...
+  Opening NinjaScript Editor (New > NinjaScript Editor via UIAutomation)...
+  NinjaScript Editor opened via UIAutomation.
+  Sending F5 (Compile)...
+  Polling for DLL change (timeout: 30s)...
+  COMPILE SUCCEEDED  (DLL updated at 11:49:26.192)
+  [COMPILE-RESULT] SUCCESS 2026-05-24 11:49:26.192
+  Install.xml <CompiledCustomAssembly>: 2026-04-14 14:38:43
+
+Implementation evidence:
+- Defaults added: ShowBiasBox=true, ShowRawPercentage=false, BiasLongThreshold=0.60, BiasShortThreshold=-0.60, BiasLookback=3
+- Bias renderer uses 3 states:
+  - LONG when bias > BiasLongThreshold
+  - SHORT when bias < BiasShortThreshold
+  - — otherwise
+- Unique draw tag: "BiasBox_" + CurrentBar
+- Old diamond + percentage rendering preserved behind ShowRawPercentage
+- Recent signal-direction queue feeds ComputeBiasScore(BiasLookback)
+
+LSP diagnostics:
+- C:\Users\Tea\DEEP6\ninjatrader\Custom\Indicators\DEEP6\DEEP6FootprintV8.cs -> No diagnostics found

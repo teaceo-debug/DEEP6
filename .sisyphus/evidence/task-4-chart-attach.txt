@@ -1,0 +1,28 @@
+Task 4 chart attach verification - 2026-05-13
+
+1. Global NT8 compile was clean before attach verification.
+2. Wrote mock payload to Documents\\NinjaTrader 8\\templates\\DEEP6\\bias_v3.json with:
+   - bias_label = LEAN BULL
+   - bias_score = 5
+   - confidence_pct = 72
+   - mode = GO
+   - mode_reason = Aligned
+   - session_label = MID-AM
+   - xamd_phase = DISTRIBUTION
+3. Activated the MNQ 06-26 chart window via UIAutomation.
+4. Opened the Indicators dialog by invoking chart toolbar button `ChartWindowIndicatorsButton`.
+5. Confirmed `DEEP6BiasV3` existed in Available indicators and added it to Configured indicators.
+6. Adjusted DEEP6BiasV3 offsets to improve visibility: HudOffsetX=350, HudOffsetY=120, HudOpacity=1.0.
+7. Captured live HUD evidence in task-4-hud-render.png showing:
+   - LEAN BULL
+   - Score: +5
+   - Conf: 72%
+   - GO
+   - MID-AM | DISTRIBUTION
+   - v3 | Aligned
+8. Aged the payload file mtime by 2 minutes and waited through the refresh interval.
+9. Captured stale HUD evidence in task-4-stale.png showing:
+   - STALE (198s ago)
+   - LEAN BULL / Score: +5 / Conf: 72% / GO / MID-AM | DISTRIBUTION / Aligned
+
+Result: DEEP6BiasV3 was successfully attached to the chart and its HUD rendered both populated and stale states.

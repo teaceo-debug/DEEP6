@@ -1,0 +1,79 @@
+Task: T5 — Dataset Schema + Capture Protocol
+Status: COMPLETE
+Date: 2026-05-21
+Artifact: .sisyphus/specs/dataset-schema.md
+
+## Required Fields — All Present
+
+Decision-time fields (immutable after capture):
+  [x] anchor_id (uuid v4)
+  [x] captured_at (ISO 8601 — decision time, not outcome time)
+  [x] symbol
+  [x] timeframe_primary
+  [x] timeframe_context
+  [x] direction ("bullish" | "bearish")
+  [x] anchor_low_price (float)
+  [x] anchor_high_price (float)
+  [x] anchor_low_bar_time (unix seconds)
+  [x] anchor_high_bar_time (unix seconds)
+  [x] range (float = high - low)
+  [x] level_minus2 (float)
+  [x] level_minus2_5 (float)
+  [x] level_minus4 (float)
+  [x] pine_confidence_score (int 0-100)
+  [x] pine_state (candidate | confirmed | active | invalidated | superseded)
+  [x] screenshot_path (relative path)
+  [x] chart_metadata (JSON object with zoom, visible bars, candle style, theme, dimensions)
+
+HERMES validation fields:
+  [x] hermes_verdict (approve | veto | abstain | null)
+  [x] hermes_reasons (string[])
+  [x] hermes_version (string | null)
+
+Human override fields:
+  [x] human_override (bool)
+  [x] human_override_reason (string | null)
+
+Outcome fields (write-once, null at capture):
+  [x] outcome_label (null until resolved: reached_minus2 | reached_minus2_5 | reached_minus4 | invalidated_before_target | pending)
+  [x] outcome_resolved_at (ISO 8601 | null)
+
+## Capture Protocol — Defined
+
+  [x] Trigger: bar close when Pine emits state change
+  [x] Atomic capture: screenshot + structured fields simultaneously
+  [x] No intrabar captures
+  [x] State transitions enumerated (candidate, confirmed, active, invalidated, superseded)
+  [x] Each transition = new record with own anchor_id
+
+## Leakage-Prevention Rules — Explicit
+
+  [x] R1: Decision-time fields immutable after capture
+  [x] R2: outcome_label is null at capture time — no exceptions
+  [x] R3: Outcome written only after outcome bar closes
+  [x] R4: Screenshot taken at decision time, never retroactively
+  [x] R5: No future data in structured fields
+  [x] Immutability contract: fields categorized as IMMUTABLE / WRITE-ONCE / MUTABLE
+  [x] Outcome resolver is a SEPARATE process from capture bridge
+
+## Storage Layout — Defined
+
+  [x] Screenshots: data/sd_anchor/screenshots/{YYYY-MM-DD}/{anchor_id}.png
+  [x] Records: data/sd_anchor/records/{YYYY-MM-DD}.jsonl
+  [x] Date partitioning by captured_at (UTC)
+  [x] Paths stored as relative from repo root
+  [x] JSONL format with example record
+  [x] Append-only retention policy
+
+## Validation Rules — Defined
+
+  [x] UUID, timestamp, enum, range, level ordering checks
+  [x] Bullish and bearish level ordering specified
+  [x] Screenshot existence required before record write
+
+## Downstream Dependencies
+
+This schema is the foundation for:
+  - T9: Pine Script capture bridge (emits records per this schema)
+  - T10: HERMES training pipeline (reads records + screenshots)
+  - T14: Screenshot dataset curation (queries records, validates integrity)

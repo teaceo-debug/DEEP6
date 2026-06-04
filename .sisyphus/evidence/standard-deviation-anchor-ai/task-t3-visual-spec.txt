@@ -1,0 +1,58 @@
+Task: T3 — Pine Visual Spec + Object Lifecycle
+Status: COMPLETE
+Date: 2026-05-21
+
+## Deliverable
+File: .sisyphus/specs/pine-visual-spec.md
+
+## Checklist Verification
+
+[x] File created: .sisyphus/specs/pine-visual-spec.md
+[x] Every chart object defined:
+    - Anchor leg line (section 3.1)
+    - Anchor endpoint markers — xcross + circle (section 3.2)
+    - -2 standard deviation level (section 3.3)
+    - -2.5 standard deviation level (section 3.4)
+    - -4 standard deviation level (section 3.5)
+    - Zone fill between -2 and -2.5 (section 3.6)
+    - Status label (section 3.7)
+[x] Object lifecycle defined for each:
+    - Creation (candidate detected, bar confirmed) — section 4.2
+    - Confirmation (candidate -> active) — section 4.2
+    - Extension (active, each bar) — section 4.2
+    - Invalidation (active -> invalidated) — section 4.2
+    - Supersession (any -> deleted) — section 4.2
+    - Completion (active -> completed) — section 4.2
+    - No Valid Leg (special label-only state) — section 4.2
+[x] Color palette defined:
+    - Bullish active: teal anchor, green levels gradient (section 2)
+    - Bearish active: coral anchor, red levels gradient (section 2)
+    - Candidate: same colors but dashed lines, reduced opacity (section 2)
+    - Invalidated: gray palette, dotted lines (section 2)
+    - Superseded: deleted entirely (section 2)
+[x] Label content defined for each state:
+    - Candidate: "▲ Candidate\n{tf} | {conf}%"
+    - Active bullish: "▲ Bullish -2σ\n{tf} | {conf}%"
+    - Active bearish: "▼ Bearish -2σ\n{tf} | {conf}%"
+    - Invalidated: "✕ Invalidated\n{tf} | {reason}"
+    - No Valid Leg: "— No Valid Leg"
+    - Completed: "✓ Hit -2σ\n{tf} | {conf}%"
+[x] Pine object limits addressed:
+    - max_lines_count = 10 (4 per setup, supports 2 concurrent)
+    - max_boxes_count = 5 (1 per setup)
+    - max_labels_count = 10 (3 per setup)
+    - Deletion priority: superseded > invalidated (oldest) > completed
+[x] xloc.bar_time anchoring specified — section 1 + all object definitions
+[x] Excluded visuals documented — section 7 (ATR, VWAP, regression, etc.)
+
+## Key Design Decisions
+- xcross for start marker, circle for end marker (directional reading: X → O)
+- -4 level always dashed (speculative nature)
+- Box used for zone fill (not plot fill) — supports dynamic per-setup lifecycle
+- Superseded setups deleted entirely (no ghost lines)
+- Status label positioned at -2σ price, moves rightward with bars
+- Object budget allows 2 full concurrent setups + headroom for transitions
+
+## Sources Read
+- .sisyphus/drafts/standard-deviation-anchor-ai.md (confirmed requirements + decisions)
+- .sisyphus/notepads/standard-deviation-anchor-ai/learnings.md (architecture constraints)

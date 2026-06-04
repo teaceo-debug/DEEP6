@@ -1,0 +1,24 @@
+Files modified/created:
+  - ninjatrader/Custom/Indicators/DEEP6/MADConfluenceAI/MADConfluenceAI.Scoring.cs
+    Added: MADRegime, MADTrend, MADSessionType enums + MADMarketState class (before partial class)
+  - ninjatrader/tests/MADConfluenceAI/SessionContextTests.cs (NEW)
+    9 NUnit tests covering ATR20, session rollover, opening range, RTH, session highs, vol EMA, reset, POC, gaps
+  - ninjatrader/tests/MADConfluenceAI/IndicatorStub.cs (NEW)
+    Minimal Indicator base type stub for test compilation
+  - ninjatrader/tests/ninjatrader.tests.csproj
+    Added Compile Include for MADConfluenceAI.Scoring.cs
+
+Verification: dotnet test --filter "Category=MADConfluenceAI"
+  Build succeeded. 0 Warnings, 0 Errors.
+  Test Run Successful. Total tests: 9, Passed: 9. Time: 0.78s
+
+Test cases:
+  1. Atr20_After20Bars_IsNonZero — ATR20 positive after 20 bars, range ~5pt
+  2. SessionRollover_SetsPriorDayLevels — PrevDayHigh/Low/Close set on date change
+  3. OpeningRange_CapturedFromFirst30MinBars — OR locked after 30min RTH
+  4. IsRth_TrueWithinRthHours_FalseOutside — RTH boundary detection
+  5. SessionHigh_UpdatesWithNewHighs — monotonic session high tracking
+  6. VolEma_UpdatesAfterEachBar_NonZeroAfter5Bars — EMA initialization + update
+  7. Reset_ClearsAllState — full state reset verification
+  8. SetPriorDayPoc_SetsValue — POC setter
+  9. Atr20_AccountsForGaps_ViaRealTrueRange — gap-aware true range

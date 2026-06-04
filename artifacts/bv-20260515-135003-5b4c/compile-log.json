@@ -1,0 +1,9 @@
+﻿{
+    "result":  "PARTIAL",
+    "iterations":  1,
+    "final_error_count":  5,
+    "total_fixes":  0,
+    "total_rollbacks":  0,
+    "run_dir":  "C:\\Users\\Tea\\DEEP6\\artifacts\\bv-20260515-135003-5b4c\\bv-20260515-135004-5a99",
+    "elapsed_ms":  74689
+}

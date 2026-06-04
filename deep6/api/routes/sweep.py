@@ -19,20 +19,15 @@ import time
 import uuid
 from typing import Any
 
-import optuna
-
-optuna.logging.set_verbosity(optuna.logging.WARNING)
+try:
+    import optuna
+except ModuleNotFoundError:  # pragma: no cover - optional dependency for app import
+    optuna = None
+else:
+    optuna.logging.set_verbosity(optuna.logging.WARNING)
 
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
-
-# Ensure project root is on sys.path so scripts/ imports work when the module
-# is loaded relative to the package root.
-_PROJECT_ROOT = os.path.join(os.path.dirname(__file__), "..", "..", "..")
-if _PROJECT_ROOT not in sys.path:
-    sys.path.insert(0, _PROJECT_ROOT)
-
-from scripts.sweep_thresholds import _make_synthetic_bars, make_objective  # noqa: E402
 
 log = logging.getLogger(__name__)
 
@@ -142,6 +137,12 @@ async def _run_sweep_job(job_id: str, req: SweepRequest) -> None:
         api_key = os.environ.get("DATABENTO_API_KEY", "")
         if not api_key:
             log.info("sweep.dry_run", extra={"job_id": job_id, "bars": 200})
+            # Ensure project root is on sys.path so scripts/ imports work when needed.
+            _project_root = os.path.join(os.path.dirname(__file__), "..", "..", "..")
+            if _project_root not in sys.path:
+                sys.path.insert(0, _project_root)
+            from scripts.sweep_thresholds import _make_synthetic_bars
+
             bars = _make_synthetic_bars(200)
         else:
             # Load bars in executor (blocking Databento I/O)
@@ -194,6 +195,14 @@ def _run_optuna_sync(bars: list, n_trials: int) -> optuna.Study:
 
     Returns the completed study object.
     """
+    if optuna is None:
+        raise RuntimeError("optuna is not installed")
+    # Ensure project root is on sys.path so scripts/ imports work when needed.
+    _project_root = os.path.join(os.path.dirname(__file__), "..", "..", "..")
+    if _project_root not in sys.path:
+        sys.path.insert(0, _project_root)
+    from scripts.sweep_thresholds import make_objective
+
     study = optuna.create_study(
         direction="maximize",
         sampler=optuna.samplers.TPESampler(seed=42),

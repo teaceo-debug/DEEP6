@@ -1,0 +1,25 @@
+Task: T1 canonical anchor contract review
+Date: 2026-05-21
+
+Artifacts created:
+- .sisyphus/contracts/anchor-contract.md
+- .sisyphus/evidence/standard-deviation-anchor-ai/task-t1-contract-review.txt
+
+Required section verification:
+- state machine candidate -> confirmed -> active -> invalidated -> superseded: present
+- exact wick-to-wick bullish rules: present
+- exact wick-to-wick bearish rules: present
+- displacement confirmation rules: present
+- chop rejection rules: present
+- invalidation rules: present
+- non-reuse guardrail verbatim: present
+- confidence score model: present
+- deviation formula: present
+- deterministic examples and non-examples: present
+
+Verification notes:
+- Bash content verification passed: FILE_EXISTS=True, MISSING=NONE
+- LSP diagnostics are not available for .md files in this workspace, so no markdown LSP clean check could be run.
+
+Outcome:
+- Contract file created and verified against the required sections list.

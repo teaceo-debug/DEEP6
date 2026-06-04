@@ -1,0 +1,27 @@
+Single file PASS
+No signal engine refs PASS
+No Series<> PASS
+No alerting PASS
+No pixel heatmap PASS — 5 FillRectangle calls
+All 5 params PASS
+No extra files FAIL
+Color properties PASS
+
+Scope N issues
+Unaccounted files list
+ M ninjatrader/Custom/Indicators/DEEP6/DEEP6BiasV3.cs
+ M ninjatrader/Custom/Indicators/DEEP6/MADConfluenceAI/MADConfluenceAI.Data.cs
+ M ninjatrader/Custom/Indicators/DEEP6/MADConfluenceAI/MADConfluenceAI.Rendering.cs
+ M ninjatrader/Custom/Indicators/DEEP6/MADConfluenceAI/MADConfluenceAI.Scoring.cs
+ M ninjatrader/Custom/Indicators/DEEP6/MADConfluenceAI/MADConfluenceAI.Signals.cs
+ M ninjatrader/Custom/Indicators/DEEP6/MADConfluenceAI/MADConfluenceAI.cs
+?? ninjatrader/Custom/Indicators/DEEP6/DEEP6DOMHeatMap.cs
+?? ninjatrader/Custom/Indicators/DEEP6/DEEP6GammaDecisionSurface.cs
+?? ninjatrader/Custom/Indicators/DEEP6/DEEP6GammaReactionSensor.cs
+?? ninjatrader/Custom/Indicators/DEEP6/DEEP6GammaReactionSensorV2.cs
+?? ninjatrader/Custom/Indicators/DEEP6/DEEP6LiquidityHeatMap.cs
+?? ninjatrader/Custom/Indicators/DEEP6/DEEP6MBOHeatMap.cs
+?? ninjatrader/Custom/Indicators/DEEP6/DEEP6OptionsDecisionSurface.cs
+?? ninjatrader/Custom/Indicators/DEEP6/MADConfluenceAI/MADFootprintPanel.cs
+
+VERDICT: REJECT

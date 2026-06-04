@@ -1,0 +1,22 @@
+﻿{
+  "workspace": "C:\\Users\\Tea\\Documents\\NinjaTrader 8\\workspaces\\Main.xml",
+  "workspace_name": "Main",
+  "backup_path": "(dry-run)",
+  "chart_found": true,
+  "charts_matched": 2,
+  "chart_details": [
+    {
+      "instrument": "MNQ 06-26",
+      "chart_guid": "6d6aae14e1a4452d93993d84c77c59f2"
+    },
+    {
+      "instrument": "MNQ 06-26",
+      "chart_guid": "c25f118517d44f0ba591fc5c859f4928"
+    }
+  ],
+  "indicator_name": "NinjaTrader.NinjaScript.Indicators.DEEP6.DEEP6Signal",
+  "already_installed": false,
+  "injected": false,
+  "xml_valid": true,
+  "dry_run": true
+}

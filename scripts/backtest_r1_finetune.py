@@ -12,6 +12,7 @@ from itertools import product
 from dataclasses import dataclass
 from typing import List, Optional
 import time
+from pathlib import Path
 
 # ── Constants ──────────────────────────────────────────────────────────────
 TICK_SIZE = 0.25
@@ -21,8 +22,9 @@ SLIPPAGE_TICKS = 1
 SLIPPAGE = SLIPPAGE_TICKS * TICK_SIZE
 COMMISSION_RT = COMMISSION_PER_SIDE * 2  # round-trip
 
-DB_PATH = "/Users/teaceo/DEEP6/data/backtests/replay_full_5sessions.duckdb"
-OUT_PATH = "/Users/teaceo/DEEP6/scripts/results_r1_finetune.txt"
+ROOT = Path(__file__).resolve().parents[1]
+DB_PATH = ROOT / "data/backtests/replay_full_5sessions.duckdb"
+OUT_PATH = ROOT / "scripts/results_r1_finetune.txt"
 
 FLATTEN_HOUR = 16.0  # flatten at 16:00 ET
 

@@ -1,0 +1,2 @@
+- 2026-05-23: `WallDetector` can reuse the retrospective `WallLabeler` lifecycle pattern at price-level granularity while staying replay-safe by maintaining an aggregated order book keyed by `order_id` and emitting classification snapshots only from active levels.
+- 2026-05-23: The existing `WallFeatureExtractor` and `WallClassifier` are directly reusable for replay inference once wall state is translated into the 15-field lifecycle/context schema expected by `extract_batch()`.

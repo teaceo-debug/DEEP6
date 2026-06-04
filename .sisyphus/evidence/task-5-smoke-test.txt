@@ -1,0 +1,37 @@
+Task 5 smoke test — confluence middleware
+
+Date: 2026-05-26
+Workspace: C:\Users\Tea\DEEP6
+
+Server start:
+- Started via `python -m confluence_system.confluence_server` on 127.0.0.1:8767
+- Startup completed successfully; no crash on boot
+- No quantsynth-related startup errors found in logs
+
+Endpoint results:
+- GET /health -> 200 OK
+  - body: {"status":"ok","ts":"2026-05-26T23:38:48.707920+00:00"}
+
+- GET /status -> 200 OK
+  - body excerpt: {"cache_age_seconds":{"gex":null,"massive":2.6741440296173096,"dp":2.6741440296173096,"regime":null,"composite":null,"equilibrium":null},"ttl_seconds":{"gex":300,"massive":15,"dp":15,"regime":900,"composite":300},"weights":{"dp":0.4,"gex":0.25,"regime":0.2,"mtf":0.15}}
+
+- GET /confluence/nq?price=21000&mtf_d=PREMIUM&mtf_4h=EQUILIBRIUM&mtf_chart=PREMIUM -> 200 OK
+  - body excerpt: {"ts":"2026-05-26T23:38:05.752249+00:00","symbol":"NQ","proxy":"QQQ","price":21000.0,..."stale":true,...}
+
+- GET /equilibrium/nq?price=21000 -> 422 Unprocessable Entity
+  - body: {"detail":[{"type":"missing","loc":["query","ndx"],"msg":"Field required","input":null}]}
+
+- GET /equilibrium/nq?price=21000&ndx=21000 -> 500 Internal Server Error
+  - server traceback ended in `TypeError: '>=' not supported between instances of 'float' and 'NoneType'` inside `build_alerts()`
+
+Logs of interest:
+- `massive attempt 1/2/3 failed: [Errno 11001] getaddrinfo failed`
+- `flashalpha ... 404 Not Found` for `/v1/levels/QQQ`
+- `equilibrium` path attempted Polygon calls and got `401 Unauthorized`
+
+Shutdown:
+- Server process was stopped after testing
+
+Verdict:
+- Health/status/confluence endpoints passed
+- Equilibrium endpoint did not meet expected 200 behavior in this smoke test

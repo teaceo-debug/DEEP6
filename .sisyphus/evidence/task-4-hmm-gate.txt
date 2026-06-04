@@ -1,0 +1,25 @@
+Task 4 — HMM Regime Gate Evidence
+Date: 2026-05-31
+
+Changed files:
+- gex_terminal/engine/regime_gate.py
+- gex_terminal/engine/analyzer.py
+- gex_terminal/engine/orchestrator.py
+- gex_terminal/schemas.py
+- gex_terminal/tests/test_analyzer.py
+- gex_terminal/tests/test_orchestrator.py
+
+Implementation notes:
+- Wrapped `deep6.ml.hmm_regime.HMMRegimeDetector` with a fail-open `HMMRegimeGate`.
+- Orchestrator now derives a normalized 5-feature vector each cycle and updates the gate.
+- Analyzer now accepts `hmm_state` and applies:
+  - TRENDING  -> confidence * 0.85
+  - CHAOTIC   -> confidence * 0.75
+  - ABSORPTION_FRIENDLY / UNKNOWN -> unchanged
+- Snapshot now exposes `hmm_regime` with default `UNKNOWN`.
+
+Verification:
+- LSP diagnostics: clean for changed files (`regime_gate.py`, `analyzer.py`, `orchestrator.py`, `schemas.py`, `test_analyzer.py`, `test_orchestrator.py`).
+- Hermes test run (temporary WSL venv `/tmp/deep6-gex-test`):
+  - Command: `/tmp/deep6-gex-test/bin/python -m pytest gex_terminal/tests -v`
+  - Result: `86 passed in 42.48s`

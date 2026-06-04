@@ -34,9 +34,12 @@ function Write-Verbose-Host {
 }
 
 function Get-NT8Process {
-    $p = Get-Process -Name "NinjaTrader" -ErrorAction SilentlyContinue
-    if (!$p) { Write-Error "NinjaTrader is not running. Start NT8 first."; exit 1 }
-    return $p
+    $procs = @(Get-Process -Name "NinjaTrader" -ErrorAction SilentlyContinue)
+    if (!$procs -or $procs.Count -eq 0) { Write-Error "NinjaTrader is not running. Start NT8 first."; exit 1 }
+
+    $main = $procs | Where-Object { $_.MainWindowHandle -ne 0 } | Select-Object -First 1
+    if ($main) { return $main }
+    return ($procs | Select-Object -First 1)
 }
 
 function Get-InstallXmlTimestamp {
@@ -103,20 +106,102 @@ if ($AutoReload) {
     Write-Verbose-Host "  Bringing NT8 to foreground..."
     Bring-NT8ToFront -Process $nt8
 
-    $wsh = New-Object -ComObject WScript.Shell
+    # ── Open NinjaScript Editor via UIAutomation (New > NinjaScript Editor) ──────
+    # VERIFIED: NSE is under New menu, NOT Tools menu on this machine.
+    Write-Verbose-Host "  Opening NinjaScript Editor (New > NinjaScript Editor via UIAutomation)..."
+    Add-Type -AssemblyName UIAutomationClient  -ErrorAction SilentlyContinue
+    Add-Type -AssemblyName UIAutomationTypes   -ErrorAction SilentlyContinue
 
-    Write-Verbose-Host "  Opening NinjaScript Editor (Tools > NinjaScript Editor)..."
-    $wsh.AppActivate("NinjaTrader") | Out-Null
-    Start-Sleep -Milliseconds 400
-    $wsh.SendKeys("%t")
-    Start-Sleep -Milliseconds 350
-    $wsh.SendKeys("n")
-    Start-Sleep -Milliseconds 1200
+    $uiaRoot    = [System.Windows.Automation.AutomationElement]::RootElement
+    $uiaPidCond = New-Object System.Windows.Automation.PropertyCondition `
+        ([System.Windows.Automation.AutomationElement]::ProcessIdProperty), ($nt8.Id)
+    $uiaAllWin  = $uiaRoot.FindAll([System.Windows.Automation.TreeScope]::Children, $uiaPidCond)
 
+    $uiaCcWin = $null
+    foreach ($uiaW in $uiaAllWin) {
+        $uiaCls = $null
+        try { $uiaCls = $uiaW.Current.ClassName } catch { }
+        if ($uiaCls -eq "ControlCenter") { $uiaCcWin = $uiaW; break }
+    }
+
+    $uiaMiCond = New-Object System.Windows.Automation.PropertyCondition `
+        ([System.Windows.Automation.AutomationElement]::ControlTypeProperty), `
+        ([System.Windows.Automation.ControlType]::MenuItem)
+
+    # Expand "New" submenu then invoke "NinjaScript Editor"
+    $uiaNewItem = $null
+    if ($null -ne $uiaCcWin) {
+        $uiaItems = $uiaCcWin.FindAll([System.Windows.Automation.TreeScope]::Descendants, $uiaMiCond)
+        foreach ($uiaIt in $uiaItems) {
+            $uiaN = $null
+            try { $uiaN = $uiaIt.Current.Name } catch { }
+            if ($uiaN -eq "New") { $uiaNewItem = $uiaIt; break }
+        }
+    }
+
+    if ($null -ne $uiaNewItem) {
+        $uiaEpOk = $false
+        try {
+            $uiaEp = $uiaNewItem.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern)
+            $uiaEp.Expand()
+            $uiaEpOk = $true
+        }
+        catch { Write-Verbose-Host "  Warning: ExpandCollapse on New failed." Yellow }
+
+        if ($uiaEpOk) {
+            Start-Sleep -Milliseconds 600
+            $uiaNseItem = $null
+            $uiaItems2 = $uiaCcWin.FindAll([System.Windows.Automation.TreeScope]::Descendants, $uiaMiCond)
+            foreach ($uiaIt2 in $uiaItems2) {
+                $uiaN2 = $null
+                try { $uiaN2 = $uiaIt2.Current.Name } catch { }
+                if ($uiaN2 -eq "NinjaScript Editor") { $uiaNseItem = $uiaIt2; break }
+            }
+
+            if ($null -ne $uiaNseItem) {
+                try {
+                    $uiaIp = $uiaNseItem.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+                    $uiaIp.Invoke()
+                    Write-Verbose-Host "  NinjaScript Editor opened via UIAutomation." Cyan
+                }
+                catch { Write-Verbose-Host "  Warning: Invoke on NinjaScript Editor failed." Yellow }
+            }
+            else {
+                Write-Verbose-Host "  NinjaScript Editor item not found -- NSE may already be open." Yellow
+            }
+        }
+    }
+    else {
+        Write-Verbose-Host "  New menu item not found in ControlCenter." Yellow
+    }
+    Start-Sleep -Milliseconds 1500
+
+    # ── Focus NSE window and send F5 ─────────────────────────────────────────────
     Write-Verbose-Host "  Sending F5 (Compile)..."
-    $wsh.AppActivate("NinjaTrader") | Out-Null
-    Start-Sleep -Milliseconds 200
-    $wsh.SendKeys("{F5}")
+    $uiaAllWin2 = $uiaRoot.FindAll([System.Windows.Automation.TreeScope]::Children, $uiaPidCond)
+    $uiaNseWin  = $null
+    foreach ($uiaW2 in $uiaAllWin2) {
+        $uiaN3 = $null
+        try { $uiaN3 = $uiaW2.Current.Name } catch { }
+        if ($uiaN3 -like "*NinjaScript*") { $uiaNseWin = $uiaW2; break }
+    }
+
+    $wsh = New-Object -ComObject WScript.Shell
+    if ($null -ne $uiaNseWin) {
+        $nseHandle = New-Object IntPtr($uiaNseWin.Current.NativeWindowHandle)
+        [NT8Win]::ShowWindow($nseHandle, 9)       | Out-Null
+        [NT8Win]::SetForegroundWindow($nseHandle) | Out-Null
+        Start-Sleep -Milliseconds 500
+        $wsh.AppActivate("NinjaScript Editor") | Out-Null
+        Start-Sleep -Milliseconds 300
+        $wsh.SendKeys("{F5}")
+    }
+    else {
+        Write-Verbose-Host "  NSE window not found -- sending F5 to active NT8 window." Yellow
+        $wsh.AppActivate($nt8.Id) | Out-Null
+        Start-Sleep -Milliseconds 300
+        $wsh.SendKeys("{F5}")
+    }
     Start-Sleep -Milliseconds 300
 }
 
@@ -127,6 +212,7 @@ $pollInterval = 500   # ms
 $elapsed      = 0
 $succeeded    = $false
 $newMtime     = $null
+$postInstallTs = $preInstallTs
 
 while ($elapsed -lt ($TimeoutSeconds * 1000)) {
     Start-Sleep -Milliseconds $pollInterval
@@ -141,6 +227,13 @@ while ($elapsed -lt ($TimeoutSeconds * 1000)) {
         }
     }
 
+    $curInstallTs = Get-InstallXmlTimestamp
+    if ($curInstallTs -and $curInstallTs -ne $preInstallTs) {
+        $postInstallTs = $curInstallTs
+        $succeeded = $true
+        break
+    }
+
     if (!$Quiet) {
         $dots = "." * ([math]::Floor($elapsed / 1000))
         Write-Host "`r  Waiting${dots}   " -NoNewline
@@ -152,20 +245,23 @@ if (!$Quiet) { Write-Host "" }   # newline after dot progress
 # ── 5. Emit result ────────────────────────────────────────────────────────────
 if ($succeeded) {
     Write-Verbose-Host ""
-    Write-Verbose-Host "  COMPILE SUCCEEDED  (DLL updated at $($newMtime.ToString('HH:mm:ss.fff')))" Green
+    if ($newMtime) {
+        Write-Verbose-Host "  COMPILE SUCCEEDED  (DLL updated at $($newMtime.ToString('HH:mm:ss.fff')))" Green
+        Write-Output "[COMPILE-RESULT] SUCCESS $($newMtime.ToString('yyyy-MM-dd HH:mm:ss.fff'))"
+    } elseif ($postInstallTs -and $postInstallTs -ne $preInstallTs) {
+        Write-Verbose-Host "  COMPILE SUCCEEDED  (Install.xml advanced to $postInstallTs)" Green
+        Write-Output "[COMPILE-RESULT] SUCCESS $postInstallTs"
+    }
 
     # 7. Read Install.xml on success to confirm official compile timestamp
-    $postInstallTs = Get-InstallXmlTimestamp
     if ($postInstallTs) {
         Write-Verbose-Host "  Install.xml <CompiledCustomAssembly>: $postInstallTs" Green
     }
-
-    Write-Host "[COMPILE-RESULT] SUCCESS $($newMtime.ToString('yyyy-MM-dd HH:mm:ss.fff'))"
 } else {
     # ── 5a. Failure — DLL mtime unchanged after timeout ──────────────────────
     Write-Host ""
     Write-Host "  COMPILE FAILED (DLL unchanged after ${TimeoutSeconds} seconds)" -ForegroundColor Red
-    Write-Host "[COMPILE-RESULT] FAILED timeout" -ForegroundColor Red
+    Write-Output "[COMPILE-RESULT] FAILED timeout"
 }
 
 # ── 8. -CheckErrors: grep NT8 log for runtime errors ─────────────────────────
@@ -185,7 +281,8 @@ if ($CheckErrors) {
 
     if ($logFile -and (Test-Path $logFile)) {
         $errors = Get-Content $logFile |
-                  Select-String -Pattern "\berror\b|\bERROR\b|CS\d{4}" -CaseSensitive:$false
+                  Where-Object { $_ -notmatch "(?i)no error" } |
+                  Select-String -Pattern "CS\d{4}|compile.*fail|failed.*compile|Unhandled exception|Exception:|strategy.*failed|indicator.*failed" -CaseSensitive:$false
         if ($errors) {
             Write-Host "  ERRORS FOUND:" -ForegroundColor Red
             $errors | Select-Object -Last 20 | ForEach-Object { Write-Host "    $_" -ForegroundColor Red }

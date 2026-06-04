@@ -1,0 +1,20 @@
+{
+  "instrument": "NQ",
+  "flip": 21597.75,
+  "call_wall": 22074.25,
+  "put_wall": 21369.25,
+  "net_gex": 3200000000.0,
+  "regime": "POS_GEX",
+  "primary_magnet": 21597.75,
+  "magnet_confidence": 0.82,
+  "bias_direction": "bearish",
+  "invalidation_level": 21607.75,
+  "invalidation_reason": "Break and acceptance beyond gamma flip level",
+  "lean": "long gamma intensifying -> tighter range, stronger pin; fade extremes toward flip/between walls",
+  "pin_risk": 45.0,
+  "max_pain": 21780.57,
+  "caveats": [],
+  "as_of": "2026-05-28T14:30:00Z",
+  "source": "flashalpha-QQQ-x45.42",
+  "stale_after_seconds": 300
+}

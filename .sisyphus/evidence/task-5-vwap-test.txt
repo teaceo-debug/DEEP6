@@ -1,0 +1,47 @@
+T5 — MADLevelEngine Implementation Evidence
+=============================================
+
+## Files Modified
+- ninjatrader/Custom/Indicators/DEEP6/MADConfluenceAI/MADConfluenceAI.Scoring.cs
+  Added: MADLevelType enum (21 values), MADLevel class, MADLevelEngine class
+
+## Files Created  
+- ninjatrader/tests/MADConfluenceAI/LevelEngineTests.cs
+  14 NUnit test cases covering all engine functionality
+
+## VWAP Formula Verification
+VWAP = Σ(Price × Volume) / Σ(Volume)
+StdDev = √(Σ(Volume × Price²) / Σ(Volume) - VWAP²)
+
+Test 1 verification:
+  Tick 1: price=20000, vol=100 → PV=2,000,000
+  Tick 2: price=20010, vol=200 → PV=4,002,000
+  Tick 3: price=20005, vol=300 → PV=6,001,500
+  Total PV = 12,003,500  Total V = 600
+  Expected VWAP = 12,003,500 / 600 = 20005.8333...
+
+Test 14 verification (uniform price → zero sigma):
+  All ticks at 20000.0 → VWAP=20000, variance=0, sigma=0
+  Bands collapse: Vwap1SigmaUp == Vwap1SigmaDown == VwapValue
+
+## Build Verification
+dotnet build ninjatrader\tests\ninjatrader.tests.csproj
+- 0 errors in LevelEngineTests.cs
+- 0 errors in MADConfluenceAI.Scoring.cs
+- 7 pre-existing errors in DataTypesTests.cs (unrelated)
+
+## Test Coverage Summary
+1.  UpdateVwap_ThreeTicks_VwapEqualsWeightedAverage — VWAP math
+2.  UpdateVwap_SigmaBands_AreAboveAndBelowVwap — band ordering
+3.  GetNearbyLevels_FindsPdl_WhenPriceIs1TickAbove — proximity search
+4.  GetNearbyLevels_ReturnsEmpty_WhenNoLevelsWithinTolerance — empty result
+5.  SetPriorDayLevels_StoresCorrectHighLowMid — H/L/Mid storage
+6.  GeneratePsychologicalLevels_CreatesAt25PointIntervals — psych levels
+7.  RecordTouch_IncrementsTouchCount_OnNearbyLevel — touch tracking
+8.  RecomputeQuality_ConfluenceBoosts_WhenLevelsAtSamePrice — confluence
+9.  ResetSession_ClearsVwapAndSessionLevels — session reset
+10. MaxLevelsCap_StopsAt200 — capacity guard
+11. SetVolumeLevels_StoresPocVahVal — VP level storage
+12. SetVolumeLevels_UpdatesExistingLevels_NoDuplicates — update-not-duplicate
+13. RecordTouch_DoesNotIncrement_DistantLevels — distant touch ignored
+14. UpdateVwap_UniformPrice_GivesZeroSigma — degenerate case

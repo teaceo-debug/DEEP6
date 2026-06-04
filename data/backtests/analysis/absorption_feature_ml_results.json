@@ -1,0 +1,168 @@
+{
+  "n_absorption": 901,
+  "feature_names": [
+    "strength",
+    "bar_volume",
+    "abs_delta",
+    "delta_pct",
+    "bar_range",
+    "score_final",
+    "hour",
+    "minute_of_day",
+    "dow",
+    "is_type_a",
+    "is_type_b",
+    "volume_rank",
+    "range_rank"
+  ],
+  "targets": {
+    "profitable_5b": {
+      "majority_baseline_accuracy": 0.537180910099889,
+      "positive_rate": 0.462819089900111,
+      "models": {
+        "random_forest": {
+          "name": "random_forest",
+          "accuracy_mean": 0.5160773480662983,
+          "accuracy_std": 0.027922225487667637,
+          "auc_mean": 0.5137943526684056,
+          "auc_std": 0.05590674275132949,
+          "top_features": [
+            {
+              "feature": "delta_pct",
+              "importance": 0.13251901817534537
+            },
+            {
+              "feature": "volume_rank",
+              "importance": 0.1177098223668918
+            },
+            {
+              "feature": "range_rank",
+              "importance": 0.11597095621489655
+            },
+            {
+              "feature": "strength",
+              "importance": 0.10779756497179956
+            },
+            {
+              "feature": "minute_of_day",
+              "importance": 0.10384813054354321
+            }
+          ]
+        },
+        "logistic_regression": {
+          "name": "logistic_regression",
+          "accuracy_mean": 0.5116144874155923,
+          "accuracy_std": 0.039829949038835306,
+          "auc_mean": 0.5007884508086347,
+          "auc_std": 0.05371820851932391,
+          "top_features": [
+            {
+              "feature": "abs_delta",
+              "importance": 0.2002980741170925
+            },
+            {
+              "feature": "bar_volume",
+              "importance": 0.17596973836639454
+            },
+            {
+              "feature": "is_type_a",
+              "importance": 0.12692213144829373
+            },
+            {
+              "feature": "hour",
+              "importance": 0.11303242764186465
+            },
+            {
+              "feature": "minute_of_day",
+              "importance": 0.11028872013415218
+            }
+          ]
+        }
+      },
+      "decision_rule": {
+        "rule": "delta_pct <= 0.694 AND delta_pct > 0.609 AND range_rank <= 0.924",
+        "win_rate": 0.6222222222222222,
+        "support": 90,
+        "features": [
+          "delta_pct",
+          "volume_rank",
+          "range_rank"
+        ]
+      }
+    },
+    "profitable_15b": {
+      "majority_baseline_accuracy": 0.537180910099889,
+      "positive_rate": 0.462819089900111,
+      "models": {
+        "random_forest": {
+          "name": "random_forest",
+          "accuracy_mean": 0.4917004297114794,
+          "accuracy_std": 0.04145852128754515,
+          "auc_mean": 0.5101441018122563,
+          "auc_std": 0.0445318524946717,
+          "top_features": [
+            {
+              "feature": "range_rank",
+              "importance": 0.117058332118685
+            },
+            {
+              "feature": "volume_rank",
+              "importance": 0.11079565667719915
+            },
+            {
+              "feature": "score_final",
+              "importance": 0.1082647563235027
+            },
+            {
+              "feature": "strength",
+              "importance": 0.10758467097964367
+            },
+            {
+              "feature": "delta_pct",
+              "importance": 0.10626730366252454
+            }
+          ]
+        },
+        "logistic_regression": {
+          "name": "logistic_regression",
+          "accuracy_mean": 0.5527010435850215,
+          "accuracy_std": 0.0262921400250079,
+          "auc_mean": 0.5287682147342438,
+          "auc_std": 0.05324469502658483,
+          "top_features": [
+            {
+              "feature": "minute_of_day",
+              "importance": 0.19377854991431925
+            },
+            {
+              "feature": "is_type_a",
+              "importance": 0.19315154536740003
+            },
+            {
+              "feature": "hour",
+              "importance": 0.16696609526563527
+            },
+            {
+              "feature": "bar_range",
+              "importance": 0.16392950539418633
+            },
+            {
+              "feature": "dow",
+              "importance": 0.10527330820377911
+            }
+          ]
+        }
+      },
+      "decision_rule": {
+        "rule": "score_final <= 77.195 AND score_final > 69.400 AND range_rank <= 0.808",
+        "win_rate": 0.813953488372093,
+        "support": 43,
+        "features": [
+          "range_rank",
+          "volume_rank",
+          "score_final"
+        ]
+      }
+    }
+  }
+}

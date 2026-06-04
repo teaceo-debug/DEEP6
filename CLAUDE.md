@@ -281,6 +281,22 @@ Invoke this skill when:
 Generates valid NinjaScript C# code from a description, deploys it, compiles it,
 and fixes any errors automatically.
 
+### nt8-backtesting-expert — NinjaTrader 8 Backtesting Expert
+
+Skill location: `.claude/skills/nt8-backtesting-expert/`
+
+Invoke this skill when:
+- Running backtests in NT8 Strategy Analyzer (backtest, optimization, walk-forward)
+- Downloading or importing historical data for backtesting
+- Writing NinjaScript strategies that backtest accurately
+- Debugging backtest vs live discrepancies
+- Understanding Strategy Analyzer settings, metrics, or output
+- Setting up Tick Replay, OrderFillResolution, or intrabar fill accuracy
+
+Load `.claude/skills/nt8-backtesting-expert/knowledge.md` for the complete backtesting encyclopedia
+covering Strategy Analyzer (all tabs), historical data acquisition, NinjaScript code patterns,
+fill accuracy mechanisms, performance metrics, optimization-ready templates, and troubleshooting.
+
 ### nt8-architect — DEEP6 Architecture Map
 
 Skill location: `.claude/skills/nt8-architect/`
@@ -292,6 +308,244 @@ Invoke this skill when:
 - Checking deployment state
 
 Maintains a live map of all DEEP6 files, their namespaces, exports, and dependency graph.
+
+### nt8-visual-design — NT8 Visual Design Bible
+
+Skill location: `.claude/skills/nt8-visual-design/`
+
+Invoke this skill when:
+- Building or modifying NinjaTrader 8 indicator visuals (SharpDX rendering)
+- Designing footprint charts, HUDs, dashboards, or signal markers
+- Choosing colors, fonts, or layout for any NT8 chart overlay
+- Need SharpDX code patterns for gradients, rounded panels, custom shapes, text rendering
+
+Load `.claude/skills/nt8-visual-design/knowledge.md` for the complete NT8 visual design system
+including institutional color palettes, typography specs, SharpDX technique catalog,
+footprint cell rendering patterns, and performance optimization rules.
+
+### trading-knowledge — Trading Knowledge Center
+
+Skill location: `.claude/skills/trading-knowledge/`
+
+Invoke this skill when:
+- User asks about trading concepts, order flow, microstructure, strategy discovery, or trade setup documentation
+- User asks "What is [trading concept]?," "Find strategies for [condition]," "What does DEEP6 signal [X] detect?," "How do I find NinjaTrader strategies?," "Document this trade setup," "What academic research supports [pattern]?," or "Explain [order flow concept]"
+
+Load `.claude/skills/trading-knowledge/knowledge.md` first, then route to the relevant domain, catalog, or reference file as needed.
+
+### display-topology — Multi-Monitor Display Map
+
+Skill location: `.claude/skills/display-topology/`
+
+Invoke this skill when:
+- Taking screenshots or interacting with UI across multiple monitors
+- Finding which screen NinjaTrader, TradingView, or any application is on
+- Doing UI automation that needs to know monitor positions and coordinates
+- Debugging window positioning or display layout issues
+
+Load `.claude/skills/display-topology/knowledge.md` for the complete 4-screen monitor map,
+coordinate system, DPI scaling reference, and runtime window detection commands.
+
+### trader-dale-footprint — Trader Dale Order Flow Mastery
+
+Skill location: `.claude/skills/trader-dale-footprint/`
+
+Invoke this skill when:
+- Reading footprint/order flow charts (bid/ask, delta, imbalances, volume clusters)
+- Using Trader Dale's 5 standalone trading setups (Volume Clusters, Multiple Nodes, Trades Filter, Stacked Imbalances, Unfinished Business)
+- Using Trader Dale's 4 confirmation setups (Big Limit Orders, Absorption, Aggressive Orders & Delta, Cumulative Delta Divergence)
+- Setting up Order Flow workspace (4-chart layout, timeframes, cell content modes)
+- Placing take profit, stop loss, or trailing with order flow
+- Combining Volume Profile with Order Flow for S/R identification
+- Understanding passive vs active market participants
+- Any question about TDO Bars software or Trader Dale's methodology
+
+Load `.claude/skills/trader-dale-footprint/knowledge.md` for the master index and routing map.
+27 files across 7 subdirectories: foundations/, reading/, setups/, confirmations/, risk/, volume-profile/, workspace/.
+
+### rithmic-networking — Rithmic API Networking Reference
+
+Skill location: `.claude/skills/rithmic-networking/`
+
+Invoke this skill when:
+- Connecting to Rithmic via async-rithmic (test, paper, live, prop firm)
+- Debugging Rithmic connection errors (SYSTEM_NAME, ForcedLogout, authentication)
+- Setting up a new Rithmic service or configuring environment variables
+- Working with gateway discovery, system names, or conformance testing
+- Troubleshooting DOM/tick data feed issues from Rithmic
+
+Load `.claude/skills/rithmic-networking/knowledge.md` for verified gateway URLs,
+system names, connection patterns, error troubleshooting, and DEEP6-specific patterns.
+
+### tradingview-machine-profile — TradingView Platform + Routing Profile
+
+Skill location: `.claude/skills/tradingview-machine-profile/`
+
+Invoke this skill when:
+- Starting any TradingView or Pine Script task and you need platform context first
+- Connecting to TradingView Desktop or reasoning about MCP/tool routing
+- Determining whether a task is platform/setup, build, debugging, MCP operation, or strategy backtesting
+
+Load `.claude/skills/tradingview-machine-profile/knowledge.md` first for the platform model,
+DEEP6-specific role of TradingView, and the routing table Hermes or any implementation agent should follow.
+
+### tradingview-pinescript-builder-doctor — DEEP6 Pine Builder
+
+Skill location: `.claude/skills/tradingview-pinescript-builder-doctor/`
+
+Invoke this skill when:
+- Building Pine indicators, strategies, libraries, alert scripts, or webhook bridges
+- Designing TradingView studies for DEEP6 visual analysis or signal surfacing
+- Extending Pine-side DEEP6 logic such as anchors, overlays, or backend-facing alert payloads
+
+Load `.claude/skills/tradingview-pinescript-builder-doctor/knowledge.md` first, then route to
+the smallest matching article under `patterns/`, `strategies/`, or `deep6/`.
+
+### tradingview-pinescript-error-doctor — Pine Error Encyclopedia + Repair Playbooks
+
+Skill location: `.claude/skills/tradingview-pinescript-error-doctor/`
+
+Invoke this skill when:
+- Pine compile errors, runtime errors, repainting bugs, MTF bugs, or object lifecycle bugs need fixing
+- The user asks for Pine error diagnosis, deep debugging, or a trusted repair workflow
+- Strategy behavior is suspicious and you need to separate compile-silent logic bugs from platform issues
+
+Load `.claude/skills/tradingview-pinescript-error-doctor/knowledge.md` first.
+It routes to official error-code notes, common compile errors, and focused repair playbooks.
+
+### tradingview-mcp-trading-operator — TradingView MCP Operations
+
+Skill location: `.claude/skills/tradingview-mcp-trading-operator/`
+
+Invoke this skill when:
+- Reading or replacing Pine source through MCP
+- Compiling on chart, checking Pine errors/console, inspecting labels/lines/boxes/tables
+- Taking TradingView screenshots, querying study values, or managing alerts through the bridge
+
+Load `.claude/skills/tradingview-mcp-trading-operator/knowledge.md` for the canonical MCP tool sequences.
+
+### tradingview-strategy-backtesting-operator — Strategy Tester Specialist
+
+Skill location: `.claude/skills/tradingview-strategy-backtesting-operator/`
+
+Invoke this skill when:
+- Evaluating Pine strategies in Strategy Tester
+- Interpreting trades, equity, settings realism, or why a strategy takes bad/no trades
+- Tightening strategy assumptions before trusting backtest output
+
+Load `.claude/skills/tradingview-strategy-backtesting-operator/knowledge.md` for the backtesting checklist,
+tester interpretation rules, and routing to builder/error-doctor skills when the issue is upstream.
+
+### tradingview-pine-converter — Pine→Python Conversion Specialist
+
+Skill location: `.claude/skills/tradingview-pine-converter/`
+
+Invoke this skill when:
+- Converting Pine Script indicators or strategies to Python for VectorBT PRO
+- Porting Pine trading logic to BaseSignalGenerator format
+- Mapping Pine functions to pandas/numpy equivalents
+- Validating converted code for repainting and parameter format compliance
+
+Load `.claude/skills/tradingview-pine-converter/knowledge.md` for the banned parameter table,
+mapping reference, anti-repainting rules, and quality checklist.
+
+### hermes-backtest-discovery — DEEP6 Autonomous Backtest Discovery
+
+Skill location: `.claude/skills/hermes-backtest-discovery/`
+
+Invoke this skill when:
+- Running the backtest discovery loop
+- Discovering entry models targeting MBO levels
+- Evolving strategies via iteration
+- Reading backtest loop state or progress
+
+Load `.claude/skills/hermes-backtest-discovery/knowledge.md` first for complete iteration protocol, data paths, CLI commands, and guardrails.
+
+### nq-options-algo-engine — NQ Options Market Algo Builder
+
+Skill location: `.claude/skills/nq-options-algo-engine/`
+
+Invoke this skill when:
+- Building Python algos or Pine indicators that consume options data for NQ trading
+- Integrating Massive.com or FlashAlpha APIs into the DEEP6 data pipeline
+- Converting options market analysis (GEX, flow, volatility) into automated signals
+- Designing the real-time options data pipeline (async clients, data fusion, proxy conversion)
+- Backtesting NQ strategies that use options-derived inputs
+- Building any of: regime detection, wall reaction, vol surface, or 0DTE gamma algos
+
+Load `.claude/skills/nq-options-algo-engine/knowledge.md` first for the master router,
+data source architecture, file map, and cross-references to companion skills
+(options-bias-engine for theory, flashalpha-options for API reference).
+
+17 files across 4 subdirectories: data-sources/, algo-patterns/, strategies/, implementation/.
+5 deep-expertise files: dealer mechanics formulas, vol surface quantitative, institutional flow taxonomy,
+academic foundations (8 papers), GEX model validation with honest limitations.
+
+### volume-profile-lvn — Volume Profile & LVN Institutional Price Structure
+
+Skill location: `.claude/skills/volume-profile-lvn/`
+
+Invoke this skill when:
+- User asks about Volume Profile shapes, LVN, HVN, POC, VAH, VAL, or value area
+- User asks about Low Volume Nodes as entry zones, acceleration zones, or rejection levels
+- User asks about profile-based NQ trading strategies (breakout, fade, gap-fill, retest)
+- User asks about combining Volume Profile with order flow (absorption, delta, imbalances at LVN)
+- User asks about combining Volume Profile with GEX/options (gamma regime + LVN behavior)
+- User asks about Market Profile, TPO, auction market theory, or Dalton/Steidlmayer methodology
+- User asks about composite profiles, value migration, naked VPOC, or structural LVN
+- User asks about implementing Volume Profile in Python or Pine Script
+- User says "LVN setup", "volume profile strategy", "where is support/resistance from VP", "profile shapes"
+
+Load `.claude/skills/volume-profile-lvn/knowledge.md` first for the 5-step decision framework,
+strategy summary table, and query routing map.
+24 files across 6 subdirectories: foundations/, reading/, setups/, confluence/, implementation/, risk/.
+Covers: AMT theory, 6 codified LVN strategies, order flow + GEX confluence rules,
+Python/Pine implementation patterns, DEEP6 engine integration points, and academic evidence review.
+
+### unusual-whales — Unusual Whales API & Dark Pool Intelligence
+
+Skill location: `.claude/skills/unusual-whales/`
+
+Invoke this skill when:
+- User asks about Unusual Whales API, endpoints, authentication, or rate limits
+- User wants dark pool levels from QQQ/SPY as NQ support/resistance
+- User wants to build options flow alerts, screening, or sweep detection using UW data
+- User asks about GEX/gamma exposure from Unusual Whales (independent from FlashAlpha)
+- User wants real-time WebSocket streaming of dark pool, flow, or GEX data
+- User asks about building a Python async client for the UW API
+- User asks about congressional trading, insider trading, or institutional 13F data from UW
+- User says "unusual whales", "dark pool levels", "UW API", "institutional flow", "off-lit trades"
+
+Load `.claude/skills/unusual-whales/knowledge.md` first for the master router,
+NQ proxy strategy, DEEP6 integration architecture, and sub-skill routing table.
+8 files: knowledge.md (router), api-reference.md (100+ endpoints, anti-hallucination),
+dark-pool.md (levels as S/R, clustering, NQ proxy), options-flow.md (alerts, 6-component scoring),
+gex-greeks.md (GEX, IV, vol surface), websocket.md (real-time streaming, production patterns),
+implementation.md (Python async client, rate limiting, DEEP6 pipeline),
+institutional.md (13F, congressional, insider data).
+
+### dark-pool-nq-charting — Doctorate-Level Dark Pool Expertise for NQ Futures
+
+Skill location: `.claude/skills/dark-pool-nq-charting/`
+
+Invoke this skill when:
+- User asks about dark pool theory, market microstructure, or price discovery at an academic level
+- User wants to chart dark pool levels on NQ futures (QQQ proxy conversion, visualization methods)
+- User asks about DIX (Dark Index), dark pool z-scores, or quantitative dark pool signals
+- User asks about GEX + dark pool confluence (gamma walls + institutional levels interaction)
+- User asks about FINRA data mechanics, ATS venues, reporting latency, or data biases
+- User wants Python code for dark pool clustering (DBSCAN, KDE, premium-weighted merge)
+- User wants Pine Script indicators for dark pool level overlays on NQ
+- User asks about Kyle lambda, Glosten-Milgrom, Zhu sorting mechanism, or Comerton-Forde tipping point
+- User says "chart dark pools on NQ", "dark pool PhD", "institutional levels", "dark pool microstructure"
+
+Load `.claude/skills/dark-pool-nq-charting/knowledge.md` first for the information hierarchy,
+critical numbers, NQ proxy architecture, and sub-skill routing table.
+6 files: knowledge.md (router), foundations.md (FINRA mechanics, venues, biases),
+microstructure-theory.md (Kyle/Glosten-Milgrom/Zhu/Comerton-Forde at PhD level),
+charting-methodology.md (visualization, QQQ→NQ conversion, patterns, daily workflow),
+quantitative-models.md (DIX formula, z-scores, aggression, GEX confluence, Bayesian),
+implementation.md (Python clustering, Pine Script, real-time pipeline).
 
 <!-- GSD:skills-end -->
 
@@ -309,6 +563,72 @@ Do not make direct repo edits outside a GSD workflow unless the user explicitly 
 <!-- GSD:workflow-end -->
 
 
+
+<!-- GSD:hermes-operator-start -->
+## HERMES Operator Directive (MANDATORY)
+
+**Claude writes code. HERMES executes on the computer. No exceptions.**
+
+Any time you need to do something on this machine — compile, deploy, inject code into TradingView, start services, run tests, take screenshots, verify things work — you MUST invoke HERMES via WSL. Do NOT use TradingView MCP tools, clipboard paste, or any direct computer operations yourself.
+
+### How to invoke HERMES
+
+```bash
+wsl bash -c "cd /home/tea/.hermes/hermes-agent && ./venv/bin/hermes chat -q 'TASK_DESCRIPTION' -s SKILL1,SKILL2 -Q --yolo --max-turns N 2>&1"
+```
+
+### Key flags
+- `-q "TASK"` — single query, non-interactive
+- `-s SKILLS` — preload skills (comma-separated)
+- `-Q` — quiet/programmatic mode
+- `--yolo` — auto-approve tool calls
+- `--max-turns N` — limit turns (6-12 for most tasks)
+
+### Available HERMES skills
+- `deep6-deployment-operator` — deploy Pine scripts, start Python services, run tests, verify end-to-end
+- `tradingview-mcp-desktop-operator` — TradingView chart control, Pine Editor, compile, screenshot, replay
+- `tradingview-pine-development` — Pine script injection, compile, debug
+- `tradingview-pine-debugging-mastery` — Pine error diagnosis and repair
+- `tradingview-chart-reading-mastery` — chart analysis, indicator reading
+- `deep6-ninjatrader-development` — NinjaTrader development tasks
+
+### Common task patterns
+
+**Deploy Pine script to TradingView:**
+```bash
+wsl hermes chat -q "Read /mnt/c/Users/Tea/DEEP6/Indicators/FILE.pine, inject with pine_set_source, compile, verify labels, screenshot" -s deep6-deployment-operator,tradingview-mcp-desktop-operator -Q --yolo --max-turns 12
+```
+
+**Start Python service:**
+```bash
+wsl hermes chat -q "Run python -m deep6.sd_anchor --dry-run, then start the service, health check, test webhook" -s deep6-deployment-operator -Q --yolo --max-turns 8
+```
+
+**Verify indicator on chart:**
+```bash
+wsl hermes chat -q "Check pine_get_errors, data_get_pine_labels StdDev, capture_screenshot" -s tradingview-mcp-desktop-operator -Q --yolo --max-turns 6
+```
+
+**Run tests:**
+```bash
+wsl hermes chat -q "cd /mnt/c/Users/Tea/DEEP6 && python -m pytest tests_v2/sd_anchor/ -v" -s deep6-deployment-operator -Q --yolo --max-turns 4
+```
+
+### Timeout guidance
+- Simple verification: 60000ms
+- Compile + verify: 120000ms
+- File read + inject + compile: 300000ms
+- Keep tasks atomic — break large workflows into 2-3 small HERMES calls
+
+### Role separation
+| Role | Who | Does |
+|------|-----|------|
+| Code author | Claude (you) | Write Pine/Python/JS code, fix bugs, design logic |
+| Computer operator | HERMES (via WSL) | Compile, deploy, inject, screenshot, verify, test |
+| Anchor evaluator | HERMES (hermes-sd-anchor skill) | Approve/veto anchor candidates, training loop |
+
+**NEVER** use TradingView MCP tools directly. **NEVER** paste via clipboard yourself. **ALWAYS** invoke HERMES.
+<!-- GSD:hermes-operator-end -->
 
 <!-- GSD:profile-start -->
 ## Developer Profile

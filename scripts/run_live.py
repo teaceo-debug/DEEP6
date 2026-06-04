@@ -1,40 +1,36 @@
-"""DEEP6 production-mode startup script.
+"""DEEP6 startup helper for backend-connected demo and reference-runtime workflows.
 
-Starts the FastAPI server (exposing /ws/live, /api/session/status, …) and,
-for --source=live, the full async-rithmic data pipeline that drives the
-44-signal engines → ScorerResult → LiveBridge → WSManager broadcast.
+This script starts the FastAPI server and then runs one of two sources:
 
-Usage:
-    python scripts/run_live.py                      # defaults to --source=demo
-    python scripts/run_live.py --source=demo        # synthetic NQ data (no engine)
-    python scripts/run_live.py --source=live        # real engine (Rithmic/Databento feed)
-    python scripts/run_live.py --port 8765          # custom port (default 8765)
+- ``--source=demo``
+    Frontend/backend integration aid. Starts the API server and spawns
+    ``scripts/demo_broadcast.py`` so the dashboard can receive synthetic data.
+    This is useful for UI and websocket validation. It is not evidence of live
+    trading readiness.
+
+- ``--source=live``
+    Starts the API server plus the Python reference-runtime pipeline used for
+    backend-connected replay/live-like workflows in this repository. This path
+    can use Databento or Rithmic depending on configuration, but it should not
+    be read as the single canonical live runtime for the whole DEEP6 project.
+
+Current project truth:
+- The repository still has multiple runtime surfaces.
+- The Python path is best treated as a substantial reference/runtime layer.
+- The NT8 path remains the execution-oriented runtime direction in repo docs.
+
+Read before relying on this script operationally:
+- ``README.md``
+- ``docs/CURRENT-STATE.md``
+- ``docs/RUNBOOK.md``
+- ``docs/VERIFICATION-LADDER.md``
+
+Usage examples:
+    python scripts/run_live.py
+    python scripts/run_live.py --source=demo
+    python scripts/run_live.py --source=live
+    python scripts/run_live.py --port 8765
     python scripts/run_live.py --source=live --data-source=rithmic
-
---source=demo:
-    Starts the FastAPI server then spawns ``scripts/demo_broadcast.py`` as a
-    subprocess that posts to ``/api/live/test-broadcast``. The dashboard
-    receives realistic NQ market data without any Rithmic connection.
-
---source=live:
-    Starts the FastAPI server AND the full DEEP6 data pipeline:
-        Rithmic/Databento → DOM + tick callbacks → BarBuilder (1m, 5m)
-        → SharedState.on_bar_close → LiveSignalPipeline (narrative +
-        per-category engines + scorer) → LiveBridge → WSManager.broadcast()
-
-    All in one asyncio event loop. ``DEEP6_DATA_SOURCE`` env var or the
-    ``--data-source`` flag chooses between ``rithmic`` and ``databento``
-    (default: whatever Config.from_env() resolves to — typically
-    ``databento`` in repo default, ``rithmic`` when RITHMIC_USER is set).
-
-Gates preserved (do NOT bypass):
-    D-03  aggressor verification — in tick_feed / rithmic.py
-    D-06  RTH gate — in BarBuilder._is_rth (only RTH bars close)
-    D-17  FreezeGuard — in tick_feed + BarBuilder.run
-
-The live bar-close callback fans every closed bar through the full scorer
-and hands the result to the LiveBridge for WS broadcast. TYPE_C or better
-also fires on_signal_fired.
 """
 from __future__ import annotations
 
@@ -112,14 +108,24 @@ async def _run_live_engine(app, data_source: str | None) -> None:  # noqa: ANN00
     singleton is at ``app.state.ws_manager`` (both are set by the lifespan).
     """
     # Imports deferred so FastAPI / env config is settled first.
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+
     from async_rithmic import DataType
 
+    from deep6.api.routes.bias_v3 import update_snapshot as update_bias_api
     from deep6.config import Config
     from deep6.data.bar_builder import BarBuilder
     from deep6.data.rithmic import connect_rithmic, register_callbacks
+    from deep6.engines.intermarket_feed import IntermarketFeed
+    from deep6.engines.intermarket_registry import IntermarketRegistry
     from deep6.engines.live_pipeline import LiveSignalPipeline
+    from deep6.engines.market_bias_engine import MarketBiasEngine
+    from deep6.engines.ohlcv_accumulator import OHLCVBar
     from deep6.scoring.scorer import SignalTier
     from deep6.state.shared import SharedState
+
+    ET = ZoneInfo("America/New_York")
 
     bridge = app.state.live_bridge
     log.info("live_engine: bridge ready  session_start_ts=%.0f",
@@ -151,6 +157,49 @@ async def _run_live_engine(app, data_source: str | None) -> None:  # noqa: ANN00
     # Signal pipeline — instantiated once, one copy of per-timeframe engines.
     pipeline = LiveSignalPipeline(timeframes=("1m", "5m"))
 
+    # ── Bias v3: MarketBiasEngine + IntermarketFeed ──────────────────────
+    bias_engine = MarketBiasEngine(symbol=cfg.instrument)
+    intermarket_registry = IntermarketRegistry()
+
+    # Shared dict of latest intermarket bars, updated by IntermarketFeed
+    # callback. Keys are symbol strings (ZN, DXY, VIX, …), values are
+    # the most recent OHLCVBar for that symbol.
+    intermarket_bars: dict[str, OHLCVBar] = {}
+
+    # Latest TICK index value from intermarket feed (RTH only).
+    _tick_value: dict[str, float] = {"value": 0.0}
+
+    def _on_intermarket_bar(symbol: str, bar: OHLCVBar) -> None:
+        """Callback fired by IntermarketFeed on each completed bar."""
+        intermarket_bars[symbol] = bar
+        # Track TICK value separately for flow domain input.
+        if symbol == "TICK":
+            _tick_value["value"] = bar.close
+
+    intermarket_feed = IntermarketFeed(
+        registry=intermarket_registry,
+        bar_interval_sec=60,
+        on_bar=_on_intermarket_bar,
+        config=cfg,
+    )
+
+    # CVD slope window — tracks last 20 session CVD values for slope calc.
+    _cvd_slope_window: list[int] = []
+    _CVD_SLOPE_LOOKBACK = 20
+
+    def _compute_cvd_slope(current_cvd: int) -> float:
+        """Simple CVD slope: (current - oldest) / window_size."""
+        _cvd_slope_window.append(current_cvd)
+        if len(_cvd_slope_window) > _CVD_SLOPE_LOOKBACK:
+            _cvd_slope_window.pop(0)
+        if len(_cvd_slope_window) < 2:
+            return 0.0
+        return (_cvd_slope_window[-1] - _cvd_slope_window[0]) / len(_cvd_slope_window)
+
+    log.info("live_engine: bias-v3 engine ready  intermarket_symbols=%s",
+             list(intermarket_registry._states.keys()))
+    # ── End bias v3 setup ────────────────────────────────────────────────
+
     # Bar-close hook — fires on every closed RTH bar. Runs the signal stack,
     # pushes the score to the dashboard, and emits a signal event for TYPE_C+.
     async def _on_bar_close(label: str, bar) -> None:  # noqa: ANN001
@@ -169,6 +218,46 @@ async def _run_live_engine(app, data_source: str | None) -> None:  # noqa: ANN00
 
         if result is None:
             return
+
+        # ── Bias v3: compute on every 1m bar close ──────────────────────
+        if label == "1m":
+            try:
+                now_et = datetime.now(ET)
+                vix_bar = intermarket_bars.get("VIX")
+                vix_level = vix_bar.close if vix_bar is not None else None
+
+                bias_snapshot = bias_engine.compute_bias(
+                    po3_state=None,  # PO3 from TradingView webhook (not wired yet)
+                    intermarket_bars=intermarket_bars if intermarket_bars else None,
+                    intermarket_registry=intermarket_registry if intermarket_bars else None,
+                    tick_value=_tick_value["value"],
+                    cvd_slope=_compute_cvd_slope(state.session.cvd),
+                    price=bar.close,
+                    vwap=state.session.vwap,
+                    kronos_bias=None,  # Kronos not wired yet
+                    now_et=now_et,
+                    vix_level=vix_level,
+                    event_day=False,  # TODO: wire event calendar
+                )
+
+                # Feed to API endpoint for dashboard consumption.
+                update_bias_api(
+                    bias_snapshot,
+                    domain_scores=bias_snapshot.domain_detail,
+                )
+
+                log.info(
+                    "bias_v3.snapshot",
+                    bias=bias_snapshot.bias_label,
+                    score=bias_snapshot.bias_score,
+                    mode=bias_snapshot.mode,
+                    confidence=round(bias_snapshot.confidence, 2),
+                    session=bias_snapshot.session_label,
+                    intermarket_count=len(intermarket_bars),
+                )
+            except Exception:
+                log.exception("live_engine.bias_v3_failed")
+        # ── End bias v3 computation ─────────────────────────────────────
 
         # Score card update on every bar (TYPE_* or QUIET).
         try:
@@ -205,6 +294,26 @@ async def _run_live_engine(app, data_source: str | None) -> None:  # noqa: ANN00
         asyncio.create_task(bb_5m.run(), name="bar_builder_5m"),
         asyncio.create_task(session_mgr.run(), name="session_manager"),
     ]
+
+    # ── Start IntermarketFeed for macro context ─────────────────────────
+    intermarket_symbols = ["ZN", "DXY", "VIX", "RTY", "TICK", "VOLD"]
+
+    async def _intermarket_wrapper() -> None:
+        try:
+            await intermarket_feed.start(intermarket_symbols)
+            # Keep alive until cancelled — feed runs via callbacks.
+            while True:
+                await asyncio.sleep(60.0)
+        except asyncio.CancelledError:
+            await intermarket_feed.stop()
+            raise
+        except Exception:
+            log.exception("live_engine.intermarket_feed_crashed")
+            # Non-fatal: bias engine degrades gracefully without intermarket data.
+
+    tasks.append(asyncio.create_task(_intermarket_wrapper(), name="intermarket_feed"))
+    log.info("live_engine: intermarket feed starting  symbols=%s", intermarket_symbols)
+    # ── End IntermarketFeed setup ───────────────────────────────────────
 
     # Data source: Databento live OR Rithmic.
     if cfg.data_source == "databento":

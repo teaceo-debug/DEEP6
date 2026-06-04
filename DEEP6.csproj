@@ -13,6 +13,7 @@
     <OutputPath>bin\</OutputPath>
     <DocumentationFile>bin\DEEP6.xml</DocumentationFile>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <NoWarn>CS0618;CS1591;CS0108;CS0114</NoWarn>
     <Platforms>x64</Platforms>
     <PlatformTarget>x64</PlatformTarget>

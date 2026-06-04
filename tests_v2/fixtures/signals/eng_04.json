@@ -1,0 +1,69 @@
+{
+  "name": "ENG_04_iceberg_order_detected",
+  "description": "Iceberg order: fill volume > displayed size. More volume filled than was ever visible — hidden liquidity (institutional).",
+  "bar": {
+    "open": 21495.0,
+    "high": 21510.0,
+    "low": 21493.0,
+    "close": 21508.0,
+    "delta": 350,
+    "total_volume": 3200,
+    "bid_volumes": {
+      "21493.0": 50,
+      "21495.0": 100,
+      "21498.0": 200,
+      "21500.0": 800,
+      "21503.0": 300,
+      "21505.0": 200
+    },
+    "ask_volumes": {
+      "21498.0": 150,
+      "21500.0": 200,
+      "21503.0": 300,
+      "21505.0": 350,
+      "21508.0": 300,
+      "21510.0": 200
+    },
+    "poc_price": 21500.0,
+    "poc_volume": 1000,
+    "vah": 21507.0,
+    "val": 21497.0,
+    "cvd": 500.0,
+    "bar_index": 50,
+    "timestamp": "2026-05-13T10:35:00-04:00",
+    "session_type": "RTH"
+  },
+  "context": {
+    "atr": 10.0,
+    "cvd": 500.0,
+    "vah": 21507.0,
+    "val": 21497.0,
+    "poc": 21500.0,
+    "session_type": "RTH",
+    "session_open_bar_index": 0,
+    "dom_snapshot": {
+      "bids": [
+        {"price": 21500.0, "volume": 50},
+        {"price": 21499.75, "volume": 40},
+        {"price": 21499.50, "volume": 35},
+        {"price": 21499.25, "volume": 30},
+        {"price": 21499.0, "volume": 25}
+      ],
+      "asks": [
+        {"price": 21500.25, "volume": 45},
+        {"price": 21500.50, "volume": 40},
+        {"price": 21500.75, "volume": 35},
+        {"price": 21501.0, "volume": 30},
+        {"price": 21501.25, "volume": 25}
+      ]
+    },
+    "fill_volume_at_level": 800,
+    "displayed_size": 50
+  },
+  "expected_signal": {
+    "signal_id": "ENG_04",
+    "direction": "BULLISH",
+    "strength_min": 0.40,
+    "strength_max": 0.60
+  }
+}

@@ -1,0 +1,3 @@
+Verified:
+- `python -c "import depth_radar_desktop; print(depth_radar_desktop.__version__)"` -> `0.1.0`
+- `python -m depth_radar_desktop --dry-run` -> `Depth Radar Desktop v0.1.0 — Dry-run OK`

@@ -1,0 +1,7 @@
+{
+  "health_status": "degraded",
+  "state_code": 503,
+  "stream_has_data": [
+    "data: {\"status\": \"starting\", \"sources\": {}}"
+  ]
+}

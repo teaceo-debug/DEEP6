@@ -39,3 +39,8 @@ Load `knowledge.md` from this directory before generating any code.
    Right-click chart → Indicators → DEEP6 category → double-click name
 
 ## Base path: `C:\Users\Tea\DEEP6`
+
+## OpenCode Skills (Universal NT8 Knowledge)
+For universal NinjaScript development patterns, invoke:
+- `ninjatrader-builder-doctor` — All NT8 build patterns, APIs, templates, Draw.*, SharpDX
+- `ninjatrader-machine-profile` — NT8 platform, installation, lifecycle

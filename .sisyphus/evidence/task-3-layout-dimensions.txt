@@ -1,0 +1,32 @@
+Task 3: LAYOUT.md Dimension Verification
+==========================================
+Date: 2026-05-29
+File: gex_terminal/docs/LAYOUT.md
+
+MOCKUP DIMENSIONS
+-----------------
+Block 1 (BULLISH):  29 lines, max width 94 chars  ✓ (limit: 55 lines, 96 chars)
+Block 2 (BEARISH):  29 lines, max width 94 chars  ✓ (limit: 55 lines, 96 chars)
+Block 3 (DEGRADED): 29 lines, max width 94 chars  ✓ (limit: 55 lines, 96 chars)
+
+SECTION PRESENCE (all 3 mockups)
+--------------------------------
+GEX DOCTOR header: 3 occurrences  ✓
+LEVELS section:    4 occurrences  ✓
+DEALER section:    3 occurrences  ✓
+FLOW section:      3 occurrences  ✓
+VANNA section:     3 occurrences  ✓
+0DTE section:      7 occurrences  ✓
+AI narrative:      3 occurrences  ✓
+DEEP6 bias:        3 occurrences  ✓
+Footer (FA:):      4 occurrences  ✓
+
+STATE COVERAGE
+--------------
+BULLISH:  9 mentions  ✓
+BEARISH:  6 mentions  ✓
+DEGRADED: 2 mentions  ✓
+STALE:    3 mentions  ✓
+CACHED:   2 mentions  ✓
+
+VERDICT: ALL CHECKS PASSED

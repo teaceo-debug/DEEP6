@@ -1,0 +1,31 @@
+
+session_id: 20260528_193238_b8d700
+Command run from:
+`/mnt/c/Users/Tea/DEEP6/gexdoctor`
+
+Command:
+`cmd.exe /c py -3.12 -m pytest tests/ -v`
+
+Result:
+Failed before pytest could start.
+
+Output:
+```text
+No suitable Python runtime found
+Pass --list (-0) to see all detected environments on your machine
+or set environment variable PYLAUNCHER_ALLOW_INSTALL to use winget
+or open the Microsoft Store to the requested version.
+```
+
+Exit code:
+`103`
+
+Pytest summary:
+No pytest summary was produced because Windows Python 3.12 is not installed/detected by the Python launcher.
+
+Detected Windows Python runtimes:
+```text
+-V:3.11 *        C:\Users\Tea\AppData\Local\Programs\Python\Python311\python.exe
+```
+
+So the full suite did not run. The blocker is missing Windows Python 3.12 for `py -3.12`.

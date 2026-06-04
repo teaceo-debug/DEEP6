@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RollForward>Major</RollForward>
+    <IsPackable>false</IsPackable>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>NinjaTrader.StrategySim.Tests</RootNamespace>
+    <Nullable>disable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <DefineConstants>NINJASCRIPT_SIM</DefineConstants>
+    <NoWarn>CS0108;CS0414</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+    <PackageReference Include="NUnit" Version="3.14.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Custom\AddOns\DEEP6\Registry\**\*.cs" />
+    <Compile Include="..\Custom\AddOns\DEEP6\Bridge\**\*.cs" />
+    <Compile Include="..\Custom\AddOns\DEEP6\Levels\**\*.cs" />
+    <Compile Include="..\Custom\AddOns\DEEP6\Math\**\*.cs" />
+    <Compile Include="..\Custom\AddOns\DEEP6\Detectors\Absorption\**\*.cs" />
+    <Compile Include="..\Custom\AddOns\DEEP6\Detectors\Exhaustion\**\*.cs" />
+    <Compile Include="..\Custom\AddOns\DEEP6\Detectors\Legacy\**\*.cs" />
+    <Compile Include="..\Custom\AddOns\DEEP6\Detectors\Imbalance\**\*.cs" />
+    <Compile Include="..\Custom\AddOns\DEEP6\Detectors\Auction\**\*.cs" />
+    <Compile Include="..\Custom\AddOns\DEEP6\Detectors\Delta\**\*.cs" />
+    <Compile Include="..\Custom\AddOns\DEEP6\Detectors\VolPattern\**\*.cs" />
+    <Compile Include="..\Custom\AddOns\DEEP6\Detectors\Trap\**\*.cs" />
+    <Compile Include="..\Custom\AddOns\DEEP6\Detectors\Engines\**\*.cs" />
+    <Compile Include="..\Custom\AddOns\DEEP6\Scoring\*.cs" />
+    <Compile Include="..\Custom\Strategies\DEEP6\DEEP6Strategy.cs" />
+    <Compile Include="..\simulator\NinjaTrader.Stubs\**\*.cs" />
+    <Compile Include="..\simulator\Lifecycle\NinjaScriptRunner.cs" />
+    <Compile Include="..\simulator\FillEngine\**\*.cs" />
+    <Compile Include="Strategy\StrategyLegacySignalCompat.cs" />
+    <Compile Include="Strategy\DEEP6StrategySimulatorTests.cs" />
+  </ItemGroup>
+
+</Project>

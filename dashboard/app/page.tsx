@@ -84,7 +84,7 @@ function ColSep() {
 }
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
-const WS_URL = DEMO_MODE ? '' : (process.env.NEXT_PUBLIC_WS_URL ?? 'ws://localhost:8000/ws/live');
+const WS_URL = DEMO_MODE ? '' : (process.env.NEXT_PUBLIC_WS_URL ?? 'ws://localhost:8765/ws/live');
 
 export default function Home() {
   // useWebSocket is a no-op when url is '' (demo mode skips backend connection)

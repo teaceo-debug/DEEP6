@@ -21,7 +21,7 @@ from pathlib import Path
 
 import pandas as pd
 
-REPO = Path("/Users/teaceo/DEEP6")
+REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
 from deep6.state.footprint import FootprintBar, FootprintLevel  # noqa: E402

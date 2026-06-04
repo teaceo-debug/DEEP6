@@ -1,0 +1,1 @@
+- Created full cross_market package scaffold with 19 package directories, config YAMLs, CLI stub, and copied handoff docs; verified import and Settings() instantiation succeed.

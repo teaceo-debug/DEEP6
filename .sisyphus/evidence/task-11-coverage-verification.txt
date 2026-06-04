@@ -1,0 +1,21 @@
+machine-profile | ## NT8 RUNTIME ARCHITECTURE | search "Object Hierarchy" | FOUND
+machine-profile | ### The NinjaScript Execution Model | search "NinjaScript Lifecycle" | FOUND
+machine-profile | ### Key Namespace Imports (Always Include) | search "using NinjaTrader.NinjaScript" | FOUND
+machine-profile | ## STATE MACHINE - COMPLETE REFERENCE | search "State Machine" | FOUND
+machine-profile | ## CALCULATE MODES - DEEP DIVE | search "Calculate Modes" | FOUND
+machine-profile | ### BarsPeriodType - All Bar Types | search "BarsPeriodType" | FOUND
+machine-profile | ## INSTRUMENT SPECIFICATIONS REFERENCE | search "Instrument Specifications" | FOUND
+builder-doctor | ### State Guards in OnBarUpdate | search "OnBarUpdate" | FOUND
+builder-doctor | ## BARS & SERIES - COMPLETE API | search "AddDataSeries" | FOUND
+builder-doctor | ## PLOTS AND LINES - COMPLETE API | search "AddPlot" | FOUND
+builder-doctor | ## INDICATOR PROPERTIES & ATTRIBUTES - COMPLETE REFERENCE | search "NinjaScriptProperty" | FOUND
+builder-doctor | ## DRAW.* API - COMPLETE REFERENCE | search "Draw\." | FOUND
+builder-doctor | ## ORDER MANAGEMENT - COMPLETE REFERENCE | search "Order Management" | FOUND
+builder-doctor | ## SHARPDX RENDERING - COMPLETE GUIDE | search "SharpDX" | FOUND
+error-doctor | ### CS0101 - Namespace Contains Duplicate Type Definition | search "CS0101" | FOUND
+error-doctor | ### CS0246 - Type or Namespace Not Found | search "CS0246" | FOUND
+error-doctor | ### CS0677 - volatile double/float | search "CS0677" | FOUND
+error-doctor | ## TIER 2: RUNTIME ERROR DATABASE | search "Runtime Exceptions" | FOUND
+error-doctor | ## TIER 3: SHARPDX ERROR DATABASE | search "SharpDX" | FOUND
+error-doctor | ## TIER 4: BEHAVIORAL / LOGIC ERROR DATABASE | search "Behavioral" | FOUND
+Score: 20/20

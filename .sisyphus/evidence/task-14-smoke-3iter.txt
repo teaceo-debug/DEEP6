@@ -1,0 +1,49 @@
+DEEP6 Backtest Discovery Loop — Integration Smoke Test (3 Iterations)
+======================================================================
+Date: 2026-05-23
+Test: Run 3 complete discovery loop iterations end-to-end
+
+SETUP
+-----
+Temp DB: C:\Users\Tea\AppData\Local\Temp\opencode\smoke_test.duckdb
+Temp Vault: C:\Users\Tea\AppData\Local\Temp\opencode\smoke_vault\
+Brain: Copied from trading-vault/brain/Backtest-Loop.md
+
+CLI --help: PASS
+  Shows: --db, --data-dir, --vault, --action {generate,mutate,random,auto}, --parent-hash, --budget
+
+ITERATION 1 (generate)
+-----------------------
+Strategy: aa3b4bf61a2768b1ef8cc5704293838489e8e58675a5b68445584c46c4da68bc
+Mutation: RANDOM from parent None
+IS Win Rate: 0.0% | IS R:R: 0.00 | IS Trades: 0
+OOS Win Rate: 0.0% | OOS R:R: 0.00 | OOS Trades: 0
+FITNESS: FAILED (score: 0.200)
+Files: strategy-aa3b4bf6.md, backtest-20260523-iter-001.md
+RESULT: PASS (exit 0, graceful failure)
+
+ITERATION 2 (mutate)
+---------------------
+Strategy: a723173ccb1386538c503881b162f494938c9ddb65190ef81a607d1bc6548c4e
+Mutation: TWEAK_PARAMS from parent aa3b4bf61a2768b1ef8cc5704293838489e8e58675a5b68445584c46c4da68bc
+IS Win Rate: 0.0% | IS R:R: 0.00 | IS Trades: 0
+OOS Win Rate: 0.0% | OOS R:R: 0.00 | OOS Trades: 0
+FITNESS: FAILED (score: 0.200)
+Files: strategy-a723173c.md, backtest-20260523-iter-002.md
+RESULT: PASS (exit 0, parent linkage correct)
+
+ITERATION 3 (random)
+---------------------
+Strategy: 17ee39f4aca91a43ae83d64d7b15da175b8c93e293a04dd15a8e4d03ed5f1f18
+Mutation: RANDOM from parent None
+IS Win Rate: 0.0% | IS R:R: 0.00 | IS Trades: 0
+OOS Win Rate: 0.0% | OOS R:R: 0.00 | OOS Trades: 0
+FITNESS: FAILED (score: 0.200)
+Files: strategy-17ee39f4.md, backtest-20260523-iter-003.md
+RESULT: PASS (exit 0, independent random strategy)
+
+NOTES
+-----
+All 3 iterations completed with exit code 0 and printed "=== ITERATION N COMPLETE ===" blocks.
+Fitness FAILED as expected (no preprocessed data in data/preprocessed/).
+Each iteration printed NEXT ACTION recommendation.
