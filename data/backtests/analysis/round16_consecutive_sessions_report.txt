@@ -1,0 +1,60 @@
+DEEP6 round 16 consecutive-session analysis
+==========================================
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+Observation unit: grouped signal bar by (global_index, direction_sign from bar_delta).
+Core gate = is_60m_extreme AND is_15m_trend_aligned.
+Per-session summary uses only core-gated observations: qualifying count plus avg ret_5b_ticks.
+Winning session = avg ret_5b_ticks > 0. Losing session = avg ret_5b_ticks <= 0. Sessions with zero qualifying bars stay unclassified.
+KILLER_1 = trade-direction anchor in middle 40-60% of the active 60m range. KILLER_2 = bar_volume > 3x prior 20-bar EMA.
+Rolling 5-session metrics use the prior five sessions and require five prior sessions with qualifying core observations.
+first_hour = 09:30-10:29 ET.
+Status flags: VALIDATED = N>=30 and Wilson lower bound >50%; PROMISING = N>=15 and Wilson lower bound >45%; LOW_N = N<15.
+
+Raw event rows loaded:                 1,767,271
+Grouped observations:                  127,165
+Sessions summarized:                   332
+15m bars built:                        30,745
+60m bars built:                        7,693
+Core 60m+15m observations:            14,568
+Core first-hour observations:         2,462
+Core NOT-killer observations:         14,382
+Sessions with qualifying core bars:   332
+Winning sessions:                     328
+Losing sessions:                      4
+Sessions with zero core bars:         0
+Longest winning streak:               166
+Longest losing streak:                1
+Sessions with rolling-5 context:      327
+
+Baselines (5-bar window)
+--------------------------
+All grouped bars:          N=127,160 | WR=49.6% | PF=1.00 | Avg=+0.09 | CI=[49.3%, 49.8%]
+60m + 15m core:           N=14,568 | WR=78.6% | PF=8.00 | Avg=+65.05 | CI=[77.9%, 79.2%]
+60m + 15m + first_hour:  N=2,462 | WR=79.5% | PF=9.64 | Avg=+97.53 | CI=[77.8%, 81.0%]
+60m + 15m + NOT killers: N=14,382 | WR=78.7% | PF=8.33 | Avg=+65.13 | CI=[78.0%, 79.4%]
+
+All 20 consecutive-session filters ranked by 5-bar average return
+--------------------------------------------------------------
+Filter                                                                            | N      | WR 5b | PF    | Avg Ticks | Wilson 95% CI 
+----------------------------------------------------------------------------------+--------+-------+-------+-----------+---------------
+18. Rolling 5-session avg return > +30 ticks + 60m + 15m + first_hour [VALIDATED] | 2,329  | 79.4% | 9.53  | +98.61    | [77.7%, 81.0%]
+20. Prior losing session + 60m + 15m + NOT killers + first_hour [PROMISING]       | 23     | 87.0% | 21.80 | +92.26    | [67.9%, 95.5%]
+07. Prior session avg return > +50 ticks + 60m + 15m [VALIDATED]                  | 8,638  | 78.9% | 8.17  | +75.53    | [78.0%, 79.7%]
+15. Second half of week (Thu-Fri) + 60m + 15m [VALIDATED]                         | 5,745  | 78.5% | 7.52  | +68.20    | [77.4%, 79.5%]
+05. 3+ consecutive winning sessions + 60m + 15m [VALIDATED]                       | 13,964 | 78.7% | 7.99  | +65.91    | [78.0%, 79.3%]
+03. 2 consecutive winning sessions + 60m + 15m [VALIDATED]                        | 14,132 | 78.6% | 7.96  | +65.44    | [77.9%, 79.3%]
+01. Prior session winning + 60m + 15m [VALIDATED]                                 | 14,366 | 78.6% | 7.97  | +65.14    | [77.9%, 79.2%]
+16. Rolling 5-session WR > 60% + 60m + 15m [VALIDATED]                            | 14,344 | 78.6% | 8.01  | +65.08    | [77.9%, 79.3%]
+10. Prior session > 20 qualifying signals + 60m + 15m [VALIDATED]                 | 14,330 | 78.5% | 7.94  | +64.92    | [77.8%, 79.2%]
+13. Friday after winning Thursday + 60m + 15m [VALIDATED]                         | 2,672  | 77.5% | 6.47  | +64.27    | [75.8%, 79.0%]
+14. First half of week (Mon-Wed) + 60m + 15m [VALIDATED]                          | 8,823  | 78.6% | 8.38  | +63.00    | [77.8%, 79.5%]
+09. Prior session avg return between -10 and +10 ticks + 60m + 15m [VALIDATED]    | 63     | 84.1% | 19.07 | +60.52    | [73.2%, 91.1%]
+02. Prior session losing + 60m + 15m [VALIDATED]                                  | 163    | 76.1% | 9.74  | +39.75    | [69.0%, 82.0%]
+04. 2 consecutive losing sessions + 60m + 15m [LOW_N]                             | 0      | 0.0%  | nan   | nan       | [0.0%, 0.0%]  
+06. 3+ consecutive losing sessions + 60m + 15m [LOW_N]                            | 0      | 0.0%  | nan   | nan       | [0.0%, 0.0%]  
+08. Prior session avg return < -50 ticks + 60m + 15m [LOW_N]                      | 0      | 0.0%  | nan   | nan       | [0.0%, 0.0%]  
+11. Prior session < 5 qualifying signals + 60m + 15m [LOW_N]                      | 0      | 0.0%  | nan   | nan       | [0.0%, 0.0%]  
+12. Monday after losing Friday + 60m + 15m [LOW_N]                                | 0      | 0.0%  | nan   | nan       | [0.0%, 0.0%]  
+17. Rolling 5-session WR < 40% + 60m + 15m [LOW_N]                                | 0      | 0.0%  | nan   | nan       | [0.0%, 0.0%]  
+19. Rolling 5-session avg return < -30 ticks + 60m + 15m + first_hour [LOW_N]     | 0      | 0.0%  | nan   | nan       | [0.0%, 0.0%]  

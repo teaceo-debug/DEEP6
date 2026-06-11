@@ -1,0 +1,43 @@
+DEEP6 round1 strength + persistence analysis
+===========================================
+Source events: C:\Users\Tea\DEEP6\data\backtests\signal_events.csv
+Source bars:   C:\Users\Tea\DEEP6\data\backtests\nq_1yr_1m.csv
+Observation unit: unique same-bar, same-direction grouped signal observation.
+N uses rows with complete 5b/10b/15b/30b forward closes so persistence compares the same sample across windows.
+Strength gates use grouped max strength; absorption / DELT_04 / TRAP_04 strength gates use the max strength for that subset inside the grouped observation.
+Score gates use grouped max score_final. TYPE_B is presence-based inside the grouped observation.
+15m_trend_aligned = signal direction matches 15m bar sign; 60m_extreme = bullish bar_low in bottom 20% of 60m range / bearish bar_high in top 20%.
+Persistence: GROWING if WR_30b > WR_5b; STABLE if WR_30b is within 3 percentage points of WR_5b without growth; DECAYING otherwise.
+#18 intentionally repeats #10 because it was requested again in the persistence group.
+
+Raw event rows loaded: 1,756,089
+Grouped observations:  254,722
+15m bars built:       30,745
+60m bars built:       7,693
+15m trend aligned:    126,836
+60m extreme:          53,641
+
+20 requested filters ranked by 30b win rate
+--------------------------------------
+Filter                                                  | N      | WR 5b | WR 10b | WR 15b | WR 30b | PF 5b | Avg Ticks 5b | Wilson 95% CI (5b) | Persistence
+--------------------------------------------------------+--------+-------+--------+--------+--------+-------+--------------+--------------------+------------
+12. score_final >= 60 + 60m_extreme + 15m_trend_aligned | 6,024  | 82.5% | 89.6%  | 89.4%  | 86.2%  | 10.61 | 105.72       | [81.5%, 83.4%]     | GROWING    
+19. TYPE_B + 60m_extreme + 15m_trend_aligned            | 590    | 81.9% | 87.3%  | 88.6%  | 85.6%  | 9.21  | 114.68       | [78.6%, 84.8%]     | GROWING    
+16. 60m_extreme + 15m_trend_aligned                     | 25,063 | 81.4% | 88.2%  | 88.1%  | 85.0%  | 10.62 | 72.77        | [81.0%, 81.9%]     | GROWING    
+20. 3+ categories + 60m_extreme + 15m_trend_aligned     | 20,317 | 80.2% | 87.2%  | 87.2%  | 84.1%  | 9.36  | 69.60        | [79.7%, 80.8%]     | GROWING    
+13. score_final >= 70 + 60m_extreme + 15m_trend_aligned | 1,391  | 81.8% | 86.6%  | 86.9%  | 83.9%  | 8.63  | 122.46       | [79.7%, 83.8%]     | GROWING    
+14. score_final >= 80 + 60m_extreme + 15m_trend_aligned | 290    | 77.9% | 81.4%  | 79.7%  | 80.0%  | 4.59  | 105.88       | [72.8%, 82.3%]     | GROWING    
+15. 60m_extreme                                         | 53,624 | 68.8% | 74.1%  | 76.4%  | 76.2%  | 3.36  | 43.51        | [68.5%, 69.2%]     | GROWING    
+01. ALL signals + strength >= 0.5 + 60m_extreme         | 53,529 | 68.8% | 74.1%  | 76.4%  | 76.2%  | 3.36  | 43.51        | [68.4%, 69.2%]     | GROWING    
+02. ALL signals + strength >= 0.7 + 60m_extreme         | 52,469 | 68.7% | 74.0%  | 76.3%  | 76.1%  | 3.34  | 43.50        | [68.3%, 69.1%]     | GROWING    
+03. ALL signals + strength >= 0.9 + 60m_extreme         | 50,066 | 68.4% | 73.8%  | 76.0%  | 75.9%  | 3.30  | 43.33        | [68.0%, 68.8%]     | GROWING    
+08. score_final >= 60 + 60m_extreme                     | 13,274 | 69.0% | 74.2%  | 75.7%  | 75.4%  | 3.12  | 60.40        | [68.2%, 69.8%]     | GROWING    
+06. DELT_04 + strength >= 0.5 + 60m_extreme             | 1,529  | 67.6% | 74.1%  | 75.9%  | 75.1%  | 2.56  | 46.62        | [65.2%, 69.9%]     | GROWING    
+09. score_final >= 70 + 60m_extreme                     | 3,143  | 69.2% | 72.5%  | 73.2%  | 73.1%  | 2.59  | 70.67        | [67.6%, 70.8%]     | GROWING    
+04. absorption + strength >= 0.5 + 60m_extreme          | 10     | 60.0% | 80.0%  | 70.0%  | 70.0%  | 10.98 | 346.30       | [31.3%, 83.2%]     | GROWING    
+05. absorption + strength >= 0.7 + 60m_extreme          | 10     | 60.0% | 80.0%  | 70.0%  | 70.0%  | 10.98 | 346.30       | [31.3%, 83.2%]     | GROWING    
+10. score_final >= 80 + 60m_extreme                     | 799    | 66.5% | 68.6%  | 68.1%  | 69.7%  | 2.01  | 69.37        | [63.1%, 69.6%]     | GROWING    
+18. score_final >= 80 + 60m_extreme                     | 799    | 66.5% | 68.6%  | 68.1%  | 69.7%  | 2.01  | 69.37        | [63.1%, 69.6%]     | GROWING    
+07. TRAP_04 + strength >= 0.5 + 60m_extreme             | 2,633  | 62.1% | 66.0%  | 68.4%  | 69.5%  | 1.87  | 37.46        | [60.2%, 63.9%]     | GROWING    
+11. score_final >= 90 + 60m_extreme                     | 87     | 64.4% | 70.1%  | 65.5%  | 67.8%  | 2.21  | 95.76        | [53.9%, 73.6%]     | GROWING    
+17. DELT_04 + TRAP_04 + 15m_trend_aligned               | 286    | 73.8% | 77.3%  | 70.6%  | 64.7%  | 3.34  | 59.36        | [68.4%, 78.5%]     | DECAYING   

@@ -1,0 +1,58 @@
+DEEP6 round 13 macro/calendar analysis
+=====================================
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+Observation unit: unique signal bar grouped by global_index.
+Trade direction for P&L: sign(bar_delta). Zero-delta bars are skipped.
+Base gate for all 20 tests = 60m_extreme + 15m_trend_aligned.
+60m_extreme = bullish bar_low in bottom 20% of 60m range / bearish bar_high in top 20%.
+15m_trend = sign(bar_delta) matches 15m open-close sign.
+FOMC proximity uses the exact supplied FOMC dates projected onto the trading-session calendar.
+FOMC week = FOMC session ±2 trading sessions. Filters 18 and 20 use NOT FOMC day only.
+Rollover week = supplied rollover anchor date ±2 trading sessions.
+First week = calendar day 1-7. Last week = final 5 trading sessions of the month.
+Month-end ±1 = last trading session of each month plus one trading session before/after.
+first_hour = 09:30-10:29 ET. NOT lunch excludes 12:00-13:59 ET.
+NOT killers = NOT killer_1 (mid-60m position 40%-60%) AND NOT killer_2 (bar_volume > 3x prior 20-bar EMA).
+Status flags: VALIDATED = N>=30 and Wilson lower bound >50%; PROMISING = N>=15 and Wilson lower bound >45%; LOW_N = N<15.
+Final ranking is sorted by Avg Ticks descending.
+
+Raw event rows loaded:               1,767,271
+Grouped observations:                127,165
+15m bars built:                      30,745
+60m bars built:                      7,693
+Trading sessions in calendar:        332
+60m + 15m base observations:         14,568
+FOMC-day observations:               3,863
+FOMC-week observations:              19,198
+Rollover-week observations:          9,746
+OpEx-week observations:              28,188
+Month-end ±1 observations:           17,793
+
+Baseline all bars: N=127,160 | WR5=49.6% | PF=1.00 | Avg=0.09t | CI=[49.3%, 49.8%]
+Baseline 60m + 15m: N=14,568 | WR5=78.6% | PF=8.00 | Avg=65.05t | CI=[77.9%, 79.2%]
+
+All 20 macro/calendar filters ranked by Avg Ticks
+-----------------------------------------------
+Filter                                                             | N      | WR 5b | PF    | Avg Ticks | Wilson 95% CI  | Flag     
+-------------------------------------------------------------------+--------+-------+-------+-----------+----------------+----------
+20. NOT summer + NOT FOMC + 60m + 15m + NOT killers + first_hour   | 1,927  | 80.6% | 11.00 | 108.62    | [78.8%, 82.3%] | VALIDATED
+18. NOT FOMC + NOT rollover + first_hour + 60m + 15m + NOT killers | 2,178  | 80.4% | 10.56 | 101.29    | [78.7%, 82.1%] | VALIDATED
+19. December + OpEx week + 60m + 15m                               | 215    | 78.1% | 7.87  | 79.02     | [72.1%, 83.1%] | VALIDATED
+09. First week of month + 60m + 15m                                | 3,455  | 78.5% | 8.50  | 74.00     | [77.1%, 79.8%] | VALIDATED
+08. Rollover week + 60m + 15m + NOT lunch                          | 780    | 79.1% | 9.12  | 72.94     | [76.1%, 81.8%] | VALIDATED
+02. Day after FOMC + 60m + 15m                                     | 447    | 80.1% | 5.34  | 68.96     | [76.1%, 83.5%] | VALIDATED
+06. Rollover week + 60m + 15m                                      | 1,112  | 78.6% | 9.11  | 68.18     | [76.1%, 80.9%] | VALIDATED
+01. FOMC day + 60m + 15m                                           | 431    | 78.4% | 7.98  | 67.93     | [74.3%, 82.0%] | VALIDATED
+17. NOT FOMC week + NOT rollover + OpEx week + 60m + 15m           | 2,319  | 79.2% | 9.33  | 66.96     | [77.5%, 80.8%] | VALIDATED
+04. NOT FOMC week + 60m + 15m                                      | 12,408 | 78.4% | 8.13  | 65.99     | [77.7%, 79.1%] | VALIDATED
+12. Month-end day ±1 + 60m + 15m                                   | 2,061  | 77.5% | 8.18  | 65.58     | [75.7%, 79.3%] | VALIDATED
+07. NOT rollover week + 60m + 15m                                  | 13,456 | 78.6% | 7.91  | 64.79     | [77.9%, 79.3%] | VALIDATED
+10. OpEx week + 60m + 15m                                          | 3,214  | 79.0% | 7.76  | 64.71     | [77.5%, 80.3%] | VALIDATED
+13. January + 60m + 15m                                            | 1,843  | 79.9% | 8.91  | 60.80     | [78.0%, 81.6%] | VALIDATED
+03. 2 days after FOMC + 60m + 15m                                  | 404    | 79.7% | 9.19  | 59.60     | [75.5%, 83.3%] | VALIDATED
+11. Last week of month + 60m + 15m                                 | 3,453  | 78.5% | 8.33  | 58.28     | [77.1%, 79.8%] | VALIDATED
+15. December + 60m + 15m                                           | 880    | 80.8% | 10.35 | 58.02     | [78.1%, 83.3%] | VALIDATED
+14. September-October + 60m + 15m                                  | 1,918  | 77.7% | 9.85  | 54.61     | [75.8%, 79.5%] | VALIDATED
+16. Summer (Jun-Aug) + 60m + 15m                                   | 2,746  | 77.8% | 7.15  | 43.09     | [76.2%, 79.3%] | VALIDATED
+05. FOMC day + 60m + 15m + first_hour                              | 89     | 67.4% | 3.34  | 36.94     | [57.1%, 76.3%] | VALIDATED

@@ -1,0 +1,63 @@
+DEEP6 round 8 delta/CVD pattern analysis
+=========================================
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+Observation unit: unique signal bar grouped by global_index.
+CVD resets each session and is built from grouped bar_delta values.
+Divergence direction: price new session high + lower CVD than prior session CVD high = short; price new session low + higher CVD than prior session CVD low = long.
+Other trade direction: sign(bar_delta).
+60m_extreme = bullish bar_low in bottom 20% of 60m range / bearish bar_high in top 20% of 60m range.
+15m_trend alignment uses the active trade direction for that filter.
+10-bar CVD slope = simple difference over 10 bars divided by 10.
+Accelerating/decelerating CVD uses the absolute 5-bar slope versus the immediately prior 5-bar slope window.
+Heavy accumulation uses |prior 20-bar delta sum| above the 75th percentile, aligned with current bar_delta sign.
+CVD extreme position uses the running session CVD range so far; top/bottom bands are the top/bottom 10%.
+Status flags: VALIDATED = N>=30 and Wilson lower bound >50%; PROMISING = N>=15 and Wilson lower bound >45%; LOW_N = N<15.
+
+Raw event rows loaded:              1,767,271
+Grouped observations:               127,361
+Non-zero-delta observations:        127,165
+Bearish divergence observations:    2,855
+Bullish divergence observations:    2,595
+60m extreme (bar_delta direction):  27,328
+60m extreme (divergence direction): 3,077
+15m bars built:                     30,745
+60m bars built:                     7,693
+
+Thresholds used
+---------------
+Strong positive CVD slope (75th pct): 115.70
+Strong negative CVD slope (25th pct): -83.30
+Flat |CVD slope| cutoff (25th pct):   39.50
+Heavy |20-bar delta sum| cutoff:      3,011.00
+
+Baseline (5-bar window)
+-----------------------
+All non-zero-delta bars: N=127,160 | WR=49.6% | PF=1.00 | Avg=0.09t | CI=[49.3%, 49.8%]
+60m extreme bars:       N=27,326 | WR=66.5% | PF=3.05 | Avg=39.47t | CI=[65.9%, 67.0%]
+Divergence + 60m:       N=3,077 | WR=65.0% | PF=2.10 | Avg=34.02t | CI=[63.3%, 66.7%]
+
+All round 8 filters ranked by 5-bar average return
+-----------------------------------------------
+Filter                                                                        | N      | WR 5b | PF    | Avg Ticks | Wilson 95% CI  | Flag     
+------------------------------------------------------------------------------+--------+-------+-------+-----------+----------------+----------
+03. CVD divergence + 60m_extreme + 15m_trend                                  | 807    | 82.4% | 15.05 | 97.45     | [79.6%, 84.9%] | VALIDATED
+16. Aligned prior-20 delta sum above 75th percentile + 60m_extreme            | 886    | 72.1% | 4.44  | 62.60     | [69.1%, 75.0%] | VALIDATED
+15. CVD crossed zero this bar + 60m_extreme                                   | 466    | 67.4% | 3.57  | 58.20     | [63.0%, 71.5%] | VALIDATED
+02. Price new session low but CVD above prior session CVD low + 60m_extreme   | 1,383  | 68.7% | 2.66  | 51.07     | [66.2%, 71.1%] | VALIDATED
+07. Strongly negative 10-bar CVD slope + bullish bar_delta + 60m_extreme      | 4,194  | 68.3% | 3.05  | 49.24     | [66.9%, 69.7%] | VALIDATED
+13. CVD > 0 + bullish bar_delta + 60m_extreme                                 | 6,340  | 72.0% | 4.06  | 47.68     | [70.8%, 73.0%] | VALIDATED
+14. CVD < 0 + bearish bar_delta + 60m_extreme                                 | 5,095  | 66.3% | 3.22  | 43.94     | [65.0%, 67.6%] | VALIDATED
+12. CVD in bottom 10% of session range + bullish bar_delta + 60m_extreme      | 2,011  | 66.5% | 2.59  | 43.35     | [64.4%, 68.6%] | VALIDATED
+09. Accelerating 5-bar CVD slope magnitude + 60m_extreme                      | 11,809 | 67.1% | 3.00  | 39.53     | [66.3%, 68.0%] | VALIDATED
+10. Decelerating 5-bar CVD slope magnitude + 60m_extreme                      | 14,698 | 65.4% | 2.89  | 36.16     | [64.6%, 66.2%] | VALIDATED
+04. CVD divergence + doji + 60m_extreme                                       | 363    | 63.1% | 2.58  | 35.26     | [58.0%, 67.9%] | VALIDATED
+20. 10-bar delta sum opposes bar_delta sign and delta reverses + 60m_extreme  | 13,256 | 64.8% | 2.66  | 35.15     | [64.0%, 65.6%] | VALIDATED
+17. Prior-20 delta sum opposes bar_delta sign + 60m_extreme                   | 19,755 | 64.9% | 2.69  | 34.82     | [64.2%, 65.5%] | VALIDATED
+05. CVD divergence + 3 narrowing ranges + 60m_extreme                         | 358    | 65.9% | 2.27  | 34.36     | [60.9%, 70.6%] | VALIDATED
+08. Flat CVD slope (bottom 25% abs) + 60m_extreme                             | 7,307  | 66.7% | 3.22  | 31.88     | [65.6%, 67.7%] | VALIDATED
+06. Strongly positive 10-bar CVD slope + bearish bar_delta + 60m_extreme      | 4,508  | 60.7% | 2.12  | 29.31     | [59.3%, 62.1%] | VALIDATED
+19. Current |delta| > 3x prior 5-bar avg |delta| + 60m_extreme                | 1,363  | 60.2% | 1.82  | 29.13     | [57.6%, 62.8%] | VALIDATED
+11. CVD in top 10% of session range + bearish bar_delta + 60m_extreme         | 5,898  | 61.2% | 2.39  | 23.33     | [60.0%, 62.5%] | VALIDATED
+01. Price new session high but CVD below prior session CVD high + 60m_extreme | 1,694  | 62.0% | 1.64  | 20.10     | [59.7%, 64.3%] | VALIDATED
+18. 5 consecutive bars of increasing |delta| + 60m_extreme                    | 336    | 64.6% | 1.48  | 16.53     | [59.3%, 69.5%] | VALIDATED

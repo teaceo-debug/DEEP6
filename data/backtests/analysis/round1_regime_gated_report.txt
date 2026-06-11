@@ -1,0 +1,45 @@
+DEEP6 round1 regime-gated signal analysis
+=========================================
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+Observation unit: unique same-bar, same-direction grouped signal observation.
+Bar features (ATR20, SMA50, VWAP, prior_delta_10) are computed on deduplicated bars by global_index.
+60m_extreme and 15m_trend_aligned follow the cross-category combo pattern.
+Volatility and VWAP buckets use pd.qcut(q=3) on valid deduplicated-bar features.
+Status flags: VALIDATED = N>=30 and Wilson lower bound >50%; PROMISING = N>=15 and Wilson lower bound >45%; LOW_N = N<15.
+
+Raw event rows loaded: 1,756,089
+Grouped observations:  254,722
+15m bars built:       30,745
+60m bars built:       7,693
+60m extreme:          53,641
+15m trend aligned:    126,836
+
+Baseline (5-bar window)
+-----------------------
+N=254,712 | WR=49.7% | PF=1.00 | Avg=0.00t | Med=0.00t | CI=[49.5%, 49.9%] | Sharpe=0.00
+
+All 20 regime-gated filters ranked by 5-bar average return
+--------------------------------------------------------
+Filter                                                       | N      | WR%   | PF   | Avg Ticks | Med Ticks | Wilson 95% CI  | Sharpe
+-------------------------------------------------------------+--------+-------+------+-----------+-----------+----------------+-------
+03. ALL signals + high_vol + 60m_extreme [VALIDATED]         | 17,054 | 67.9% | 2.90 | 59.94     | 50.00     | [67.2%, 68.6%] | 0.28  
+09. ALL signals + below_sma50 + 60m_extreme [VALIDATED]      | 28,058 | 71.2% | 3.94 | 54.60     | 38.00     | [70.7%, 71.7%] | 0.35  
+06. TRAP_04 + mid_vol + 60m_extreme [VALIDATED]              | 902    | 65.0% | 2.35 | 52.02     | 31.50     | [61.8%, 68.0%] | 0.19  
+17. DELT_04 + delta_opposite + 15m_trend_aligned [VALIDATED] | 2,569  | 75.2% | 5.54 | 51.38     | 37.00     | [73.5%, 76.9%] | 0.40  
+12. ALL signals + near_vwap + 60m_extreme [VALIDATED]        | 16,371 | 70.9% | 4.60 | 46.93     | 30.00     | [70.2%, 71.6%] | 0.38  
+14. ALL signals + far_vwap + 60m_extreme [VALIDATED]         | 19,130 | 67.5% | 2.92 | 46.83     | 32.00     | [66.8%, 68.2%] | 0.25  
+16. ALL signals + delta_same + 60m_extreme [VALIDATED]       | 13,392 | 71.0% | 3.91 | 46.18     | 31.00     | [70.3%, 71.8%] | 0.30  
+11. DELT_04 + below_sma50 + 15m_trend_aligned [VALIDATED]    | 4,615  | 69.8% | 3.49 | 44.48     | 34.00     | [68.5%, 71.1%] | 0.36  
+19. 5+ unique signals same bar + 60m_extreme [VALIDATED]     | 40,353 | 67.6% | 3.21 | 41.35     | 27.00     | [67.1%, 68.0%] | 0.27  
+20. 6+ unique signals same bar + 60m_extreme [VALIDATED]     | 36,960 | 67.1% | 3.11 | 40.55     | 26.00     | [66.6%, 67.6%] | 0.27  
+15. ALL signals + delta_opposite + 60m_extreme [VALIDATED]   | 38,746 | 67.7% | 3.04 | 40.05     | 27.00     | [67.2%, 68.1%] | 0.26  
+05. DELT_04 + mid_vol + 60m_extreme [VALIDATED]              | 1,745  | 67.7% | 3.67 | 39.17     | 29.00     | [65.5%, 69.9%] | 0.28  
+02. ALL signals + mid_vol + 60m_extreme [VALIDATED]          | 17,335 | 68.2% | 3.47 | 38.31     | 30.00     | [67.5%, 68.9%] | 0.30  
+13. ALL signals + mid_vwap + 60m_extreme [VALIDATED]         | 18,138 | 68.5% | 3.18 | 36.90     | 25.00     | [67.8%, 69.1%] | 0.28  
+18. TRAP_04 + delta_opposite + 60m_extreme [VALIDATED]       | 2,107  | 61.6% | 1.86 | 36.31     | 20.00     | [59.5%, 63.6%] | 0.14  
+07. IMB_03 + mid_vol + 60m_extreme [VALIDATED]               | 8,216  | 65.7% | 3.01 | 34.21     | 26.00     | [64.6%, 66.7%] | 0.27  
+10. DELT_04 + above_sma50 + 15m_trend_aligned [VALIDATED]    | 4,315  | 69.6% | 3.16 | 33.16     | 25.00     | [68.3%, 71.0%] | 0.27  
+08. ALL signals + above_sma50 + 60m_extreme [VALIDATED]      | 25,581 | 66.2% | 2.71 | 31.32     | 21.00     | [65.7%, 66.8%] | 0.21  
+01. ALL signals + low_vol + 60m_extreme [VALIDATED]          | 16,520 | 69.0% | 3.52 | 22.46     | 18.00     | [68.3%, 69.8%] | 0.27  
+04. DELT_04 + low_vol + 60m_extreme [VALIDATED]              | 1,733  | 67.8% | 3.50 | 22.39     | 17.00     | [65.6%, 70.0%] | 0.30  

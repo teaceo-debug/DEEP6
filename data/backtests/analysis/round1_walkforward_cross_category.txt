@@ -1,0 +1,446 @@
+ROUND 1 CROSS-CATEGORY WALK-FORWARD VALIDATION
+===============================================
+
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+Observation unit: unique same-bar, same-direction grouped signal observation by global_index + direction.
+Primary P&L: ret_5b_ticks = direction * (fwd_close_5b - bar_close) / 0.25.
+Regime filters: 15m_trend_aligned = signal direction matches 15m bar sign; 60m_extreme = bullish bar_low in bottom 20% of 60m range / bearish bar_high in top 20%.
+Walk-forward windows: six evenly spaced 2-month IS / 1-month OOS splits across available months.
+Verdict rules reused from validate_top5_filters.py.
+
+Raw event rows loaded: 1,756,089
+Grouped observations:  254,722
+15m bars built:       30,745
+60m bars built:       7,693
+15m trend aligned:    126,836
+60m extreme:          53,641
+
+Summary ranking by composite OOS WR
+-----------------------------------
+Rank | Filter                                    | N      | WR%   | OOS WR% | OOS Wilson 95% CI | Bayes Mean | Verdict
+-----+-------------------------------------------+--------+-------+---------+-------------------+------------+--------
+1    | 01. DELT_04 + TRAP_04 + 15m_trend_aligned | 286    | 73.8% | 70.9%   | [61.8%, 78.6%]    | 72.2%      | DEPLOY 
+2    | 03. DELT_04 + EXH_03 + 60m_extreme        | 1,764  | 68.5% | 68.9%   | [65.3%, 72.3%]    | 68.3%      | DEPLOY 
+3    | 04. TYPE_B + 60m_extreme                  | 1,334  | 68.5% | 68.2%   | [64.0%, 72.0%]    | 68.2%      | DEPLOY 
+4    | 08. DELT_04 + 60m_extreme                 | 5,181  | 67.5% | 67.9%   | [65.7%, 70.0%]    | 67.4%      | DEPLOY 
+5    | 06. 3+ categories + 60m_extreme           | 41,253 | 67.7% | 67.8%   | [67.1%, 68.6%]    | 67.7%      | DEPLOY 
+6    | 07. IMB_03 + 60m_extreme                  | 25,375 | 66.4% | 66.6%   | [65.6%, 67.5%]    | 66.4%      | DEPLOY 
+7    | 02. score_final >= 80 + 60m_extreme       | 799    | 66.5% | 66.6%   | [61.1%, 71.6%]    | 66.1%      | DEPLOY 
+8    | 05. TYPE_A + 60m_extreme                  | 637    | 65.3% | 65.2%   | [59.0%, 70.9%]    | 64.8%      | DEPLOY 
+
+FILTER 01: DELT_04 + TRAP_04 + 15m_trend_aligned
+-----------------------------------------------
+Summary: N=286, WR=73.8%, PF=3.34, Avg=+59.36 ticks
+
+A) Walk-Forward (6 windows, 2mo IS / 1mo OOS):
+  Window 1 (Jan-Feb 2025 IS → Mar 2025 OOS): N=21, Wins=16, WR=76.2%, Avg=+67.95 ticks
+  Window 2 (Apr-May 2025 IS → Jun 2025 OOS): N=32, Wins=23, WR=71.9%, Avg=+40.88 ticks
+  Window 3 (Jun-Jul 2025 IS → Aug 2025 OOS): N=8, Wins=4, WR=50.0%, Avg=+78.38 ticks
+  Window 4 (Sep-Oct 2025 IS → Nov 2025 OOS): N=7, Wins=5, WR=71.4%, Avg=+67.29 ticks
+  Window 5 (Nov-Dec 2025 IS → Jan 2026 OOS): N=27, Wins=17, WR=63.0%, Avg=+34.63 ticks
+  Window 6 (Feb-Mar 2026 IS → Apr 2026 OOS): N=15, Wins=13, WR=86.7%, Avg=+81.40 ticks
+  Overall OOS: N=110, Wins=78, WR=70.9%, Avg=+54.45 ticks
+  OOS Wilson 95% CI: [61.8%, 78.6%]
+  Any window < 40% WR: NO
+  [PASS]: no OOS window below 40% WR
+
+B) Monthly Stability:
+  Jan-25: N=12, WR=83.3%, Avg=-31.50 ticks
+  Feb-25: N=25, WR=76.0%, Avg=+52.92 ticks
+  Mar-25: N=21, WR=76.2%, Avg=+67.95 ticks
+  Apr-25: N=9, WR=66.7%, Avg=+77.56 ticks
+  May-25: N=21, WR=71.4%, Avg=+36.86 ticks
+  Jun-25: N=32, WR=71.9%, Avg=+40.88 ticks
+  Jul-25: N=18, WR=66.7%, Avg=+133.72 ticks
+  Aug-25: N=8, WR=50.0%, Avg=+78.38 ticks
+  Sep-25: N=19, WR=73.7%, Avg=+57.21 ticks
+  Oct-25: N=21, WR=76.2%, Avg=+70.76 ticks
+  Nov-25: N=7, WR=71.4%, Avg=+67.29 ticks
+  Dec-25: N=21, WR=85.7%, Avg=+63.48 ticks
+  Jan-26: N=27, WR=63.0%, Avg=+34.63 ticks
+  Feb-26: N=10, WR=90.0%, Avg=+49.60 ticks
+  Mar-26: N=20, WR=70.0%, Avg=+88.15 ticks
+  Apr-26: N=15, WR=86.7%, Avg=+81.40 ticks
+  Months > 50% WR: 15/16
+  Longest losing streak: 0 months
+  [PASS]: no month below 35% WR with N>=3
+
+C) Trade Streaks:
+  Max consecutive wins: 10
+  Max consecutive losses: 3
+
+D) Bayesian:
+  Prior: Beta(10, 10), mean=50.0%
+  Posterior: Beta(221, 85), mean=72.2%
+  95% Credible Interval: [67.2%, 77.2%]
+  Shrinkage: 73.8% → 72.2%
+
+OVERALL VERDICT: DEPLOY
+- DEPLOY: OOS WR > 55%, no month below 35%, Bayesian posterior > 55%
+- PAPER TRADE: OOS WR > 50%, Bayesian posterior > 50%
+- INSUFFICIENT DATA: otherwise
+
+FILTER 03: DELT_04 + EXH_03 + 60m_extreme
+----------------------------------------
+Summary: N=1,764, WR=68.5%, PF=3.83, Avg=+43.75 ticks
+
+A) Walk-Forward (6 windows, 2mo IS / 1mo OOS):
+  Window 1 (Jan-Feb 2025 IS → Mar 2025 OOS): N=125, Wins=88, WR=70.4%, Avg=+56.40 ticks
+  Window 2 (Apr-May 2025 IS → Jun 2025 OOS): N=118, Wins=85, WR=72.0%, Avg=+31.44 ticks
+  Window 3 (Jun-Jul 2025 IS → Aug 2025 OOS): N=98, Wins=75, WR=76.5%, Avg=+36.64 ticks
+  Window 4 (Sep-Oct 2025 IS → Nov 2025 OOS): N=105, Wins=68, WR=64.8%, Avg=+43.72 ticks
+  Window 5 (Nov-Dec 2025 IS → Jan 2026 OOS): N=100, Wins=70, WR=70.0%, Avg=+34.81 ticks
+  Window 6 (Feb-Mar 2026 IS → Apr 2026 OOS): N=116, Wins=70, WR=60.3%, Avg=+24.92 ticks
+  Overall OOS: N=662, Wins=456, WR=68.9%, Avg=+38.24 ticks
+  OOS Wilson 95% CI: [65.3%, 72.3%]
+  Any window < 40% WR: NO
+  [PASS]: no OOS window below 40% WR
+
+B) Monthly Stability:
+  Jan-25: N=103, WR=65.0%, Avg=+36.06 ticks
+  Feb-25: N=114, WR=64.0%, Avg=+33.83 ticks
+  Mar-25: N=125, WR=70.4%, Avg=+56.40 ticks
+  Apr-25: N=87, WR=67.8%, Avg=+97.72 ticks
+  May-25: N=146, WR=69.9%, Avg=+40.22 ticks
+  Jun-25: N=118, WR=72.0%, Avg=+31.44 ticks
+  Jul-25: N=112, WR=68.8%, Avg=+33.24 ticks
+  Aug-25: N=98, WR=76.5%, Avg=+36.64 ticks
+  Sep-25: N=98, WR=72.4%, Avg=+20.80 ticks
+  Oct-25: N=110, WR=73.6%, Avg=+58.41 ticks
+  Nov-25: N=105, WR=64.8%, Avg=+43.72 ticks
+  Dec-25: N=132, WR=69.7%, Avg=+38.36 ticks
+  Jan-26: N=100, WR=70.0%, Avg=+34.81 ticks
+  Feb-26: N=97, WR=70.1%, Avg=+78.87 ticks
+  Mar-26: N=103, WR=61.2%, Avg=+48.70 ticks
+  Apr-26: N=116, WR=60.3%, Avg=+24.92 ticks
+  Months > 50% WR: 16/16
+  Longest losing streak: 0 months
+  [PASS]: no month below 35% WR with N>=3
+
+C) Trade Streaks:
+  Max consecutive wins: 26
+  Max consecutive losses: 11
+
+D) Bayesian:
+  Prior: Beta(10, 10), mean=50.0%
+  Posterior: Beta(1219, 565), mean=68.3%
+  95% Credible Interval: [66.2%, 70.5%]
+  Shrinkage: 68.5% → 68.3%
+
+OVERALL VERDICT: DEPLOY
+- DEPLOY: OOS WR > 55%, no month below 35%, Bayesian posterior > 55%
+- PAPER TRADE: OOS WR > 50%, Bayesian posterior > 50%
+- INSUFFICIENT DATA: otherwise
+
+FILTER 04: TYPE_B + 60m_extreme
+------------------------------
+Summary: N=1,334, WR=68.5%, PF=2.15, Avg=+54.05 ticks
+
+A) Walk-Forward (6 windows, 2mo IS / 1mo OOS):
+  Window 1 (Jan-Feb 2025 IS → Mar 2025 OOS): N=74, Wins=50, WR=67.6%, Avg=+50.31 ticks
+  Window 2 (Apr-May 2025 IS → Jun 2025 OOS): N=77, Wins=49, WR=63.6%, Avg=+17.55 ticks
+  Window 3 (Jun-Jul 2025 IS → Aug 2025 OOS): N=90, Wins=65, WR=72.2%, Avg=+56.31 ticks
+  Window 4 (Sep-Oct 2025 IS → Nov 2025 OOS): N=94, Wins=68, WR=72.3%, Avg=+91.44 ticks
+  Window 5 (Nov-Dec 2025 IS → Jan 2026 OOS): N=95, Wins=60, WR=63.2%, Avg=+95.78 ticks
+  Window 6 (Feb-Mar 2026 IS → Apr 2026 OOS): N=85, Wins=59, WR=69.4%, Avg=-35.68 ticks
+  Overall OOS: N=515, Wins=351, WR=68.2%, Avg=+48.16 ticks
+  OOS Wilson 95% CI: [64.0%, 72.0%]
+  Any window < 40% WR: NO
+  [PASS]: no OOS window below 40% WR
+
+B) Monthly Stability:
+  Jan-25: N=73, WR=64.4%, Avg=+66.56 ticks
+  Feb-25: N=80, WR=66.2%, Avg=+32.99 ticks
+  Mar-25: N=74, WR=67.6%, Avg=+50.31 ticks
+  Apr-25: N=74, WR=71.6%, Avg=+96.31 ticks
+  May-25: N=83, WR=73.5%, Avg=+39.01 ticks
+  Jun-25: N=77, WR=63.6%, Avg=+17.55 ticks
+  Jul-25: N=82, WR=69.5%, Avg=+10.73 ticks
+  Aug-25: N=90, WR=72.2%, Avg=+56.31 ticks
+  Sep-25: N=87, WR=67.8%, Avg=+31.82 ticks
+  Oct-25: N=109, WR=72.5%, Avg=+79.72 ticks
+  Nov-25: N=94, WR=72.3%, Avg=+91.44 ticks
+  Dec-25: N=75, WR=65.3%, Avg=+54.89 ticks
+  Jan-26: N=95, WR=63.2%, Avg=+95.78 ticks
+  Feb-26: N=79, WR=68.4%, Avg=+100.70 ticks
+  Mar-26: N=77, WR=66.2%, Avg=+65.32 ticks
+  Apr-26: N=85, WR=69.4%, Avg=-35.68 ticks
+  Months > 50% WR: 16/16
+  Longest losing streak: 0 months
+  [PASS]: no month below 35% WR with N>=3
+
+C) Trade Streaks:
+  Max consecutive wins: 17
+  Max consecutive losses: 6
+
+D) Bayesian:
+  Prior: Beta(10, 10), mean=50.0%
+  Posterior: Beta(924, 430), mean=68.2%
+  95% Credible Interval: [65.8%, 70.7%]
+  Shrinkage: 68.5% → 68.2%
+
+OVERALL VERDICT: DEPLOY
+- DEPLOY: OOS WR > 55%, no month below 35%, Bayesian posterior > 55%
+- PAPER TRADE: OOS WR > 50%, Bayesian posterior > 50%
+- INSUFFICIENT DATA: otherwise
+
+FILTER 08: DELT_04 + 60m_extreme
+-------------------------------
+Summary: N=5,181, WR=67.5%, PF=3.08, Avg=+38.95 ticks
+
+A) Walk-Forward (6 windows, 2mo IS / 1mo OOS):
+  Window 1 (Jan-Feb 2025 IS → Mar 2025 OOS): N=332, Wins=222, WR=66.9%, Avg=+48.54 ticks
+  Window 2 (Apr-May 2025 IS → Jun 2025 OOS): N=400, Wins=277, WR=69.2%, Avg=+28.20 ticks
+  Window 3 (Jun-Jul 2025 IS → Aug 2025 OOS): N=287, Wins=205, WR=71.4%, Avg=+34.50 ticks
+  Window 4 (Sep-Oct 2025 IS → Nov 2025 OOS): N=277, Wins=180, WR=65.0%, Avg=+29.95 ticks
+  Window 5 (Nov-Dec 2025 IS → Jan 2026 OOS): N=304, Wins=214, WR=70.4%, Avg=+41.49 ticks
+  Window 6 (Feb-Mar 2026 IS → Apr 2026 OOS): N=275, Wins=175, WR=63.6%, Avg=+19.69 ticks
+  Overall OOS: N=1875, Wins=1273, WR=67.9%, Avg=+33.93 ticks
+  OOS Wilson 95% CI: [65.7%, 70.0%]
+  Any window < 40% WR: NO
+  [PASS]: no OOS window below 40% WR
+
+B) Monthly Stability:
+  Jan-25: N=316, WR=67.1%, Avg=+26.86 ticks
+  Feb-25: N=337, WR=63.2%, Avg=+27.94 ticks
+  Mar-25: N=332, WR=66.9%, Avg=+48.54 ticks
+  Apr-25: N=309, WR=68.6%, Avg=+75.35 ticks
+  May-25: N=415, WR=67.2%, Avg=+48.37 ticks
+  Jun-25: N=400, WR=69.2%, Avg=+28.20 ticks
+  Jul-25: N=340, WR=65.0%, Avg=+22.12 ticks
+  Aug-25: N=287, WR=71.4%, Avg=+34.50 ticks
+  Sep-25: N=290, WR=70.7%, Avg=+27.84 ticks
+  Oct-25: N=359, WR=69.9%, Avg=+56.64 ticks
+  Nov-25: N=277, WR=65.0%, Avg=+29.95 ticks
+  Dec-25: N=366, WR=70.2%, Avg=+41.14 ticks
+  Jan-26: N=304, WR=70.4%, Avg=+41.49 ticks
+  Feb-26: N=279, WR=67.0%, Avg=+53.85 ticks
+  Mar-26: N=295, WR=63.4%, Avg=+36.94 ticks
+  Apr-26: N=275, WR=63.6%, Avg=+19.69 ticks
+  Months > 50% WR: 16/16
+  Longest losing streak: 0 months
+  [PASS]: no month below 35% WR with N>=3
+
+C) Trade Streaks:
+  Max consecutive wins: 27
+  Max consecutive losses: 15
+
+D) Bayesian:
+  Prior: Beta(10, 10), mean=50.0%
+  Posterior: Beta(3507, 1694), mean=67.4%
+  95% Credible Interval: [66.2%, 68.7%]
+  Shrinkage: 67.5% → 67.4%
+
+OVERALL VERDICT: DEPLOY
+- DEPLOY: OOS WR > 55%, no month below 35%, Bayesian posterior > 55%
+- PAPER TRADE: OOS WR > 50%, Bayesian posterior > 50%
+- INSUFFICIENT DATA: otherwise
+
+FILTER 06: 3+ categories + 60m_extreme
+-------------------------------------
+Summary: N=41,253, WR=67.7%, PF=3.21, Avg=+41.43 ticks
+
+A) Walk-Forward (6 windows, 2mo IS / 1mo OOS):
+  Window 1 (Jan-Feb 2025 IS → Mar 2025 OOS): N=2563, Wins=1744, WR=68.0%, Avg=+55.68 ticks
+  Window 2 (Apr-May 2025 IS → Jun 2025 OOS): N=2424, Wins=1657, WR=68.4%, Avg=+29.32 ticks
+  Window 3 (Jun-Jul 2025 IS → Aug 2025 OOS): N=2676, Wins=1806, WR=67.5%, Avg=+30.82 ticks
+  Window 4 (Sep-Oct 2025 IS → Nov 2025 OOS): N=2442, Wins=1636, WR=67.0%, Avg=+47.51 ticks
+  Window 5 (Nov-Dec 2025 IS → Jan 2026 OOS): N=2606, Wins=1799, WR=69.0%, Avg=+42.36 ticks
+  Window 6 (Feb-Mar 2026 IS → Apr 2026 OOS): N=2063, Wins=1379, WR=66.8%, Avg=+28.41 ticks
+  Overall OOS: N=14774, Wins=10021, WR=67.8%, Avg=+39.34 ticks
+  OOS Wilson 95% CI: [67.1%, 68.6%]
+  Any window < 40% WR: NO
+  [PASS]: no OOS window below 40% WR
+
+B) Monthly Stability:
+  Jan-25: N=2608, WR=67.2%, Avg=+40.98 ticks
+  Feb-25: N=2522, WR=65.9%, Avg=+30.53 ticks
+  Mar-25: N=2563, WR=68.0%, Avg=+55.68 ticks
+  Apr-25: N=2664, WR=67.6%, Avg=+74.50 ticks
+  May-25: N=2855, WR=65.8%, Avg=+39.69 ticks
+  Jun-25: N=2424, WR=68.4%, Avg=+29.32 ticks
+  Jul-25: N=2582, WR=66.8%, Avg=+19.04 ticks
+  Aug-25: N=2676, WR=67.5%, Avg=+30.82 ticks
+  Sep-25: N=2578, WR=69.1%, Avg=+29.07 ticks
+  Oct-25: N=2990, WR=66.9%, Avg=+42.28 ticks
+  Nov-25: N=2442, WR=67.0%, Avg=+47.51 ticks
+  Dec-25: N=2494, WR=70.0%, Avg=+39.21 ticks
+  Jan-26: N=2606, WR=69.0%, Avg=+42.36 ticks
+  Feb-26: N=2494, WR=67.4%, Avg=+54.38 ticks
+  Mar-26: N=2692, WR=69.6%, Avg=+55.05 ticks
+  Apr-26: N=2063, WR=66.8%, Avg=+28.41 ticks
+  Months > 50% WR: 16/16
+  Longest losing streak: 0 months
+  [PASS]: no month below 35% WR with N>=3
+
+C) Trade Streaks:
+  Max consecutive wins: 37
+  Max consecutive losses: 16
+
+D) Bayesian:
+  Prior: Beta(10, 10), mean=50.0%
+  Posterior: Beta(27928, 13345), mean=67.7%
+  95% Credible Interval: [67.2%, 68.1%]
+  Shrinkage: 67.7% → 67.7%
+
+OVERALL VERDICT: DEPLOY
+- DEPLOY: OOS WR > 55%, no month below 35%, Bayesian posterior > 55%
+- PAPER TRADE: OOS WR > 50%, Bayesian posterior > 50%
+- INSUFFICIENT DATA: otherwise
+
+FILTER 07: IMB_03 + 60m_extreme
+------------------------------
+Summary: N=25,375, WR=66.4%, PF=3.03, Avg=+40.40 ticks
+
+A) Walk-Forward (6 windows, 2mo IS / 1mo OOS):
+  Window 1 (Jan-Feb 2025 IS → Mar 2025 OOS): N=1614, Wins=1077, WR=66.7%, Avg=+54.36 ticks
+  Window 2 (Apr-May 2025 IS → Jun 2025 OOS): N=1464, Wins=976, WR=66.7%, Avg=+28.32 ticks
+  Window 3 (Jun-Jul 2025 IS → Aug 2025 OOS): N=1648, Wins=1081, WR=65.6%, Avg=+29.66 ticks
+  Window 4 (Sep-Oct 2025 IS → Nov 2025 OOS): N=1504, Wins=983, WR=65.4%, Avg=+45.60 ticks
+  Window 5 (Nov-Dec 2025 IS → Jan 2026 OOS): N=1597, Wins=1088, WR=68.1%, Avg=+42.27 ticks
+  Window 6 (Feb-Mar 2026 IS → Apr 2026 OOS): N=1259, Wins=845, WR=67.1%, Avg=+31.79 ticks
+  Overall OOS: N=9086, Wins=6050, WR=66.6%, Avg=+38.98 ticks
+  OOS Wilson 95% CI: [65.6%, 67.5%]
+  Any window < 40% WR: NO
+  [PASS]: no OOS window below 40% WR
+
+B) Monthly Stability:
+  Jan-25: N=1626, WR=66.4%, Avg=+36.98 ticks
+  Feb-25: N=1544, WR=64.4%, Avg=+28.63 ticks
+  Mar-25: N=1614, WR=66.7%, Avg=+54.36 ticks
+  Apr-25: N=1729, WR=67.3%, Avg=+76.93 ticks
+  May-25: N=1739, WR=65.1%, Avg=+37.65 ticks
+  Jun-25: N=1464, WR=66.7%, Avg=+28.32 ticks
+  Jul-25: N=1571, WR=66.0%, Avg=+18.07 ticks
+  Aug-25: N=1648, WR=65.6%, Avg=+29.66 ticks
+  Sep-25: N=1549, WR=66.6%, Avg=+27.36 ticks
+  Oct-25: N=1816, WR=65.4%, Avg=+42.41 ticks
+  Nov-25: N=1504, WR=65.4%, Avg=+45.60 ticks
+  Dec-25: N=1541, WR=68.7%, Avg=+34.65 ticks
+  Jan-26: N=1597, WR=68.1%, Avg=+42.27 ticks
+  Feb-26: N=1557, WR=66.2%, Avg=+53.13 ticks
+  Mar-26: N=1617, WR=67.8%, Avg=+52.08 ticks
+  Apr-26: N=1259, WR=67.1%, Avg=+31.79 ticks
+  Months > 50% WR: 16/16
+  Longest losing streak: 0 months
+  [PASS]: no month below 35% WR with N>=3
+
+C) Trade Streaks:
+  Max consecutive wins: 27
+  Max consecutive losses: 11
+
+D) Bayesian:
+  Prior: Beta(10, 10), mean=50.0%
+  Posterior: Beta(16870, 8525), mean=66.4%
+  95% Credible Interval: [65.8%, 67.0%]
+  Shrinkage: 66.4% → 66.4%
+
+OVERALL VERDICT: DEPLOY
+- DEPLOY: OOS WR > 55%, no month below 35%, Bayesian posterior > 55%
+- PAPER TRADE: OOS WR > 50%, Bayesian posterior > 50%
+- INSUFFICIENT DATA: otherwise
+
+FILTER 02: score_final >= 80 + 60m_extreme
+-----------------------------------------
+Summary: N=799, WR=66.5%, PF=2.01, Avg=+69.37 ticks
+
+A) Walk-Forward (6 windows, 2mo IS / 1mo OOS):
+  Window 1 (Jan-Feb 2025 IS → Mar 2025 OOS): N=48, Wins=29, WR=60.4%, Avg=+64.62 ticks
+  Window 2 (Apr-May 2025 IS → Jun 2025 OOS): N=61, Wins=41, WR=67.2%, Avg=+41.79 ticks
+  Window 3 (Jun-Jul 2025 IS → Aug 2025 OOS): N=30, Wins=23, WR=76.7%, Avg=+49.03 ticks
+  Window 4 (Sep-Oct 2025 IS → Nov 2025 OOS): N=45, Wins=30, WR=66.7%, Avg=+61.33 ticks
+  Window 5 (Nov-Dec 2025 IS → Jan 2026 OOS): N=49, Wins=34, WR=69.4%, Avg=+80.06 ticks
+  Window 6 (Feb-Mar 2026 IS → Apr 2026 OOS): N=69, Wins=44, WR=63.8%, Avg=-9.64 ticks
+  Overall OOS: N=302, Wins=201, WR=66.6%, Avg=+43.51 ticks
+  OOS Wilson 95% CI: [61.1%, 71.6%]
+  Any window < 40% WR: NO
+  [PASS]: no OOS window below 40% WR
+
+B) Monthly Stability:
+  Jan-25: N=47, WR=68.1%, Avg=+142.89 ticks
+  Feb-25: N=47, WR=53.2%, Avg=-3.72 ticks
+  Mar-25: N=48, WR=60.4%, Avg=+64.62 ticks
+  Apr-25: N=55, WR=67.3%, Avg=+142.60 ticks
+  May-25: N=57, WR=64.9%, Avg=+130.54 ticks
+  Jun-25: N=61, WR=67.2%, Avg=+41.79 ticks
+  Jul-25: N=47, WR=70.2%, Avg=+1.13 ticks
+  Aug-25: N=30, WR=76.7%, Avg=+49.03 ticks
+  Sep-25: N=32, WR=53.1%, Avg=-20.03 ticks
+  Oct-25: N=54, WR=77.8%, Avg=+206.83 ticks
+  Nov-25: N=45, WR=66.7%, Avg=+61.33 ticks
+  Dec-25: N=36, WR=55.6%, Avg=+22.17 ticks
+  Jan-26: N=49, WR=69.4%, Avg=+80.06 ticks
+  Feb-26: N=48, WR=66.7%, Avg=+91.85 ticks
+  Mar-26: N=74, WR=74.3%, Avg=+63.19 ticks
+  Apr-26: N=69, WR=63.8%, Avg=-9.64 ticks
+  Months > 50% WR: 16/16
+  Longest losing streak: 0 months
+  [PASS]: no month below 35% WR with N>=3
+
+C) Trade Streaks:
+  Max consecutive wins: 11
+  Max consecutive losses: 4
+
+D) Bayesian:
+  Prior: Beta(10, 10), mean=50.0%
+  Posterior: Beta(541, 278), mean=66.1%
+  95% Credible Interval: [62.8%, 69.3%]
+  Shrinkage: 66.5% → 66.1%
+
+OVERALL VERDICT: DEPLOY
+- DEPLOY: OOS WR > 55%, no month below 35%, Bayesian posterior > 55%
+- PAPER TRADE: OOS WR > 50%, Bayesian posterior > 50%
+- INSUFFICIENT DATA: otherwise
+
+FILTER 05: TYPE_A + 60m_extreme
+------------------------------
+Summary: N=637, WR=65.3%, PF=1.90, Avg=+70.70 ticks
+
+A) Walk-Forward (6 windows, 2mo IS / 1mo OOS):
+  Window 1 (Jan-Feb 2025 IS → Mar 2025 OOS): N=40, Wins=23, WR=57.5%, Avg=+75.33 ticks
+  Window 2 (Apr-May 2025 IS → Jun 2025 OOS): N=43, Wins=27, WR=62.8%, Avg=+31.58 ticks
+  Window 3 (Jun-Jul 2025 IS → Aug 2025 OOS): N=27, Wins=21, WR=77.8%, Avg=+49.59 ticks
+  Window 4 (Sep-Oct 2025 IS → Nov 2025 OOS): N=38, Wins=25, WR=65.8%, Avg=+58.61 ticks
+  Window 5 (Nov-Dec 2025 IS → Jan 2026 OOS): N=43, Wins=29, WR=67.4%, Avg=+79.35 ticks
+  Window 6 (Feb-Mar 2026 IS → Apr 2026 OOS): N=53, Wins=34, WR=64.2%, Avg=-33.11 ticks
+  Overall OOS: N=244, Wins=159, WR=65.2%, Avg=+39.32 ticks
+  OOS Wilson 95% CI: [59.0%, 70.9%]
+  Any window < 40% WR: NO
+  [PASS]: no OOS window below 40% WR
+
+B) Monthly Stability:
+  Jan-25: N=43, WR=67.4%, Avg=+155.30 ticks
+  Feb-25: N=38, WR=52.6%, Avg=-16.29 ticks
+  Mar-25: N=40, WR=57.5%, Avg=+75.33 ticks
+  Apr-25: N=44, WR=70.5%, Avg=+157.57 ticks
+  May-25: N=44, WR=63.6%, Avg=+156.41 ticks
+  Jun-25: N=43, WR=62.8%, Avg=+31.58 ticks
+  Jul-25: N=33, WR=63.6%, Avg=-18.06 ticks
+  Aug-25: N=27, WR=77.8%, Avg=+49.59 ticks
+  Sep-25: N=28, WR=50.0%, Avg=-30.18 ticks
+  Oct-25: N=36, WR=72.2%, Avg=+241.03 ticks
+  Nov-25: N=38, WR=65.8%, Avg=+58.61 ticks
+  Dec-25: N=30, WR=56.7%, Avg=+30.77 ticks
+  Jan-26: N=43, WR=67.4%, Avg=+79.35 ticks
+  Feb-26: N=42, WR=66.7%, Avg=+102.79 ticks
+  Mar-26: N=55, WR=78.2%, Avg=+56.20 ticks
+  Apr-26: N=53, WR=64.2%, Avg=-33.11 ticks
+  Months > 50% WR: 15/16
+  Longest losing streak: 0 months
+  [PASS]: no month below 35% WR with N>=3
+
+C) Trade Streaks:
+  Max consecutive wins: 18
+  Max consecutive losses: 5
+
+D) Bayesian:
+  Prior: Beta(10, 10), mean=50.0%
+  Posterior: Beta(426, 231), mean=64.8%
+  95% Credible Interval: [61.2%, 68.5%]
+  Shrinkage: 65.3% → 64.8%
+
+OVERALL VERDICT: DEPLOY
+- DEPLOY: OOS WR > 55%, no month below 35%, Bayesian posterior > 55%
+- PAPER TRADE: OOS WR > 50%, Bayesian posterior > 50%
+- INSUFFICIENT DATA: otherwise

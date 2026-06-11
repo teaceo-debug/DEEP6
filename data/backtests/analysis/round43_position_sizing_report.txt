@@ -1,0 +1,180 @@
+DEEP6 round43 Kelly position sizing report
+========================================
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+Trade exit assumption: fixed 30-bar time exit using same-session RTH forward closes.
+Kelly formula: f = (WR * R - (1 - WR)) / R, where R = avg_win / avg_loss.
+Bayesian WR prior: Beta(10, 10).
+NQ tick value: $5.00 per tick. Margin assumption: $16,500.00 per contract on a $100,000.00 account.
+Contracts column is Full/Half/Quarter/Bayes whole-contract caps; Kelly fractions are clipped to [0%, 100%] for sizing.
+
+Setup                                                 | WR    | Avg Win  | Avg Loss | R:R  | Full Kelly | Half Kelly | Quarter Kelly | Bayes Kelly | Max Contracts/$100K
+------------------------------------------------------+-------+----------+----------+------+------------+------------+---------------+-------------+--------------------
+1. 60m + 15m + NOT killers + first_hour               | 86.5% | +317.80t | -132.97t | 2.39 | 80.9%      | 40.4%      | 20.2%         | 80.5%       | 4/2/1/4            
+2. Doji + 60m + 15m + NOT killers                     | 88.5% | +231.89t | -76.48t  | 3.03 | 84.7%      | 42.3%      | 21.2%         | 83.9%       | 5/2/1/5            
+3. CVD divergence + 60m + 15m                         | 83.7% | +276.67t | -95.40t  | 2.90 | 78.1%      | 39.1%      | 19.5%         | 77.0%       | 4/2/1/4            
+4. absorption + 60m + 15m + NOT lunch                 | 91.3% | +231.67t | -74.50t  | 3.11 | 88.5%      | 44.3%      | 22.1%         | 63.1%       | 5/2/1/3            
+5. score >= 60 + 60m + 15m + first_hour + NOT killers | 88.6% | +359.87t | -135.65t | 2.65 | 84.2%      | 42.1%      | 21.1%         | 83.9%       | 5/2/1/5            
+6. 3 narrowing ranges + 60m + 15m                     | 88.4% | +229.49t | -97.00t  | 2.37 | 83.5%      | 41.8%      | 20.9%         | 83.0%       | 5/2/1/5            
+7. Engulfing + 60m + 15m                              | 82.0% | +230.91t | -76.10t  | 3.03 | 76.0%      | 38.0%      | 19.0%         | 75.5%       | 4/2/1/4            
+8. Morning/evening star + 60m + 15m + NOT killers     | 85.3% | +222.90t | -74.16t  | 3.01 | 80.4%      | 40.2%      | 20.1%         | 78.7%       | 4/2/1/4            
+
+SETUP 1: 60m + 15m + NOT killers + first_hour
+---------------------------------------------
+Observation unit: global_index (unique signal bar)
+Trade direction: trade direction = sign(bar_delta)
+Complete 30b sample: 2,457 trades
+Observed WR: 86.5% (2,126 wins / 331 non-wins)
+Posterior WR (Beta(10,10)): 86.2%
+Avg win: +317.80t
+Avg loss (non-wins): -132.97t
+Reward:risk: 2.39
+Observed EV/contract: +257.07t = $1,285.36
+Bayes EV/contract: +255.74t = $1,278.71
+
+Fraction      | Raw Kelly | Kelly Used | Exp $/Trade | Cont. Contracts | Max Whole Contracts
+--------------+-----------+------------+-------------+-----------------+--------------------
+Full Kelly    | 80.9%     | 80.9%      | $6,301.48   | 4.90            | 4                  
+Half Kelly    | 40.4%     | 40.4%      | $3,150.74   | 2.45            | 2                  
+Quarter Kelly | 20.2%     | 20.2%      | $1,575.37   | 1.23            | 1                  
+Bayes Kelly   | 80.5%     | 80.5%      | $6,236.47   | 4.88            | 4                  
+
+SETUP 2: Doji + 60m + 15m + NOT killers
+---------------------------------------
+Observation unit: global_index (unique signal bar)
+Trade direction: trade direction = sign(bar_delta)
+Complete 30b sample: 1,233 trades
+Observed WR: 88.5% (1,091 wins / 142 non-wins)
+Posterior WR (Beta(10,10)): 87.9%
+Avg win: +231.89t
+Avg loss (non-wins): -76.48t
+Reward:risk: 3.03
+Observed EV/contract: +196.37t = $981.87
+Bayes EV/contract: +194.48t = $972.39
+
+Fraction      | Raw Kelly | Kelly Used | Exp $/Trade | Cont. Contracts | Max Whole Contracts
+--------------+-----------+------------+-------------+-----------------+--------------------
+Full Kelly    | 84.7%     | 84.7%      | $5,039.35   | 5.13            | 5                  
+Half Kelly    | 42.3%     | 42.3%      | $2,519.68   | 2.57            | 2                  
+Quarter Kelly | 21.2%     | 21.2%      | $1,259.84   | 1.28            | 1                  
+Bayes Kelly   | 83.9%     | 83.9%      | $4,942.61   | 5.08            | 5                  
+
+SETUP 3: CVD divergence + 60m + 15m
+-----------------------------------
+Observation unit: global_index (unique signal bar)
+Trade direction: trade direction = divergence_sign
+Complete 30b sample: 775 trades
+Observed WR: 83.7% (649 wins / 126 non-wins)
+Posterior WR (Beta(10,10)): 82.9%
+Avg win: +276.67t
+Avg loss (non-wins): -95.40t
+Reward:risk: 2.90
+Observed EV/contract: +216.18t = $1,080.88
+Bayes EV/contract: +213.02t = $1,065.09
+
+Fraction      | Raw Kelly | Kelly Used | Exp $/Trade | Cont. Contracts | Max Whole Contracts
+--------------+-----------+------------+-------------+-----------------+--------------------
+Full Kelly    | 78.1%     | 78.1%      | $5,118.54   | 4.74            | 4                  
+Half Kelly    | 39.1%     | 39.1%      | $2,559.27   | 2.37            | 2                  
+Quarter Kelly | 19.5%     | 19.5%      | $1,279.64   | 1.18            | 1                  
+Bayes Kelly   | 77.0%     | 77.0%      | $4,970.08   | 4.67            | 4                  
+
+SETUP 4: absorption + 60m + 15m + NOT lunch
+-------------------------------------------
+Observation unit: global_index + direction (unique absorption observation)
+Trade direction: trade direction = signal direction
+Complete 30b sample: 23 trades
+Observed WR: 91.3% (21 wins / 2 non-wins)
+Posterior WR (Beta(10,10)): 72.1%
+Avg win: +231.67t
+Avg loss (non-wins): -74.50t
+Reward:risk: 3.11
+Observed EV/contract: +205.04t = $1,025.22
+Bayes EV/contract: +146.22t = $731.12
+
+Fraction      | Raw Kelly | Kelly Used | Exp $/Trade | Cont. Contracts | Max Whole Contracts
+--------------+-----------+------------+-------------+-----------------+--------------------
+Full Kelly    | 88.5%     | 88.5%      | $5,499.39   | 5.36            | 5                  
+Half Kelly    | 44.3%     | 44.3%      | $2,749.69   | 2.68            | 2                  
+Quarter Kelly | 22.1%     | 22.1%      | $1,374.85   | 1.34            | 1                  
+Bayes Kelly   | 63.1%     | 63.1%      | $2,796.82   | 3.83            | 3                  
+
+SETUP 5: score >= 60 + 60m + 15m + first_hour + NOT killers
+-----------------------------------------------------------
+Observation unit: global_index + direction (unique scored observation)
+Trade direction: trade direction = signal direction
+Complete 30b sample: 3,354 trades
+Observed WR: 88.6% (2,970 wins / 384 non-wins)
+Posterior WR (Beta(10,10)): 88.3%
+Avg win: +359.87t
+Avg loss (non-wins): -135.65t
+Reward:risk: 2.65
+Observed EV/contract: +303.14t = $1,515.69
+Bayes EV/contract: +302.01t = $1,510.03
+
+Fraction      | Raw Kelly | Kelly Used | Exp $/Trade | Cont. Contracts | Max Whole Contracts
+--------------+-----------+------------+-------------+-----------------+--------------------
+Full Kelly    | 84.2%     | 84.2%      | $7,737.88   | 5.11            | 5                  
+Half Kelly    | 42.1%     | 42.1%      | $3,868.94   | 2.55            | 2                  
+Quarter Kelly | 21.1%     | 21.1%      | $1,934.47   | 1.28            | 1                  
+Bayes Kelly   | 83.9%     | 83.9%      | $7,680.18   | 5.09            | 5                  
+
+SETUP 6: 3 narrowing ranges + 60m + 15m
+---------------------------------------
+Observation unit: global_index (unique signal bar)
+Trade direction: trade direction = sign(bar_delta)
+Complete 30b sample: 1,858 trades
+Observed WR: 88.4% (1,643 wins / 215 non-wins)
+Posterior WR (Beta(10,10)): 88.0%
+Avg win: +229.49t
+Avg loss (non-wins): -97.00t
+Reward:risk: 2.37
+Observed EV/contract: +191.71t = $958.53
+Bayes EV/contract: +190.37t = $951.84
+
+Fraction      | Raw Kelly | Kelly Used | Exp $/Trade | Cont. Contracts | Max Whole Contracts
+--------------+-----------+------------+-------------+-----------------+--------------------
+Full Kelly    | 83.5%     | 83.5%      | $4,852.87   | 5.06            | 5                  
+Half Kelly    | 41.8%     | 41.8%      | $2,426.44   | 2.53            | 2                  
+Quarter Kelly | 20.9%     | 20.9%      | $1,213.22   | 1.27            | 1                  
+Bayes Kelly   | 83.0%     | 83.0%      | $4,785.46   | 5.03            | 5                  
+
+SETUP 7: Engulfing + 60m + 15m
+------------------------------
+Observation unit: global_index (unique signal bar)
+Trade direction: trade direction = engulf_direction_sign
+Complete 30b sample: 1,643 trades
+Observed WR: 82.0% (1,347 wins / 296 non-wins)
+Posterior WR (Beta(10,10)): 81.6%
+Avg win: +230.91t
+Avg loss (non-wins): -76.10t
+Reward:risk: 3.03
+Observed EV/contract: +175.60t = $878.01
+Bayes EV/contract: +174.42t = $872.10
+
+Fraction      | Raw Kelly | Kelly Used | Exp $/Trade | Cont. Contracts | Max Whole Contracts
+--------------+-----------+------------+-------------+-----------------+--------------------
+Full Kelly    | 76.0%     | 76.0%      | $4,046.65   | 4.61            | 4                  
+Half Kelly    | 38.0%     | 38.0%      | $2,023.33   | 2.30            | 2                  
+Quarter Kelly | 19.0%     | 19.0%      | $1,011.66   | 1.15            | 1                  
+Bayes Kelly   | 75.5%     | 75.5%      | $3,992.41   | 4.58            | 4                  
+
+SETUP 8: Morning/evening star + 60m + 15m + NOT killers
+-------------------------------------------------------
+Observation unit: global_index (unique signal bar)
+Trade direction: trade direction = star_direction_sign
+Complete 30b sample: 550 trades
+Observed WR: 85.3% (469 wins / 81 non-wins)
+Posterior WR (Beta(10,10)): 84.0%
+Avg win: +222.90t
+Avg loss (non-wins): -74.16t
+Reward:risk: 3.01
+Observed EV/contract: +179.15t = $895.75
+Bayes EV/contract: +175.47t = $877.37
+
+Fraction      | Raw Kelly | Kelly Used | Exp $/Trade | Cont. Contracts | Max Whole Contracts
+--------------+-----------+------------+-------------+-----------------+--------------------
+Full Kelly    | 80.4%     | 80.4%      | $4,363.29   | 4.87            | 4                  
+Half Kelly    | 40.2%     | 40.2%      | $2,181.65   | 2.44            | 2                  
+Quarter Kelly | 20.1%     | 20.1%      | $1,090.82   | 1.22            | 1                  
+Bayes Kelly   | 78.7%     | 78.7%      | $4,186.04   | 4.77            | 4                  

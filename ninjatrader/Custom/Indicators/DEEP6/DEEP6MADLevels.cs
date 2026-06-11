@@ -382,3 +382,60 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         #endregion
     }
 }
+
+#region NinjaScript generated code. Neither change nor remove.
+
+namespace NinjaTrader.NinjaScript.Indicators
+{
+	public partial class Indicator : NinjaTrader.Gui.NinjaScript.IndicatorRenderBase
+	{
+		private DEEP6.DEEP6MADLevels[] cacheDEEP6MADLevels;
+		public DEEP6.DEEP6MADLevels DEEP6MADLevels(double absorptionThreshold, double minDeltaRatio, double minStrength, double strongMult, int clusterTicks, int levelExtension, int lookbackBars, bool invalidateOnClose, bool showTrappedSellers, bool showTrappedBuyers, bool showFailedPullbacks)
+		{
+			return DEEP6MADLevels(Input, absorptionThreshold, minDeltaRatio, minStrength, strongMult, clusterTicks, levelExtension, lookbackBars, invalidateOnClose, showTrappedSellers, showTrappedBuyers, showFailedPullbacks);
+		}
+
+		public DEEP6.DEEP6MADLevels DEEP6MADLevels(ISeries<double> input, double absorptionThreshold, double minDeltaRatio, double minStrength, double strongMult, int clusterTicks, int levelExtension, int lookbackBars, bool invalidateOnClose, bool showTrappedSellers, bool showTrappedBuyers, bool showFailedPullbacks)
+		{
+			if (cacheDEEP6MADLevels != null)
+				for (int idx = 0; idx < cacheDEEP6MADLevels.Length; idx++)
+					if (cacheDEEP6MADLevels[idx] != null && cacheDEEP6MADLevels[idx].AbsorptionThreshold == absorptionThreshold && cacheDEEP6MADLevels[idx].MinDeltaRatio == minDeltaRatio && cacheDEEP6MADLevels[idx].MinStrength == minStrength && cacheDEEP6MADLevels[idx].StrongMult == strongMult && cacheDEEP6MADLevels[idx].ClusterTicks == clusterTicks && cacheDEEP6MADLevels[idx].LevelExtension == levelExtension && cacheDEEP6MADLevels[idx].LookbackBars == lookbackBars && cacheDEEP6MADLevels[idx].InvalidateOnClose == invalidateOnClose && cacheDEEP6MADLevels[idx].ShowTrappedSellers == showTrappedSellers && cacheDEEP6MADLevels[idx].ShowTrappedBuyers == showTrappedBuyers && cacheDEEP6MADLevels[idx].ShowFailedPullbacks == showFailedPullbacks && cacheDEEP6MADLevels[idx].EqualsInput(input))
+						return cacheDEEP6MADLevels[idx];
+			return CacheIndicator<DEEP6.DEEP6MADLevels>(new DEEP6.DEEP6MADLevels(){ AbsorptionThreshold = absorptionThreshold, MinDeltaRatio = minDeltaRatio, MinStrength = minStrength, StrongMult = strongMult, ClusterTicks = clusterTicks, LevelExtension = levelExtension, LookbackBars = lookbackBars, InvalidateOnClose = invalidateOnClose, ShowTrappedSellers = showTrappedSellers, ShowTrappedBuyers = showTrappedBuyers, ShowFailedPullbacks = showFailedPullbacks }, input, ref cacheDEEP6MADLevels);
+		}
+	}
+}
+
+namespace NinjaTrader.NinjaScript.MarketAnalyzerColumns
+{
+	public partial class MarketAnalyzerColumn : MarketAnalyzerColumnBase
+	{
+		public Indicators.DEEP6.DEEP6MADLevels DEEP6MADLevels(double absorptionThreshold, double minDeltaRatio, double minStrength, double strongMult, int clusterTicks, int levelExtension, int lookbackBars, bool invalidateOnClose, bool showTrappedSellers, bool showTrappedBuyers, bool showFailedPullbacks)
+		{
+			return indicator.DEEP6MADLevels(Input, absorptionThreshold, minDeltaRatio, minStrength, strongMult, clusterTicks, levelExtension, lookbackBars, invalidateOnClose, showTrappedSellers, showTrappedBuyers, showFailedPullbacks);
+		}
+
+		public Indicators.DEEP6.DEEP6MADLevels DEEP6MADLevels(ISeries<double> input , double absorptionThreshold, double minDeltaRatio, double minStrength, double strongMult, int clusterTicks, int levelExtension, int lookbackBars, bool invalidateOnClose, bool showTrappedSellers, bool showTrappedBuyers, bool showFailedPullbacks)
+		{
+			return indicator.DEEP6MADLevels(input, absorptionThreshold, minDeltaRatio, minStrength, strongMult, clusterTicks, levelExtension, lookbackBars, invalidateOnClose, showTrappedSellers, showTrappedBuyers, showFailedPullbacks);
+		}
+	}
+}
+
+namespace NinjaTrader.NinjaScript.Strategies
+{
+	public partial class Strategy : NinjaTrader.Gui.NinjaScript.StrategyRenderBase
+	{
+		public Indicators.DEEP6.DEEP6MADLevels DEEP6MADLevels(double absorptionThreshold, double minDeltaRatio, double minStrength, double strongMult, int clusterTicks, int levelExtension, int lookbackBars, bool invalidateOnClose, bool showTrappedSellers, bool showTrappedBuyers, bool showFailedPullbacks)
+		{
+			return indicator.DEEP6MADLevels(Input, absorptionThreshold, minDeltaRatio, minStrength, strongMult, clusterTicks, levelExtension, lookbackBars, invalidateOnClose, showTrappedSellers, showTrappedBuyers, showFailedPullbacks);
+		}
+
+		public Indicators.DEEP6.DEEP6MADLevels DEEP6MADLevels(ISeries<double> input , double absorptionThreshold, double minDeltaRatio, double minStrength, double strongMult, int clusterTicks, int levelExtension, int lookbackBars, bool invalidateOnClose, bool showTrappedSellers, bool showTrappedBuyers, bool showFailedPullbacks)
+		{
+			return indicator.DEEP6MADLevels(input, absorptionThreshold, minDeltaRatio, minStrength, strongMult, clusterTicks, levelExtension, lookbackBars, invalidateOnClose, showTrappedSellers, showTrappedBuyers, showFailedPullbacks);
+		}
+	}
+}
+
+#endregion

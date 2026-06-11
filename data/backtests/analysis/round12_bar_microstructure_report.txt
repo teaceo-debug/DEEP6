@@ -1,0 +1,57 @@
+DEEP6 round12 bar microstructure analysis
+========================================
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+Observation unit: unique signal bar grouped by global_index.
+Trade direction for all filters: sign(bar_delta). Zero-delta bars are excluded from scoring.
+15m / 60m context comes from OHLCV resamples of nq_1yr_1m.csv.
+delta_ratio = abs(bar_delta) / bar_volume. Volume EMA and range q25 both use the prior 20 bars within each session.
+KILLER_1 = trade-direction anchor in middle 40-60% of the active 60m range. KILLER_2 = bar_volume > 3x prior 20-bar EMA.
+CVD divergence = price makes a new session high/low while cumulative delta fails to confirm that new extreme.
+Volume middle tercile uses global grouped-bar volume quantiles over the non-zero-delta sample.
+Persistence: GROWING if WR_30b > WR_5b; STABLE if within 3 percentage points; DECAYING otherwise.
+
+Raw event rows loaded:                 1,767,271
+Grouped signal bars:                   127,361
+Tradable non-zero-delta bars:          127,165
+15m bars built:                        30,745
+60m bars built:                        7,693
+60m extreme bars:                      27,328
+15m trend-aligned bars:                73,297
+Body < 20% bars:                       26,037
+CVD divergence bars:                   5,448
+First-hour bars:                       19,908
+KILLER_1 hits:                         32,451
+KILLER_2 hits:                         1,327
+
+Baselines
+---------
+All non-zero-delta bars:                 N=127,135 | WR5=49.6% | WR10=49.7% | WR30=49.6% | PF5=1.00 | Avg5=0.09t | CI5=[49.3%, 49.8%] | Persistence=GROWING
+60m + 15m core:                          N=14,565 | WR5=78.6% | WR10=85.5% | WR30=83.1% | PF5=8.00 | Avg5=65.06t | CI5=[77.9%, 79.2%] | Persistence=GROWING
+60m + 15m + NOT killers:                 N=14,378 | WR5=78.7% | WR10=85.7% | WR30=83.2% | PF5=8.33 | Avg5=65.14t | CI5=[78.0%, 79.4%] | Persistence=GROWING
+CVD divergence + doji + core + NOT kill: N=181 | WR5=81.8% | WR10=93.9% | WR30=86.7% | PF5=18.29 | Avg5=95.62t | CI5=[75.5%, 86.7%] | Persistence=GROWING
+
+20 bar microstructure filters ranked by 30b win rate
+-------------------------------------------------
+Filter                                                                         | N      | WR 5b  | WR 10b | WR 30b | PF 5b | Avg Ticks 5b | Wilson 95% CI (5b) | Persistence
+-------------------------------------------------------------------------------+--------+--------+--------+--------+-------+--------------+--------------------+------------
+03. [A] |delta|/vol < 0.05 + 60m + 15m                                         | 587    | 82.8%  | 92.3%  | 89.4%  | 14.37 | 74.39        | [79.5%, 85.6%]     | GROWING    
+02. [A] |delta|/vol < 0.10 + 60m + 15m                                         | 1,128  | 82.2%  | 91.2%  | 88.0%  | 14.80 | 72.73        | [79.8%, 84.3%]     | GROWING    
+20. [E] CVD divergence + body < 20% + 60m + 15m + NOT killers                  | 181    | 81.8%  | 93.9%  | 86.7%  | 18.29 | 95.62        | [75.5%, 86.7%]     | GROWING    
+13. [C] Upper wick > body and lower wick > body + 60m + 15m                    | 2,660  | 81.7%  | 89.5%  | 86.7%  | 9.66  | 69.69        | [80.2%, 83.1%]     | GROWING    
+15. [D] Current bar narrower than prior 2 + 60m + 15m                          | 3,785  | 81.9%  | 88.7%  | 86.3%  | 10.85 | 73.78        | [80.7%, 83.1%]     | GROWING    
+12. [C] Body < 20% of range + 60m + 15m                                        | 2,738  | 81.3%  | 89.2%  | 86.2%  | 9.23  | 68.14        | [79.8%, 82.8%]     | GROWING    
+04. [A] Delta opposing bar direction + 60m + 15m                               | 1,567  | 82.2%  | 89.5%  | 85.8%  | 10.70 | 74.95        | [80.2%, 84.0%]     | GROWING    
+17. [D] 3 bars of shrinking |delta| + 60m + 15m                                | 2,092  | 80.0%  | 88.0%  | 85.6%  | 10.51 | 69.88        | [78.2%, 81.6%]     | GROWING    
+07. [B] Volume < 0.5x EMA + 60m + 15m                                          | 626    | 81.8%  | 85.9%  | 85.3%  | 8.46  | 51.12        | [78.6%, 84.6%]     | GROWING    
+16. [D] Current body reverses prior 2 bodies + 60m + 15m                       | 3,942  | 80.2%  | 86.9%  | 83.1%  | 8.77  | 69.30        | [78.9%, 81.4%]     | GROWING    
+08. [B] Volume in middle tercile + 60m + 15m                                   | 4,806  | 78.5%  | 85.8%  | 83.1%  | 8.38  | 56.75        | [77.4%, 79.7%]     | GROWING    
+19. [E] Body < 20% + |delta|/vol < 0.10 + NOT killers + 60m + 15m + first_hour | 82     | 85.4%  | 87.8%  | 82.9%  | 21.26 | 121.80       | [76.1%, 91.4%]     | STABLE     
+05. [A] Delta confirming bar direction + 60m + 15m                             | 12,818 | 78.0%  | 84.9%  | 82.7%  | 7.68  | 63.99        | [77.3%, 78.8%]     | GROWING    
+14. [C] One-sided wick only + 60m + 15m                                        | 169    | 79.9%  | 88.2%  | 81.7%  | 11.00 | 67.66        | [73.2%, 85.2%]     | GROWING    
+01. [A] |delta|/vol > 0.50 + 60m + 15m                                         | 8,188  | 76.4%  | 83.7%  | 80.9%  | 6.89  | 62.54        | [75.4%, 77.3%]     | GROWING    
+09. [B] Highest volume in last 10 bars + 60m + 15m                             | 1,855  | 74.2%  | 79.9%  | 78.5%  | 5.55  | 60.97        | [72.1%, 76.1%]     | GROWING    
+11. [C] Body > 80% of range + 60m + 15m                                        | 1,955  | 73.0%  | 79.9%  | 77.4%  | 4.91  | 54.52        | [71.0%, 74.9%]     | GROWING    
+18. [D] Delta flip + volume spike + 60m + 15m                                  | 345    | 74.2%  | 78.3%  | 75.7%  | 4.85  | 64.18        | [69.3%, 78.5%]     | GROWING    
+10. [B] 3-bar volume decline then spike + 60m + 15m                            | 114    | 73.7%  | 78.1%  | 73.7%  | 6.14  | 51.88        | [64.9%, 80.9%]     | STABLE     
+06. [B] Volume > 2x EMA + narrow range + 60m + 15m                             | 2      | 100.0% | 100.0% | 50.0%  | inf   | 77.00        | [34.2%, 100.0%]    | DECAYING   

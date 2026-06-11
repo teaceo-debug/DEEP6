@@ -1,0 +1,154 @@
+ROUND 31 ENTRY OPTIMIZATION
+===========================
+
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+
+Methodology:
+- Observation unit is global_index for bar setups and global_index + direction for the absorption setup.
+- 15m/60m context comes from nq_1yr_1m.csv resamples.
+- Entry and 5-bar exit prices are rebuilt from same-session RTH 1m closes only; no overnight carry is allowed.
+- T+0 enters on the signal-bar close; T+1/T+2 wait 1 or 2 bars; T+Best picks the best close in the first 3 bars (lowest for longs, highest for shorts).
+- T+Best is still scored from the chosen entry bar to the close 5 bars later, and equal best prices resolve to the earliest bar.
+- NOT killers = direction-aware 60m anchor not in the 40%-60% middle band AND bar_volume not > 3x prior 20-bar EMA.
+- NOT lunch excludes 12:00-13:59 ET.
+- Doji = body < 10% of full bar range.
+- Morning/evening star follows the round23 / round26 3-candle definition.
+- CVD divergence follows the round26 / round27 session-extreme versus prior-CVD-extreme definition.
+
+Bar observations loaded:        127,361
+Absorption observations loaded: 901
+RTH 1m bars loaded:            127,361
+Doji bars:                     12,875
+CVD divergence bars:           5,448
+Morning/evening stars:         4,278
+
+All 20 setup x timing results (sorted by setup, then entry timing):
+Setup                                             | Entry  | N     | WR    | PF     | Avg      | Sharpe | Wilson 95% CI 
+--------------------------------------------------+--------+-------+-------+--------+----------+--------+---------------
+A. 60m + 15m + NOT killers + first_hour           | T+0    | 2,457 | 79.5% | 9.91   | +97.82t  | 0.65   | [77.9%, 81.1%]
+A. 60m + 15m + NOT killers + first_hour           | T+1    | 2,457 | 77.7% | 7.12   | +88.35t  | 0.57   | [76.0%, 79.3%]
+A. 60m + 15m + NOT killers + first_hour           | T+2    | 2,457 | 76.2% | 6.04   | +80.18t  | 0.54   | [74.5%, 77.8%]
+A. 60m + 15m + NOT killers + first_hour           | T+Best | 2,457 | 88.4% | 27.22  | +129.52t | 0.86   | [87.0%, 89.6%]
+B. Doji + 60m + 15m + NOT killers                 | T+0    | 1,310 | 81.0% | 11.80  | +69.57t  | 0.64   | [78.8%, 83.0%]
+B. Doji + 60m + 15m + NOT killers                 | T+1    | 1,307 | 78.7% | 8.09   | +64.69t  | 0.54   | [76.3%, 80.8%]
+B. Doji + 60m + 15m + NOT killers                 | T+2    | 1,301 | 78.5% | 6.93   | +59.59t  | 0.48   | [76.2%, 80.6%]
+B. Doji + 60m + 15m + NOT killers                 | T+Best | 1,301 | 88.9% | 26.84  | +90.00t  | 0.81   | [87.0%, 90.5%]
+C. CVD divergence + 60m + 15m                     | T+0    | 804   | 82.5% | 15.09  | +97.00t  | 0.79   | [79.7%, 84.9%]
+C. CVD divergence + 60m + 15m                     | T+1    | 800   | 80.9% | 11.54  | +91.37t  | 0.69   | [78.0%, 83.5%]
+C. CVD divergence + 60m + 15m                     | T+2    | 798   | 80.7% | 9.20   | +86.86t  | 0.60   | [77.8%, 83.3%]
+C. CVD divergence + 60m + 15m                     | T+Best | 798   | 90.4% | 51.85  | +127.32t | 0.87   | [88.1%, 92.2%]
+D. absorption + 60m + 15m + NOT lunch             | T+0    | 33    | 90.9% | 78.85  | +80.21t  | 1.58   | [76.4%, 96.9%]
+D. absorption + 60m + 15m + NOT lunch             | T+1    | 31    | 87.1% | 94.77  | +78.65t  | 1.29   | [71.1%, 94.9%]
+D. absorption + 60m + 15m + NOT lunch             | T+2    | 30    | 76.7% | 7.77   | +65.87t  | 0.67   | [59.1%, 88.2%]
+D. absorption + 60m + 15m + NOT lunch             | T+Best | 30    | 93.3% | 249.83 | +99.53t  | 1.37   | [78.7%, 98.2%]
+E. Morning/evening star + 60m + 15m + NOT killers | T+0    | 590   | 76.4% | 5.93   | +57.49t  | 0.51   | [72.9%, 79.7%]
+E. Morning/evening star + 60m + 15m + NOT killers | T+1    | 589   | 74.2% | 4.40   | +50.09t  | 0.41   | [70.5%, 77.6%]
+E. Morning/evening star + 60m + 15m + NOT killers | T+2    | 587   | 69.8% | 3.57   | +44.41t  | 0.33   | [66.0%, 73.4%]
+E. Morning/evening star + 60m + 15m + NOT killers | T+Best | 587   | 85.3% | 12.79  | +82.04t  | 0.71   | [82.3%, 88.0%]
+
+Per-setup leaders:
+- A. 60m + 15m + NOT killers + first_hour: Sharpe leader: T+Best (Sharpe 0.86, Avg +129.52t); Avg leader: T+Best (Avg +129.52t, PF 27.22).
+- B. Doji + 60m + 15m + NOT killers: Sharpe leader: T+Best (Sharpe 0.81, Avg +90.00t); Avg leader: T+Best (Avg +90.00t, PF 26.84).
+- C. CVD divergence + 60m + 15m: Sharpe leader: T+Best (Sharpe 0.87, Avg +127.32t); Avg leader: T+Best (Avg +127.32t, PF 51.85).
+- D. absorption + 60m + 15m + NOT lunch: Sharpe leader: T+0 (Sharpe 1.58, Avg +80.21t); Avg leader: T+Best (Avg +99.53t, PF 249.83).
+- E. Morning/evening star + 60m + 15m + NOT killers: Sharpe leader: T+Best (Sharpe 0.71, Avg +82.04t); Avg leader: T+Best (Avg +82.04t, PF 12.79).
+
+SETUP A: 60m + 15m + NOT killers + first_hour
+----------------------------------------------
+Observation unit: global_index (unique signal bar)
+Trade direction: trade direction = sign(bar_delta)
+Raw sample size before timing-specific drops: 2,457
+
+Entry  | N     | WR    | PF    | Avg      | Sharpe | Wilson 95% CI 
+-------+-------+-------+-------+----------+--------+---------------
+T+0    | 2,457 | 79.5% | 9.91  | +97.82t  | 0.65   | [77.9%, 81.1%]
+T+1    | 2,457 | 77.7% | 7.12  | +88.35t  | 0.57   | [76.0%, 79.3%]
+T+2    | 2,457 | 76.2% | 6.04  | +80.18t  | 0.54   | [74.5%, 77.8%]
+T+Best | 2,457 | 88.4% | 27.22 | +129.52t | 0.86   | [87.0%, 89.6%]
+
+T+Best entry-offset mix:
+- T+0 picks: 1,401 | T+1 picks: 574 | T+2 picks: 482
+
+Leader summary:
+- Sharpe leader: T+Best (Sharpe 0.86, Avg +129.52t); Avg leader: T+Best (Avg +129.52t, PF 27.22).
+
+
+SETUP B: Doji + 60m + 15m + NOT killers
+----------------------------------------
+Observation unit: global_index (unique signal bar)
+Trade direction: trade direction = sign(bar_delta)
+Raw sample size before timing-specific drops: 1,323
+
+Entry  | N     | WR    | PF    | Avg     | Sharpe | Wilson 95% CI 
+-------+-------+-------+-------+---------+--------+---------------
+T+0    | 1,310 | 81.0% | 11.80 | +69.57t | 0.64   | [78.8%, 83.0%]
+T+1    | 1,307 | 78.7% | 8.09  | +64.69t | 0.54   | [76.3%, 80.8%]
+T+2    | 1,301 | 78.5% | 6.93  | +59.59t | 0.48   | [76.2%, 80.6%]
+T+Best | 1,301 | 88.9% | 26.84 | +90.00t | 0.81   | [87.0%, 90.5%]
+
+T+Best entry-offset mix:
+- T+0 picks: 725 | T+1 picks: 307 | T+2 picks: 269
+
+Leader summary:
+- Sharpe leader: T+Best (Sharpe 0.81, Avg +90.00t); Avg leader: T+Best (Avg +90.00t, PF 26.84).
+
+
+SETUP C: CVD divergence + 60m + 15m
+------------------------------------
+Observation unit: global_index (unique signal bar)
+Trade direction: trade direction = divergence_sign
+Raw sample size before timing-specific drops: 807
+
+Entry  | N   | WR    | PF    | Avg      | Sharpe | Wilson 95% CI 
+-------+-----+-------+-------+----------+--------+---------------
+T+0    | 804 | 82.5% | 15.09 | +97.00t  | 0.79   | [79.7%, 84.9%]
+T+1    | 800 | 80.9% | 11.54 | +91.37t  | 0.69   | [78.0%, 83.5%]
+T+2    | 798 | 80.7% | 9.20  | +86.86t  | 0.60   | [77.8%, 83.3%]
+T+Best | 798 | 90.4% | 51.85 | +127.32t | 0.87   | [88.1%, 92.2%]
+
+T+Best entry-offset mix:
+- T+0 picks: 448 | T+1 picks: 196 | T+2 picks: 154
+
+Leader summary:
+- Sharpe leader: T+Best (Sharpe 0.87, Avg +127.32t); Avg leader: T+Best (Avg +127.32t, PF 51.85).
+
+
+SETUP D: absorption + 60m + 15m + NOT lunch
+--------------------------------------------
+Observation unit: global_index + direction (unique absorption signal direction)
+Trade direction: trade direction = signal direction
+Raw sample size before timing-specific drops: 33
+
+Entry  | N  | WR    | PF     | Avg     | Sharpe | Wilson 95% CI 
+-------+----+-------+--------+---------+--------+---------------
+T+0    | 33 | 90.9% | 78.85  | +80.21t | 1.58   | [76.4%, 96.9%]
+T+1    | 31 | 87.1% | 94.77  | +78.65t | 1.29   | [71.1%, 94.9%]
+T+2    | 30 | 76.7% | 7.77   | +65.87t | 0.67   | [59.1%, 88.2%]
+T+Best | 30 | 93.3% | 249.83 | +99.53t | 1.37   | [78.7%, 98.2%]
+
+T+Best entry-offset mix:
+- T+0 picks: 14 | T+1 picks: 9 | T+2 picks: 7
+
+Leader summary:
+- Sharpe leader: T+0 (Sharpe 1.58, Avg +80.21t); Avg leader: T+Best (Avg +99.53t, PF 249.83).
+
+
+SETUP E: Morning/evening star + 60m + 15m + NOT killers
+--------------------------------------------------------
+Observation unit: global_index (unique signal bar)
+Trade direction: trade direction = star_direction_sign
+Raw sample size before timing-specific drops: 594
+
+Entry  | N   | WR    | PF    | Avg     | Sharpe | Wilson 95% CI 
+-------+-----+-------+-------+---------+--------+---------------
+T+0    | 590 | 76.4% | 5.93  | +57.49t | 0.51   | [72.9%, 79.7%]
+T+1    | 589 | 74.2% | 4.40  | +50.09t | 0.41   | [70.5%, 77.6%]
+T+2    | 587 | 69.8% | 3.57  | +44.41t | 0.33   | [66.0%, 73.4%]
+T+Best | 587 | 85.3% | 12.79 | +82.04t | 0.71   | [82.3%, 88.0%]
+
+T+Best entry-offset mix:
+- T+0 picks: 310 | T+1 picks: 155 | T+2 picks: 122
+
+Leader summary:
+- Sharpe leader: T+Best (Sharpe 0.71, Avg +82.04t); Avg leader: T+Best (Avg +82.04t, PF 12.79).

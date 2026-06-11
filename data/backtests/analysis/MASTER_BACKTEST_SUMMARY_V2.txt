@@ -1,0 +1,224 @@
+MASTER BACKTEST SUMMARY V2
+==========================
+Consolidated review of all available round reports from R0-R14, updated through the round 11 research set and written for implementation prioritization.
+
+Section 1: Executive Summary
+============================
+- Total rounds in scope: 15 (R0-R14).
+- Reports available/read: 26.
+- Total scripts created: 26 report-generating analysis scripts reviewed here (+ round5 master summary + this round15 compiler).
+- Total filter evaluations: 475 explicitly enumerated filters / setup-context profiles (+ 90 exit-window rows in R9).
+- Total DEPLOY-grade findings: 314 unique signals.
+- Date range: 2025-01-01 to 2026-04-24.
+
+Section 2: TOP 30 DEPLOY-Grade Signals
+======================================
+Ranking rule: OOS WR first, then best available full-sample WR (30b preferred, else 5b), then N.
+
+01. absorption + 60m_extreme + 15m_trend_aligned + NOT lunch
+    Status=DEPLOY | N=33 | WR5=90.9% | WR30=87.5% | PF=78.85 | Avg=+80.21t | OOS=92.3% (N=13) | Bayes=75.5% | Persistence=DECAYING
+    Source: R2B/round2_absorption_deep_filters.py | also: R3A/round3_validate_novel_patterns.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal
+02. absorption + 60m_extreme + 15m_trend_aligned + NOT Monday
+    Status=DEPLOY | N=38 | WR5=89.5% | WR30=91.9% | PF=38.64 | Avg=+91.13t | OOS=90.9% (N=11) | Bayes=75.9% | Persistence=GROWING
+    Source: R2B/round2_absorption_deep_filters.py | also: R3A/round3_validate_novel_patterns.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal
+03. absorption + 60m_extreme + 15m_trend_aligned
+    Status=DEPLOY | N=50 | WR5=88.0% | WR30=91.8% | PF=36.72 | Avg=+82.88t | OOS=87.5% (N=16) | Bayes=77.1% | Persistence=GROWING
+    Source: R0/analyze_compound_filters.py | also: R0/validate_top5_filters.py, R9/round9_exit_timing.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal
+04. Doji + 60m_extreme + 15m_trend_aligned + first_hour
+    Status=DEPLOY | N=214 | WR5=83.6% | WR30=76.7% | PF=15.36 | Avg=+104.25t | OOS=83.7% (N=86) | Bayes=80.8% | Persistence=DECAYING
+    Source: R3A/round3_validate_novel_patterns.py | also: R4/round4_final_walkforward.py, R9/round9_exit_timing.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal
+05. score >= 70 + 60m_extreme + 15m_trend_aligned + NOT lunch
+    Status=DEPLOY | N=1,226 | WR5=82.5% | WR30=83.4% | PF=8.98 | Avg=+126.79t | OOS=83.3% (N=480) | Bayes=82.0% | Persistence=GROWING
+    Source: R2A/round2_stacked_persistence_time.py | also: R3C/round3_signal_density_confluence.py, R4/round4_final_walkforward.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal
+06. 60m_extreme + 15m_trend_aligned + first_hour
+    Status=DEPLOY | N=4,235 | WR5=83.1% | WR30=89.2% | PF=14.36 | Avg=+113.19t | OOS=83.0% (N=1,545) | Bayes=82.9% | Persistence=GROWING
+    Source: R2A/round2_stacked_persistence_time.py | also: R3A/round3_validate_novel_patterns.py, R4/round4_final_walkforward.py, R9/round9_exit_timing.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal
+07. score >= 60 + 60m_extreme + 15m_trend_aligned + first_hour
+    Status=DEPLOY | N=3,362 | WR5=83.5% | WR30=88.5% | PF=14.52 | Avg=+122.80t | OOS=82.8% (N=1,260) | Bayes=82.3% | Persistence=GROWING
+    Source: R2A/round2_stacked_persistence_time.py | also: R3C/round3_signal_density_confluence.py, R4/round4_final_walkforward.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal
+08. score >= 60 + 60m_extreme + 15m_trend_aligned + NOT lunch
+    Status=DEPLOY | N=5,201 | WR5=82.8% | WR30=86.2% | PF=10.78 | Avg=+110.15t | OOS=82.6% (N=1,896) | Bayes=82.3% | Persistence=GROWING
+    Source: R2A/round2_stacked_persistence_time.py | also: R3C/round3_signal_density_confluence.py, R4/round4_final_walkforward.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal
+09. 3 narrowing ranges + 60m_extreme + 15m_trend_aligned
+    Status=DEPLOY | N=1,971 | WR5=81.6% | WR30=n/a | PF=12.43 | Avg=+75.81t | OOS=81.8% (N=686) | Bayes=81.3% | Persistence=n/a
+    Source: R3A/round3_validate_novel_patterns.py | also: R4/round4_final_walkforward.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal
+10. Doji + 60m_extreme + 15m_trend_aligned
+    Status=DEPLOY | N=1,340 | WR5=80.6% | WR30=88.5% | PF=7.79 | Avg=+66.89t | OOS=79.8% (N=505) | Bayes=80.1% | Persistence=GROWING
+    Source: R2C/round2_novel_bar_patterns.py | also: R3A/round3_validate_novel_patterns.py, R9/round9_exit_timing.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal
+11. Engulfing + 60m_extreme + 15m_trend_aligned
+    Status=DEPLOY | N=1,756 | WR5=76.7% | WR30=80.5% | PF=6.50 | Avg=+65.13t | OOS=79.8% (N=620) | Bayes=78.9% | Persistence=GROWING
+    Source: R3B/round3_multi_bar_sequences.py | also: R4/round4_final_walkforward.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal
+12. Doji + 60m_extreme + 15m_trend_aligned + NOT lunch
+    Status=DEPLOY | N=940 | WR5=80.4% | WR30=n/a | PF=7.11 | Avg=+68.62t | OOS=78.5% (N=353) | Bayes=79.8% | Persistence=n/a
+    Source: R3A/round3_validate_novel_patterns.py | also: R4/round4_final_walkforward.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal
+13. 5+ categories + 60m_extreme + 15m_trend_aligned
+    Status=DEPLOY | N=7,990 | WR5=78.2% | WR30=81.3% | PF=7.45 | Avg=+66.36t | OOS=78.4% (N=2,805) | Bayes=78.2% | Persistence=GROWING
+    Source: R3C/round3_signal_density_confluence.py | also: R4/round4_final_walkforward.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal
+14. absorption + 15m_trend_aligned + delta_opposite
+    Status=DEPLOY | N=84 | WR5=77.4% | WR30=63.9% | PF=3.93 | Avg=+76.75t | OOS=76.9% (N=26) | Bayes=72.1% | Persistence=DECAYING
+    Source: R0/analyze_compound_filters.py | also: R0/validate_top5_filters.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal; middle 40-60% of 60m range
+15. Hammer + 60m_extreme + 15m_trend_aligned
+    Status=DEPLOY | N=177 | WR5=78.5% | WR30=86.4% | PF=13.64 | Avg=+66.84t | OOS=76.8% (N=69) | Bayes=70.8% | Persistence=GROWING
+    Source: R3B/round3_multi_bar_sequences.py | also: R4/round4_final_walkforward.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal
+16. Shooting star + 60m_extreme + 15m_trend_aligned
+    Status=DEPLOY | N=150 | WR5=78.7% | WR30=82.7% | PF=10.36 | Avg=+66.13t | OOS=75.0% (N=52) | Bayes=68.1% | Persistence=GROWING
+    Source: R3B/round3_multi_bar_sequences.py | also: R4/round4_final_walkforward.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal
+17. absorption + 60m_extreme + mid_vol
+    Status=PAPER TRADE | N=42 | WR5=71.4% | WR30=83.3% | PF=6.43 | Avg=+157.10t | OOS=71.4% (N=14) | Bayes=64.5% | Persistence=GROWING
+    Source: R0/analyze_compound_filters.py | also: R0/validate_top5_filters.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal
+18. absorption + 60m_extreme
+    Status=DEPLOY | N=122 | WR5=71.3% | WR30=81.0% | PF=3.91 | Avg=+92.71t | OOS=71.4% (N=35) | Bayes=68.3% | Persistence=GROWING
+    Source: R0/analyze_compound_filters.py | also: R0/validate_top5_filters.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal
+19. DELT_04 + TRAP_04 + 15m_trend_aligned
+    Status=DEPLOY | N=286 | WR5=73.8% | WR30=64.7% | PF=3.34 | Avg=+59.36t | OOS=70.9% (N=110) | Bayes=72.2% | Persistence=DECAYING
+    Source: R0.5/analyze_cross_category_combos.py | also: R1A/round1_walkforward_cross_category.py, R1C/round1_strength_persistence.py, R4/round4_final_walkforward.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal; middle 40-60% of 60m range
+20. DELT_04 + EXH_03 + 60m_extreme
+    Status=DEPLOY | N=1,764 | WR5=68.5% | WR30=n/a | PF=3.83 | Avg=+43.75t | OOS=68.9% (N=662) | Bayes=68.3% | Persistence=n/a
+    Source: R0.5/analyze_cross_category_combos.py | also: R1A/round1_walkforward_cross_category.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal
+21. TYPE_B + 60m_extreme
+    Status=DEPLOY | N=1,334 | WR5=68.5% | WR30=n/a | PF=2.15 | Avg=+54.05t | OOS=68.2% (N=515) | Bayes=68.2% | Persistence=n/a
+    Source: R0.5/analyze_cross_category_combos.py | also: R1A/round1_walkforward_cross_category.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal
+22. Doji + 60m_extreme
+    Status=DEPLOY | N=2,851 | WR5=67.4% | WR30=n/a | PF=3.07 | Avg=+39.97t | OOS=68.0% (N=1,028) | Bayes=67.3% | Persistence=n/a
+    Source: R3A/round3_validate_novel_patterns.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal
+23. DELT_04 + 60m_extreme
+    Status=DEPLOY | N=5,181 | WR5=67.5% | WR30=n/a | PF=3.08 | Avg=+38.95t | OOS=67.9% (N=1,875) | Bayes=67.4% | Persistence=n/a
+    Source: R0.5/analyze_cross_category_combos.py | also: R1A/round1_walkforward_cross_category.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal
+24. 3+ categories + 60m_extreme
+    Status=DEPLOY | N=41,253 | WR5=67.7% | WR30=n/a | PF=3.21 | Avg=+41.43t | OOS=67.8% (N=14,774) | Bayes=67.7% | Persistence=n/a
+    Source: R0.5/analyze_cross_category_combos.py | also: R1A/round1_walkforward_cross_category.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal
+25. absorption + 60m_extreme + delta_opposite
+    Status=PAPER TRADE | N=93 | WR5=67.7% | WR30=78.3% | PF=3.45 | Avg=+100.30t | OOS=66.7% (N=24) | Bayes=64.6% | Persistence=GROWING
+    Source: R0/analyze_compound_filters.py | also: R0/validate_top5_filters.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal
+26. score >= 80 + 60m_extreme
+    Status=DEPLOY | N=799 | WR5=66.5% | WR30=69.7% | PF=2.01 | Avg=+69.37t | OOS=66.6% (N=302) | Bayes=66.1% | Persistence=GROWING
+    Source: R0.5/analyze_cross_category_combos.py | also: R1A/round1_walkforward_cross_category.py, R1C/round1_strength_persistence.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal
+27. IMB_03 + 60m_extreme
+    Status=DEPLOY | N=25,375 | WR5=66.4% | WR30=n/a | PF=3.03 | Avg=+40.40t | OOS=66.6% (N=9,086) | Bayes=66.4% | Persistence=n/a
+    Source: R0.5/analyze_cross_category_combos.py | also: R1A/round1_walkforward_cross_category.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal
+28. TYPE_A + 60m_extreme
+    Status=DEPLOY | N=637 | WR5=65.3% | WR30=n/a | PF=1.90 | Avg=+70.70t | OOS=65.2% (N=244) | Bayes=64.8% | Persistence=n/a
+    Source: R0.5/analyze_cross_category_combos.py | also: R1A/round1_walkforward_cross_category.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal
+29. 3 narrowing ranges + 60m_extreme
+    Status=DEPLOY | N=4,191 | WR5=67.5% | WR30=n/a | PF=3.50 | Avg=+45.38t | OOS=65.1% (N=1,506) | Bayes=67.5% | Persistence=n/a
+    Source: R3A/round3_validate_novel_patterns.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal
+30. 2-bar delta divergence + 60m_extreme
+    Status=DEPLOY | N=460 | WR5=66.3% | WR30=n/a | PF=3.12 | Avg=+42.59t | OOS=59.2% (N=184) | Bayes=65.6% | Persistence=n/a
+    Source: R2C/round2_novel_bar_patterns.py | also: R3A/round3_validate_novel_patterns.py
+    Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal
+
+Section 3: Signal Killers (What to AVOID)
+========================================
+From R7B, these four anti-patterns consistently destroy edge inside the core 60m_extreme + 15m_trend regime:
+
+1. volume spike > 3x EMA | WR with=72.9% vs without=81.3% | Delta=-8.4pp | N with=295
+2. same-direction bar_delta > 90th percentile | WR with=75.3% vs without=81.9% | Delta=-6.5pp | N with=2,349
+3. next-bar delta flips opposite signal | WR with=71.6% vs without=87.0% | Delta=-15.4pp | N with=8,939
+4. middle 40-60% of 60m range | WR with=65.2% vs without=81.8% | Delta=-16.6pp | N with=546
+
+Recommendation: always exclude these conditions in automation unless a future walk-forward report proves a specific exception.
+
+Section 4: Novel Discoveries by Round
+=====================================
+- R0: 60m_extreme became the universal anchor, and the absorption core stack reached WR5=88.0%, OOS=87.5%.
+- R2: Doji / first-hour / lunch-exclusion family emerged; Doji + 60m_extreme + 15m_trend_aligned + first_hour printed WR5=83.6%, OOS=83.7%.
+- R6: Prior-day context and gap/OR reversal patterns validated; prior wide-range day + core stack hit WR5=78.8%, while failed OR trap + core stack hit WR5=80.5%.
+- R7: Sequential confirmation added new alpha (Any signal -> confirming signal within 2 bars + core stack WR5=78.6%), while killers proved costly: volume spike > 3x EMA, same-direction bar_delta > 90th percentile, next-bar delta flips opposite signal, middle 40-60% of 60m range.
+- R8: CVD divergence at structure became the biggest new alpha source (WR5=82.4%, PF=15.05), while prior-day / VWAP / round-number confluence added level-aware context (best level stack WR5=79.2%).
+- R9: Exit timing showed the core stack prefers 15b holds on all entries, CVD divergence first-hour likes 15b, and last-hour core trades stretch to 30b.
+- R10: Stacked winners + killer exclusion pushed the best anti-killer combo to WR30=89.8% on CVD divergence + doji + core trend context.
+- R11: Chain/triple interactions added higher-order confluence; score >= 70 + delta_opposite + first_hour + core stack reached WR5=81.2% with Avg=+121.00t.
+- R12-R14: R12 microstructure: low delta/volume ratio + core regime reached WR30=89.4%; R13 macro/calendar: NOT summer + NOT FOMC + first_hour + killer exclusion averaged +108.62t; R14 overnight/regime: small overnight moves + core regime reached WR30=88.8%; best low-N overlay was CVD divergence + doji + core + first_hour at WR30=94.6%.
+
+Section 5: Universal Trading Rules
+==================================
+1. 60m extreme is THE universal edge: standalone 60m_extreme reached WR5=68.8% and WR30=76.2%.
+2. 15m trend alignment is the strongest secondary: the base core stack reached WR5=81.4% and WR30=85.0%.
+3. First hour (09:30-10:30) is optimal: the core first-hour stack printed WR5=83.1% and OOS=83.0%.
+4. Lunch (12:00-14:00) is a danger zone: the broad lunch bucket only managed WR5=68.7% versus materially stronger first-hour performance.
+5. Edges grow over time (5b→30b): the base stack rose from WR5=81.4% to WR30=85.0%, and score>=60 + core rose from 82.5% to 86.2%.
+6. Exclude the killers: middle-of-range anchors, volume spikes > 3x EMA, same-direction bar_delta > 90th percentile, and next-bar delta flips opposite signal.
+7. CVD divergence at structure is a new alpha source: the core CVD divergence stack printed WR5=82.4% and PF=15.05.
+8. Doji / hammer / engulfing at 60m_extreme form a durable pattern family: doji WR5=80.6%, hammer WR5=78.5%, engulfing WR5=76.7%.
+
+Section 6: Recommended NinjaTrader Indicator Build (Top 10)
+==========================================================
+Use the 10 highest-ranked signals below as the first implementation tranche:
+
+1. absorption + 60m_extreme + 15m_trend_aligned + NOT lunch
+   - Exact definition: absorption + 60m_extreme + 15m_trend_aligned + NOT lunch.
+   - Expected frequency: ~0.08/day | ~0.4/week based on N=33.
+   - Color: GREEN | Reference WR=92.3% | Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal.
+2. absorption + 60m_extreme + 15m_trend_aligned + NOT Monday
+   - Exact definition: absorption + 60m_extreme + 15m_trend_aligned + NOT Monday.
+   - Expected frequency: ~0.09/day | ~0.5/week based on N=38.
+   - Color: GREEN | Reference WR=90.9% | Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal.
+3. absorption + 60m_extreme + 15m_trend_aligned
+   - Exact definition: absorption + 60m_extreme + 15m_trend_aligned.
+   - Expected frequency: ~0.12/day | ~0.6/week based on N=50.
+   - Color: GREEN | Reference WR=87.5% | Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal.
+4. Doji + 60m_extreme + 15m_trend_aligned + first_hour
+   - Exact definition: Doji + 60m_extreme + 15m_trend_aligned + first_hour.
+   - Expected frequency: ~0.52/day | ~2.6/week based on N=214.
+   - Color: GREEN | Reference WR=83.7% | Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal.
+5. score >= 70 + 60m_extreme + 15m_trend_aligned + NOT lunch
+   - Exact definition: score >= 70 + 60m_extreme + 15m_trend_aligned + NOT lunch.
+   - Expected frequency: ~2.99/day | ~15.0/week based on N=1,226.
+   - Color: GREEN | Reference WR=83.3% | Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal.
+6. 60m_extreme + 15m_trend_aligned + first_hour
+   - Exact definition: 60m_extreme + 15m_trend_aligned + first_hour.
+   - Expected frequency: ~10.33/day | ~51.6/week based on N=4,235.
+   - Color: GREEN | Reference WR=83.0% | Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal.
+7. score >= 60 + 60m_extreme + 15m_trend_aligned + first_hour
+   - Exact definition: score >= 60 + 60m_extreme + 15m_trend_aligned + first_hour.
+   - Expected frequency: ~8.20/day | ~41.0/week based on N=3,362.
+   - Color: GREEN | Reference WR=82.8% | Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal.
+8. score >= 60 + 60m_extreme + 15m_trend_aligned + NOT lunch
+   - Exact definition: score >= 60 + 60m_extreme + 15m_trend_aligned + NOT lunch.
+   - Expected frequency: ~12.69/day | ~63.4/week based on N=5,201.
+   - Color: GREEN | Reference WR=82.6% | Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal.
+9. 3 narrowing ranges + 60m_extreme + 15m_trend_aligned
+   - Exact definition: 3 narrowing ranges + 60m_extreme + 15m_trend_aligned.
+   - Expected frequency: ~4.81/day | ~24.0/week based on N=1,971.
+   - Color: GREEN | Reference WR=81.8% | Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal.
+10. Doji + 60m_extreme + 15m_trend_aligned
+   - Exact definition: Doji + 60m_extreme + 15m_trend_aligned.
+   - Expected frequency: ~3.27/day | ~16.3/week based on N=1,340.
+   - Color: YELLOW | Reference WR=79.8% | Killers to avoid: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal.
+
+Section 7: Statistical Caveats
+==============================
+- Multiple-comparisons risk remains real: 475 explicitly documented filters / setup-context profiles (+ 90 R9 exit-window rows) means some tails will overstate edge by chance.
+- Validation depth is mixed: walk-forward DEPLOY signals have the strongest evidence; later VALIDATED tables rely on Wilson-threshold in-sample confirmation, not true OOS composites.
+- Overlap risk is high: many top signals are nested versions of the same core regime (60m_extreme + 15m trend + first-hour / doji / CVD / killer exclusion). Do not size them as independent bets.
+- Small-N warning: elite absorption and some chain/sequence overlays are real but sparse. Treat N<100 as premium overlays, not the automation backbone.
+- Mixed observation frames matter: bar/global_index, signal/global_index+direction, and second-bar sequence studies are comparable directionally, but not perfectly apples-to-apples.

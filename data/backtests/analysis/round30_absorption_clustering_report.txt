@@ -1,0 +1,57 @@
+DEEP6 round30 absorption clustering analysis
+===========================================
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+Observation unit: unique absorption bar grouped by (global_index, direction_sign).
+Same-bar score / signal_count / category_count / co-fire flags are merged from all same-bar, same-direction signals.
+Rolling absorption density and spacing rules are tracked per session_date + direction_sign using event bar_index.
+Group B future-confirmation filters (08, 09) anchor on the absorption bar, then look ahead up to 3 bars for trap / exhaustion family confirmation.
+60m_extreme = bullish bar_low in bottom 20% of 60m range / bearish bar_high in top 20%. 15m_trend_aligned = signal direction matches 15m open-close sign.
+Session VWAP / session high / session low / prior day close / first_hour / volume spike come from RTH 1m context (09:30-16:00 ET).
+NOT killers = NOT killer_1 (60m position between 40%-60%) AND NOT killer_2 (bar_volume > 3x prior 20-bar EMA volume).
+Round number filter uses xx00 major handles only. Distance thresholds use true NQ ticks at 0.25 points.
+N uses rows with complete 5b/10b/30b forward closes so all WR windows compare the same sample.
+PF and Avg Ticks are based on 5b returns. Persistence compares WR_30b versus WR_5b. Sorted by 30b WR descending.
+
+Raw event rows loaded:                         1,756,089
+Grouped directional observations:              254,722
+Absorption observations:                       901
+15m bars built:                                30,745
+60m bars built:                                7,693
+RTH bars in session context:                   127,361
+Absorption observations with 60m + 15m gate:   50
+Absorption observations passing NOT killers:   631
+Absorption observations in first_hour:         23
+Absorption observations with IMB_03 same bar:  35
+Absorption observations with DELT_04 same bar: 14
+Absorption observations with AUCT_03 same bar: 4
+
+Baseline all absorption:                 N=899 | WR5=46.2% | WR10=47.4% | WR30=45.6% | PF5=0.95 | Avg5=-3.45t | CI5=[42.9%, 49.4%] | Persistence=STABLE
+Baseline 60m + 15m:                      N=49 | WR5=87.8% | WR10=85.7% | WR30=91.8% | PF5=35.73 | Avg5=82.22t | CI5=[75.8%, 94.3%] | Persistence=GROWING
+Baseline single (1 in last 5) + 60m+15m: N=47 | WR5=89.4% | WR10=85.1% | WR30=91.5% | PF5=55.58 | Avg5=83.62t | CI5=[77.4%, 95.4%] | Persistence=GROWING
+Baseline 60m + 15m + NOT killers:        N=46 | WR5=87.0% | WR10=84.8% | WR30=91.3% | PF5=33.09 | Avg5=80.91t | CI5=[74.3%, 93.9%] | Persistence=GROWING
+
+20 requested absorption-clustering / spacing / level / co-fire filters ranked by 30b WR
+-------------------------------------------------------------------------------------
+Filter                                                                             | N  | WR 5b  | WR 10b | WR 30b | PF 5b  | Avg Ticks 5b | Wilson 95% CI (5b) | Persistence
+-----------------------------------------------------------------------------------+----+--------+--------+--------+--------+--------------+--------------------+------------
+17[D]. Absorption + DELT_04 same bar + 60m + 15m + NOT killers                     | 2  | 100.0% | 100.0% | 100.0% | inf    | 94.50        | [34.2%, 100.0%]    | STABLE     
+20[D]. Absorption + score >= 70 + 60m + 15m + NOT killers + first_hour             | 2  | 100.0% | 100.0% | 100.0% | inf    | 140.00       | [34.2%, 100.0%]    | STABLE     
+07[B]. Absorption on consecutive bars + 60m + 15m                                  | 1  | 100.0% | 100.0% | 100.0% | inf    | 143.00       | [20.7%, 100.0%]    | STABLE     
+15[C]. Absorption within 10 ticks of session low + 60m + 15m                       | 1  | 100.0% | 100.0% | 100.0% | inf    | 153.00       | [20.7%, 100.0%]    | STABLE     
+16[D]. Absorption + IMB_03 same bar + 60m + 15m + NOT killers                      | 1  | 100.0% | 100.0% | 100.0% | inf    | 85.00        | [20.7%, 100.0%]    | STABLE     
+02[A]. 2+ absorptions in last 5 bars (same direction) + 60m + 15m (cluster)        | 2  | 50.0%  | 100.0% | 100.0% | 3.25   | 49.50        | [9.5%, 90.5%]      | GROWING    
+04[A]. 2+ absorptions in last 3 bars + 60m + 15m (rapid-fire cluster)              | 2  | 50.0%  | 100.0% | 100.0% | 3.25   | 49.50        | [9.5%, 90.5%]      | GROWING    
+03[A]. 3+ absorptions in last 10 bars (same direction) + 60m + 15m (heavy cluster) | 1  | 0.0%   | 100.0% | 100.0% | 0.00   | -44.00       | [0.0%, 79.3%]      | GROWING    
+06[B]. Absorption -> gap of 3+ bars -> absorption again + 60m + 15m                | 20 | 90.0%  | 85.0%  | 100.0% | 104.44 | 82.75        | [69.9%, 97.2%]     | GROWING    
+09[B]. Absorption -> exhaustion within 3 bars + 60m + 15m                          | 36 | 86.1%  | 83.3%  | 91.7%  | 25.35  | 66.28        | [71.3%, 93.9%]     | GROWING    
+01[A]. 1 absorption in last 5 bars + 60m + 15m (single baseline)                   | 47 | 89.4%  | 85.1%  | 91.5%  | 55.58  | 83.62        | [77.4%, 95.4%]     | GROWING    
+13[C]. Absorption at round number (within 10 ticks of xx00) + 60m + 15m            | 8  | 87.5%  | 87.5%  | 87.5%  | 11.52  | 57.88        | [52.9%, 97.8%]     | STABLE     
+05[A]. First absorption of session + 60m + 15m (fresh signal)                      | 17 | 88.2%  | 82.4%  | 82.4%  | 41.42  | 90.35        | [65.7%, 96.7%]     | DECAYING   
+19[D]. Absorption + 3+ other categories same bar + 60m + 15m + NOT killers         | 21 | 95.2%  | 81.0%  | 81.0%  | 92.65  | 87.29        | [77.3%, 99.2%]     | DECAYING   
+08[B]. Absorption -> TRAP within 3 bars + 60m + 15m                                | 0  | nan    | nan    | nan    | nan    | nan          | [0.0%, 0.0%]       | NO_DATA    
+10[B]. TRAP -> absorption within 3 bars + 60m + 15m                                | 0  | nan    | nan    | nan    | nan    | nan          | [0.0%, 0.0%]       | NO_DATA    
+11[C]. Absorption within 10 ticks of session VWAP + 60m + 15m                      | 0  | nan    | nan    | nan    | nan    | nan          | [0.0%, 0.0%]       | NO_DATA    
+12[C]. Absorption within 15 ticks of prior day close + 60m + 15m                   | 0  | nan    | nan    | nan    | nan    | nan          | [0.0%, 0.0%]       | NO_DATA    
+14[C]. Absorption within 10 ticks of session high + 60m + 15m                      | 0  | nan    | nan    | nan    | nan    | nan          | [0.0%, 0.0%]       | NO_DATA    
+18[D]. Absorption + AUCT_03 same bar + 60m + 15m + NOT killers                     | 0  | nan    | nan    | nan    | nan    | nan          | [0.0%, 0.0%]       | NO_DATA    

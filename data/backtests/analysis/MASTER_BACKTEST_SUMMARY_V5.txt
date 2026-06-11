@@ -1,0 +1,221 @@
+MASTER BACKTEST SUMMARY V5
+==========================
+Final definitive reference document for the full DEEP6 round0-round44 campaign. This replaces all prior master summaries.
+
+Section 1: Campaign Statistics (Final)
+====================================
+- Total rounds: 45 research rounds (R0-R44) + this final V5 summary.
+- Total scripts created: 137 Python files in scripts/.
+- Total filter evaluations: ~1,213 (late-round meta-analysis grids included).
+- Total reports read: 59 matching *report* or *SUMMARY*.
+- Date range: Jan 2025 - Apr 2026.
+- New findings from R38-R44:
+  * R38: all top 10 standalone signals stayed independent; max Jaccard was only 0.117 on S03+S09.
+  * R39: no practical signal fatigue; 17 filters were GROWING, 2 were STABLE, and the only DECAYING row was the hindsight terminal-signal diagnostic (20[E]. Last qualifying bar of session + 60m + 15m (terminal, hindsight-only)).
+  * R40: MAE stayed modest versus MFE, and wide stops dominated expectancy for 4/5 tracked setups.
+  * R41: every tracked setup kept decay >30 bars=True and half-life >30 bars=True.
+  * R42-R43: edge survived friction stress (worst heavy-friction PF=6.40), and Bayesian Kelly argues for conservative quarter-Kelly live sizing.
+  * R44: no report-backed deploy-grade additions were present in analysis/, so the V4 deploy ranking stays unchanged here.
+
+Section 2: TOP 25 DEPLOY-Grade Signals (Final Ranking)
+=====================================================
+R38-R44 added no new deploy-grade entrants; the deploy ranking below is unchanged from V4.
+Ranking rule: OOS WR first, then full-sample WR30, then WR5, then N.
+01. Gap absorption (3+ bar gap then re-absorption) + 60m_extreme + 15m_trend_aligned | N=20 | WR5=90.0% | WR30=100.0% | PF=104.44 | OOS WR=100.0% | Persistence=GROWING | Source=R30
+02. absorption + 60m_extreme + 15m_trend_aligned + prior wide-range day + NOT volume spike > 3x EMA | N=10 | WR5=90.0% | WR30=100.0% | PF=45.50 | OOS WR=100.0% | Persistence=GROWING | Source=R29
+03. Range < 0.5x ATR20 + doji + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA | N=107 | WR5=80.4% | WR30=88.8% | PF=7.17 | OOS WR=100.0% | Persistence=GROWING | Source=R33
+04. Stable vol + 60m_extreme + 15m_trend_aligned + first_hour | N=64 | WR5=75.0% | WR30=98.4% | PF=15.38 | OOS WR=95.0% | Persistence=GROWING | Source=R17
+05. CVD divergence + doji + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA + first_hour | N=37 | WR5=97.3% | WR30=94.6% | PF=56.34 | OOS WR=93.3% | Persistence=STABLE | Source=R14
+06. 3 narrowing ranges + CVD divergence + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA | N=72 | WR5=93.1% | WR30=90.3% | PF=46.38 | OOS WR=93.1% | Persistence=STABLE | Source=R14
+07. absorption + 60m_extreme + 15m_trend_aligned + NOT lunch | N=33 | WR5=90.9% | WR30=87.5% | PF=78.85 | OOS WR=92.3% | Persistence=DECAYING | Source=R2B
+08. |delta|/vol < 50-bar rolling q10 + doji + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA | N=471 | WR5=82.8% | WR30=87.7% | PF=13.45 | OOS WR=91.4% | Persistence=GROWING | Source=R33
+09. absorption + 60m_extreme + 15m_trend_aligned + NOT Monday | N=38 | WR5=89.5% | WR30=91.9% | PF=38.64 | OOS WR=90.9% | Persistence=GROWING | Source=R2B
+10. Absorption -> exhaustion within 3 bars + 60m_extreme + 15m_trend_aligned | N=36 | WR5=86.1% | WR30=91.7% | PF=25.35 | OOS WR=90.9% | Persistence=GROWING | Source=R30
+11. Prior losing session + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA + first_hour | N=23 | WR5=87.0% | WR30=n/a | PF=21.80 | OOS WR=90.0% | Persistence=n/a | Source=R16
+12. Doji + NOT FOMC + NOT summer + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA + first_hour | N=163 | WR5=85.9% | WR30=89.0% | PF=18.25 | OOS WR=89.7% | Persistence=GROWING | Source=R20
+13. weekly breakout + CVD divergence + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA | N=389 | WR5=85.3% | WR30=n/a | PF=22.91 | OOS WR=89.5% | Persistence=n/a | Source=R21
+14. absorption + 60m_extreme + 15m_trend_aligned | N=50 | WR5=88.0% | WR30=91.8% | PF=36.72 | OOS WR=87.5% | Persistence=GROWING | Source=R0
+15. max_strength >= 0.7 + score >= 60 + 60m_extreme + 15m_trend_aligned + first_hour + NOT volume spike > 3x EMA | N=3,310 | WR5=83.5% | WR30=88.6% | PF=14.76 | OOS WR=85.7% | Persistence=GROWING | Source=R34
+16. 3 narrowing ranges + 60m_extreme + 15m_trend_aligned | N=1,971 | WR5=81.6% | WR30=86.9% | PF=12.43 | OOS WR=85.7% | Persistence=GROWING | Source=R3A
+17. Small overnight move < 20 ticks + 60m_extreme + 15m_trend_aligned | N=581 | WR5=76.9% | WR30=88.8% | PF=9.34 | OOS WR=85.6% | Persistence=GROWING | Source=R14
+18. Score 65-80 + 60m_extreme + 15m_trend_aligned + first_hour + NOT volume spike > 3x EMA | N=2,248 | WR5=84.0% | WR30=87.8% | PF=15.66 | OOS WR=84.8% | Persistence=GROWING | Source=R34
+19. |delta|/vol < 0.05 + 60m_extreme + 15m_trend_aligned | N=587 | WR5=82.8% | WR30=89.4% | PF=14.37 | OOS WR=84.5% | Persistence=GROWING | Source=R12
+20. Bottom 20% of 60m and 15m + trend aligned | N=9,455 | WR5=83.7% | WR30=n/a | PF=7.38 | OOS WR=83.9% | Persistence=n/a | Source=R19
+21. 5m + 15m_trend_aligned + 60m_extreme | N=10,995 | WR5=83.3% | WR30=n/a | PF=7.97 | OOS WR=83.9% | Persistence=n/a | Source=R19
+22. Consecutive inside days + 60m_extreme + 15m_trend_aligned | N=111 | WR5=79.3% | WR30=n/a | PF=9.12 | OOS WR=83.8% | Persistence=n/a | Source=R18
+23. Doji + 60m_extreme + 15m_trend_aligned + first_hour | N=214 | WR5=83.6% | WR30=76.7% | PF=15.36 | OOS WR=83.7% | Persistence=DECAYING | Source=R3A
+24. Within IB + session delta opposing + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA | N=3,185 | WR5=78.5% | WR30=82.4% | PF=8.47 | OOS WR=83.5% | Persistence=GROWING | Source=R35
+25. score >= 70 + 60m_extreme + 15m_trend_aligned + NOT lunch | N=1,226 | WR5=82.5% | WR30=83.4% | PF=8.98 | OOS WR=83.3% | Persistence=GROWING | Source=R2A
+
+Section 3: Signal Independence Analysis (R38)
+===========================================
+- All 10 top signals are INDEPENDENT: 45/45 pairwise checks flagged INDEPENDENT and the max overlap was only 0.117 (S03+S09).
+- Best synergy pairs came from genuinely separate families; the non-redundant representative set stayed 10/10 with no redundancy clusters.
+- No redundancy found: every representative remained a singleton cluster at the Jaccard > 0.70 threshold.
+- Best synergy pairs:
+Pair    | Jaccard | Combined N | WR30   | PF5   | Avg5   
+--------+---------+------------+--------+-------+--------
+S03+S08 | 0.004   | 3          | 100.0% | 12.50 | 38.33t 
+S01+S06 | 0.002   | 8          | 100.0% | 11.36 | 79.00t 
+S04+S06 | 0.040   | 134        | 94.0%  | 13.57 | 78.53t 
+S02+S03 | 0.025   | 31         | 93.5%  | 17.42 | 119.74t
+S08+S10 | 0.006   | 26         | 92.3%  | 11.40 | 36.00t 
+- Practical read: use these as independent overlays, not as one impossible all-signals-at-once stack (the full 10-signal first-hour intersection still printed zero trades).
+
+Section 4: Risk Intelligence (R39-R41)
+=====================================
+- No signal fatigue: 19/20 fatigue filters were GROWING or STABLE; only the hindsight terminal row decayed.
+- Edge persists beyond 30 bars for all tracked setups: every R41 decay point and half-life stayed >30 bars.
+- Optimal stop discipline: -80 ticks / 20 points won on the base, doji, CVD, and score families; absorption remained the lone tighter-stop exception at -40 ticks.
+- MAE/MFE distribution summary:
+Setup                                              | Median MAE | Median MFE | Optimal Stop | Expectancy@Stop
+---------------------------------------------------+------------+------------+--------------+----------------
+60m + 15m + NOT killers + first_hour               | -28.00t    | +330.00t   | -80t         | +200.62t       
+Doji + 60m + 15m + NOT killers                     | -16.00t    | +219.00t   | -80t         | +164.23t       
+CVD divergence + 60m + 15m                         | -19.00t    | +294.00t   | -80t         | +181.22t       
+absorption + 60m + 15m + NOT lunch                 | -21.00t    | +276.00t   | -40t         | +139.87t       
+score >= 60 + 60m + 15m + first_hour + NOT killers | -22.00t    | +378.00t   | -80t         | +246.19t       
+- Edge-horizon summary:
+Setup                                | Peak      | Decay | Half-life
+-------------------------------------+-----------+-------+----------
+60m + 15m (base)                     | 15b@89.0% | >30b  | >30b     
+60m + 15m + NOT killers + first_hour | 15b@91.1% | >30b  | >30b     
+Doji + 60m + 15m                     | 15b@90.2% | >30b  | >30b     
+CVD divergence + 60m + 15m           | 10b@92.9% | >30b  | >30b     
+absorption + 60m + 15m               | 30b@95.0% | >30b  | >30b     
+3 narrowing ranges + 60m + 15m       | 10b@90.0% | >30b  | >30b     
+Engulfing + 60m + 15m                | 15b@84.7% | >30b  | >30b     
+score >= 60 + 60m + 15m + first_hour | 15b@91.3% | >30b  | >30b     
+- Practical read: tight -10t to -40t stops still cut off a large share of eventual winners in most families, which is why wide structural stops remain the default live rule.
+
+Section 5: Execution Reality (R42-R43)
+====================================
+- Edge survives all tested friction levels: every tracked setup stayed PF>1 even under heavy friction (worst heavy-friction PF=6.40).
+- Sizing rule: use Bayesian quarter Kelly as the live default; half Kelly only after real forward validation and only on the higher-N families.
+- Friction stress table (5-bar horizon):
+Setup                                              | N     | PF Zero | PF Heavy | Light $/trade | Heavy $/trade | Break-even Slippage
+---------------------------------------------------+-------+---------+----------+---------------+---------------+--------------------
+60m + 15m + NOT killers + first_hour               | 2,457 | 9.91    | 8.41     | $477.69       | $457.09       | 97t                
+Doji + 60m + 15m + NOT killers                     | 1,323 | 7.77    | 6.40     | $323.57       | $302.97       | 66t                
+CVD divergence + 60m + 15m                         | 807   | 15.05   | 12.21    | $475.84       | $455.24       | 97t                
+absorption + 60m + 15m + NOT lunch                 | 33    | 78.85   | 46.79    | $389.66       | $369.06       | 79t                
+score >= 60 + 60m + 15m + first_hour + NOT killers | 3,354 | 14.89   | 12.71    | $604.23       | $583.63       | 122t               
+- Kelly sizing table (5-bar horizon):
+Setup                                              | N     | WR    | Avg Win  | Avg Loss | R:R  | Full Kelly | Half  | Quarter | Bayes | Exp$/ctr | QK ctr/$100k
+---------------------------------------------------+-------+-------+----------+----------+------+------------+-------+---------+-------+----------+-------------
+60m + 15m + NOT killers + first_hour               | 2,457 | 79.5% | +136.80t | -53.62t  | 2.55 | 71.5%      | 35.8% | 17.9%   | 71.2% | $489.09  | 1           
+Doji + 60m + 15m + NOT killers                     | 1,323 | 80.6% | +95.42t  | -50.93t  | 1.87 | 70.2%      | 35.1% | 17.6%   | 69.5% | $334.97  | 1           
+CVD divergence + 60m + 15m                         | 807   | 82.4% | +126.68t | -39.42t  | 3.21 | 76.9%      | 38.5% | 19.2%   | 75.9% | $487.24  | 1           
+absorption + 60m + 15m + NOT lunch                 | 33    | 90.9% | +89.37t  | -11.33t  | 7.89 | 89.8%      | 44.9% | 22.4%   | 72.4% | $401.06  | 1           
+score >= 60 + 60m + 15m + first_hour + NOT killers | 3,354 | 83.5% | +158.00t | -53.87t  | 2.93 | 77.9%      | 39.0% | 19.5%   | 77.7% | $615.63  | 1           
+3 narrowing ranges + 60m + 15m                     | 1,970 | 81.6% | +101.01t | -36.11t  | 2.80 | 75.1%      | 37.5% | 18.8%   | 74.6% | $379.08  | 1           
+Engulfing + 60m + 15m                              | 1,756 | 76.7% | +100.42t | -50.72t  | 1.98 | 64.9%      | 32.4% | 16.2%   | 64.4% | $325.64  | <1          
+Morning/evening star + 60m + 15m + NOT killers     | 594   | 76.4% | +92.45t  | -53.46t  | 1.73 | 62.8%      | 31.4% | 15.7%   | 61.4% | $290.32  | <1          
+
+Section 6: Universal Trading Rules (Final — 16 rules)
+====================================================
+1. 60m extreme = universal edge. The core gate still carries the campaign: WR5=81.4%, WR30=85.0%, and it stayed ROBUST in all four R27 periods.
+2. 15m trend = strongest secondary. The winning spine never changed: every scalable or validated winner in R27/R36 kept 15m_trend_aligned on top of the 60m extreme gate.
+3. First hour = optimal window. The core first-hour stack improved to WR5=83.1% / WR30=89.2%, and most elite validated stacks live there.
+4. Lunch = danger zone. The best absorption execution variant is the explicit NOT-lunch stack: WR5=90.9%, WR30=87.5%, OOS=92.3%.
+5. Edges GROW (5b->30b). Core moved 81.4% -> 85.0%; the score 50-65 sweet spot moved 81.8% -> 91.0%.
+6. Exclude 4 killers. Hard-ban the recurring edge destroyers: middle 40-60% of 60m range; next-bar delta flips opposite signal; volume spike > 3x EMA; same-direction bar_delta > 90th percentile.
+7. CVD divergence = alpha source. The plain CVD divergence core already did WR5=82.4% / WR30=83.7%, and it remained ROBUST in R27.
+8. Doji/hammer/engulfing at structure = pattern family. Doji core reached WR30=88.5%, engulfing core WR30=80.5%, and hammer-at-structure showed WR30=100.0% on low N.
+9. Stable vol + first hour = highest WR regime. Stable vol + core + first_hour printed WR30=98.4% and OOS=95.0%.
+10. Enter at T+0 (don't wait). R31 showed the executable fixed-delay hierarchy was T+0 > T+1 > T+2: core first-hour WR 79.5% vs 77.7% vs 76.2%; CVD divergence WR 82.5% vs 80.9% vs 80.7%. T+Best is hindsight, not a live rule.
+11. IB extension context matters. Fresh IB extension within the last 5 bars hit WR30=91.0%, no-IB-extension-yet still held WR30=89.6%, and the within-IB + session-delta-opposing stack later validated OOS=83.5%.
+12. Adaptive narrow range thresholds > fixed. Adaptive narrow range posted WR30=85.6% / PF=11.54 versus fixed narrow range WR30=84.6% / PF=9.09.
+13. Score 50-65 is the scalable sweet spot. That bracket carried N=1,814, WR30=91.0%, OOS=n/a.
+14. Gap absorption (re-test after gap) = premium setup. The R30/R36 gap-absorption stack finished with WR30=100.0% and OOS=100.0%.
+15. Signals are INDEPENDENT — no redundancy, each adds unique edge. R38 showed all 10 representatives stayed below the redundancy threshold; max Jaccard was only 0.117.
+16. Wide stops (-80 ticks / 20 points) maximize expectancy; tight stops kill winning trades. R40 made -80t the default on 4/5 families, with absorption the lone tighter exception at -40t.
+
+Section 7: Recommended NinjaTrader Indicator Build (Top 15)
+========================================================
+1. Gap absorption (3+ bar gap then re-absorption) + 60m_extreme + 15m_trend_aligned
+   - Exact definition: Gap absorption (3+ bar gap then re-absorption) + 60m_extreme + 15m_trend_aligned.
+   - Expected frequency: ~0.05/day | ~0.2/week based on N=20.
+   - Color coding: GREEN | Reference WR=100.0% | Source=R30.
+   - Risk/sizing annotation: default -40t structural stop; light/heavy friction avg $389.66 / $369.06 per trade in the closest tested family; Bayes Kelly 72.4%; premium low-frequency overlay; size conservatively.
+2. absorption + 60m_extreme + 15m_trend_aligned + prior wide-range day + NOT volume spike > 3x EMA
+   - Exact definition: absorption + 60m_extreme + 15m_trend_aligned + prior wide-range day + NOT volume spike > 3x EMA.
+   - Expected frequency: ~0.02/day | ~0.1/week based on N=10.
+   - Color coding: GREEN | Reference WR=100.0% | Source=R29.
+   - Risk/sizing annotation: default -40t structural stop; light/heavy friction avg $389.66 / $369.06 per trade in the closest tested family; Bayes Kelly 72.4%; premium low-frequency overlay; size conservatively.
+3. Range < 0.5x ATR20 + doji + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA
+   - Exact definition: Range < 0.5x ATR20 + doji + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA.
+   - Expected frequency: ~0.26/day | ~1.3/week based on N=107.
+   - Color coding: GREEN | Reference WR=100.0% | Source=R33.
+   - Risk/sizing annotation: default -80t structural stop; light/heavy friction avg $323.57 / $302.97 per trade in the closest tested family; Bayes Kelly 69.5%; quarter-Kelly live default.
+4. Stable vol + 60m_extreme + 15m_trend_aligned + first_hour
+   - Exact definition: Stable vol + 60m_extreme + 15m_trend_aligned + first_hour.
+   - Expected frequency: ~0.16/day | ~0.8/week based on N=64.
+   - Color coding: GREEN | Reference WR=95.0% | Source=R17.
+   - Risk/sizing annotation: default -80t structural stop; light/heavy friction avg $477.69 / $457.09 per trade in the closest tested family; Bayes Kelly 71.2%; quarter-Kelly live default.
+5. CVD divergence + doji + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA + first_hour
+   - Exact definition: CVD divergence + doji + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA + first_hour.
+   - Expected frequency: ~0.09/day | ~0.5/week based on N=37.
+   - Color coding: GREEN | Reference WR=93.3% | Source=R14.
+   - Risk/sizing annotation: default -80t structural stop; light/heavy friction avg $475.84 / $455.24 per trade in the closest tested family; Bayes Kelly 75.9%; quarter-Kelly live default.
+6. 3 narrowing ranges + CVD divergence + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA
+   - Exact definition: 3 narrowing ranges + CVD divergence + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA.
+   - Expected frequency: ~0.18/day | ~0.9/week based on N=72.
+   - Color coding: GREEN | Reference WR=93.1% | Source=R14.
+   - Risk/sizing annotation: default -80t structural stop; light/heavy friction avg $475.84 / $455.24 per trade in the closest tested family; Bayes Kelly 75.9%; quarter-Kelly live default.
+7. absorption + 60m_extreme + 15m_trend_aligned + NOT lunch
+   - Exact definition: absorption + 60m_extreme + 15m_trend_aligned + NOT lunch.
+   - Expected frequency: ~0.08/day | ~0.4/week based on N=33.
+   - Color coding: GREEN | Reference WR=92.3% | Source=R2B.
+   - Risk/sizing annotation: default -40t structural stop; light/heavy friction avg $389.66 / $369.06 per trade in the closest tested family; Bayes Kelly 72.4%; premium low-frequency overlay; size conservatively.
+8. |delta|/vol < 50-bar rolling q10 + doji + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA
+   - Exact definition: |delta|/vol < 50-bar rolling q10 + doji + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA.
+   - Expected frequency: ~1.15/day | ~5.7/week based on N=471.
+   - Color coding: GREEN | Reference WR=91.4% | Source=R33.
+   - Risk/sizing annotation: default -80t structural stop; light/heavy friction avg $323.57 / $302.97 per trade in the closest tested family; Bayes Kelly 69.5%; quarter-Kelly live default.
+9. absorption + 60m_extreme + 15m_trend_aligned + NOT Monday
+   - Exact definition: absorption + 60m_extreme + 15m_trend_aligned + NOT Monday.
+   - Expected frequency: ~0.09/day | ~0.5/week based on N=38.
+   - Color coding: GREEN | Reference WR=90.9% | Source=R2B.
+   - Risk/sizing annotation: default -40t structural stop; light/heavy friction avg $389.66 / $369.06 per trade in the closest tested family; Bayes Kelly 72.4%; premium low-frequency overlay; size conservatively.
+10. Absorption -> exhaustion within 3 bars + 60m_extreme + 15m_trend_aligned
+   - Exact definition: Absorption -> exhaustion within 3 bars + 60m_extreme + 15m_trend_aligned.
+   - Expected frequency: ~0.09/day | ~0.4/week based on N=36.
+   - Color coding: GREEN | Reference WR=90.9% | Source=R30.
+   - Risk/sizing annotation: default -40t structural stop; light/heavy friction avg $389.66 / $369.06 per trade in the closest tested family; Bayes Kelly 72.4%; premium low-frequency overlay; size conservatively.
+11. Prior losing session + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA + first_hour
+   - Exact definition: Prior losing session + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA + first_hour.
+   - Expected frequency: ~0.06/day | ~0.3/week based on N=23.
+   - Color coding: GREEN | Reference WR=90.0% | Source=R16.
+   - Risk/sizing annotation: default -80t structural stop; light/heavy friction avg $477.69 / $457.09 per trade in the closest tested family; Bayes Kelly 71.2%; quarter-Kelly live default.
+12. Doji + NOT FOMC + NOT summer + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA + first_hour
+   - Exact definition: Doji + NOT FOMC + NOT summer + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA + first_hour.
+   - Expected frequency: ~0.40/day | ~2.0/week based on N=163.
+   - Color coding: GREEN | Reference WR=89.7% | Source=R20.
+   - Risk/sizing annotation: default -80t structural stop; light/heavy friction avg $323.57 / $302.97 per trade in the closest tested family; Bayes Kelly 69.5%; quarter-Kelly live default.
+13. weekly breakout + CVD divergence + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA
+   - Exact definition: weekly breakout + CVD divergence + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA.
+   - Expected frequency: ~0.95/day | ~4.7/week based on N=389.
+   - Color coding: GREEN | Reference WR=89.5% | Source=R21.
+   - Risk/sizing annotation: default -80t structural stop; light/heavy friction avg $475.84 / $455.24 per trade in the closest tested family; Bayes Kelly 75.9%; quarter-Kelly live default.
+14. absorption + 60m_extreme + 15m_trend_aligned
+   - Exact definition: absorption + 60m_extreme + 15m_trend_aligned.
+   - Expected frequency: ~0.12/day | ~0.6/week based on N=50.
+   - Color coding: GREEN | Reference WR=87.5% | Source=R0.
+   - Risk/sizing annotation: default -40t structural stop; light/heavy friction avg $389.66 / $369.06 per trade in the closest tested family; Bayes Kelly 72.4%; premium low-frequency overlay; size conservatively.
+15. max_strength >= 0.7 + score >= 60 + 60m_extreme + 15m_trend_aligned + first_hour + NOT volume spike > 3x EMA
+   - Exact definition: max_strength >= 0.7 + score >= 60 + 60m_extreme + 15m_trend_aligned + first_hour + NOT volume spike > 3x EMA.
+   - Expected frequency: ~8.07/day | ~40.4/week based on N=3,310.
+   - Color coding: GREEN | Reference WR=85.7% | Source=R34.
+   - Risk/sizing annotation: default -80t structural stop; light/heavy friction avg $604.23 / $583.63 per trade in the closest tested family; Bayes Kelly 77.7%; quarter-Kelly live default.
+
+Section 8: Statistical Caveats (Final)
+=====================================
+- Multiple-comparisons risk still matters: ~1,213 total evaluations means some tails will still overstate live edge.
+- R38 reduced the old redundancy concern for the top standalone signals, but many deploy-grade stacks still share the same 60m-extreme + 15m-trend backbone. Avoid stacking them all as separate concurrent bets.
+- Several absorption/gap-retest leaders remain tiny-N premium overlays. They belong in the indicator and discretion layer, not as the sole automation backbone.
+- R40 stop work is checkpoint-based on bar closes, so true intrabar stop-out pressure can be worse live than the report shows.
+- R42 friction is still a simplified model of fills, queue position, and slippage clustering; treat it as a stress test, not a brokerage statement replica.
+- Kelly outputs are mathematically correct but operationally fragile. Use Bayesian quarter Kelly or smaller until live slippage and drawdown behavior match the backtest.
+- Round42/round43 report files were not present in analysis/ at generation time, so Section 5 recomputes those results directly from source data with the same round definitions.
+- No round44 report file was present in analysis/, so V5 records no additional report-backed ranking change from that pass.

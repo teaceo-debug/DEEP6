@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Deep6 v3 offline test harness (plan r2 Phase 0).
+       Links the PURE AddOns sources directly: the build itself enforces that
+       Deep6Core.cs / Deep6Persistence.cs reference zero NinjaTrader/SharpDX types,
+       because none are referenced here. A regex guard test backs that up. -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>5</LangVersion>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <NTCustomDir Condition="'$(NTCustomDir)' == ''">$(USERPROFILE)\Documents\NinjaTrader 8\bin\Custom</NTCustomDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- pinned to NinjaTrader's shipped major version (13.x) -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(NTCustomDir)\AddOns\Deep6PD\*.cs" Link="Linked\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+</Project>

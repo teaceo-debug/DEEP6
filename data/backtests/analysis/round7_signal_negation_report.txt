@@ -1,0 +1,47 @@
+DEEP6 Round 7 signal negation analysis
+====================================
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+Observation unit: unique signal observation grouped by global_index + direction_sign.
+Base mask: is_60m_extreme & is_15m_trend_aligned.
+WITH vs WITHOUT partitions are computed only on base rows where each anti-pattern can actually be evaluated.
+Delta WR = WR(with condition) - WR(without condition). KILLER = delta worse than -5 percentage points.
+Prior-bar sequence features follow the round2_novel_bar_patterns.py signal-bar pattern.
+FOMC dates copied from analyze_absorption_calendar.py.
+
+Raw event rows loaded:      1,756,089
+Signal observations:        254,722
+Base observations:          25,070
+Base anchor WR:             81.4%
+
+20 anti-pattern filters
+-----------------------
+Filter                                                                   | N with | WR with | N without | WR without | Delta WR | Verdict
+-------------------------------------------------------------------------+--------+---------+-----------+------------+----------+--------
+01. volume spike > 3x EMA                                                | 295    | 72.9%   | 23,343    | 81.3%      | -8.4pp   | KILLER 
+02. volume < 0.3x EMA                                                    | 55     | 83.6%   | 23,583    | 81.2%      | +2.4pp   |        
+03. declining volume over 3 signal bars                                  | 4,969  | 82.1%   | 19,757    | 81.3%      | +0.9pp   |        
+04. volume spike on opposite-direction bar in prior 3 signal bars        | 288    | 82.6%   | 23,183    | 81.1%      | +1.5pp   |        
+05. bar_delta same direction and > 90th percentile                       | 2,349  | 75.3%   | 21,289    | 81.9%      | -6.5pp   | KILLER 
+06. prior 5-bar cumulative delta same as signal                          | 9,782  | 79.8%   | 14,675    | 82.4%      | -2.6pp   |        
+07. next-bar delta flips opposite signal                                 | 8,939  | 71.6%   | 16,110    | 87.0%      | -15.4pp  | KILLER 
+08. 3 consecutive same-delta bars before signal                          | 1,908  | 78.9%   | 22,709    | 81.6%      | -2.7pp   |        
+09. wide range bar > 75th percentile                                     | 7,447  | 78.9%   | 16,191    | 82.3%      | -3.4pp   |        
+10. price already moved > 50 ticks from session open in signal direction | 10,010 | 81.5%   | 15,060    | 81.4%      | +0.1pp   |        
+11. signal closes in middle 40-60% of 60m range                          | 546    | 65.2%   | 24,524    | 81.8%      | -16.6pp  | KILLER 
+12. prior bar was strong momentum bar                                    | 2,266  | 80.3%   | 21,308    | 81.3%      | -0.9pp   |        
+13. lunch hour (12:00-14:00)                                             | 7,626  | 80.9%   | 17,444    | 81.7%      | -0.8pp   |        
+14. last 15 minutes (15:45-16:00)                                        | 790    | 82.4%   | 24,280    | 81.4%      | +1.0pp   |        
+15. first 5 minutes (09:30-09:35)                                        | 613    | 85.2%   | 24,457    | 81.3%      | +3.8pp   |        
+16. FOMC day                                                             | 768    | 83.3%   | 24,302    | 81.4%      | +2.0pp   |        
+17. opposite-direction signal also fired on same bar                     | 25,070 | 81.4%   | 0         | nan        | nan      |        
+18. same signal_id fired opposite direction within prior 3 signal bars   | 24,759 | 81.5%   | 311       | 79.7%      | +1.7pp   |        
+19. TYPE_A signal present on same bar                                    | 219    | 79.5%   | 24,851    | 81.5%      | -2.0pp   |        
+20. score_final < 40 on same bar                                         | 531    | 79.7%   | 24,539    | 81.5%      | -1.8pp   |        
+
+KILLER count: 4
+KILLER filters:
+- 01. volume spike > 3x EMA
+- 05. bar_delta same direction and > 90th percentile
+- 07. next-bar delta flips opposite signal
+- 11. signal closes in middle 40-60% of 60m range

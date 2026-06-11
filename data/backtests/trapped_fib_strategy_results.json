@@ -1,0 +1,392 @@
+{
+  "thesis": "Trapped sellers/buyers on 1H/4H as change of structure + 50-75% fib retracement entry on 1-minute",
+  "data": {
+    "bars_1m": 458877,
+    "trap_signals": 184717,
+    "htf_trap_clusters_1h": 2291,
+    "htf_trap_clusters_4h": 664,
+    "structure_breaks_1h": 2039,
+    "structure_breaks_4h": 583,
+    "fib_zones_1h": 1180,
+    "fib_zones_4h": 219
+  },
+  "strategies": [
+    {
+      "strategy": "S1: 1H Traps+Fib (20/40)",
+      "total_trades": 377,
+      "longs": 181,
+      "shorts": 196,
+      "win_rate_pct": 33.95,
+      "avg_win_ticks": 40.0,
+      "avg_loss_ticks": -20.01,
+      "profit_factor": 1.028,
+      "expectancy_ticks": 0.37,
+      "expectancy_dollars": 1.83,
+      "total_ticks": 138.0,
+      "total_dollars": 690.0,
+      "max_consecutive_losses": 13,
+      "max_drawdown_ticks": 560.0,
+      "sharpe_daily": 0.18381739722832904,
+      "exit_reasons": {
+        "STOP": {
+          "count": 184,
+          "sum": -3680.0,
+          "mean": -20.0
+        },
+        "STOP_FIRST_SAME_BAR": {
+          "count": 64,
+          "sum": -1280.0,
+          "mean": -20.0
+        },
+        "STOP_GAP": {
+          "count": 1,
+          "sum": -22.0,
+          "mean": -22.0
+        },
+        "TARGET": {
+          "count": 128,
+          "sum": 5120.0,
+          "mean": 40.0
+        }
+      },
+      "monthly_ticks": {
+        "2025-01": -60.0,
+        "2025-02": 220.0,
+        "2025-03": -100.0,
+        "2025-04": -260.0,
+        "2025-05": -120.0,
+        "2025-06": -40.0,
+        "2025-07": 220.0,
+        "2025-08": 118.0,
+        "2025-09": 40.0,
+        "2025-10": 80.0,
+        "2025-11": 80.0,
+        "2025-12": -120.0,
+        "2026-01": 180.0,
+        "2026-02": -120.0,
+        "2026-03": -100.0,
+        "2026-04": 120.0
+      },
+      "htf_breakdown": {
+        "1H": {
+          "count": 377,
+          "sum": 138.0,
+          "mean": 0.37
+        }
+      },
+      "by_direction": {
+        "LONG": {
+          "count": 181,
+          "total_ticks": -262.0
+        },
+        "SHORT": {
+          "count": 196,
+          "total_ticks": 400.0
+        }
+      }
+    },
+    {
+      "strategy": "S2: 4H Traps+Fib (25/50)",
+      "total_trades": 49,
+      "longs": 15,
+      "shorts": 34,
+      "win_rate_pct": 30.61,
+      "avg_win_ticks": 50.0,
+      "avg_loss_ticks": -25.0,
+      "profit_factor": 0.882,
+      "expectancy_ticks": -2.04,
+      "expectancy_dollars": -10.2,
+      "total_ticks": -100.0,
+      "total_dollars": -500.0,
+      "max_consecutive_losses": 12,
+      "max_drawdown_ticks": 475.0,
+      "sharpe_daily": -0.306114321447914,
+      "exit_reasons": {
+        "STOP": {
+          "count": 27,
+          "sum": -675.0,
+          "mean": -25.0
+        },
+        "STOP_FIRST_SAME_BAR": {
+          "count": 6,
+          "sum": -150.0,
+          "mean": -25.0
+        },
+        "STOP_GAP": {
+          "count": 1,
+          "sum": -25.0,
+          "mean": -25.0
+        },
+        "TARGET": {
+          "count": 15,
+          "sum": 750.0,
+          "mean": 50.0
+        }
+      },
+      "monthly_ticks": {
+        "2025-01": 100.0,
+        "2025-02": -25.0,
+        "2025-03": 25.0,
+        "2025-11": -125.0,
+        "2025-12": -275.0,
+        "2026-01": 150.0,
+        "2026-02": 0.0,
+        "2026-03": 50.0
+      },
+      "htf_breakdown": {
+        "4H": {
+          "count": 49,
+          "sum": -100.0,
+          "mean": -2.04
+        }
+      },
+      "by_direction": {
+        "LONG": {
+          "count": 15,
+          "total_ticks": -75.0
+        },
+        "SHORT": {
+          "count": 34,
+          "total_ticks": -25.0
+        }
+      }
+    },
+    {
+      "strategy": "S3: Combined 1H+4H (20/40)",
+      "total_trades": 455,
+      "longs": 214,
+      "shorts": 241,
+      "win_rate_pct": 32.53,
+      "avg_win_ticks": 40.0,
+      "avg_loss_ticks": -20.01,
+      "profit_factor": 0.964,
+      "expectancy_ticks": -0.49,
+      "expectancy_dollars": -2.44,
+      "total_ticks": -222.0,
+      "total_dollars": -1110.0,
+      "max_consecutive_losses": 16,
+      "max_drawdown_ticks": 800.0,
+      "sharpe_daily": -0.26163063465615993,
+      "exit_reasons": {
+        "STOP": {
+          "count": 232,
+          "sum": -4640.0,
+          "mean": -20.0
+        },
+        "STOP_FIRST_SAME_BAR": {
+          "count": 74,
+          "sum": -1480.0,
+          "mean": -20.0
+        },
+        "STOP_GAP": {
+          "count": 1,
+          "sum": -22.0,
+          "mean": -22.0
+        },
+        "TARGET": {
+          "count": 148,
+          "sum": 5920.0,
+          "mean": 40.0
+        }
+      },
+      "monthly_ticks": {
+        "2025-01": -20.0,
+        "2025-02": 160.0,
+        "2025-03": -160.0,
+        "2025-04": -320.0,
+        "2025-05": -220.0,
+        "2025-06": -60.0,
+        "2025-07": 200.0,
+        "2025-08": 118.0,
+        "2025-09": 80.0,
+        "2025-10": 160.0,
+        "2025-11": 100.0,
+        "2025-12": -320.0,
+        "2026-01": 280.0,
+        "2026-02": -180.0,
+        "2026-03": -100.0,
+        "2026-04": 60.0
+      },
+      "htf_breakdown": {
+        "1H": {
+          "count": 420,
+          "sum": -182.0,
+          "mean": -0.43
+        },
+        "4H": {
+          "count": 35,
+          "sum": -40.0,
+          "mean": -1.14
+        }
+      },
+      "by_direction": {
+        "LONG": {
+          "count": 214,
+          "total_ticks": -622.0
+        },
+        "SHORT": {
+          "count": 241,
+          "total_ticks": 400.0
+        }
+      }
+    },
+    {
+      "strategy": "S4: Combined Tight (15/30)",
+      "total_trades": 456,
+      "longs": 215,
+      "shorts": 241,
+      "win_rate_pct": 27.41,
+      "avg_win_ticks": 30.0,
+      "avg_loss_ticks": -15.0,
+      "profit_factor": 0.755,
+      "expectancy_ticks": -2.66,
+      "expectancy_dollars": -13.32,
+      "total_ticks": -1215.0,
+      "total_dollars": -6075.0,
+      "max_consecutive_losses": 16,
+      "max_drawdown_ticks": 1350.0,
+      "sharpe_daily": -1.982904363320667,
+      "exit_reasons": {
+        "STOP": {
+          "count": 197,
+          "sum": -2955.0,
+          "mean": -15.0
+        },
+        "STOP_FIRST_SAME_BAR": {
+          "count": 133,
+          "sum": -1995.0,
+          "mean": -15.0
+        },
+        "STOP_GAP": {
+          "count": 1,
+          "sum": -15.0,
+          "mean": -15.0
+        },
+        "TARGET": {
+          "count": 125,
+          "sum": 3750.0,
+          "mean": 30.0
+        }
+      },
+      "monthly_ticks": {
+        "2025-01": 30.0,
+        "2025-02": -60.0,
+        "2025-03": -210.0,
+        "2025-04": -240.0,
+        "2025-05": -270.0,
+        "2025-06": -90.0,
+        "2025-07": 150.0,
+        "2025-08": -90.0,
+        "2025-09": -30.0,
+        "2025-10": -15.0,
+        "2025-11": 30.0,
+        "2025-12": -330.0,
+        "2026-01": 300.0,
+        "2026-02": -270.0,
+        "2026-03": -75.0,
+        "2026-04": -45.0
+      },
+      "htf_breakdown": {
+        "1H": {
+          "count": 421,
+          "sum": -1140.0,
+          "mean": -2.71
+        },
+        "4H": {
+          "count": 35,
+          "sum": -75.0,
+          "mean": -2.14
+        }
+      },
+      "by_direction": {
+        "LONG": {
+          "count": 215,
+          "total_ticks": -975.0
+        },
+        "SHORT": {
+          "count": 241,
+          "total_ticks": -240.0
+        }
+      }
+    },
+    {
+      "strategy": "S5: Combined Wide (30/60)",
+      "total_trades": 450,
+      "longs": 214,
+      "shorts": 236,
+      "win_rate_pct": 38.22,
+      "avg_win_ticks": 60.0,
+      "avg_loss_ticks": -30.0,
+      "profit_factor": 1.237,
+      "expectancy_ticks": 4.4,
+      "expectancy_dollars": 22.0,
+      "total_ticks": 1980.0,
+      "total_dollars": 9900.0,
+      "max_consecutive_losses": 15,
+      "max_drawdown_ticks": 660.0,
+      "sharpe_daily": 1.4544155701478674,
+      "exit_reasons": {
+        "STOP": {
+          "count": 243,
+          "sum": -7290.0,
+          "mean": -30.0
+        },
+        "STOP_FIRST_SAME_BAR": {
+          "count": 35,
+          "sum": -1050.0,
+          "mean": -30.0
+        },
+        "TARGET": {
+          "count": 171,
+          "sum": 10260.0,
+          "mean": 60.0
+        },
+        "TARGET_GAP": {
+          "count": 1,
+          "sum": 60.0,
+          "mean": 60.0
+        }
+      },
+      "monthly_ticks": {
+        "2025-01": -90.0,
+        "2025-02": 360.0,
+        "2025-03": -60.0,
+        "2025-04": -30.0,
+        "2025-05": -480.0,
+        "2025-06": 270.0,
+        "2025-07": 570.0,
+        "2025-08": 270.0,
+        "2025-09": 210.0,
+        "2025-10": 330.0,
+        "2025-11": 360.0,
+        "2025-12": -360.0,
+        "2026-01": 510.0,
+        "2026-02": -180.0,
+        "2026-03": -60.0,
+        "2026-04": 360.0
+      },
+      "htf_breakdown": {
+        "1H": {
+          "count": 416,
+          "sum": 2370.0,
+          "mean": 5.7
+        },
+        "4H": {
+          "count": 34,
+          "sum": -390.0,
+          "mean": -11.47
+        }
+      },
+      "by_direction": {
+        "LONG": {
+          "count": 214,
+          "total_ticks": 690.0
+        },
+        "SHORT": {
+          "count": 236,
+          "total_ticks": 1290.0
+        }
+      }
+    }
+  ]
+}

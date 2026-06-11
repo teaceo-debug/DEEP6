@@ -29,6 +29,10 @@ function Parse-ErrorLine {
     $line = $line.Trim()
     if ([string]::IsNullOrWhiteSpace($line)) { return $null }
 
+    # Ignore bare Output Window column/header noise and code-only grid fragments
+    if ($line -match '^(Error|Warning|Std\. error(?:\(\d+\))?)$' -or
+        $line -match '^CS\d{4}$') { return $null }
+
     $obj = [PSCustomObject]@{
         type    = "info"
         code    = ""
@@ -75,11 +79,22 @@ function Parse-ErrorLine {
 
 function Is-RelevantLine {
     param([string]$line)
-    return ($line -match "CS\d{4}" -or
-            $line -match "\berror\b" -or
-            $line -match "\bwarning\b" -or
-            $line -match "\\Custom\\" -or
-            $line -match "\\bin\\Custom\\")
+
+    if ([string]::IsNullOrWhiteSpace($line)) { return $false }
+    $line = $line.Trim()
+
+    # Ignore noisy runtime/log lines that are not NinjaScript compile diagnostics
+    if ($line -match '(?i)SQLite error' -or
+        $line -match '(?i)^Loading 3rd party ' -or
+        $line -match '(?i)^\d{4}-\d{2}-\d{2} .*Loading 3rd party ' -or
+        $line -match '(?i)NinjaScriptEditorHotKeys:') {
+        return $false
+    }
+
+    return ($line -match 'CS\d{4}' -or
+            $line -match '^.+\.cs\((\d+)(,(\d+))?\):\s*(error|warning)\s+' -or
+            $line -match '(?i)NinjaScript.*compile' -or
+            $line -match '(?i)compile.*failed')
 }
 
 function Output-Results {

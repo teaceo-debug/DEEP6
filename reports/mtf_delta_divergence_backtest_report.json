@@ -1,0 +1,379 @@
+{
+  "min_aligned_1": {
+    "config": {
+      "tick_size": 0.25,
+      "pivot_lookback": 20,
+      "min_bars": 20,
+      "min_price_break_ticks": 4,
+      "min_delta_improvement": 250,
+      "close_confirmation_ratio": 0.5,
+      "min_aligned_timeframes": 1,
+      "stop_loss_ticks": 24,
+      "profit_target_ticks": 40,
+      "max_bars_in_trade": 24,
+      "min_bars_between_entries": 3
+    },
+    "dataset": {
+      "path": "/mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv",
+      "bars": 127361,
+      "first_ts": "2025-01-02T09:30:00-05:00",
+      "last_ts": "2026-04-24T15:59:00-04:00",
+      "sessions": 332
+    },
+    "signals": {
+      "composite_bullish_bars": 9870,
+      "composite_bearish_bars": 17655,
+      "composite_neutral_bars": 99836,
+      "hour_bias_events": 2290,
+      "four_hour_bias_events": 663,
+      "daily_bias_events": 331
+    },
+    "performance": {
+      "trades": 191,
+      "wins": 52,
+      "losses": 139,
+      "win_rate": 27.23,
+      "gross_points": -314.0,
+      "gross_ticks": -1256.0,
+      "avg_trade_points": -1.644,
+      "avg_win_points": 10.0,
+      "avg_loss_points": -6.0,
+      "profit_factor": 0.6235,
+      "long_trades": 68,
+      "short_trades": 123
+    },
+    "sample_trades": [
+      {
+        "entry_ts": "2025-01-08T11:00:00-05:00",
+        "exit_ts": "2025-01-08T11:01:00-05:00",
+        "side": "long",
+        "entry": 21348.0,
+        "exit": 21342.0,
+        "pnl_points": -6.0,
+        "pnl_ticks": -24.0,
+        "entry_reason": "MtfDeltaBull",
+        "exit_reason": "StopLoss",
+        "bars_held": 1
+      },
+      {
+        "entry_ts": "2025-01-13T10:00:00-05:00",
+        "exit_ts": "2025-01-13T10:01:00-05:00",
+        "side": "long",
+        "entry": 20790.75,
+        "exit": 20784.75,
+        "pnl_points": -6.0,
+        "pnl_ticks": -24.0,
+        "entry_reason": "MtfDeltaBull",
+        "exit_reason": "StopLoss",
+        "bars_held": 1
+      },
+      {
+        "entry_ts": "2025-01-15T11:00:00-05:00",
+        "exit_ts": "2025-01-15T11:01:00-05:00",
+        "side": "short",
+        "entry": 21350.5,
+        "exit": 21340.5,
+        "pnl_points": 10.0,
+        "pnl_ticks": 40.0,
+        "entry_reason": "MtfDeltaBear",
+        "exit_reason": "ProfitTarget",
+        "bars_held": 1
+      },
+      {
+        "entry_ts": "2025-01-16T09:30:00-05:00",
+        "exit_ts": "2025-01-16T09:31:00-05:00",
+        "side": "short",
+        "entry": 21464.75,
+        "exit": 21470.75,
+        "pnl_points": -6.0,
+        "pnl_ticks": -24.0,
+        "entry_reason": "MtfDeltaBear",
+        "exit_reason": "StopLoss",
+        "bars_held": 1
+      },
+      {
+        "entry_ts": "2025-01-20T10:00:00-05:00",
+        "exit_ts": "2025-01-20T10:01:00-05:00",
+        "side": "short",
+        "entry": 21727.75,
+        "exit": 21733.75,
+        "pnl_points": -6.0,
+        "pnl_ticks": -24.0,
+        "entry_reason": "MtfDeltaBear",
+        "exit_reason": "StopLoss",
+        "bars_held": 1
+      },
+      {
+        "entry_ts": "2025-01-22T11:00:00-05:00",
+        "exit_ts": "2025-01-22T11:01:00-05:00",
+        "side": "short",
+        "entry": 21991.5,
+        "exit": 21997.5,
+        "pnl_points": -6.0,
+        "pnl_ticks": -24.0,
+        "entry_reason": "MtfDeltaBear",
+        "exit_reason": "StopLoss",
+        "bars_held": 1
+      },
+      {
+        "entry_ts": "2025-01-22T13:00:00-05:00",
+        "exit_ts": "2025-01-22T13:04:00-05:00",
+        "side": "short",
+        "entry": 22059.25,
+        "exit": 22049.25,
+        "pnl_points": 10.0,
+        "pnl_ticks": 40.0,
+        "entry_reason": "MtfDeltaBear",
+        "exit_reason": "ProfitTarget",
+        "bars_held": 4
+      },
+      {
+        "entry_ts": "2025-01-23T09:30:00-05:00",
+        "exit_ts": "2025-01-23T09:31:00-05:00",
+        "side": "short",
+        "entry": 21868.25,
+        "exit": 21874.25,
+        "pnl_points": -6.0,
+        "pnl_ticks": -24.0,
+        "entry_reason": "MtfDeltaBear",
+        "exit_reason": "StopLoss",
+        "bars_held": 1
+      },
+      {
+        "entry_ts": "2025-01-27T10:00:00-05:00",
+        "exit_ts": "2025-01-27T10:01:00-05:00",
+        "side": "long",
+        "entry": 21318.75,
+        "exit": 21312.75,
+        "pnl_points": -6.0,
+        "pnl_ticks": -24.0,
+        "entry_reason": "MtfDeltaBull",
+        "exit_reason": "StopLoss",
+        "bars_held": 1
+      },
+      {
+        "entry_ts": "2025-01-31T12:00:00-05:00",
+        "exit_ts": "2025-01-31T12:04:00-05:00",
+        "side": "short",
+        "entry": 21905.25,
+        "exit": 21895.25,
+        "pnl_points": 10.0,
+        "pnl_ticks": 40.0,
+        "entry_reason": "MtfDeltaBear",
+        "exit_reason": "ProfitTarget",
+        "bars_held": 4
+      }
+    ]
+  },
+  "min_aligned_2": {
+    "config": {
+      "tick_size": 0.25,
+      "pivot_lookback": 20,
+      "min_bars": 20,
+      "min_price_break_ticks": 4,
+      "min_delta_improvement": 250,
+      "close_confirmation_ratio": 0.5,
+      "min_aligned_timeframes": 2,
+      "stop_loss_ticks": 24,
+      "profit_target_ticks": 40,
+      "max_bars_in_trade": 24,
+      "min_bars_between_entries": 3
+    },
+    "dataset": {
+      "path": "/mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv",
+      "bars": 127361,
+      "first_ts": "2025-01-02T09:30:00-05:00",
+      "last_ts": "2026-04-24T15:59:00-04:00",
+      "sessions": 332
+    },
+    "signals": {
+      "composite_bullish_bars": 90,
+      "composite_bearish_bars": 780,
+      "composite_neutral_bars": 126491,
+      "hour_bias_events": 2290,
+      "four_hour_bias_events": 663,
+      "daily_bias_events": 331
+    },
+    "performance": {
+      "trades": 14,
+      "wins": 3,
+      "losses": 11,
+      "win_rate": 21.43,
+      "gross_points": -36.0,
+      "gross_ticks": -144.0,
+      "avg_trade_points": -2.5714,
+      "avg_win_points": 10.0,
+      "avg_loss_points": -6.0,
+      "profit_factor": 0.4545,
+      "long_trades": 2,
+      "short_trades": 12
+    },
+    "sample_trades": [
+      {
+        "entry_ts": "2025-03-11T09:30:00-04:00",
+        "exit_ts": "2025-03-11T09:31:00-04:00",
+        "side": "long",
+        "entry": 19435.0,
+        "exit": 19429.0,
+        "pnl_points": -6.0,
+        "pnl_ticks": -24.0,
+        "entry_reason": "MtfDeltaBull",
+        "exit_reason": "StopLoss",
+        "bars_held": 1
+      },
+      {
+        "entry_ts": "2025-05-01T12:00:00-04:00",
+        "exit_ts": "2025-05-01T12:01:00-04:00",
+        "side": "short",
+        "entry": 19982.0,
+        "exit": 19972.0,
+        "pnl_points": 10.0,
+        "pnl_ticks": 40.0,
+        "entry_reason": "MtfDeltaBear",
+        "exit_reason": "ProfitTarget",
+        "bars_held": 1
+      },
+      {
+        "entry_ts": "2025-05-02T15:00:00-04:00",
+        "exit_ts": "2025-05-02T15:01:00-04:00",
+        "side": "short",
+        "entry": 20205.75,
+        "exit": 20211.75,
+        "pnl_points": -6.0,
+        "pnl_ticks": -24.0,
+        "entry_reason": "MtfDeltaBear",
+        "exit_reason": "StopLoss",
+        "bars_held": 1
+      },
+      {
+        "entry_ts": "2025-05-12T15:00:00-04:00",
+        "exit_ts": "2025-05-12T15:01:00-04:00",
+        "side": "short",
+        "entry": 20882.75,
+        "exit": 20888.75,
+        "pnl_points": -6.0,
+        "pnl_ticks": -24.0,
+        "entry_reason": "MtfDeltaBear",
+        "exit_reason": "StopLoss",
+        "bars_held": 1
+      },
+      {
+        "entry_ts": "2025-05-22T09:30:00-04:00",
+        "exit_ts": "2025-05-22T09:31:00-04:00",
+        "side": "short",
+        "entry": 21179.5,
+        "exit": 21185.5,
+        "pnl_points": -6.0,
+        "pnl_ticks": -24.0,
+        "entry_reason": "MtfDeltaBear",
+        "exit_reason": "StopLoss",
+        "bars_held": 1
+      },
+      {
+        "entry_ts": "2025-07-18T10:00:00-04:00",
+        "exit_ts": "2025-07-18T10:03:00-04:00",
+        "side": "short",
+        "entry": 23269.75,
+        "exit": 23259.75,
+        "pnl_points": 10.0,
+        "pnl_ticks": 40.0,
+        "entry_reason": "MtfDeltaBear",
+        "exit_reason": "ProfitTarget",
+        "bars_held": 3
+      },
+      {
+        "entry_ts": "2025-07-21T11:00:00-04:00",
+        "exit_ts": "2025-07-21T11:07:00-04:00",
+        "side": "short",
+        "entry": 23390.25,
+        "exit": 23380.25,
+        "pnl_points": 10.0,
+        "pnl_ticks": 40.0,
+        "entry_reason": "MtfDeltaBear",
+        "exit_reason": "ProfitTarget",
+        "bars_held": 7
+      },
+      {
+        "entry_ts": "2025-08-12T10:00:00-04:00",
+        "exit_ts": "2025-08-12T10:01:00-04:00",
+        "side": "short",
+        "entry": 23628.25,
+        "exit": 23634.25,
+        "pnl_points": -6.0,
+        "pnl_ticks": -24.0,
+        "entry_reason": "MtfDeltaBear",
+        "exit_reason": "StopLoss",
+        "bars_held": 1
+      },
+      {
+        "entry_ts": "2025-10-08T13:00:00-04:00",
+        "exit_ts": "2025-10-08T13:02:00-04:00",
+        "side": "short",
+        "entry": 25249.5,
+        "exit": 25255.5,
+        "pnl_points": -6.0,
+        "pnl_ticks": -24.0,
+        "entry_reason": "MtfDeltaBear",
+        "exit_reason": "StopLoss",
+        "bars_held": 2
+      },
+      {
+        "entry_ts": "2025-10-08T15:00:00-04:00",
+        "exit_ts": "2025-10-08T15:03:00-04:00",
+        "side": "short",
+        "entry": 25270.25,
+        "exit": 25276.25,
+        "pnl_points": -6.0,
+        "pnl_ticks": -24.0,
+        "entry_reason": "MtfDeltaBear",
+        "exit_reason": "StopLoss",
+        "bars_held": 3
+      }
+    ]
+  },
+  "min_aligned_3": {
+    "config": {
+      "tick_size": 0.25,
+      "pivot_lookback": 20,
+      "min_bars": 20,
+      "min_price_break_ticks": 4,
+      "min_delta_improvement": 250,
+      "close_confirmation_ratio": 0.5,
+      "min_aligned_timeframes": 3,
+      "stop_loss_ticks": 24,
+      "profit_target_ticks": 40,
+      "max_bars_in_trade": 24,
+      "min_bars_between_entries": 3
+    },
+    "dataset": {
+      "path": "/mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv",
+      "bars": 127361,
+      "first_ts": "2025-01-02T09:30:00-05:00",
+      "last_ts": "2026-04-24T15:59:00-04:00",
+      "sessions": 332
+    },
+    "signals": {
+      "composite_bullish_bars": 0,
+      "composite_bearish_bars": 0,
+      "composite_neutral_bars": 127361,
+      "hour_bias_events": 2290,
+      "four_hour_bias_events": 663,
+      "daily_bias_events": 331
+    },
+    "performance": {
+      "trades": 0,
+      "wins": 0,
+      "losses": 0,
+      "win_rate": 0.0,
+      "gross_points": 0,
+      "gross_ticks": 0.0,
+      "avg_trade_points": 0.0,
+      "avg_win_points": 0.0,
+      "avg_loss_points": 0.0,
+      "profit_factor": null,
+      "long_trades": 0,
+      "short_trades": 0
+    },
+    "sample_trades": []
+  }
+}

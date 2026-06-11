@@ -1,0 +1,55 @@
+DEEP6 round8 price-level confluence analysis
+============================================
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+Observation unit: unique signal bar grouped by global_index.
+Trade direction for P&L: sign(bar_delta). Zero-delta bars are skipped.
+60m_extreme = bullish bar_low in bottom 20% of 60m range / bearish bar_high in top 20%.
+15m_trend = signal direction matches 15m open-close sign.
+Signal price anchor for fixed levels = bullish bar_low / bearish bar_high.
+Session VWAP distance uses bar_close vs cumulative same-session close*volume / volume VWAP.
+Prior day OHLC is built from prior RTH session aggregates. IB = first hour (09:30-10:29 ET) high/low.
+Distance thresholds use true NQ ticks at 0.25 points (10t=2.50 pts, 15t=3.75 pts, 50t=12.50 pts).
+Time filters use America/New_York. lunch = 12:00-14:00 ET, so NOT lunch excludes that window.
+Status flags: VALIDATED = N>=30 and Wilson lower bound >50%; PROMISING = N>=15 and Wilson lower bound >45%; LOW_N = N<15.
+Sorted by 5-bar average return descending.
+
+Raw event rows loaded:             1,767,271
+Grouped observations:              127,165
+15m bars built:                    30,745
+60m bars built:                    7,693
+RTH bars with session context:     127,361
+Observations with prior-day OHLC:  126,775
+Observations with completed IB:    107,257
+60m extreme observations:          27,328
+15m trend aligned observations:    73,297
+
+Baseline (5-bar window)
+-----------------------
+All bars: N=127,160 | WR=49.6% | PF=1.00 | Avg=0.09t | CI=[49.3%, 49.8%] | Flag=PROMISING
+60m extreme: N=27,326 | WR=66.5% | PF=3.05 | Avg=39.47t | CI=[65.9%, 67.0%] | Flag=VALIDATED
+
+20 requested price-level filters ranked by 5-bar average return
+---------------------------------------------------------------
+Filter                                                                | N      | WR 5b | PF    | Avg Ticks | Wilson 95% CI  | Flag     
+----------------------------------------------------------------------+--------+-------+-------+-----------+----------------+----------
+20. Prior day level + 60m_extreme + 15m_trend + NOT lunch             | 400    | 79.2% | 10.24 | 64.22     | [75.0%, 82.9%] | VALIDATED
+14. VWAP cross + 60m_extreme                                          | 1,055  | 71.1% | 4.90  | 61.94     | [68.3%, 73.7%] | VALIDATED
+05. Major round + 60m_extreme + 15m_trend                             | 747    | 79.5% | 5.61  | 59.51     | [76.5%, 82.3%] | VALIDATED
+11. Within 10t of session VWAP + 60m_extreme                          | 910    | 70.9% | 5.20  | 52.98     | [67.8%, 73.7%] | VALIDATED
+13. >50t below VWAP + 60m_extreme                                     | 6,258  | 67.6% | 2.82  | 45.61     | [66.4%, 68.8%] | VALIDATED
+16. At IB low (±10t) + 60m_extreme                                    | 135    | 74.1% | 3.81  | 45.56     | [66.1%, 80.7%] | VALIDATED
+07. Within 15t of prior day low + 60m_extreme                         | 93     | 67.7% | 3.59  | 43.34     | [57.7%, 76.4%] | VALIDATED
+09. Inside prior day range + 60m_extreme                              | 12,033 | 67.5% | 3.20  | 42.79     | [66.6%, 68.3%] | VALIDATED
+04. NOT near any round (>25t) + 60m_extreme                           | 20,401 | 66.4% | 3.12  | 39.83     | [65.7%, 67.0%] | VALIDATED
+18. Failed IB low breakout + 60m_extreme                              | 351    | 69.5% | 2.68  | 37.26     | [64.5%, 74.1%] | VALIDATED
+02. Within 10t of xx50 minor round + 60m_extreme                      | 1,456  | 67.7% | 2.54  | 36.96     | [65.3%, 70.1%] | VALIDATED
+10. Outside prior day range + 60m_extreme                             | 15,199 | 65.7% | 2.93  | 36.71     | [64.9%, 66.4%] | VALIDATED
+06. Within 15t of prior day high + 60m_extreme                        | 290    | 67.2% | 2.69  | 33.93     | [61.6%, 72.4%] | VALIDATED
+03. Within 5t of any xx00/xx50 round + 60m_extreme                    | 1,487  | 66.4% | 2.29  | 32.46     | [63.9%, 68.7%] | VALIDATED
+01. Within 10t of xx00 major round + 60m_extreme                      | 1,399  | 65.7% | 2.30  | 31.77     | [63.2%, 68.1%] | VALIDATED
+08. Within 15t of prior day close + 60m_extreme                       | 447    | 63.8% | 2.86  | 28.47     | [59.2%, 68.1%] | VALIDATED
+17. Failed IB high breakout + 60m_extreme                             | 537    | 62.0% | 2.62  | 27.93     | [57.8%, 66.0%] | VALIDATED
+12. >50t above VWAP + 60m_extreme                                     | 9,677  | 61.0% | 2.32  | 26.92     | [60.0%, 62.0%] | VALIDATED
+19. Within 15t of BOTH round number and prior day level + 60m_extreme | 196    | 66.8% | 2.21  | 22.84     | [60.0%, 73.0%] | VALIDATED
+15. At IB high (±10t) + 60m_extreme                                   | 351    | 59.0% | 1.75  | 12.75     | [53.8%, 64.0%] | VALIDATED

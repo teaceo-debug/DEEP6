@@ -1,0 +1,94 @@
+DEEP6 round34 score decomposition analysis
+========================================
+Source events: C:\Users\Tea\DEEP6\data\backtests\signal_events.csv
+Source bars:   C:\Users\Tea\DEEP6\data\backtests\nq_1yr_1m.csv
+Observation unit: unique same-bar, same-direction grouped signal observation (global_index, direction_sign).
+Grouped fields: max_score_final, best_score_tier, max_strength, category_set, signal_count, category_count.
+best_score_tier uses hierarchy TYPE_A > TYPE_B > TYPE_C > QUIET inside each grouped observation.
+Base 60m gate = bullish bar_low in bottom 20% of 60m range / bearish bar_high in top 20%.
+Base 15m gate = signal direction matches 15m open-close sign. first_hour = 09:30-10:29 ET.
+NOT killers = NOT killer_1 (60m position between 40%-60%) AND NOT killer_2 (bar_volume > 3x prior 20-observation EMA within session).
+Score brackets use lower-inclusive / upper-exclusive bins: [0,30), [30,50), [50,65), [65,80), [80,100].
+Strength brackets use <0.3, [0.3,0.6), [0.6,0.9), and >=0.9.
+N uses rows with complete 5b/10b/30b forward closes so all WR windows compare the same sample.
+PF and Avg Ticks are based on 5b returns. Tables are sorted by 30b WR descending.
+
+Raw event rows loaded:                             1,756,089
+Grouped observations:                              254,722
+15m bars built:                                    30,745
+60m bars built:                                    7,693
+15m trend aligned observations:                    126,836
+60m extreme observations:                          53,641
+60m + 15m observations:                            25,070
+60m + 15m + first_hour observations:               4,235
+NOT-killers observations:                          188,105
+
+Baseline all bars: N=254,662 | WR5=49.7% | WR10=49.8% | WR30=49.9% | PF5=1.00 | Avg5=0.00t | CI5=[49.5%, 49.9%] | Persistence=GROWING
+Baseline 60m + 15m: N=25,063 | WR5=81.4% | WR10=88.2% | WR30=85.0% | PF5=10.62 | Avg5=72.77t | CI5=[81.0%, 81.9%] | Persistence=GROWING
+Baseline 60m + 15m + first_hour: N=4,235 | WR5=83.1% | WR10=90.6% | WR30=89.2% | PF5=14.36 | Avg5=113.19t | CI5=[81.9%, 84.2%] | Persistence=GROWING
+Baseline 60m + 15m + first_hour + NOT killers: N=4,221 | WR5=83.1% | WR10=90.7% | WR30=89.3% | PF5=14.74 | Avg5=113.28t | CI5=[82.0%, 84.2%] | Persistence=GROWING
+Known working stack (score >= 60 + 60m + 15m + first_hour + NOT killers): N=3,350 | WR5=83.6% | WR10=91.0% | WR30=88.6% | PF5=14.97 | Avg5=122.91t | CI5=[82.3%, 84.8%] | Persistence=GROWING
+
+Category presence inside the known working stack (overlapping families)
+------------------------------------------------------------------
+Interpret with N discipline: rows below 100 are descriptive, not stable by themselves.
+Filter                         | N     | WR 5b  | WR 10b | WR 30b | PF 5b | Avg Ticks 5b | Wilson 95% CI (5b) | Persistence
+-------------------------------+-------+--------+--------+--------+-------+--------------+--------------------+------------
+CAT01[CAT]. has absorption     | 2     | 100.0% | 100.0% | 100.0% | inf   | 140.00       | [34.2%, 100.0%]    | STABLE     
+CAT07[CAT]. has poc            | 55    | 92.7%  | 96.4%  | 90.9%  | 49.89 | 112.89       | [82.7%, 97.1%]     | STABLE     
+CAT04[CAT]. has exhaustion     | 1,180 | 85.0%  | 92.4%  | 90.6%  | 16.62 | 123.20       | [82.8%, 86.9%]     | GROWING    
+CAT02[CAT]. has auction        | 2,531 | 84.3%  | 91.2%  | 89.1%  | 15.90 | 128.26       | [82.8%, 85.7%]     | GROWING    
+CAT08[CAT]. has trapped        | 2,339 | 83.7%  | 90.7%  | 88.1%  | 14.72 | 122.40       | [82.2%, 85.2%]     | GROWING    
+CAT05[CAT]. has imbalance      | 2,687 | 82.0%  | 89.8%  | 87.2%  | 12.62 | 114.49       | [80.5%, 83.4%]     | GROWING    
+CAT03[CAT]. has delta          | 2,127 | 80.9%  | 88.7%  | 86.4%  | 10.69 | 106.83       | [79.1%, 82.5%]     | GROWING    
+CAT06[CAT]. has other          | 1,834 | 81.2%  | 88.9%  | 85.4%  | 11.10 | 109.68       | [79.3%, 82.9%]     | GROWING    
+CAT09[CAT]. has volume_profile | 0     | nan    | nan    | nan    | nan   | nan          | [0.0%, 0.0%]       | NO_DATA    
+
+20 score decomposition filters ranked by 30b WR
+---------------------------------------------
+Filter                                                                                             | N      | WR 5b | WR 10b | WR 30b | PF 5b | Avg Ticks 5b | Wilson 95% CI (5b) | Persistence
+---------------------------------------------------------------------------------------------------+--------+-------+--------+--------+-------+--------------+--------------------+------------
+16[D]. has absorption + has exhaustion same bar + 60m + 15m                                        | 14     | 92.9% | 100.0% | 92.9%  | 25.91 | 78.29        | [68.5%, 98.7%]     | STABLE     
+10[B]. score 80-100 + 60m + 15m + first_hour + NOT killers                                         | 67     | 91.0% | 95.5%  | 91.0%  | 48.32 | 158.19       | [81.8%, 95.8%]     | STABLE     
+08[B]. score 50-65 + 60m + 15m + first_hour + NOT killers                                          | 1,814  | 81.8% | 90.3%  | 91.0%  | 13.36 | 89.86        | [79.9%, 83.5%]     | GROWING    
+04[A]. QUIET bars + 60m + 15m + first_hour                                                         | 92     | 82.6% | 89.1%  | 90.2%  | 6.81  | 64.59        | [73.6%, 89.0%]     | GROWING    
+07[B]. score 30-50 + 60m + 15m + first_hour + NOT killers                                          | 92     | 82.6% | 89.1%  | 90.2%  | 6.81  | 64.59        | [73.6%, 89.0%]     | GROWING    
+12[C]. max_strength 0.3-0.6 + 60m + 15m                                                            | 302    | 86.1% | 92.7%  | 89.7%  | 12.80 | 68.25        | [81.7%, 89.5%]     | GROWING    
+17[D]. has absorption + has trapped same bar + 60m + 15m                                           | 38     | 92.1% | 89.5%  | 89.5%  | 82.21 | 89.76        | [79.2%, 97.3%]     | STABLE     
+03[A]. TYPE_C only bars + 60m + 15m + first_hour                                                   | 3,633  | 82.9% | 90.6%  | 89.2%  | 14.46 | 111.93       | [81.6%, 84.0%]     | GROWING    
+01[A]. TYPE_A only bars + 60m + 15m + first_hour                                                   | 73     | 89.0% | 93.2%  | 89.0%  | 11.62 | 149.88       | [79.8%, 94.3%]     | STABLE     
+05[A]. TYPE_A OR TYPE_B bars + 60m + 15m + first_hour                                              | 510    | 84.7% | 91.2%  | 89.0%  | 15.35 | 130.98       | [81.3%, 87.6%]     | GROWING    
+02[A]. TYPE_B only bars + 60m + 15m + first_hour                                                   | 437    | 84.0% | 90.8%  | 89.0%  | 16.41 | 127.83       | [80.2%, 87.1%]     | GROWING    
+15[C]. max_strength >= 0.7 + score >= 60 + 60m + 15m + first_hour + NOT killers                    | 3,310  | 83.5% | 91.0%  | 88.6%  | 14.76 | 122.01       | [82.2%, 84.7%]     | GROWING    
+13[C]. max_strength 0.6-0.9 + 60m + 15m                                                            | 1,206  | 87.6% | 92.0%  | 88.3%  | 20.23 | 76.20        | [85.6%, 89.3%]     | GROWING    
+09[B]. score 65-80 + 60m + 15m + first_hour + NOT killers                                          | 2,248  | 84.0% | 91.0%  | 87.8%  | 15.66 | 132.84       | [82.5%, 85.5%]     | GROWING    
+14[C]. max_strength >= 0.9 + 60m + 15m                                                             | 23,555 | 81.1% | 88.0%  | 84.8%  | 10.35 | 72.65        | [80.6%, 81.6%]     | GROWING    
+19[D]. has 4+ distinct categories same bar + 60m + 15m                                             | 15,150 | 79.4% | 86.0%  | 82.8%  | 8.47  | 67.89        | [78.7%, 80.0%]     | GROWING    
+18[D]. has delta + has imbalance same bar + 60m + 15m                                              | 12,927 | 78.7% | 85.6%  | 82.6%  | 8.07  | 67.40        | [77.9%, 79.4%]     | GROWING    
+06[B]. score 0-30 + 60m + 15m + first_hour + NOT killers                                           | 0      | nan   | nan    | nan    | nan   | nan          | [0.0%, 0.0%]       | NO_DATA    
+11[C]. max_strength < 0.3 + 60m + 15m                                                              | 0      | nan   | nan    | nan    | nan   | nan          | [0.0%, 0.0%]       | NO_DATA    
+20[D]. has absorption + has delta + has exhaustion same bar + 60m + 15m + NOT killers + first_hour | 0      | nan   | nan    | nan    | nan   | nan          | [0.0%, 0.0%]       | NO_DATA    
+
+Group winners
+-------------
+Group A best score-tier rule: 04[A]. QUIET bars + 60m + 15m + first_hour | N=92 | WR5=82.6% | WR10=89.1% | WR30=90.2% | PF5=6.81 | Avg5=64.59t | CI5=[73.6%, 89.0%] | Persistence=GROWING
+Group B best score-bracket rule: 10[B]. score 80-100 + 60m + 15m + first_hour + NOT killers | N=67 | WR5=91.0% | WR10=95.5% | WR30=91.0% | PF5=48.32 | Avg5=158.19t | CI5=[81.8%, 95.8%] | Persistence=STABLE
+Group C best strength rule: 12[C]. max_strength 0.3-0.6 + 60m + 15m | N=302 | WR5=86.1% | WR10=92.7% | WR30=89.7% | PF5=12.80 | Avg5=68.25t | CI5=[81.7%, 89.5%] | Persistence=GROWING
+Group D best category rule: 16[D]. has absorption + has exhaustion same bar + 60m + 15m | N=14 | WR5=92.9% | WR10=100.0% | WR30=92.9% | PF5=25.91 | Avg5=78.29t | CI5=[68.5%, 98.7%] | Persistence=STABLE
+Best overall tested filter: 16[D]. has absorption + has exhaustion same bar + 60m + 15m | N=14 | WR5=92.9% | WR10=100.0% | WR30=92.9% | PF5=25.91 | Avg5=78.29t | CI5=[68.5%, 98.7%] | Persistence=STABLE
+
+Scalable winners (N >= 100)
+---------------------------
+Group A scalable score-tier rule: 03[A]. TYPE_C only bars + 60m + 15m + first_hour | N=3,633 | WR5=82.9% | WR10=90.6% | WR30=89.2% | PF5=14.46 | Avg5=111.93t | CI5=[81.6%, 84.0%] | Persistence=GROWING
+Group B scalable score-bracket rule: 08[B]. score 50-65 + 60m + 15m + first_hour + NOT killers | N=1,814 | WR5=81.8% | WR10=90.3% | WR30=91.0% | PF5=13.36 | Avg5=89.86t | CI5=[79.9%, 83.5%] | Persistence=GROWING
+Group C scalable strength rule: 12[C]. max_strength 0.3-0.6 + 60m + 15m | N=302 | WR5=86.1% | WR10=92.7% | WR30=89.7% | PF5=12.80 | Avg5=68.25t | CI5=[81.7%, 89.5%] | Persistence=GROWING
+Group D scalable category rule: 19[D]. has 4+ distinct categories same bar + 60m + 15m | N=15,150 | WR5=79.4% | WR10=86.0% | WR30=82.8% | PF5=8.47 | Avg5=67.89t | CI5=[78.7%, 80.0%] | Persistence=GROWING
+Best overall scalable filter: 08[B]. score 50-65 + 60m + 15m + first_hour + NOT killers | N=1,814 | WR5=81.8% | WR10=90.3% | WR30=91.0% | PF5=13.36 | Avg5=89.86t | CI5=[79.9%, 83.5%] | Persistence=GROWING
+
+Derived optimal scoring rules
+-----------------------------
+1. Keep the structural gate first: 60m_extreme + 15m_trend_aligned is still the non-negotiable base.
+2. Pure-edge winners are: tier=QUIET bars + 60m + 15m + first_hour; score=score 80-100 + 60m + 15m + first_hour + NOT killers; strength=max_strength 0.3-0.6 + 60m + 15m; category=has absorption + has exhaustion same bar + 60m + 15m.
+3. Stability-biased winners (N >= 100) are: tier=TYPE_C only bars + 60m + 15m + first_hour; score=score 50-65 + 60m + 15m + first_hour + NOT killers; strength=max_strength 0.3-0.6 + 60m + 15m; category=has 4+ distinct categories same bar + 60m + 15m.
+4. If you want one robust tested rule instead of component stacking, start from: score 50-65 + 60m + 15m + first_hour + NOT killers.
+5. Treat those as component winners; only filters 15 and 20 explicitly test multi-component stacking inside this round.

@@ -1,0 +1,74 @@
+DEEP6 round35 session structure analysis
+=======================================
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+Observation unit: unique signal bar grouped by global_index.
+Bullish / bearish trade direction = sign(bar_delta) unless the filter explicitly fixes the direction.
+60m + 15m = trade-direction 60m extreme (bull anchor in bottom 20%, bear anchor in top 20%) plus 15m open-close trend alignment.
+IB = first 60 RTH one-minute bars (09:30-10:29 ET). IB extension = first post-10:30 break of IB high/low using bar high/low.
+Developing range = running session high - running session low. Average session range = mean of the prior 20 full RTH session ranges.
+Range stable vs 10 bars ago = absolute change <= 10% of the developing range from 10 bars earlier.
+Session delta features use the bar_delta column from signal_events.csv merged onto the full RTH 1m timeline; bars without a signal row are zero-filled because nq_1yr_1m.csv has OHLCV only.
+Developing value area / POC use a running session volume profile that evenly distributes each 1m bar's volume across its high-low ticks.
+POC migration is reported versus the immediately prior 1m bar. In-value-area uses the developing session VAL/VAH at that bar.
+Filter 20 interprets first_hour as the first hour after the IB is complete (10:30-11:29 ET); otherwise the IB-extension condition would be impossible.
+PF, Avg Ticks, and Wilson CI are reported on the 5-bar horizon; WR columns show 5b / 10b / 30b. Rows are sorted by 30b WR.
+Persistence: GROWING if WR_30b > WR_5b; STABLE if WR_30b is within 3 percentage points of WR_5b without growth; DECAYING otherwise.
+
+Raw event rows loaded:                        1,767,271
+Grouped signal bars:                          127,361
+Tradable non-zero-delta bars:                 127,165
+RTH 1m bars used:                             127,361
+RTH bars with observed delta proxy:           127,361
+RTH sessions built:                           332
+Sessions with prior 20-session avg range:     312
+15m bars built:                               8,491
+60m bars built:                               2,288
+60m + 15m core bars:                          14,992
+60m + 15m + NOT killers bars:                 14,779
+60m + 15m + NOT killers + 1st hr after IB:    2,254
+Signal bars inside developing value area:     76,646
+Signal bars with POC migrating up:            3,435
+Signal bars with POC migrating down:          3,179
+Signal bars with POC migrating flat:          120,219
+Signal bars above IB after 10:30:             30,894
+Signal bars below IB after 10:30:             22,039
+Signal bars within IB after 10:30:            54,324
+Signal bars with fresh IB extension (<=5b):   1,926
+Signal bars with no IB extension yet:         15,790
+Signal bars in tight developing range days:   29,583
+Signal bars in wide developing range days:    7,897
+Signal bars with near-zero session delta:     17,261
+Signal bars with extreme session delta:       63,434
+
+Baselines
+---------
+All non-zero-delta bars:                N=127,135 | WR5=49.6% | WR10=49.7% | WR30=49.6% | PF5=1.00 | Avg5=0.09t | CI5=[49.3%, 49.8%] | Persistence=GROWING
+60m + 15m core:                         N=14,989 | WR5=78.9% | WR10=86.1% | WR30=82.7% | PF5=8.14 | Avg5=64.84t | CI5=[78.3%, 79.6%] | Persistence=GROWING
+60m + 15m + NOT killers:                N=14,776 | WR5=79.1% | WR10=86.4% | WR30=82.9% | PF5=8.53 | Avg5=64.88t | CI5=[78.4%, 79.7%] | Persistence=GROWING
+60m + 15m + NOT killers + 1st hr postIB:N=2,254 | WR5=80.6% | WR10=85.8% | WR30=84.3% | PF5=10.20 | Avg5=75.80t | CI5=[78.9%, 82.1%] | Persistence=GROWING
+
+20 requested session-structure filters sorted by 30b WR
+-----------------------------------------------------
+Filter                                                                                   | N      | WR 5b | WR 10b | WR 30b | PF 5b | Avg Ticks 5b | Wilson 95% CI (5b) | Persistence
+-----------------------------------------------------------------------------------------+--------+-------+--------+--------+-------+--------------+--------------------+------------
+20. [E] IB extension + developing range >150% avg + 60m + 15m + NOT killers + first_hour | 50     | 72.0% | 78.0%  | 94.0%  | 5.55  | 73.88        | [58.3%, 82.5%]     | GROWING    
+04. [A] IB extension happened in last 5 bars + 60m + 15m                                 | 234    | 80.8% | 92.7%  | 91.0%  | 7.40  | 84.61        | [75.2%, 85.3%]     | GROWING    
+05. [A] No IB extension yet today + 60m + 15m                                            | 2,159  | 80.1% | 86.2%  | 89.6%  | 9.58  | 67.49        | [78.4%, 81.8%]     | GROWING    
+18. [D] Price recently crossed from upper to lower half + 60m + 15m                      | 367    | 78.7% | 86.1%  | 87.5%  | 4.50  | 77.36        | [74.3%, 82.6%]     | GROWING    
+11. [C] Session cumulative delta positive + bullish signal + 60m + 15m                   | 3,886  | 82.7% | 88.7%  | 87.2%  | 10.51 | 67.21        | [81.4%, 83.8%]     | GROWING    
+06. [B] Developing range < 50% avg session range + 60m + 15m                             | 3,570  | 79.1% | 86.8%  | 85.8%  | 8.82  | 68.30        | [77.7%, 80.4%]     | GROWING    
+12. [C] Session cumulative delta negative + bearish signal + 60m + 15m                   | 2,885  | 78.2% | 86.7%  | 85.0%  | 7.52  | 69.68        | [76.7%, 79.7%]     | GROWING    
+10. [B] Price in middle third of developing range + 60m + 15m                            | 3,998  | 79.2% | 87.0%  | 84.9%  | 7.45  | 65.09        | [77.9%, 80.4%]     | GROWING    
+03. [A] Price within IB range + 60m + 15m                                                | 6,728  | 79.5% | 86.2%  | 84.2%  | 7.96  | 59.61        | [78.5%, 80.5%]     | GROWING    
+17. [D] Price spent >70% of bars in lower half of range + 60m + 15m                      | 4,503  | 79.0% | 87.3%  | 83.3%  | 8.26  | 69.07        | [77.8%, 80.2%]     | GROWING    
+19. [E] Within IB + session delta opposing + 60m + 15m + NOT killers                     | 3,185  | 78.5% | 85.7%  | 82.4%  | 8.47  | 59.53        | [77.1%, 79.9%]     | GROWING    
+14. [C] Session delta near zero (|cum_delta| < session q25) + 60m + 15m                  | 1,891  | 79.1% | 85.9%  | 82.4%  | 8.57  | 65.80        | [77.2%, 80.9%]     | GROWING    
+02. [A] Price below IB low + bullish signal + 60m + 15m                                  | 1,390  | 80.6% | 88.3%  | 82.1%  | 11.48 | 80.58        | [78.4%, 82.6%]     | GROWING    
+16. [D] Price spent >70% of bars in upper half of range + 60m + 15m                      | 6,231  | 78.6% | 84.9%  | 82.0%  | 7.09  | 53.69        | [77.6%, 79.6%]     | GROWING    
+07. [B] Developing range > 150% avg session range + 60m + 15m                            | 947    | 80.4% | 87.4%  | 81.8%  | 11.60 | 110.83       | [77.7%, 82.8%]     | GROWING    
+09. [B] Developing range stable vs 10 bars ago + 60m + 15m                               | 12,934 | 79.0% | 85.8%  | 81.8%  | 8.12  | 59.32        | [78.3%, 79.7%]     | GROWING    
+15. [C] Session delta extreme (|cum_delta| > session q75) + 60m + 15m                    | 7,264  | 78.0% | 85.7%  | 81.2%  | 7.48  | 60.63        | [77.0%, 78.9%]     | GROWING    
+08. [B] Developing range expanding vs 10 bars ago + 60m + 15m                            | 3,617  | 77.3% | 85.3%  | 81.1%  | 8.23  | 71.75        | [75.9%, 78.6%]     | GROWING    
+13. [C] Session delta opposing signal direction + 60m + 15m                              | 8,218  | 77.4% | 84.7%  | 79.8%  | 7.56  | 62.02        | [76.5%, 78.3%]     | GROWING    
+01. [A] Price above IB high + bearish signal + 60m + 15m                                 | 2,417  | 74.5% | 81.8%  | 76.7%  | 5.66  | 43.43        | [72.7%, 76.2%]     | GROWING    

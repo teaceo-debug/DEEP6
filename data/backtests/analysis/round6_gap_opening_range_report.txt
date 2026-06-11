@@ -1,0 +1,57 @@
+DEEP6 round 6 gap + opening range analysis
+==========================================
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+Observation unit: unique signal bar grouped by global_index, restricted to RTH bars with session context.
+Trade direction for P&L: sign(bar_delta). Zero-delta bars are skipped.
+RTH session = 09:30-15:59 America/New_York. 15m/60m bars are session-anchored from the 09:30 open.
+Opening range = first 15 one-minute bars (09:30-09:44). Initial balance = first 60 one-minute bars (09:30-10:29).
+Strong opening drive uses price-direction signs from the first 5 one-minute bars because nq_1yr_1m.csv has OHLCV but no delta column.
+Momentum 60m extreme = bullish bars near the top 20% of the active 60m range / bearish bars near the bottom 20%.
+Reversal 60m extreme = bullish bars near the bottom 20% of the active 60m range / bearish bars near the top 20%.
+Gap fill = session price crosses prior RTH close. Gap continuation = gap still unfilled through 10:29 and signal bar occurs from 10:30 onward.
+Narrow/Wide OR quartiles and narrow-day quartile are computed across the full session sample.
+Status flags: VALIDATED = N>=30 and Wilson lower bound >50%; PROMISING = N>=15 and Wilson lower bound >45%; LOW_N = N<15.
+
+Raw event rows loaded:               1,767,271
+Grouped signal-bar observations:     127,165
+RTH 1m bars used:                    127,361
+RTH sessions built:                  332
+RTH observations with session data:  127,165
+15m bars built:                      8,491
+60m bars built:                      2,288
+Narrow OR sessions:                  83
+Wide OR sessions:                    83
+Gap continuation sessions (10:30):   192
+Two prior narrow-day sessions:       39
+
+Baseline (5-bar window)
+-----------------------
+All RTH bars:      N=127,160 | WR=49.6% | PF=1.00 | Avg=0.09t | Med=0.00t | CI=[49.3%, 49.8%]
+Reversal 60m ext:  N=27,732 | WR=67.5% | PF=3.28 | Avg=40.94t | Med=26.00t | CI=[66.9%, 68.0%]
+Momentum 60m ext:  N=26,647 | WR=27.3% | PF=0.25 | Avg=-48.64t | Med=-32.00t | CI=[26.7%, 27.8%]
+
+All 20 opening-range / gap filters ranked by 5-bar average return
+--------------------------------------------------------------
+Filter                                                                               | N     | WR%   | PF   | Avg Ticks | Med Ticks | Wilson 95% CI 
+-------------------------------------------------------------------------------------+-------+-------+------+-----------+-----------+---------------
+06. Failed OR breakout/breakdown trap + reversal 60m extreme + 15m trend [VALIDATED] | 2,613 | 80.5% | 8.63 | 62.85     | 45.00     | [78.9%, 82.0%]
+16. Choppy open + reversal 60m extreme [VALIDATED]                                   | 1,924 | 68.0% | 3.67 | 56.48     | 31.00     | [65.9%, 70.1%]
+04. Failed OR breakdown trap + bottom 60m extreme [VALIDATED]                        | 2,192 | 72.9% | 4.88 | 48.67     | 31.00     | [71.0%, 74.8%]
+10. Gap filled + doji + reversal 60m extreme [VALIDATED]                             | 731   | 71.8% | 3.88 | 48.05     | 30.00     | [68.5%, 75.0%]
+17. Opening drive + reversal signal after 10:00 + reversal 60m extreme [VALIDATED]   | 865   | 65.9% | 4.44 | 42.65     | 22.00     | [62.7%, 69.0%]
+03. Failed OR breakout trap + top 60m extreme [VALIDATED]                            | 2,239 | 66.3% | 3.35 | 40.73     | 26.00     | [64.3%, 68.3%]
+18. Initial balance extreme touch + reversal 60m extreme [VALIDATED]                 | 8,718 | 65.9% | 2.66 | 32.87     | 21.00     | [64.9%, 66.9%]
+05. OR breakout/breakdown + momentum 60m extreme + 15m trend                         | 8,742 | 38.1% | 0.56 | -20.58    | -14.00    | [37.1%, 39.1%]
+13. Narrow OR + momentum 60m extreme + 15m trend                                     | 3,663 | 33.6% | 0.38 | -24.65    | -14.00    | [32.1%, 35.2%]
+01. OR breakout above + top 60m extreme                                              | 8,411 | 32.0% | 0.39 | -28.50    | -20.00    | [31.0%, 33.0%]
+14. Wide OR + momentum 60m extreme + 15m trend                                       | 4,100 | 37.4% | 0.52 | -31.24    | -22.00    | [35.9%, 38.9%]
+19. Two prior narrow-range days + momentum 60m extreme                               | 3,017 | 25.8% | 0.22 | -33.75    | -23.00    | [24.3%, 27.4%]
+11. Narrow OR (bottom quartile) + momentum 60m extreme                               | 6,247 | 25.7% | 0.22 | -35.97    | -24.00    | [24.6%, 26.8%]
+09. Gap not filled by 10:30 + gap-direction continuation + momentum 60m extreme      | 6,997 | 28.6% | 0.31 | -37.00    | -27.00    | [27.6%, 29.7%]
+08. Gap-down filled + bullish signal + momentum 60m extreme                          | 3,341 | 30.7% | 0.29 | -44.59    | -24.00    | [29.1%, 32.3%]
+15. Strong opening drive + momentum 60m extreme                                      | 898   | 27.5% | 0.17 | -47.92    | -26.00    | [24.7%, 30.5%]
+20. Prior-day inside-range OR + momentum 60m extreme                                 | 9,940 | 26.9% | 0.22 | -53.62    | -33.00    | [26.0%, 27.8%]
+02. OR breakdown below + bottom 60m extreme                                          | 5,281 | 26.4% | 0.25 | -60.69    | -46.00    | [25.2%, 27.6%]
+07. Gap-up filled + bearish signal + momentum 60m extreme                            | 3,419 | 22.9% | 0.19 | -63.01    | -41.00    | [21.5%, 24.3%]
+12. Wide OR (top quartile) + momentum 60m extreme                                    | 6,860 | 28.2% | 0.26 | -67.14    | -44.00    | [27.2%, 29.3%]

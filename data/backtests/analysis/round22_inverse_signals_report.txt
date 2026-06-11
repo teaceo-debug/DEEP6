@@ -1,0 +1,47 @@
+DEEP6 Round 22 inverse signals analysis
+=====================================
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+Observation unit: unique signal observation grouped by global_index + direction_sign.
+Base 60m+15m gate: is_60m_extreme & is_15m_trend_aligned.
+Signal-bar sequencing follows signal_events bars, matching earlier round2/round7 pattern work.
+Filters 01-05 keep original direction to isolate loss-prone base subsets.
+Filters 06-14 flip direction_sign on the same observation (ANTI logic).
+Filters 15-20 trade linked later observations/bars in the direction described by the pattern.
+Within-X-bar recurrence filters stay inside the same session. Streak filters use chronological base observations.
+C14 CVD confirmation uses session cumulative delta on signal-event bars aligned with the signal direction.
+Filter rows are sorted by Avg Ticks descending.
+
+Raw event rows loaded:           1,756,089
+Signal observations:             254,722
+Base 60m+15m observations:       25,070
+Base WR 5b:                      81.4%
+Base PF:                         10.62
+Base Avg Ticks:                  +72.76
+Base Wilson 95% CI:              [80.9%, 81.9%]
+ATR top-tercile threshold:       16.49
+
+20 inverse / failure filters
+----------------------------
+Filter                                                                                | N      | WR 5b | PF    | Avg Ticks | Wilson 95% CI  | Flag     
+--------------------------------------------------------------------------------------+--------+-------+-------+-----------+----------------+----------
+19. E19 BASE: next-session first-hour signal after prior-session last-30m loser       | 96     | 87.5% | 23.18 | +131.68   | [79.4%, 92.7%] | VALIDATED
+01. A1 BASE: prior win streak >= 3 before 60m+15m signal                              | 15,842 | 88.0% | 23.36 | +90.74    | [87.4%, 88.5%] | VALIDATED
+02. A2 BASE: prior bar volume spike > 2x EMA before 60m+15m signal                    | 738    | 81.7% | 7.13  | +82.13    | [78.8%, 84.3%] | VALIDATED
+05. A5 BASE: FOMC day 60m+15m signal                                                  | 768    | 83.3% | 13.89 | +77.38    | [80.5%, 85.8%] | VALIDATED
+03. A3 BASE: current abs delta > rolling 90th percentile on 60m+15m signal            | 2,349  | 75.3% | 4.79  | +56.17    | [73.5%, 77.0%] | VALIDATED
+16. D16 BASE: losing signal followed by opposite 60m+15m signal within 3 bars         | 90     | 81.1% | 4.81  | +55.40    | [71.8%, 87.9%] | VALIDATED
+15. D15 BASE: losing signal repeats with overlapping signal_id set within 5 bars      | 9,169  | 72.8% | 5.03  | +50.46    | [71.9%, 73.7%] | VALIDATED
+04. A4 BASE: directional close sits 30-40% into 60m range on 60m+15m signal           | 2,120  | 72.5% | 4.29  | +47.47    | [70.5%, 74.3%] | VALIDATED
+20. E20 BASE: first afternoon reversal signal after first-hour loser                  | 222    | 79.3% | 5.18  | +42.47    | [73.5%, 84.1%] | VALIDATED
+18. D18 BAR: losing 60m+15m signal then next signal bar is doji, trade doji direction | 544    | 45.0% | 0.99  | -0.28     | [40.9%, 49.2%] |          
+17. D17 BASE: next 60m+15m signal after prior loss streak >= 2                        | 2,196  | 49.5% | 0.99  | -0.35     | [47.5%, 51.6%] |          
+11. C11 ANTI: 60m extreme + 15m trend opposite to signal direction                    | 28,364 | 41.6% | 0.61  | -17.75    | [41.0%, 42.2%] |          
+12. C12 ANTI: 60m extreme + no 15m trend alignment                                    | 28,569 | 41.5% | 0.61  | -17.83    | [40.9%, 42.1%] |          
+07. B7 ANTI: next two signal-bar deltas both flip opposite 60m+15m signal             | 3,028  | 40.0% | 0.51  | -18.42    | [38.2%, 41.7%] |          
+10. B10 ANTI: close sits in middle 40-60% of 60m range on 60m+15m signal              | 546    | 33.9% | 0.38  | -32.62    | [30.0%, 38.0%] |          
+06. B6 ANTI: next signal-bar delta flips opposite 60m+15m signal                      | 8,939  | 27.8% | 0.21  | -45.96    | [26.8%, 28.7%] |          
+14. C14 ANTI: 60m extreme + CVD confirms signal direction                             | 11,435 | 29.9% | 0.28  | -46.01    | [29.0%, 30.7%] |          
+08. B8 ANTI: lunch-hour (12:00-14:00) 60m+15m signal                                  | 7,626  | 18.5% | 0.09  | -60.63    | [17.7%, 19.4%] |          
+09. B9 ANTI: current volume > 3x EMA on 60m+15m signal                                | 295    | 26.8% | 0.29  | -70.13    | [22.0%, 32.1%] |          
+13. C13 ANTI: 60m+15m signal + high ATR top tercile                                   | 7,700  | 18.0% | 0.09  | -113.19   | [17.2%, 18.9%] |          

@@ -1,0 +1,64 @@
+DEEP6 round17 volatility-of-volatility analysis
+===============================================
+Source events: C:\Users\Tea\DEEP6\data\backtests\signal_events.csv
+Source bars:   C:\Users\Tea\DEEP6\data\backtests\nq_1yr_1m.csv
+Observation unit: unique signal bar grouped by global_index.
+Trade direction for P&L: sign(bar_delta). Zero-delta bars are skipped.
+All ATR, vol-of-vol, and range-sequence features are built from deduped signal-event bars within each session, not full 1m bars.
+60m gate = bullish bar_low in bottom 20% of active 60m range / bearish bar_high in top 20% of active 60m range.
+15m gate = trade direction matches 15m open-close trend sign.
+ATR20 = rolling 20-bar mean of true range; ATR50_MA = rolling 50-bar mean of ATR20; vol-of-vol = rolling 10-bar std of ATR20.
+Range expansion/contraction compares current bar range to the average of the PRIOR 5 signal-bar ranges within the session.
+CVD divergence follows round8: price makes a new session high/low but session CVD fails to confirm.
+KILLER_1 = trade-direction anchor sits in the middle 40-60% of the active 60m range. KILLER_2 = bar_volume > 3x prior 20-bar EMA volume.
+NOT killers = NOT killer_1 AND NOT killer_2.
+Stable / unstable vol thresholds use the 25th / 75th percentile of vol-of-vol across the full non-zero-delta sample.
+N uses rows with complete 5b/10b/30b forward closes so every WR window and persistence label uses the same sample.
+Persistence: GROWING if WR_30b > WR_5b; STABLE if WR_30b is within 3 percentage points of WR_5b without growth; DECAYING otherwise.
+Filter 20 uses the round17 vol-expansion definition ATR20 > ATR20 from 5 bars ago.
+
+Raw event rows loaded:              1,767,271
+Grouped signal bars:                127,361
+Non-zero-delta trade sample:        127,165
+15m bars built:                     30,745
+60m bars built:                     7,693
+Core 60m + 15m bars:                14,568
+CVD divergence bars:                5,448
+Stable vol bars (<25th pct):        29,468
+Unstable vol bars (>75th pct):      29,468
+KILLER_1 hits:                      32,451
+KILLER_2 hits:                      1,327
+Vol-of-vol 25th percentile:         0.27
+Vol-of-vol 75th percentile:         0.78
+
+Baselines
+---------
+All non-zero-delta bars:    N=127,135 | WR5=49.6% | WR10=49.7% | WR30=49.6% | PF5=1.00 | Avg5=0.09t | CI5=[49.3%, 49.8%] | Persistence=GROWING
+60m + 15m core gate:       N=14,565 | WR5=78.6% | WR10=85.5% | WR30=83.1% | PF5=8.00 | Avg5=65.06t | CI5=[77.9%, 79.2%] | Persistence=GROWING
+60m + 15m + NOT killers:   N=14,378 | WR5=78.7% | WR10=85.7% | WR30=83.2% | PF5=8.33 | Avg5=65.14t | CI5=[78.0%, 79.4%] | Persistence=GROWING
+CVD divergence + core gate:N=681 | WR5=79.3% | WR10=88.7% | WR30=81.9% | PF5=11.39 | Avg5=92.84t | CI5=[76.1%, 82.2%] | Persistence=GROWING
+
+20 volatility-change / vol-of-vol filters ranked by 30b win rate
+--------------------------------------------------------------
+Filter                                                           | N     | WR 5b | WR 10b | WR 30b | PF 5b | Avg Ticks 5b | Wilson 95% CI (5b) | Persistence
+-----------------------------------------------------------------+-------+-------+--------+--------+-------+--------------+--------------------+------------
+08. [B] Stable vol + 60m + 15m + first_hour                      | 64    | 75.0% | 87.5%  | 98.4%  | 15.38 | 44.05        | [63.2%, 84.0%]     | GROWING    
+13. [C] 3 bars of contracting ranges + 60m + 15m                 | 1,970 | 81.6% | 89.9%  | 86.9%  | 12.43 | 75.82        | [79.9%, 83.3%]     | GROWING    
+19. [E] Stable vol + contraction bar + 60m + 15m + NOT killers   | 66    | 77.3% | 95.5%  | 86.4%  | 10.70 | 32.32        | [65.8%, 85.7%]     | GROWING    
+16. [D] ATR20 crossed below ATR50_MA + 60m + 15m                 | 217   | 82.5% | 87.1%  | 86.2%  | 12.82 | 60.65        | [76.9%, 87.0%]     | GROWING    
+11. [C] Current range < 0.5x avg of prior 5 ranges + 60m + 15m   | 301   | 78.7% | 88.7%  | 85.0%  | 4.61  | 54.84        | [73.8%, 83.0%]     | GROWING    
+02. [A] ATR20 decreasing vs 5 bars ago + 60m + 15m               | 7,751 | 79.0% | 86.0%  | 84.1%  | 8.97  | 60.60        | [78.0%, 79.9%]     | GROWING    
+06. [B] Vol-of-vol > 75th percentile + 60m + 15m                 | 3,342 | 79.4% | 85.9%  | 83.4%  | 8.87  | 94.56        | [78.0%, 80.8%]     | GROWING    
+09. [B] Unstable vol + 60m + 15m + NOT lunch                     | 2,520 | 79.5% | 85.7%  | 83.3%  | 8.90  | 96.06        | [77.9%, 81.0%]     | GROWING    
+07. [B] Vol-of-vol < 25th percentile + 60m + 15m                 | 3,426 | 77.8% | 85.2%  | 82.5%  | 8.20  | 36.10        | [76.4%, 79.1%]     | GROWING    
+04. [A] ATR20 decreased >20% vs 10 bars ago + 60m + 15m          | 657   | 78.8% | 86.1%  | 82.3%  | 8.70  | 53.49        | [75.6%, 81.8%]     | GROWING    
+01. [A] ATR20 increasing vs 5 bars ago + 60m + 15m               | 5,771 | 77.4% | 83.9%  | 81.8%  | 6.40  | 61.83        | [76.3%, 78.4%]     | GROWING    
+03. [A] ATR20 increased >20% vs 10 bars ago + 60m + 15m          | 747   | 76.7% | 82.1%  | 80.3%  | 5.98  | 75.98        | [73.5%, 79.6%]     | GROWING    
+12. [C] 3 bars of expanding ranges + 60m + 15m                   | 2,698 | 74.8% | 81.7%  | 79.9%  | 5.88  | 57.68        | [73.2%, 76.4%]     | GROWING    
+20. [E] Vol expansion + CVD divergence + 60m + 15m + NOT killers | 187   | 78.1% | 82.4%  | 79.7%  | 10.29 | 83.47        | [71.6%, 83.4%]     | GROWING    
+17. [D] ATR20 > 2x ATR50_MA + 60m + 15m                          | 34    | 85.3% | 88.2%  | 79.4%  | 19.90 | 155.65       | [69.9%, 93.6%]     | DECAYING   
+05. [A] ATR20 at session high so far today + 60m + 15m           | 210   | 74.3% | 84.8%  | 78.1%  | 7.75  | 124.35       | [68.0%, 79.7%]     | GROWING    
+10. [C] Current range > 1.5x avg of prior 5 ranges + 60m + 15m   | 2,598 | 72.2% | 78.3%  | 77.6%  | 4.95  | 53.07        | [70.4%, 73.9%]     | GROWING    
+15. [D] ATR20 crossed above ATR50_MA + 60m + 15m                 | 416   | 75.0% | 80.0%  | 77.4%  | 6.37  | 61.85        | [70.6%, 78.9%]     | GROWING    
+14. [C] Contraction -> expansion + 60m + 15m                     | 87    | 79.3% | 74.7%  | 71.3%  | 5.94  | 47.59        | [69.6%, 86.5%]     | DECAYING   
+18. [D] ATR20 < 0.5x ATR50_MA + 60m + 15m                        | 0     | 0.0%  | nan    | nan    | nan   | nan          | [0.0%, 0.0%]       | NO_DATA    

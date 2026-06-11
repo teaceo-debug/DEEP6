@@ -1,0 +1,68 @@
+DEEP6 round20 ultra-stacked filter analysis
+============================================
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+Observation unit: unique signal bar grouped by global_index.
+Trade direction: sign(bar_delta) for bar filters; divergence_sign for CVD-divergence filters.
+Core gate: bullish bar_low in the bottom 20% of the active 60m range / bearish bar_high in the top 20%, plus 15m trend alignment.
+CVD divergence = price makes a new session high/low while cumulative delta fails to confirm.
+Doji = body/range < 0.10. Hammer, shooting star, and engulfing use the same wick/body/body-containment rules as round3.
+Stable vol = rolling 10-bar std of ATR20 below the 25th percentile of vol_of_vol across the full non-zero-delta bar sample.
+Stable-vol threshold (25th pct vol_of_vol): 0.27
+Small overnight = |09:30 RTH open - prior RTH close| < 20 ticks.
+|delta|/vol = abs(bar_delta) / bar_volume. 3 narrowing/contracting ranges = current range < prior range < range two bars ago.
+Failed OR breakout is direction-aware: bullish trades require failed breakdown, bearish trades require failed breakout.
+NOT FOMC uses the exact supplied FOMC session dates. NOT summer = month not in [6, 7, 8].
+NOT killers = NOT killer_1 (trade anchor in the middle 40-60% of the active 60m range) AND NOT killer_2 (bar_volume > 3x prior 20-bar EMA).
+N uses rows with complete 5b/10b/30b forward closes so every WR window and persistence flag uses the same sample.
+Persistence: GROWING if WR_30b > WR_5b; STABLE if WR_30b is within 3 percentage points of WR_5b without growth; DECAYING otherwise.
+
+Raw event rows loaded:                 1,767,271
+Grouped signal bars:                   127,361
+Tradable bar-direction sample:         127,165
+Tradable CVD-divergence sample:        5,448
+15m bars built:                        30,745
+60m bars built:                        7,693
+Strict doji bars:                      12,836
+Very-low delta-ratio bars (<0.05):     5,751
+Stable-vol bar observations:           29,468
+Stable-vol divergence observations:    708
+Small-overnight observations:          5,274
+3 narrowing/contracting bars:          22,211
+Prior wide-range-day observations:     32,553
+Failed OR reversal observations:       23,385
+Hammer/shooting-star observations:     2,533
+Engulfing observations:                12,437
+
+Baselines
+---------
+All non-zero-delta bars:              N=127,135 | WR5=49.6% | WR10=49.7% | WR30=49.6% | PF5=1.00 | Avg5=0.09t | CI5=[49.3%, 49.8%] | Persistence=GROWING
+60m + 15m core gate:                 N=14,565 | WR5=78.6% | WR10=85.5% | WR30=83.1% | PF5=8.00 | Avg5=65.06t | CI5=[77.9%, 79.2%] | Persistence=GROWING
+60m + 15m + NOT killers:             N=14,378 | WR5=78.7% | WR10=85.7% | WR30=83.2% | PF5=8.33 | Avg5=65.14t | CI5=[78.0%, 79.4%] | Persistence=GROWING
+All CVD divergence bars:             N=5,448 | WR5=50.4% | WR10=50.5% | WR30=49.2% | PF5=0.93 | Avg5=-3.26t | CI5=[49.1%, 51.7%] | Persistence=STABLE
+CVD divergence + 60m + 15m + NOT killers:N=787 | WR5=82.8% | WR10=93.0% | WR30=83.0% | PF5=15.65 | Avg5=98.48t | CI5=[80.1%, 85.3%] | Persistence=GROWING
+
+20 ultra-stacked filters ranked by 30b win rate
+----------------------------------------------
+Filter                                                                                                                             | N   | WR 5b  | WR 10b | WR 30b | PF 5b  | Avg Ticks 5b | Wilson 95% CI (5b) | Persistence
+-----------------------------------------------------------------------------------------------------------------------------------+-----+--------+--------+--------+--------+--------------+--------------------+------------
+01. [A] CVD div + doji + stable vol + 60m + 15m + NOT killers + first_hour                                                         | 2   | 100.0% | 100.0% | 100.0% | inf    | 57.00        | [34.2%, 100.0%]    | STABLE     
+02. [A] CVD div + doji + small overnight + 60m + 15m + NOT killers + first_hour                                                    | 2   | 100.0% | 100.0% | 100.0% | inf    | 103.00       | [34.2%, 100.0%]    | STABLE     
+11. [C] |delta|/vol < 0.05 + stable vol + 60m + 15m + NOT killers + first_hour                                                     | 1   | 100.0% | 100.0% | 100.0% | inf    | 52.00        | [20.7%, 100.0%]    | STABLE     
+15. [D] Hammer/shooting star + stable vol + 60m + 15m + NOT killers + first_hour                                                   | 1   | 100.0% | 100.0% | 100.0% | inf    | 163.00       | [20.7%, 100.0%]    | STABLE     
+04. [A] CVD div + |delta|/vol < 0.05 + 60m + 15m + NOT killers + first_hour                                                        | 17  | 94.1%  | 94.1%  | 94.1%  | 247.73 | 217.71       | [73.0%, 99.0%]     | STABLE     
+03. [A] CVD div + 3 narrowing ranges + stable vol + 60m + 15m + NOT killers                                                        | 14  | 85.7%  | 100.0% | 92.9%  | 24.07  | 47.79        | [60.1%, 96.0%]     | GROWING    
+17. [D] 3 narrowing ranges + stable vol + small overnight + 60m + 15m + NOT killers                                                | 23  | 87.0%  | 87.0%  | 91.3%  | 8.24   | 36.83        | [67.9%, 95.5%]     | GROWING    
+16. [D] Engulfing + |delta|/vol < 0.10 + 60m + 15m + NOT killers + first_hour                                                      | 11  | 63.6%  | 90.9%  | 90.9%  | 13.54  | 127.64       | [35.4%, 84.8%]     | GROWING    
+14. [C] |delta|/vol < 0.05 + NOT FOMC + NOT summer + 60m + 15m + NOT killers + first_hour                                          | 80  | 82.5%  | 91.2%  | 90.0%  | 24.68  | 142.65       | [72.7%, 89.3%]     | GROWING    
+07. [B] Doji + 3 narrowing ranges + 60m + 15m + NOT killers + first_hour                                                           | 50  | 88.0%  | 90.0%  | 90.0%  | 22.51  | 127.78       | [76.2%, 94.4%]     | GROWING    
+10. [B] Doji + NOT FOMC + NOT summer + 60m + 15m + NOT killers + first_hour                                                        | 163 | 85.9%  | 92.6%  | 89.0%  | 18.25  | 119.27       | [79.7%, 90.4%]     | GROWING    
+13. [C] |delta|/vol < 0.05 + 3 contracting ranges + 60m + 15m + NOT killers                                                        | 121 | 86.8%  | 93.4%  | 88.4%  | 17.52  | 88.07        | [79.6%, 91.7%]     | GROWING    
+09. [B] Doji + failed OR breakout + 60m + 15m + NOT killers                                                                        | 235 | 82.1%  | 88.5%  | 86.4%  | 8.51   | 64.34        | [76.7%, 86.5%]     | GROWING    
+12. [C] |delta|/vol < 0.05 + small overnight + 60m + 15m + NOT killers + first_hour                                                | 7   | 71.4%  | 85.7%  | 85.7%  | 5.20   | 51.57        | [35.9%, 91.8%]     | GROWING    
+05. [A] CVD div + prior wide-range day + 60m + 15m + NOT killers                                                                   | 243 | 82.3%  | 94.2%  | 85.6%  | 12.01  | 125.09       | [77.0%, 86.6%]     | GROWING    
+08. [B] Doji + |delta|/vol < 0.05 + stable vol + 60m + 15m + NOT killers                                                           | 26  | 88.5%  | 96.2%  | 80.8%  | 20.35  | 53.58        | [71.0%, 96.0%]     | DECAYING   
+18. [D] Failed OR breakout + CVD div + 60m + 15m + NOT killers                                                                     | 73  | 79.5%  | 87.7%  | 78.1%  | 9.95   | 108.23       | [68.8%, 87.1%]     | STABLE     
+06. [B] Doji + stable vol + small overnight + 60m + 15m + NOT killers + first_hour                                                 | 0   | 0.0%   | nan    | nan    | nan    | nan          | [0.0%, 0.0%]       | NO_DATA    
+19. [E] CVD div + doji + stable vol + small overnight + NOT FOMC + 60m + 15m + NOT killers + first_hour                            | 0   | 0.0%   | nan    | nan    | nan    | nan          | [0.0%, 0.0%]       | NO_DATA    
+20. [E] |delta|/vol < 0.05 + stable vol + small overnight + NOT FOMC + 3 contracting ranges + 60m + 15m + NOT killers + first_hour | 0   | 0.0%   | nan    | nan    | nan    | nan          | [0.0%, 0.0%]       | NO_DATA    

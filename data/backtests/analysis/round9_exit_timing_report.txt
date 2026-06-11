@@ -1,0 +1,203 @@
+ROUND 9 EXIT TIMING ANALYSIS
+============================
+
+Source events: C:\Users\Tea\DEEP6\data\backtests\signal_events.csv
+Source bars:   C:\Users\Tea\DEEP6\data\backtests\nq_1yr_1m.csv
+
+Methodology:
+- Base setup uses all signal observations grouped by global_index + direction.
+- Doji and CVD divergence use bar observations grouped by global_index.
+- Absorption uses absorption-only observations grouped by global_index + direction.
+- Failed OR breakout uses the round 6 trap logic: prior OR break, close back inside OR, direction flipped against the failed move.
+- CVD divergence uses session CVD = cumsum(bar_delta) and compares price session extremes vs prior running CVD extremes.
+- Every exit window is capped to stay inside the same RTH session; no overnight carry is allowed.
+
+ALL ENTRIES
+-----------
+Entry can happen anywhere in RTH; exits must stay inside the same RTH session.
+
+Overview:
+Setup                                        | 1b WR/Avg     | 2b WR/Avg     | 5b WR/Avg     | 10b WR/Avg     | 15b WR/Avg     | 30b WR/Avg     | Optimal Exit | Sharpe at Optimal
+---------------------------------------------+---------------+---------------+---------------+----------------+----------------+----------------+--------------+------------------
+60m_extreme + 15m_trend                      | 65.0%/+16.61t | 71.0%/+31.88t | 81.6%/+72.26t | 88.6%/+119.28t | 89.0%/+146.57t | 86.7%/+192.61t | 15b          | 0.73             
+Doji + 60m_extreme + 15m_trend               | 64.6%/+15.71t | 69.4%/+29.59t | 81.0%/+69.43t | 89.8%/+115.53t | 90.2%/+150.06t | 88.5%/+195.87t | 15b          | 0.80             
+CVD divergence + 60m_extreme + 15m_trend     | 63.9%/+21.23t | 71.2%/+41.42t | 82.5%/+97.00t | 92.9%/+163.08t | 91.0%/+187.24t | 83.7%/+216.18t | 10b          | 0.97             
+Failed OR breakout + 60m_extreme + 15m_trend | 64.4%/+15.77t | 71.4%/+30.71t | 82.5%/+68.55t | 88.3%/+112.18t | 89.2%/+139.91t | 87.8%/+186.73t | 15b          | 0.86             
+Absorption + 60m_extreme + 15m_trend         | 52.0%/+8.48t  | 68.0%/+32.48t | 88.0%/+82.88t | 88.1%/+124.21t | 95.0%/+171.68t | 95.0%/+222.95t | 10b          | 1.11             
+
+Detailed metrics:
+Setup                                        | Window | N      | WR    | PF    | Avg Ticks | Sharpe
+---------------------------------------------+--------+--------+-------+-------+-----------+-------
+60m_extreme + 15m_trend                      | 1b     | 25,049 | 65.0% | 3.00  | +16.61t   | 0.33  
+60m_extreme + 15m_trend                      | 2b     | 25,032 | 71.0% | 4.71  | +31.88t   | 0.45  
+60m_extreme + 15m_trend                      | 5b     | 24,943 | 81.6% | 12.07 | +72.26t   | 0.63  
+60m_extreme + 15m_trend                      | 10b    | 24,640 | 88.6% | 24.92 | +119.28t  | 0.72  
+60m_extreme + 15m_trend                      | 15b    | 24,236 | 89.0% | 25.69 | +146.57t  | 0.73  
+60m_extreme + 15m_trend                      | 30b    | 23,505 | 86.7% | 17.89 | +192.61t  | 0.73  
+Doji + 60m_extreme + 15m_trend               | 1b     | 1,340  | 64.6% | 3.04  | +15.71t   | 0.34  
+Doji + 60m_extreme + 15m_trend               | 2b     | 1,339  | 69.4% | 4.43  | +29.59t   | 0.44  
+Doji + 60m_extreme + 15m_trend               | 5b     | 1,327  | 81.0% | 11.78 | +69.43t   | 0.64  
+Doji + 60m_extreme + 15m_trend               | 10b    | 1,309  | 89.8% | 28.45 | +115.53t  | 0.70  
+Doji + 60m_extreme + 15m_trend               | 15b    | 1,282  | 90.2% | 36.48 | +150.06t  | 0.80  
+Doji + 60m_extreme + 15m_trend               | 30b    | 1,249  | 88.5% | 23.43 | +195.87t  | 0.78  
+CVD divergence + 60m_extreme + 15m_trend     | 1b     | 807    | 63.9% | 2.78  | +21.23t   | 0.32  
+CVD divergence + 60m_extreme + 15m_trend     | 2b     | 806    | 71.2% | 4.42  | +41.42t   | 0.46  
+CVD divergence + 60m_extreme + 15m_trend     | 5b     | 804    | 82.5% | 15.09 | +97.00t   | 0.79  
+CVD divergence + 60m_extreme + 15m_trend     | 10b    | 793    | 92.9% | 40.79 | +163.08t  | 0.97  
+CVD divergence + 60m_extreme + 15m_trend     | 15b    | 785    | 91.0% | 32.30 | +187.24t  | 0.90  
+CVD divergence + 60m_extreme + 15m_trend     | 30b    | 775    | 83.7% | 14.94 | +216.18t  | 0.79  
+Failed OR breakout + 60m_extreme + 15m_trend | 1b     | 4,118  | 64.4% | 3.05  | +15.77t   | 0.36  
+Failed OR breakout + 60m_extreme + 15m_trend | 2b     | 4,115  | 71.4% | 4.88  | +30.71t   | 0.49  
+Failed OR breakout + 60m_extreme + 15m_trend | 5b     | 4,105  | 82.5% | 12.36 | +68.55t   | 0.74  
+Failed OR breakout + 60m_extreme + 15m_trend | 10b    | 4,063  | 88.3% | 22.29 | +112.18t  | 0.86  
+Failed OR breakout + 60m_extreme + 15m_trend | 15b    | 4,003  | 89.2% | 22.29 | +139.91t  | 0.86  
+Failed OR breakout + 60m_extreme + 15m_trend | 30b    | 3,896  | 87.8% | 18.17 | +186.73t  | 0.83  
+Absorption + 60m_extreme + 15m_trend         | 1b     | 50     | 52.0% | 1.73  | +8.48t    | 0.18  
+Absorption + 60m_extreme + 15m_trend         | 2b     | 50     | 68.0% | 4.27  | +32.48t   | 0.51  
+Absorption + 60m_extreme + 15m_trend         | 5b     | 50     | 88.0% | 36.72 | +82.88t   | 1.05  
+Absorption + 60m_extreme + 15m_trend         | 10b    | 42     | 88.1% | 75.53 | +124.21t  | 1.11  
+Absorption + 60m_extreme + 15m_trend         | 15b    | 40     | 95.0% | 89.04 | +171.68t  | 1.05  
+Absorption + 60m_extreme + 15m_trend         | 30b    | 40     | 95.0% | 60.85 | +222.95t  | 0.88  
+
+Observation units:
+- 60m_extreme + 15m_trend: signal/global_index+direction
+- Doji + 60m_extreme + 15m_trend: bar/global_index
+- CVD divergence + 60m_extreme + 15m_trend: bar/global_index
+- Failed OR breakout + 60m_extreme + 15m_trend: signal/global_index+direction
+- Absorption + 60m_extreme + 15m_trend: absorption/global_index+direction
+
+
+FIRST-HOUR ENTRIES
+------------------
+Entry must occur in 09:30-10:29 ET and exit must complete by 10:30 ET.
+
+Overview:
+Setup                                        | 1b WR/Avg      | 2b WR/Avg      | 5b WR/Avg       | 10b WR/Avg      | 15b WR/Avg      | 30b WR/Avg     | Optimal Exit | Sharpe at Optimal
+---------------------------------------------+----------------+----------------+-----------------+-----------------+-----------------+----------------+--------------+------------------
+60m_extreme + 15m_trend                      | 66.4%/+27.20t  | 73.7%/+51.96t  | 82.9%/+113.77t  | 90.7%/+184.95t  | 90.2%/+222.19t  | 82.7%/+288.65t | 15b          | 0.85             
+Doji + 60m_extreme + 15m_trend               | 67.1%/+27.46t  | 70.0%/+49.42t  | 83.6%/+102.29t  | 90.8%/+170.50t  | 89.9%/+209.14t  | 76.7%/+229.45t | 10b          | 1.02             
+CVD divergence + 60m_extreme + 15m_trend     | 66.5%/+31.64t  | 75.3%/+61.33t  | 86.7%/+136.93t  | 94.0%/+220.22t  | 91.9%/+240.32t  | 78.8%/+257.23t | 15b          | 1.10             
+Failed OR breakout + 60m_extreme + 15m_trend | 64.7%/+24.52t  | 73.1%/+44.46t  | 79.0%/+86.34t   | 86.1%/+130.61t  | 85.2%/+154.31t  | 67.8%/+113.65t | 10b          | 0.78             
+Absorption + 60m_extreme + 15m_trend         | 100.0%/+41.50t | 100.0%/+74.50t | 100.0%/+140.00t | 100.0%/+130.50t | 100.0%/+156.00t | n/a            | 15b          | 15.76            
+
+Detailed metrics:
+Setup                                        | Window | N     | WR     | PF    | Avg Ticks | Sharpe
+---------------------------------------------+--------+-------+--------+-------+-----------+-------
+60m_extreme + 15m_trend                      | 1b     | 4,220 | 66.4%  | 3.24  | +27.20t   | 0.37  
+60m_extreme + 15m_trend                      | 2b     | 4,195 | 73.7%  | 5.38  | +51.96t   | 0.51  
+60m_extreme + 15m_trend                      | 5b     | 4,086 | 82.9%  | 14.37 | +113.77t  | 0.69  
+60m_extreme + 15m_trend                      | 10b    | 3,766 | 90.7%  | 29.62 | +184.95t  | 0.77  
+60m_extreme + 15m_trend                      | 15b    | 3,273 | 90.2%  | 25.22 | +222.19t  | 0.85  
+60m_extreme + 15m_trend                      | 30b    | 1,783 | 82.7%  | 11.53 | +288.65t  | 0.76  
+Doji + 60m_extreme + 15m_trend               | 1b     | 213   | 67.1%  | 3.53  | +27.46t   | 0.44  
+Doji + 60m_extreme + 15m_trend               | 2b     | 213   | 70.0%  | 5.57  | +49.42t   | 0.56  
+Doji + 60m_extreme + 15m_trend               | 5b     | 207   | 83.6%  | 15.47 | +102.29t  | 0.87  
+Doji + 60m_extreme + 15m_trend               | 10b    | 185   | 90.8%  | 33.75 | +170.50t  | 1.02  
+Doji + 60m_extreme + 15m_trend               | 15b    | 158   | 89.9%  | 26.07 | +209.14t  | 1.01  
+Doji + 60m_extreme + 15m_trend               | 30b    | 86    | 76.7%  | 8.47  | +229.45t  | 0.77  
+CVD divergence + 60m_extreme + 15m_trend     | 1b     | 325   | 66.5%  | 3.33  | +31.64t   | 0.39  
+CVD divergence + 60m_extreme + 15m_trend     | 2b     | 324   | 75.3%  | 5.59  | +61.33t   | 0.55  
+CVD divergence + 60m_extreme + 15m_trend     | 5b     | 323   | 86.7%  | 18.91 | +136.93t  | 0.91  
+CVD divergence + 60m_extreme + 15m_trend     | 10b    | 316   | 94.0%  | 42.03 | +220.22t  | 1.06  
+CVD divergence + 60m_extreme + 15m_trend     | 15b    | 298   | 91.9%  | 25.64 | +240.32t  | 1.10  
+CVD divergence + 60m_extreme + 15m_trend     | 30b    | 245   | 78.8%  | 9.83  | +257.23t  | 0.77  
+Failed OR breakout + 60m_extreme + 15m_trend | 1b     | 787   | 64.7%  | 3.16  | +24.52t   | 0.40  
+Failed OR breakout + 60m_extreme + 15m_trend | 2b     | 783   | 73.1%  | 4.70  | +44.46t   | 0.51  
+Failed OR breakout + 60m_extreme + 15m_trend | 5b     | 767   | 79.0%  | 8.39  | +86.34t   | 0.72  
+Failed OR breakout + 60m_extreme + 15m_trend | 10b    | 729   | 86.1%  | 10.32 | +130.61t  | 0.78  
+Failed OR breakout + 60m_extreme + 15m_trend | 15b    | 668   | 85.2%  | 8.46  | +154.31t  | 0.72  
+Failed OR breakout + 60m_extreme + 15m_trend | 30b    | 314   | 67.8%  | 2.84  | +113.65t  | 0.36  
+Absorption + 60m_extreme + 15m_trend         | 1b     | 2     | 100.0% | inf   | +41.50t   | 1.11  
+Absorption + 60m_extreme + 15m_trend         | 2b     | 2     | 100.0% | inf   | +74.50t   | 1.99  
+Absorption + 60m_extreme + 15m_trend         | 5b     | 2     | 100.0% | inf   | +140.00t  | 2.47  
+Absorption + 60m_extreme + 15m_trend         | 10b    | 2     | 100.0% | inf   | +130.50t  | 2.75  
+Absorption + 60m_extreme + 15m_trend         | 15b    | 2     | 100.0% | inf   | +156.00t  | 15.76 
+Absorption + 60m_extreme + 15m_trend         | 30b    | 0     | nan    | nan   | nan       | nan   
+
+Observation units:
+- 60m_extreme + 15m_trend: signal/global_index+direction
+- Doji + 60m_extreme + 15m_trend: bar/global_index
+- CVD divergence + 60m_extreme + 15m_trend: bar/global_index
+- Failed OR breakout + 60m_extreme + 15m_trend: signal/global_index+direction
+- Absorption + 60m_extreme + 15m_trend: absorption/global_index+direction
+
+
+LAST-HOUR ENTRIES
+-----------------
+Entry must occur in 15:00-15:59 ET and exit must complete by the session close.
+
+Overview:
+Setup                                        | 1b WR/Avg     | 2b WR/Avg     | 5b WR/Avg      | 10b WR/Avg     | 15b WR/Avg     | 30b WR/Avg      | Optimal Exit | Sharpe at Optimal
+---------------------------------------------+---------------+---------------+----------------+----------------+----------------+-----------------+--------------+------------------
+60m_extreme + 15m_trend                      | 65.4%/+14.11t | 71.3%/+26.77t | 82.6%/+62.01t  | 90.3%/+104.18t | 91.8%/+125.29t | 94.4%/+184.31t  | 30b          | 0.91             
+Doji + 60m_extreme + 15m_trend               | 63.3%/+12.58t | 71.1%/+22.92t | 80.8%/+59.11t  | 90.3%/+98.27t  | 91.7%/+130.68t | 95.7%/+193.96t  | 30b          | 1.01             
+CVD divergence + 60m_extreme + 15m_trend     | 60.8%/+8.94t  | 74.0%/+26.22t | 77.1%/+58.06t  | 97.3%/+102.84t | 90.6%/+138.28t | 100.0%/+250.65t | 30b          | 1.13             
+Failed OR breakout + 60m_extreme + 15m_trend | 69.4%/+13.77t | 74.2%/+25.97t | 83.7%/+54.76t  | 88.6%/+93.00t  | 87.8%/+102.38t | 93.8%/+137.35t  | 30b          | 1.23             
+Absorption + 60m_extreme + 15m_trend         | 50.0%/+17.57t | 71.4%/+41.29t | 100.0%/+80.57t | 83.3%/+98.00t  | 100.0%/+75.75t | 100.0%/+116.25t | 15b          | 14.78            
+
+Detailed metrics:
+Setup                                        | Window | N     | WR     | PF     | Avg Ticks | Sharpe
+---------------------------------------------+--------+-------+--------+--------+-----------+-------
+60m_extreme + 15m_trend                      | 1b     | 3,758 | 65.4%  | 3.22   | +14.11t   | 0.35  
+60m_extreme + 15m_trend                      | 2b     | 3,743 | 71.3%  | 4.94   | +26.77t   | 0.46  
+60m_extreme + 15m_trend                      | 5b     | 3,663 | 82.6%  | 14.16  | +62.01t   | 0.68  
+60m_extreme + 15m_trend                      | 10b    | 3,379 | 90.3%  | 40.88  | +104.18t  | 0.82  
+60m_extreme + 15m_trend                      | 15b    | 2,988 | 91.8%  | 51.89  | +125.29t  | 0.84  
+60m_extreme + 15m_trend                      | 30b    | 2,296 | 94.4%  | 120.75 | +184.31t  | 0.91  
+Doji + 60m_extreme + 15m_trend               | 1b     | 226   | 63.3%  | 2.64   | +12.58t   | 0.26  
+Doji + 60m_extreme + 15m_trend               | 2b     | 225   | 71.1%  | 3.82   | +22.92t   | 0.37  
+Doji + 60m_extreme + 15m_trend               | 5b     | 214   | 80.8%  | 13.29  | +59.11t   | 0.65  
+Doji + 60m_extreme + 15m_trend               | 10b    | 196   | 90.3%  | 35.03  | +98.27t   | 0.87  
+Doji + 60m_extreme + 15m_trend               | 15b    | 169   | 91.7%  | 78.76  | +130.68t  | 0.91  
+Doji + 60m_extreme + 15m_trend               | 30b    | 138   | 95.7%  | 84.39  | +193.96t  | 1.01  
+CVD divergence + 60m_extreme + 15m_trend     | 1b     | 51    | 60.8%  | 1.72   | +8.94t    | 0.20  
+CVD divergence + 60m_extreme + 15m_trend     | 2b     | 50    | 74.0%  | 3.37   | +26.22t   | 0.44  
+CVD divergence + 60m_extreme + 15m_trend     | 5b     | 48    | 77.1%  | 6.03   | +58.06t   | 0.63  
+CVD divergence + 60m_extreme + 15m_trend     | 10b    | 37    | 97.3%  | 136.89 | +102.84t  | 0.92  
+CVD divergence + 60m_extreme + 15m_trend     | 15b    | 32    | 90.6%  | 91.31  | +138.28t  | 0.98  
+CVD divergence + 60m_extreme + 15m_trend     | 30b    | 23    | 100.0% | inf    | +250.65t  | 1.13  
+Failed OR breakout + 60m_extreme + 15m_trend | 1b     | 503   | 69.4%  | 3.83   | +13.77t   | 0.40  
+Failed OR breakout + 60m_extreme + 15m_trend | 2b     | 500   | 74.2%  | 6.31   | +25.97t   | 0.56  
+Failed OR breakout + 60m_extreme + 15m_trend | 5b     | 491   | 83.7%  | 14.76  | +54.76t   | 0.83  
+Failed OR breakout + 60m_extreme + 15m_trend | 10b    | 457   | 88.6%  | 33.42  | +93.00t   | 0.88  
+Failed OR breakout + 60m_extreme + 15m_trend | 15b    | 400   | 87.8%  | 28.05  | +102.38t  | 0.86  
+Failed OR breakout + 60m_extreme + 15m_trend | 30b    | 306   | 93.8%  | 157.82 | +137.35t  | 1.23  
+Absorption + 60m_extreme + 15m_trend         | 1b     | 14    | 50.0%  | 3.26   | +17.57t   | 0.36  
+Absorption + 60m_extreme + 15m_trend         | 2b     | 14    | 71.4%  | 7.02   | +41.29t   | 0.66  
+Absorption + 60m_extreme + 15m_trend         | 5b     | 14    | 100.0% | inf    | +80.57t   | 1.92  
+Absorption + 60m_extreme + 15m_trend         | 10b    | 6     | 83.3%  | 118.60 | +98.00t   | 1.71  
+Absorption + 60m_extreme + 15m_trend         | 15b    | 4     | 100.0% | inf    | +75.75t   | 14.78 
+Absorption + 60m_extreme + 15m_trend         | 30b    | 4     | 100.0% | inf    | +116.25t  | 1.19  
+
+Observation units:
+- 60m_extreme + 15m_trend: signal/global_index+direction
+- Doji + 60m_extreme + 15m_trend: bar/global_index
+- CVD divergence + 60m_extreme + 15m_trend: bar/global_index
+- Failed OR breakout + 60m_extreme + 15m_trend: signal/global_index+direction
+- Absorption + 60m_extreme + 15m_trend: absorption/global_index+direction
+
+
+RECOMMENDATION SECTION
+----------------------
+For each setup, hold until the bar count below for maximum risk-adjusted return:
+
+All entries:
+- 60m_extreme + 15m_trend: hold until 15 bars (Sharpe 0.73, Avg +146.57t, N=24,236).
+- Doji + 60m_extreme + 15m_trend: hold until 15 bars (Sharpe 0.80, Avg +150.06t, N=1,282).
+- CVD divergence + 60m_extreme + 15m_trend: hold until 10 bars (Sharpe 0.97, Avg +163.08t, N=793).
+- Failed OR breakout + 60m_extreme + 15m_trend: hold until 15 bars (Sharpe 0.86, Avg +139.91t, N=4,003).
+- Absorption + 60m_extreme + 15m_trend: hold until 10 bars (Sharpe 1.11, Avg +124.21t, N=42).
+
+First-hour entries:
+- 60m_extreme + 15m_trend: hold until 15 bars (Sharpe 0.85, Avg +222.19t, N=3,273).
+- Doji + 60m_extreme + 15m_trend: hold until 10 bars (Sharpe 1.02, Avg +170.50t, N=185).
+- CVD divergence + 60m_extreme + 15m_trend: hold until 15 bars (Sharpe 1.10, Avg +240.32t, N=298).
+- Failed OR breakout + 60m_extreme + 15m_trend: hold until 10 bars (Sharpe 0.78, Avg +130.61t, N=729).
+- Absorption + 60m_extreme + 15m_trend: hold until 15 bars (Sharpe 15.76, Avg +156.00t, N=2).
+
+Last-hour entries:
+- 60m_extreme + 15m_trend: hold until 30 bars (Sharpe 0.91, Avg +184.31t, N=2,296).
+- Doji + 60m_extreme + 15m_trend: hold until 30 bars (Sharpe 1.01, Avg +193.96t, N=138).
+- CVD divergence + 60m_extreme + 15m_trend: hold until 30 bars (Sharpe 1.13, Avg +250.65t, N=23).
+- Failed OR breakout + 60m_extreme + 15m_trend: hold until 30 bars (Sharpe 1.23, Avg +137.35t, N=306).
+- Absorption + 60m_extreme + 15m_trend: hold until 15 bars (Sharpe 14.78, Avg +75.75t, N=4).

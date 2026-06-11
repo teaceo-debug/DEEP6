@@ -19,6 +19,7 @@ class LiveTab(QWidget):
         super().__init__(parent)
         self._bridge = bridge
         self._last_wall_update_time = 0.0
+        self._last_panel_update_time = 0.0
         self._mid_price = 0.0
 
         self._walls_table = WallsTableView(self)
@@ -74,8 +75,11 @@ class LiveTab(QWidget):
                 self._mid_price = sum(prices) / len(prices)
 
         self._walls_table.update_walls(walls)
-        self._gauges.update_gauges(walls, self._mid_price)
-        self._alerts.update_from_walls(walls, self._mid_price)
+        now = time.monotonic()
+        if now - self._last_panel_update_time >= 0.20:
+            self._gauges.update_gauges(walls, self._mid_price)
+            self._alerts.update_from_walls(walls, self._mid_price)
+            self._last_panel_update_time = now
         self._markets_closed_label.setVisible(False)
 
     def _on_refresh_tick(self) -> None:

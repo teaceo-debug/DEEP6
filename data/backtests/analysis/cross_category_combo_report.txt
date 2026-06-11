@@ -1,0 +1,50 @@
+DEEP6 cross-category combo analysis
+===================================
+Source events: C:\Users\Tea\DEEP6\data\backtests\signal_events.csv
+Source bars:   C:\Users\Tea\DEEP6\data\backtests\nq_1yr_1m.csv
+Observation unit: unique same-bar, same-direction grouped signal observation.
+Regime filters: 15m_trend_aligned = signal direction matches 15m bar sign; 60m_extreme = bullish bar_low in bottom 20% of 60m range / bearish bar_high in top 20%.
+TYPE_A / TYPE_B / score_final >= 80 are presence-based within each grouped observation.
+Signal_count uses unique signal_id count. Category_count uses unique category count.
+Status flags: VALIDATED = N>=30 and Wilson lower bound >50%; PROMISING = N>=15 and Wilson lower bound >45%; LOW_N = N<15.
+
+Raw event rows loaded: 1,756,089
+Grouped observations:  254,722
+15m bars built:       30,745
+60m bars built:       7,693
+15m trend aligned:    126,836
+60m extreme:          53,641
+
+Baseline (5-bar window)
+-----------------------
+N=254,712 | WR=49.7% | PF=1.00 | Avg=0.00t | Med=0.00t | CI=[49.5%, 49.9%] | Sharpe=0.00
+
+All 25 combos ranked by 5-bar average return
+--------------------------------------------
+Filter                                                      | N      | WR%    | PF   | Avg Ticks | Med Ticks | Wilson 95% CI   | Sharpe
+------------------------------------------------------------+--------+--------+------+-----------+-----------+-----------------+-------
+13. VOLP_06 + EXH_03 [LOW_N]                                | 2      | 50.0%  | 2.19 | 207.50    | 207.50    | [9.5%, 90.5%]   | 0.26  
+12. VOLP_06 + TRAP_04                                       | 32     | 56.2%  | 1.77 | 104.16    | 56.00     | [39.3%, 71.8%]  | 0.17  
+22. Any TYPE_A bar + 60m_extreme [VALIDATED]                | 637    | 65.3%  | 1.90 | 70.70     | 43.00     | [61.5%, 68.9%]  | 0.17  
+23. score_final >= 80 + 60m_extreme [VALIDATED]             | 799    | 66.5%  | 2.01 | 69.37     | 43.00     | [63.1%, 69.6%]  | 0.18  
+20. DELT_04 + TRAP_04 + 15m_trend_aligned [VALIDATED]       | 286    | 73.8%  | 3.34 | 59.36     | 40.00     | [68.4%, 78.5%]  | 0.31  
+21. Any TYPE_B bar + 60m_extreme [VALIDATED]                | 1,334  | 68.5%  | 2.15 | 54.05     | 44.50     | [66.0%, 71.0%]  | 0.18  
+17. DELT_04 + EXH_03 + 60m_extreme [VALIDATED]              | 1,764  | 68.5%  | 3.83 | 43.75     | 27.00     | [66.3%, 70.7%]  | 0.31  
+24. 3+ categories firing same bar + 60m_extreme [VALIDATED] | 41,253 | 67.7%  | 3.21 | 41.43     | 27.00     | [67.2%, 68.1%]  | 0.27  
+25. 4+ signals firing same bar + 60m_extreme [VALIDATED]    | 48,044 | 68.3%  | 3.23 | 41.17     | 27.00     | [67.9%, 68.7%]  | 0.27  
+15. IMB_03 + 60m_extreme [VALIDATED]                        | 25,375 | 66.4%  | 3.03 | 40.40     | 26.00     | [65.9%, 67.0%]  | 0.27  
+01. DELT_04 + 60m_extreme [VALIDATED]                       | 5,181  | 67.5%  | 3.08 | 38.95     | 25.00     | [66.2%, 68.8%]  | 0.24  
+05. TRAP_04 + 60m_extreme [VALIDATED]                       | 2,634  | 62.1%  | 1.87 | 37.46     | 22.00     | [60.2%, 63.9%]  | 0.14  
+19. IMB_03 + TRAP_04 + 60m_extreme [VALIDATED]              | 2,588  | 62.1%  | 1.86 | 37.16     | 22.00     | [60.2%, 63.9%]  | 0.14  
+16. DELT_04 + TRAP_04 + 60m_extreme [VALIDATED]             | 350    | 64.0%  | 1.66 | 36.51     | 23.00     | [58.8%, 68.9%]  | 0.12  
+03. AUCT_03 + 15m_trend_aligned [PROMISING]                 | 22     | 77.3%  | 6.22 | 34.86     | 25.00     | [56.6%, 89.9%]  | 0.53  
+02. AUCT_03 + 60m_extreme [LOW_N]                           | 3      | 100.0% | inf  | 34.33     | 18.00     | [43.8%, 100.0%] | 1.14  
+07. DELT_04 + AUCT_03 [LOW_N]                               | 4      | 100.0% | inf  | 33.00     | 18.50     | [51.0%, 100.0%] | 1.07  
+06. TRAP_04 + 15m_trend_aligned [VALIDATED]                 | 6,472  | 57.3%  | 1.45 | 20.57     | 13.00     | [56.1%, 58.5%]  | 0.08  
+08. DELT_04 + TRAP_04 [PROMISING]                           | 771    | 52.1%  | 1.35 | 19.27     | 5.00      | [48.6%, 55.6%]  | 0.07  
+14. IMB_03 + TRAP_04 [PROMISING]                            | 9,832  | 49.1%  | 1.08 | 4.29      | -1.00     | [48.2%, 50.1%]  | 0.02  
+09. DELT_04 + EXH_03 [PROMISING]                            | 6,992  | 51.1%  | 1.10 | 3.24      | 2.00      | [49.9%, 52.2%]  | 0.03  
+04. VOLP_06 + 60m_extreme [LOW_N]                           | 12     | 41.7%  | 0.43 | -124.58   | -111.50   | [19.3%, 68.0%]  | -0.34 
+10. AUCT_03 + TRAP_04 [LOW_N]                               | 0      | 0.0%   | nan  | nan       | nan       | [0.0%, 0.0%]    | nan   
+11. AUCT_03 + EXH_03 [LOW_N]                                | 0      | 0.0%   | nan  | nan       | nan       | [0.0%, 0.0%]    | nan   
+18. AUCT_03 + TRAP_04 + 60m_extreme [LOW_N]                 | 0      | 0.0%   | nan  | nan       | nan       | [0.0%, 0.0%]    | nan   

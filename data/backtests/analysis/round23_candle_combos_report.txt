@@ -1,0 +1,54 @@
+DEEP6 round 23 candlestick combo analysis
+==========================================
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+Observation unit: unique signal bar grouped by global_index.
+Pattern direction drives the 60m extreme gate, 15m trend gate, killer exclusion, and signed forward returns.
+Bar color = green when close > open, red when close < open. Doji = body / range < 0.10.
+Morning/evening star, hammer, shooting star, and engulfing definitions follow the round3 candlestick workflow.
+60m + 15m = trade-direction 60m extreme (bull anchor in bottom 20%, bear anchor in top 20%) plus 15m open-close alignment.
+NOT killers = NOT killer_1 (trade anchor in middle 40%-60% of 60m range) AND NOT killer_2 (bar_volume > 3x prior 20-bar EMA).
+first_hour = 09:30-10:29 ET.
+Pattern 15 breakout implementation: current close must break outside the prior two-doji range and current range must exceed 1.5x the prior 20-bar average range.
+Pattern 16 volume spike implementation: the star/doji bar (bar[-1]) volume must be > 2x its own prior 20-bar EMA.
+PF, Avg Ticks, and Wilson CI are reported on the 5-bar horizon; WR columns show 5b / 10b / 30b as requested.
+Rows are sorted by 30b WR, then 10b WR, then 5b WR, then N.
+
+Raw event rows loaded:                             1,767,271
+Grouped observations:                              127,361
+15m bars built:                                    30,745
+60m bars built:                                    7,693
+Non-doji price-color observations:                 125,529
+Core 60m + 15m observations:                       14,088
+Core 60m + 15m + NOT killers + first_hour sample: 2,398
+
+Baselines
+---------
+All non-doji price-color bars:                       N=125,499 | WR5=49.4% | WR10=49.6% | WR30=49.5% | PF5=0.99 | Avg5=-0.24t | CI5=[49.2%, 49.7%] | Persistence=GROWING
+60m + 15m core gate:                                 N=14,084 | WR5=78.5% | WR10=85.4% | WR30=83.1% | PF5=8.09 | Avg5=65.12t | CI5=[77.8%, 79.2%] | Persistence=GROWING
+60m + 15m + NOT killers + first_hour core baseline: N=2,398 | WR5=79.6% | WR10=87.7% | WR30=86.8% | PF5=10.05 | Avg5=98.12t | CI5=[77.9%, 81.1%] | Persistence=GROWING
+
+20 requested candlestick-combo filters sorted by 30b WR
+-----------------------------------------------------
+Filter                                                                                   | N     | WR 5b | WR 10b | WR 30b | PF 5b | Avg Ticks 5b | Wilson 95% CI (5b) | Persistence
+-----------------------------------------------------------------------------------------+-------+-------+--------+--------+-------+--------------+--------------------+------------
+17. Hammer with volume > 2x EMA + 60m + 15m                                              | 13    | 84.6% | 100.0% | 100.0% | 15.39 | 48.69        | [57.8%, 95.7%]     | GROWING    
+19. Morning/evening star + NOT killers + first_hour + 60m + 15m                          | 88    | 76.1% | 90.9%  | 92.0%  | 7.38  | 92.26        | [66.3%, 83.8%]     | GROWING    
+14. Doji after engulfing + 60m + 15m                                                     | 122   | 74.6% | 87.7%  | 87.7%  | 13.07 | 90.89        | [66.2%, 81.5%]     | GROWING    
+12. Shooting star after 2+ green bars + 60m + 15m                                        | 30    | 90.0% | 93.3%  | 86.7%  | 31.86 | 97.73        | [74.4%, 96.5%]     | DECAYING   
+06. Morning star + 60m + 15m                                                             | 267   | 77.5% | 85.8%  | 86.1%  | 5.79  | 61.86        | [72.2%, 82.1%]     | GROWING    
+08. Tweezer bottom + 60m + 15m                                                           | 390   | 81.5% | 89.0%  | 85.6%  | 10.77 | 52.95        | [77.4%, 85.1%]     | GROWING    
+13. Engulfing after doji + 60m + 15m                                                     | 388   | 77.6% | 83.2%  | 85.6%  | 5.56  | 67.78        | [73.2%, 81.4%]     | GROWING    
+05. 2 red bars with increasing range -> green bar + 60m + 15m                            | 901   | 82.2% | 91.0%  | 85.3%  | 14.18 | 80.54        | [79.6%, 84.6%]     | GROWING    
+01. 3 red bars -> green bar + 60m + 15m                                                  | 919   | 81.9% | 91.1%  | 84.2%  | 10.48 | 75.35        | [79.3%, 84.3%]     | GROWING    
+10. Piercing line + 60m + 15m                                                            | 1,028 | 79.0% | 87.6%  | 84.0%  | 9.43  | 79.11        | [76.4%, 81.4%]     | GROWING    
+03. 4+ same-color bars -> opposite color + 60m + 15m                                     | 927   | 83.4% | 88.7%  | 83.5%  | 11.77 | 79.51        | [80.9%, 85.6%]     | GROWING    
+11. Hammer after 2+ red bars + 60m + 15m                                                 | 52    | 75.0% | 88.5%  | 82.7%  | 12.86 | 49.94        | [61.8%, 84.8%]     | GROWING    
+04. Alternating colors last 3 bars + 60m + 15m                                           | 3,632 | 78.1% | 85.0%  | 82.5%  | 7.98  | 64.57        | [76.8%, 79.5%]     | GROWING    
+07. Evening star + 60m + 15m                                                             | 336   | 75.0% | 82.1%  | 81.5%  | 5.40  | 55.49        | [70.1%, 79.3%]     | GROWING    
+02. 3 green bars -> red bar + 60m + 15m                                                  | 1,051 | 80.0% | 85.9%  | 81.3%  | 7.95  | 70.50        | [77.5%, 82.3%]     | GROWING    
+18. Engulfing with volume > prior bar volume + 60m + 15m                                 | 1,030 | 75.2% | 81.3%  | 78.0%  | 5.78  | 60.34        | [72.5%, 77.8%]     | GROWING    
+09. Tweezer top + 60m + 15m                                                              | 600   | 76.5% | 84.3%  | 77.7%  | 7.53  | 42.02        | [72.9%, 79.7%]     | GROWING    
+20. Hammer/shooting star after 2+ same-color bars + NOT killers + first_hour + 60m + 15m | 15    | 66.7% | 86.7%  | 66.7%  | 11.13 | 66.87        | [41.7%, 84.8%]     | STABLE     
+15. Double doji -> breakout bar + 60m + 15m                                              | 18    | 77.8% | 66.7%  | 66.7%  | 2.20  | 42.22        | [54.8%, 91.0%]     | DECAYING   
+16. Morning/evening star + volume spike on star bar + 60m + 15m                          | 12    | 50.0% | 58.3%  | 66.7%  | 6.54  | 82.67        | [25.4%, 74.6%]     | GROWING    

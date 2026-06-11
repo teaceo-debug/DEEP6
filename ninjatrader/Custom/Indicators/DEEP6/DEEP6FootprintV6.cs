@@ -388,7 +388,7 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             if (!ShowLiquidityWalls)
             {
                 if (_scorerRegistry != null && _scorerSession != null)
-                    _scorerRegistry.DispatchDepth(_scorerSession, side, e.Position, e.Price, newSize, priorSize);
+                    _scorerRegistry.DispatchDepth(_scorerSession, side, e.Position, e.Price, (double)newSize, (double)(priorSize ?? 0));
                 return;
             }
 
@@ -418,7 +418,7 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
             }
 
             if (_scorerRegistry != null && _scorerSession != null)
-                _scorerRegistry.DispatchDepth(_scorerSession, side, e.Position, e.Price, newSize, priorSize);
+                _scorerRegistry.DispatchDepth(_scorerSession, side, e.Position, e.Price, (double)newSize, (double)(priorSize ?? 0));
         }
 
         private static void PruneL2(Dictionary<double, L2LevelState> dict)
@@ -2606,3 +2606,60 @@ namespace NinjaTrader.NinjaScript.Indicators.DEEP6
         #endregion
     }
 }
+
+#region NinjaScript generated code. Neither change nor remove.
+
+namespace NinjaTrader.NinjaScript.Indicators
+{
+	public partial class Indicator : NinjaTrader.Gui.NinjaScript.IndicatorRenderBase
+	{
+		private DEEP6.DEEP6FootprintV6[] cacheDEEP6FootprintV6;
+		public DEEP6.DEEP6FootprintV6 DEEP6FootprintV6(double imbalanceRatio, double absorbWickMinPct, double exhaustWickMinPct, bool showFootprintCells, bool showMissionControl, int missionControlWidth, bool showMcActiveSignal, bool showMcStatus, bool showMcDayPnL, bool showMcPosition, bool showMcSignalsList, bool showMcActionBar, bool showTier1Overlay, bool showTier3Dots, int armedSignalValidBars, bool showPoc, bool showValueArea, bool showAbsorptionMarkers, bool showExhaustionMarkers, float cellFontSize, int cellColumnWidth, bool showProfileAnchors, bool showPriorDayLevels, bool showNakedPocs, bool showCompositeVA, int nakedPocMaxAgeSessions, bool showLiquidityWalls, int liquidityWallMin, int liquidityWallStaleSec, int liquidityMaxPerSide, bool showChartTrader)
+		{
+			return DEEP6FootprintV6(Input, imbalanceRatio, absorbWickMinPct, exhaustWickMinPct, showFootprintCells, showMissionControl, missionControlWidth, showMcActiveSignal, showMcStatus, showMcDayPnL, showMcPosition, showMcSignalsList, showMcActionBar, showTier1Overlay, showTier3Dots, armedSignalValidBars, showPoc, showValueArea, showAbsorptionMarkers, showExhaustionMarkers, cellFontSize, cellColumnWidth, showProfileAnchors, showPriorDayLevels, showNakedPocs, showCompositeVA, nakedPocMaxAgeSessions, showLiquidityWalls, liquidityWallMin, liquidityWallStaleSec, liquidityMaxPerSide, showChartTrader);
+		}
+
+		public DEEP6.DEEP6FootprintV6 DEEP6FootprintV6(ISeries<double> input, double imbalanceRatio, double absorbWickMinPct, double exhaustWickMinPct, bool showFootprintCells, bool showMissionControl, int missionControlWidth, bool showMcActiveSignal, bool showMcStatus, bool showMcDayPnL, bool showMcPosition, bool showMcSignalsList, bool showMcActionBar, bool showTier1Overlay, bool showTier3Dots, int armedSignalValidBars, bool showPoc, bool showValueArea, bool showAbsorptionMarkers, bool showExhaustionMarkers, float cellFontSize, int cellColumnWidth, bool showProfileAnchors, bool showPriorDayLevels, bool showNakedPocs, bool showCompositeVA, int nakedPocMaxAgeSessions, bool showLiquidityWalls, int liquidityWallMin, int liquidityWallStaleSec, int liquidityMaxPerSide, bool showChartTrader)
+		{
+			if (cacheDEEP6FootprintV6 != null)
+				for (int idx = 0; idx < cacheDEEP6FootprintV6.Length; idx++)
+					if (cacheDEEP6FootprintV6[idx] != null && cacheDEEP6FootprintV6[idx].ImbalanceRatio == imbalanceRatio && cacheDEEP6FootprintV6[idx].AbsorbWickMinPct == absorbWickMinPct && cacheDEEP6FootprintV6[idx].ExhaustWickMinPct == exhaustWickMinPct && cacheDEEP6FootprintV6[idx].ShowFootprintCells == showFootprintCells && cacheDEEP6FootprintV6[idx].ShowMissionControl == showMissionControl && cacheDEEP6FootprintV6[idx].MissionControlWidth == missionControlWidth && cacheDEEP6FootprintV6[idx].ShowMcActiveSignal == showMcActiveSignal && cacheDEEP6FootprintV6[idx].ShowMcStatus == showMcStatus && cacheDEEP6FootprintV6[idx].ShowMcDayPnL == showMcDayPnL && cacheDEEP6FootprintV6[idx].ShowMcPosition == showMcPosition && cacheDEEP6FootprintV6[idx].ShowMcSignalsList == showMcSignalsList && cacheDEEP6FootprintV6[idx].ShowMcActionBar == showMcActionBar && cacheDEEP6FootprintV6[idx].ShowTier1Overlay == showTier1Overlay && cacheDEEP6FootprintV6[idx].ShowTier3Dots == showTier3Dots && cacheDEEP6FootprintV6[idx].ArmedSignalValidBars == armedSignalValidBars && cacheDEEP6FootprintV6[idx].ShowPoc == showPoc && cacheDEEP6FootprintV6[idx].ShowValueArea == showValueArea && cacheDEEP6FootprintV6[idx].ShowAbsorptionMarkers == showAbsorptionMarkers && cacheDEEP6FootprintV6[idx].ShowExhaustionMarkers == showExhaustionMarkers && cacheDEEP6FootprintV6[idx].CellFontSize == cellFontSize && cacheDEEP6FootprintV6[idx].CellColumnWidth == cellColumnWidth && cacheDEEP6FootprintV6[idx].ShowProfileAnchors == showProfileAnchors && cacheDEEP6FootprintV6[idx].ShowPriorDayLevels == showPriorDayLevels && cacheDEEP6FootprintV6[idx].ShowNakedPocs == showNakedPocs && cacheDEEP6FootprintV6[idx].ShowCompositeVA == showCompositeVA && cacheDEEP6FootprintV6[idx].NakedPocMaxAgeSessions == nakedPocMaxAgeSessions && cacheDEEP6FootprintV6[idx].ShowLiquidityWalls == showLiquidityWalls && cacheDEEP6FootprintV6[idx].LiquidityWallMin == liquidityWallMin && cacheDEEP6FootprintV6[idx].LiquidityWallStaleSec == liquidityWallStaleSec && cacheDEEP6FootprintV6[idx].LiquidityMaxPerSide == liquidityMaxPerSide && cacheDEEP6FootprintV6[idx].ShowChartTrader == showChartTrader && cacheDEEP6FootprintV6[idx].EqualsInput(input))
+						return cacheDEEP6FootprintV6[idx];
+			return CacheIndicator<DEEP6.DEEP6FootprintV6>(new DEEP6.DEEP6FootprintV6(){ ImbalanceRatio = imbalanceRatio, AbsorbWickMinPct = absorbWickMinPct, ExhaustWickMinPct = exhaustWickMinPct, ShowFootprintCells = showFootprintCells, ShowMissionControl = showMissionControl, MissionControlWidth = missionControlWidth, ShowMcActiveSignal = showMcActiveSignal, ShowMcStatus = showMcStatus, ShowMcDayPnL = showMcDayPnL, ShowMcPosition = showMcPosition, ShowMcSignalsList = showMcSignalsList, ShowMcActionBar = showMcActionBar, ShowTier1Overlay = showTier1Overlay, ShowTier3Dots = showTier3Dots, ArmedSignalValidBars = armedSignalValidBars, ShowPoc = showPoc, ShowValueArea = showValueArea, ShowAbsorptionMarkers = showAbsorptionMarkers, ShowExhaustionMarkers = showExhaustionMarkers, CellFontSize = cellFontSize, CellColumnWidth = cellColumnWidth, ShowProfileAnchors = showProfileAnchors, ShowPriorDayLevels = showPriorDayLevels, ShowNakedPocs = showNakedPocs, ShowCompositeVA = showCompositeVA, NakedPocMaxAgeSessions = nakedPocMaxAgeSessions, ShowLiquidityWalls = showLiquidityWalls, LiquidityWallMin = liquidityWallMin, LiquidityWallStaleSec = liquidityWallStaleSec, LiquidityMaxPerSide = liquidityMaxPerSide, ShowChartTrader = showChartTrader }, input, ref cacheDEEP6FootprintV6);
+		}
+	}
+}
+
+namespace NinjaTrader.NinjaScript.MarketAnalyzerColumns
+{
+	public partial class MarketAnalyzerColumn : MarketAnalyzerColumnBase
+	{
+		public Indicators.DEEP6.DEEP6FootprintV6 DEEP6FootprintV6(double imbalanceRatio, double absorbWickMinPct, double exhaustWickMinPct, bool showFootprintCells, bool showMissionControl, int missionControlWidth, bool showMcActiveSignal, bool showMcStatus, bool showMcDayPnL, bool showMcPosition, bool showMcSignalsList, bool showMcActionBar, bool showTier1Overlay, bool showTier3Dots, int armedSignalValidBars, bool showPoc, bool showValueArea, bool showAbsorptionMarkers, bool showExhaustionMarkers, float cellFontSize, int cellColumnWidth, bool showProfileAnchors, bool showPriorDayLevels, bool showNakedPocs, bool showCompositeVA, int nakedPocMaxAgeSessions, bool showLiquidityWalls, int liquidityWallMin, int liquidityWallStaleSec, int liquidityMaxPerSide, bool showChartTrader)
+		{
+			return indicator.DEEP6FootprintV6(Input, imbalanceRatio, absorbWickMinPct, exhaustWickMinPct, showFootprintCells, showMissionControl, missionControlWidth, showMcActiveSignal, showMcStatus, showMcDayPnL, showMcPosition, showMcSignalsList, showMcActionBar, showTier1Overlay, showTier3Dots, armedSignalValidBars, showPoc, showValueArea, showAbsorptionMarkers, showExhaustionMarkers, cellFontSize, cellColumnWidth, showProfileAnchors, showPriorDayLevels, showNakedPocs, showCompositeVA, nakedPocMaxAgeSessions, showLiquidityWalls, liquidityWallMin, liquidityWallStaleSec, liquidityMaxPerSide, showChartTrader);
+		}
+
+		public Indicators.DEEP6.DEEP6FootprintV6 DEEP6FootprintV6(ISeries<double> input , double imbalanceRatio, double absorbWickMinPct, double exhaustWickMinPct, bool showFootprintCells, bool showMissionControl, int missionControlWidth, bool showMcActiveSignal, bool showMcStatus, bool showMcDayPnL, bool showMcPosition, bool showMcSignalsList, bool showMcActionBar, bool showTier1Overlay, bool showTier3Dots, int armedSignalValidBars, bool showPoc, bool showValueArea, bool showAbsorptionMarkers, bool showExhaustionMarkers, float cellFontSize, int cellColumnWidth, bool showProfileAnchors, bool showPriorDayLevels, bool showNakedPocs, bool showCompositeVA, int nakedPocMaxAgeSessions, bool showLiquidityWalls, int liquidityWallMin, int liquidityWallStaleSec, int liquidityMaxPerSide, bool showChartTrader)
+		{
+			return indicator.DEEP6FootprintV6(input, imbalanceRatio, absorbWickMinPct, exhaustWickMinPct, showFootprintCells, showMissionControl, missionControlWidth, showMcActiveSignal, showMcStatus, showMcDayPnL, showMcPosition, showMcSignalsList, showMcActionBar, showTier1Overlay, showTier3Dots, armedSignalValidBars, showPoc, showValueArea, showAbsorptionMarkers, showExhaustionMarkers, cellFontSize, cellColumnWidth, showProfileAnchors, showPriorDayLevels, showNakedPocs, showCompositeVA, nakedPocMaxAgeSessions, showLiquidityWalls, liquidityWallMin, liquidityWallStaleSec, liquidityMaxPerSide, showChartTrader);
+		}
+	}
+}
+
+namespace NinjaTrader.NinjaScript.Strategies
+{
+	public partial class Strategy : NinjaTrader.Gui.NinjaScript.StrategyRenderBase
+	{
+		public Indicators.DEEP6.DEEP6FootprintV6 DEEP6FootprintV6(double imbalanceRatio, double absorbWickMinPct, double exhaustWickMinPct, bool showFootprintCells, bool showMissionControl, int missionControlWidth, bool showMcActiveSignal, bool showMcStatus, bool showMcDayPnL, bool showMcPosition, bool showMcSignalsList, bool showMcActionBar, bool showTier1Overlay, bool showTier3Dots, int armedSignalValidBars, bool showPoc, bool showValueArea, bool showAbsorptionMarkers, bool showExhaustionMarkers, float cellFontSize, int cellColumnWidth, bool showProfileAnchors, bool showPriorDayLevels, bool showNakedPocs, bool showCompositeVA, int nakedPocMaxAgeSessions, bool showLiquidityWalls, int liquidityWallMin, int liquidityWallStaleSec, int liquidityMaxPerSide, bool showChartTrader)
+		{
+			return indicator.DEEP6FootprintV6(Input, imbalanceRatio, absorbWickMinPct, exhaustWickMinPct, showFootprintCells, showMissionControl, missionControlWidth, showMcActiveSignal, showMcStatus, showMcDayPnL, showMcPosition, showMcSignalsList, showMcActionBar, showTier1Overlay, showTier3Dots, armedSignalValidBars, showPoc, showValueArea, showAbsorptionMarkers, showExhaustionMarkers, cellFontSize, cellColumnWidth, showProfileAnchors, showPriorDayLevels, showNakedPocs, showCompositeVA, nakedPocMaxAgeSessions, showLiquidityWalls, liquidityWallMin, liquidityWallStaleSec, liquidityMaxPerSide, showChartTrader);
+		}
+
+		public Indicators.DEEP6.DEEP6FootprintV6 DEEP6FootprintV6(ISeries<double> input , double imbalanceRatio, double absorbWickMinPct, double exhaustWickMinPct, bool showFootprintCells, bool showMissionControl, int missionControlWidth, bool showMcActiveSignal, bool showMcStatus, bool showMcDayPnL, bool showMcPosition, bool showMcSignalsList, bool showMcActionBar, bool showTier1Overlay, bool showTier3Dots, int armedSignalValidBars, bool showPoc, bool showValueArea, bool showAbsorptionMarkers, bool showExhaustionMarkers, float cellFontSize, int cellColumnWidth, bool showProfileAnchors, bool showPriorDayLevels, bool showNakedPocs, bool showCompositeVA, int nakedPocMaxAgeSessions, bool showLiquidityWalls, int liquidityWallMin, int liquidityWallStaleSec, int liquidityMaxPerSide, bool showChartTrader)
+		{
+			return indicator.DEEP6FootprintV6(input, imbalanceRatio, absorbWickMinPct, exhaustWickMinPct, showFootprintCells, showMissionControl, missionControlWidth, showMcActiveSignal, showMcStatus, showMcDayPnL, showMcPosition, showMcSignalsList, showMcActionBar, showTier1Overlay, showTier3Dots, armedSignalValidBars, showPoc, showValueArea, showAbsorptionMarkers, showExhaustionMarkers, cellFontSize, cellColumnWidth, showProfileAnchors, showPriorDayLevels, showNakedPocs, showCompositeVA, nakedPocMaxAgeSessions, showLiquidityWalls, liquidityWallMin, liquidityWallStaleSec, liquidityMaxPerSide, showChartTrader);
+		}
+	}
+}
+
+#endregion

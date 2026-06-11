@@ -1,0 +1,182 @@
+{
+  "dataset_rows_rth": 26550,
+  "sessions": 69,
+  "v1": {
+    "trades": 2165,
+    "tb": {
+      "trades": 2165,
+      "avg_tb_pts": -0.785,
+      "win_rate": 33.8,
+      "sum_tb_pts": -1699.6
+    },
+    "combos": {
+      "none": {
+        "trades": 1759,
+        "avg_tb_pts": -0.559,
+        "win_rate": 34.2,
+        "sum_tb_pts": -983.0
+      },
+      "stable_workhorse": {
+        "trades": 170,
+        "avg_tb_pts": -5.262,
+        "win_rate": 25.9,
+        "sum_tb_pts": -894.6
+      },
+      "doji_adaptive": {
+        "trades": 66,
+        "avg_tb_pts": 0.897,
+        "win_rate": 36.4,
+        "sum_tb_pts": 59.2
+      },
+      "cvd_div": {
+        "trades": 47,
+        "avg_tb_pts": 5.112,
+        "win_rate": 42.6,
+        "sum_tb_pts": 240.2
+      },
+      "failed_or": {
+        "trades": 44,
+        "avg_tb_pts": 9.007,
+        "win_rate": 52.3,
+        "sum_tb_pts": 396.3
+      },
+      "absorption+doji_adaptive": {
+        "trades": 30,
+        "avg_tb_pts": -5.634,
+        "win_rate": 23.3,
+        "sum_tb_pts": -169.0
+      },
+      "absorption": {
+        "trades": 13,
+        "avg_tb_pts": -5.358,
+        "win_rate": 23.1,
+        "sum_tb_pts": -69.6
+      },
+      "failed_or+stable_workhorse": {
+        "trades": 9,
+        "avg_tb_pts": -13.934,
+        "win_rate": 11.1,
+        "sum_tb_pts": -125.4
+      },
+      "cvd_div+failed_or": {
+        "trades": 6,
+        "avg_tb_pts": -18.017,
+        "win_rate": 33.3,
+        "sum_tb_pts": -108.1
+      },
+      "absorption+doji_adaptive+stable_workhorse": {
+        "trades": 4,
+        "avg_tb_pts": -3.368,
+        "win_rate": 25.0,
+        "sum_tb_pts": -13.5
+      },
+      "doji_adaptive+stable_workhorse": {
+        "trades": 4,
+        "avg_tb_pts": 15.73,
+        "win_rate": 50.0,
+        "sum_tb_pts": 62.9
+      },
+      "cvd_div+narrow_cvd": {
+        "trades": 3,
+        "avg_tb_pts": 13.367,
+        "win_rate": 33.3,
+        "sum_tb_pts": 40.1
+      },
+      "cvd_div+stable_workhorse": {
+        "trades": 3,
+        "avg_tb_pts": -27.393,
+        "win_rate": 0.0,
+        "sum_tb_pts": -82.2
+      },
+      "cvd_div+doji_adaptive": {
+        "trades": 2,
+        "avg_tb_pts": -17.805,
+        "win_rate": 0.0,
+        "sum_tb_pts": -35.6
+      },
+      "cvd_div+failed_or+stable_workhorse": {
+        "trades": 2,
+        "avg_tb_pts": -23.84,
+        "win_rate": 0.0,
+        "sum_tb_pts": -47.7
+      },
+      "absorption+stable_workhorse": {
+        "trades": 1,
+        "avg_tb_pts": 48.281,
+        "win_rate": 100.0,
+        "sum_tb_pts": 48.3
+      },
+      "cvd_div+narrow_cvd+stable_workhorse": {
+        "trades": 1,
+        "avg_tb_pts": -36.33,
+        "win_rate": 0.0,
+        "sum_tb_pts": -36.3
+      },
+      "doji_adaptive+failed_or": {
+        "trades": 1,
+        "avg_tb_pts": 18.431,
+        "win_rate": 100.0,
+        "sum_tb_pts": 18.4
+      }
+    }
+  },
+  "v2": {
+    "trades": 15,
+    "tb": {
+      "trades": 15,
+      "avg_tb_pts": -17.011,
+      "win_rate": 13.3,
+      "sum_tb_pts": -255.2
+    },
+    "combos": {
+      "absorption+doji_adaptive+stable_workhorse": {
+        "trades": 3,
+        "avg_tb_pts": -20.403,
+        "win_rate": 0.0,
+        "sum_tb_pts": -61.2
+      },
+      "cvd_div+failed_or": {
+        "trades": 3,
+        "avg_tb_pts": -42.62,
+        "win_rate": 0.0,
+        "sum_tb_pts": -127.9
+      },
+      "doji_adaptive+stable_workhorse": {
+        "trades": 3,
+        "avg_tb_pts": 31.333,
+        "win_rate": 66.7,
+        "sum_tb_pts": 94.0
+      },
+      "cvd_div+failed_or+stable_workhorse": {
+        "trades": 2,
+        "avg_tb_pts": -23.84,
+        "win_rate": 0.0,
+        "sum_tb_pts": -47.7
+      },
+      "absorption+doji_adaptive": {
+        "trades": 1,
+        "avg_tb_pts": -23.54,
+        "win_rate": 0.0,
+        "sum_tb_pts": -23.5
+      },
+      "cvd_div+narrow_cvd": {
+        "trades": 1,
+        "avg_tb_pts": -36.33,
+        "win_rate": 0.0,
+        "sum_tb_pts": -36.3
+      },
+      "cvd_div+stable_workhorse": {
+        "trades": 1,
+        "avg_tb_pts": -31.88,
+        "win_rate": 0.0,
+        "sum_tb_pts": -31.9
+      },
+      "failed_or+stable_workhorse": {
+        "trades": 1,
+        "avg_tb_pts": -20.66,
+        "win_rate": 0.0,
+        "sum_tb_pts": -20.7
+      }
+    }
+  }
+}

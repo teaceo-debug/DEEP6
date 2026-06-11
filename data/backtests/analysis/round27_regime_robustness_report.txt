@@ -1,0 +1,148 @@
+DEEP6 round27 regime robustness analysis
+========================================
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+
+Requested regime periods:
+- Q1-Q2 2025 = 2025-01-01 through 2025-06-30
+- Q3-Q4 2025 = 2025-07-01 through 2025-12-31
+- Q1 2026    = 2026-01-01 through 2026-03-31
+- Q2 2026    = 2026-04-01 through 2026-04-30
+
+Flag rules:
+- ROBUST if WR > 55% in all 4 periods, no period has PF < 1.0, and max WR spread < 20pp.
+- FRAGILE if any period has WR < 45% or any period has PF < 0.5.
+- NEITHER otherwise. Coverage below 4/4 automatically blocks ROBUST.
+
+Implementation notes:
+- 60m + 15m uses the established core gate: trade-direction 60m extreme plus 15m trend alignment.
+- NOT killers = NOT killer_1 (trade anchor in middle 40%-60% of 60m range) AND NOT killer_2 (bar_volume > 3x prior 20-bar EMA).
+- Doji / 3 narrowing ranges / 2-bar price-delta divergence / 60m context follow round2_novel_bar_patterns.py.
+- Morning/evening star and engulfing follow the round23 / round3 candlestick workflow.
+- Absorption uses unique same-bar, same-direction absorption observations.
+- DELT_04 + TRAP_04 + 15m_trend uses unique same-bar, same-direction grouped signal observations.
+
+Raw event rows loaded:              1,767,271
+Grouped bar observations:           127,361
+Grouped signal-direction obs:       254,722
+Grouped absorption observations:    901
+15m bars built:                     30,745
+60m bars built:                     7,693
+
+Setup summary
+-------------
+Setup                                    | Total N | WR 5b | PF    | Avg    | Status | Coverage | WR Spread | Notes
+-----------------------------------------+---------+-------+-------+--------+--------+----------+-----------+------
+01. 60m + 15m (base)                     | 14,568  | 78.6% | 8.00  | 65.05t | ROBUST | 4/4      | 1.5pp     |      
+02. 60m + 15m + NOT killers + first_hour | 2,457   | 79.5% | 9.91  | 97.82t | ROBUST | 4/4      | 3.8pp     |      
+03. Doji + 60m + 15m                     | 1,340   | 80.6% | 7.79  | 66.89t | ROBUST | 4/4      | 6.1pp     |      
+04. CVD divergence + 60m + 15m           | 807     | 82.4% | 15.05 | 97.45t | ROBUST | 4/4      | 4.3pp     |      
+05. |delta|/vol < 0.05 + 60m + 15m       | 587     | 82.8% | 14.37 | 74.39t | ROBUST | 4/4      | 8.9pp     |      
+06. 3 narrowing ranges + 60m + 15m       | 1,970   | 81.6% | 12.43 | 75.82t | ROBUST | 4/4      | 2.3pp     |      
+07. Morning/evening star + 60m + 15m     | 604     | 76.2% | 5.58  | 58.27t | ROBUST | 4/4      | 14.9pp    |      
+08. absorption + 60m + 15m               | 50      | 88.0% | 36.72 | 82.88t | ROBUST | 4/4      | 15.4pp    |      
+09. DELT_04 + TRAP_04 + 15m_trend        | 286     | 73.8% | 3.34  | 59.36t | ROBUST | 4/4      | 16.5pp    |      
+10. Engulfing + 60m + 15m                | 1,756   | 76.7% | 6.50  | 65.13t | ROBUST | 4/4      | 6.3pp     |      
+
+Detailed setup-by-period metrics
+------------------------------
+
+01. 60m + 15m (base)
+Status: ROBUST | Coverage: 4/4 | WR spread: 1.5pp
+Full sample: N=14,568 | WR 5b=78.6% | PF=8.00 | Avg=65.05t | CI=[77.9%, 79.2%]
+Period     | N     | WR 5b | PF   | Avg Ticks | Wilson 95% CI 
+-----------+-------+-------+------+-----------+---------------
+Q1-Q2 2025 | 5,538 | 78.2% | 7.15 | 70.71t    | [77.1%, 79.3%]
+Q3-Q4 2025 | 5,495 | 78.3% | 8.91 | 54.99t    | [77.2%, 79.4%]
+Q1 2026    | 2,783 | 79.7% | 8.33 | 74.18t    | [78.2%, 81.2%]
+Q2 2026    | 752   | 78.9% | 9.74 | 63.11t    | [75.8%, 81.6%]
+
+02. 60m + 15m + NOT killers + first_hour
+Status: ROBUST | Coverage: 4/4 | WR spread: 3.8pp
+Full sample: N=2,457 | WR 5b=79.5% | PF=9.91 | Avg=97.82t | CI=[77.9%, 81.1%]
+Period     | N   | WR 5b | PF    | Avg Ticks | Wilson 95% CI 
+-----------+-----+-------+-------+-----------+---------------
+Q1-Q2 2025 | 875 | 81.8% | 12.98 | 111.49t   | [79.1%, 84.2%]
+Q3-Q4 2025 | 942 | 78.0% | 8.88  | 80.55t    | [75.3%, 80.6%]
+Q1 2026    | 500 | 78.0% | 7.83  | 110.20t   | [74.2%, 81.4%]
+Q2 2026    | 140 | 80.7% | 11.40 | 84.29t    | [73.4%, 86.4%]
+
+03. Doji + 60m + 15m
+Status: ROBUST | Coverage: 4/4 | WR spread: 6.1pp
+Full sample: N=1,340 | WR 5b=80.6% | PF=7.79 | Avg=66.89t | CI=[78.4%, 82.6%]
+Period     | N   | WR 5b | PF    | Avg Ticks | Wilson 95% CI 
+-----------+-----+-------+-------+-----------+---------------
+Q1-Q2 2025 | 524 | 81.9% | 6.73  | 69.76t    | [78.3%, 84.9%]
+Q3-Q4 2025 | 480 | 80.2% | 12.26 | 63.52t    | [76.4%, 83.5%]
+Q1 2026    | 270 | 80.0% | 6.02  | 66.38t    | [74.8%, 84.3%]
+Q2 2026    | 66  | 75.8% | 9.74  | 70.74t    | [64.2%, 84.5%]
+
+04. CVD divergence + 60m + 15m
+Status: ROBUST | Coverage: 4/4 | WR spread: 4.3pp
+Full sample: N=807 | WR 5b=82.4% | PF=15.05 | Avg=97.45t | CI=[79.6%, 84.9%]
+Period     | N   | WR 5b | PF    | Avg Ticks | Wilson 95% CI 
+-----------+-----+-------+-------+-----------+---------------
+Q1-Q2 2025 | 339 | 80.2% | 11.59 | 97.76t    | [75.7%, 84.1%]
+Q3-Q4 2025 | 265 | 84.5% | 25.20 | 88.75t    | [79.7%, 88.4%]
+Q1 2026    | 156 | 83.3% | 15.40 | 113.64t   | [76.7%, 88.4%]
+Q2 2026    | 47  | 83.0% | 16.99 | 90.49t    | [69.9%, 91.1%]
+
+05. |delta|/vol < 0.05 + 60m + 15m
+Status: ROBUST | Coverage: 4/4 | WR spread: 8.9pp
+Full sample: N=587 | WR 5b=82.8% | PF=14.37 | Avg=74.39t | CI=[79.5%, 85.6%]
+Period     | N   | WR 5b | PF    | Avg Ticks | Wilson 95% CI 
+-----------+-----+-------+-------+-----------+---------------
+Q1-Q2 2025 | 219 | 85.4% | 13.31 | 79.92t    | [80.1%, 89.5%]
+Q3-Q4 2025 | 208 | 80.8% | 14.17 | 62.03t    | [74.9%, 85.5%]
+Q1 2026    | 126 | 83.3% | 16.17 | 85.70t    | [75.9%, 88.8%]
+Q2 2026    | 34  | 76.5% | 17.30 | 72.41t    | [60.0%, 87.6%]
+
+06. 3 narrowing ranges + 60m + 15m
+Status: ROBUST | Coverage: 4/4 | WR spread: 2.3pp
+Full sample: N=1,970 | WR 5b=81.6% | PF=12.43 | Avg=75.82t | CI=[79.9%, 83.3%]
+Period     | N   | WR 5b | PF    | Avg Ticks | Wilson 95% CI 
+-----------+-----+-------+-------+-----------+---------------
+Q1-Q2 2025 | 794 | 81.0% | 11.22 | 83.54t    | [78.1%, 83.6%]
+Q3-Q4 2025 | 729 | 81.3% | 11.60 | 59.80t    | [78.4%, 84.0%]
+Q1 2026    | 365 | 83.3% | 16.92 | 90.84t    | [79.1%, 86.8%]
+Q2 2026    | 82  | 82.9% | 17.30 | 76.54t    | [73.4%, 89.5%]
+
+07. Morning/evening star + 60m + 15m
+Status: ROBUST | Coverage: 4/4 | WR spread: 14.9pp
+Full sample: N=604 | WR 5b=76.2% | PF=5.58 | Avg=58.27t | CI=[72.6%, 79.4%]
+Period     | N   | WR 5b | PF   | Avg Ticks | Wilson 95% CI 
+-----------+-----+-------+------+-----------+---------------
+Q1-Q2 2025 | 237 | 75.1% | 3.75 | 51.72t    | [69.2%, 80.2%]
+Q3-Q4 2025 | 212 | 76.4% | 8.71 | 57.28t    | [70.3%, 81.6%]
+Q1 2026    | 123 | 80.5% | 9.74 | 79.28t    | [72.6%, 86.5%]
+Q2 2026    | 32  | 65.6% | 2.97 | 32.69t    | [48.3%, 79.6%]
+
+08. absorption + 60m + 15m
+Status: ROBUST | Coverage: 4/4 | WR spread: 15.4pp
+Full sample: N=50 | WR 5b=88.0% | PF=36.72 | Avg=82.88t | CI=[76.2%, 94.4%]
+Period     | N  | WR 5b  | PF    | Avg Ticks | Wilson 95% CI  
+-----------+----+--------+-------+-----------+----------------
+Q1-Q2 2025 | 14 | 85.7%  | 28.31 | 62.43t    | [60.1%, 96.0%] 
+Q3-Q4 2025 | 19 | 89.5%  | 67.64 | 77.16t    | [68.6%, 97.1%] 
+Q1 2026    | 13 | 84.6%  | 21.69 | 98.69t    | [57.8%, 95.7%] 
+Q2 2026    | 4  | 100.0% | inf   | 130.25t   | [51.0%, 100.0%]
+
+09. DELT_04 + TRAP_04 + 15m_trend
+Status: ROBUST | Coverage: 4/4 | WR spread: 16.5pp
+Full sample: N=286 | WR 5b=73.8% | PF=3.34 | Avg=59.36t | CI=[68.4%, 78.5%]
+Period     | N   | WR 5b | PF    | Avg Ticks | Wilson 95% CI 
+-----------+-----+-------+-------+-----------+---------------
+Q1-Q2 2025 | 120 | 74.2% | 2.26  | 42.93t    | [65.7%, 81.2%]
+Q3-Q4 2025 | 94  | 73.4% | 5.22  | 78.84t    | [63.7%, 81.3%]
+Q1 2026    | 57  | 70.2% | 3.45  | 56.04t    | [57.3%, 80.5%]
+Q2 2026    | 15  | 86.7% | 13.85 | 81.40t    | [62.1%, 96.3%]
+
+10. Engulfing + 60m + 15m
+Status: ROBUST | Coverage: 4/4 | WR spread: 6.3pp
+Full sample: N=1,756 | WR 5b=76.7% | PF=6.50 | Avg=65.13t | CI=[74.6%, 78.6%]
+Period     | N   | WR 5b | PF    | Avg Ticks | Wilson 95% CI 
+-----------+-----+-------+-------+-----------+---------------
+Q1-Q2 2025 | 694 | 75.9% | 5.99  | 73.12t    | [72.6%, 79.0%]
+Q3-Q4 2025 | 630 | 75.9% | 6.75  | 50.61t    | [72.4%, 79.1%]
+Q1 2026    | 348 | 78.2% | 6.86  | 77.14t    | [73.5%, 82.2%]
+Q2 2026    | 84  | 82.1% | 10.92 | 58.24t    | [72.6%, 88.9%]

@@ -1,0 +1,74 @@
+DEEP6 round33 dynamic threshold analysis
+=======================================
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+Observation unit: unique signal bar grouped by global_index.
+Trade direction for scoring: sign(bar_delta). Zero-delta bars are excluded from returns.
+60m gate = bullish bar_low in bottom 20% of active 60m range / bearish bar_high in top 20% of active 60m range.
+15m gate = trade direction matches 15m open-close trend sign.
+Adaptive rolling thresholds use the PRIOR 50 deduped signal bars within each session.
+Volume EMA uses the PRIOR 20 signal bars within each session. ATR20 = rolling 20-bar mean of true range on deduped signal bars.
+Session-relative filters use the expanding mean of PRIOR bars within the same session.
+Doji = body < 20% of range.
+KILLER_1 = trade-direction anchor sits in the middle 40-60% of the active 60m range. KILLER_2 = bar_volume > 3x prior 20-bar EMA volume.
+Stable vol for filter 18 = vol-of-vol(ATR20) below its prior 50-bar rolling 25th percentile within the session.
+Fixed thresholds: range q25 and median volume are computed from the full non-zero-delta deduped signal-bar sample.
+PF / Avg Ticks columns use 5-bar trade returns, matching prior round scripts.
+Persistence: GROWING if WR_30b > WR_5b; STABLE if WR_30b is within 3 percentage points of WR_5b without growth; DECAYING otherwise.
+
+Raw event rows loaded:                    1,767,271
+Grouped signal bars:                      127,361
+Non-zero-delta trade sample:              127,165
+15m bars built:                           30,745
+60m bars built:                           7,693
+Core 60m + 15m bars:                      14,568
+NOT-killer core bars:                     14,381
+Rolling-50 range threshold ready bars:    110,573
+Rolling-50 delta-ratio ready bars:        110,573
+ATR20 ready bars:                         120,860
+Session-relative range ready bars:        126,833
+Stable-vol adaptive ready bars:           101,286
+Doji bars:                                26,037
+First-hour bars:                          19,908
+KILLER_1 hits:                            32,451
+KILLER_2 hits:                            1,327
+Fixed sample q25 range:                   7.75
+Fixed sample median volume:               808.00
+
+Baselines
+---------
+All non-zero-delta bars:  N=127,135 | WR5=49.6% | WR10=49.7% | WR30=49.6% | PF5=1.00 | Avg5=0.09t | CI5=[49.3%, 49.8%] | Persistence=GROWING
+60m + 15m core gate:     N=14,565 | WR5=78.6% | WR10=85.5% | WR30=83.1% | PF5=8.00 | Avg5=65.06t | CI5=[77.9%, 79.2%] | Persistence=GROWING
+60m + 15m + NOT killers: N=14,378 | WR5=78.7% | WR10=85.7% | WR30=83.2% | PF5=8.33 | Avg5=65.14t | CI5=[78.0%, 79.4%] | Persistence=GROWING
+
+Adaptive vs fixed checkpoints
+-----------------------------
+01 adaptive narrow range: N=3,081 | WR5=82.0% | WR10=89.3% | WR30=85.6% | PF5=11.54 | Avg5=64.34t | CI5=[80.6%, 83.3%] | Persistence=GROWING
+02 fixed narrow range:    N=2,920 | WR5=81.0% | WR10=87.3% | WR30=84.6% | PF5=9.09 | Avg5=33.66t | CI5=[79.5%, 82.4%] | Persistence=GROWING
+03 adaptive volume spike: N=654 | WR5=72.5% | WR10=76.1% | WR30=75.2% | PF5=4.03 | Avg5=59.44t | CI5=[68.9%, 75.8%] | Persistence=GROWING
+04 fixed volume spike:    N=2,670 | WR5=76.9% | WR10=83.4% | WR30=81.2% | PF5=6.90 | Avg5=102.77t | CI5=[75.3%, 78.5%] | Persistence=GROWING
+
+20 dynamic-threshold filters ranked by 30b win rate
+-----------------------------------------------
+Filter                                                                    | N     | WR 5b  | WR 10b | WR 30b | PF 5b  | Avg Ticks 5b | Wilson 95% CI (5b) | Persistence
+--------------------------------------------------------------------------+-------+--------+--------+--------+--------+--------------+--------------------+------------
+14. [C] Volume > 50-bar rolling q90 + range < 0.5x ATR20 + 60m + 15m      | 1     | 100.0% | 100.0% | 100.0% | inf    | 85.00        | [20.7%, 100.0%]    | STABLE     
+06. [B] Range < 0.5x ATR20 + 60m + 15m                                    | 309   | 80.3%  | 89.3%  | 89.3%  | 10.96  | 66.05        | [75.5%, 84.3%]     | GROWING    
+16. [D] Low delta/vol + low range + 60m + 15m + NOT killers               | 45    | 80.0%  | 93.3%  | 88.9%  | 27.57  | 119.29       | [66.2%, 89.1%]     | GROWING    
+10. [B] Range < 0.5x ATR20 + doji + 60m + 15m + NOT killers               | 107   | 80.4%  | 92.5%  | 88.8%  | 7.17   | 54.98        | [71.9%, 86.8%]     | GROWING    
+13. [C] |delta|/vol < 50-bar rolling q10 + doji + 60m + 15m + NOT killers | 471   | 82.8%  | 90.9%  | 87.7%  | 13.45  | 72.60        | [79.1%, 85.9%]     | GROWING    
+05. [A] |delta|/vol < 50-bar rolling q10 + 60m + 15m                      | 1,157 | 81.0%  | 89.4%  | 87.4%  | 12.97  | 68.17        | [78.6%, 83.1%]     | GROWING    
+12. [C] |delta| < 50-bar rolling q10 + 60m + 15m                          | 1,246 | 81.9%  | 89.2%  | 87.2%  | 12.94  | 65.28        | [79.7%, 84.0%]     | GROWING    
+09. [B] Range 0.3-0.7x ATR20 + 60m + 15m                                  | 2,188 | 81.2%  | 89.1%  | 86.3%  | 9.78   | 65.27        | [79.5%, 82.8%]     | GROWING    
+01. [A] Range < 50-bar rolling q25 + 60m + 15m                            | 3,081 | 82.0%  | 89.3%  | 85.6%  | 11.54  | 64.34        | [80.6%, 83.3%]     | GROWING    
+02. [A] Range < fixed sample q25 + 60m + 15m                              | 2,920 | 81.0%  | 87.3%  | 84.6%  | 9.09   | 33.66        | [79.5%, 82.4%]     | GROWING    
+19. [E] Range < 50% of session avg range so far + 60m + 15m               | 2,560 | 82.1%  | 88.8%  | 84.4%  | 13.76  | 53.52        | [80.6%, 83.6%]     | GROWING    
+15. [C] Volume in 50-bar rolling 25th-75th pct + 60m + 15m                | 5,496 | 78.8%  | 85.9%  | 83.4%  | 9.19   | 59.40        | [77.7%, 79.9%]     | GROWING    
+04. [A] Volume > 2x fixed median volume + 60m + 15m                       | 2,670 | 76.9%  | 83.4%  | 81.2%  | 6.90   | 102.77       | [75.3%, 78.5%]     | GROWING    
+11. [C] |delta| > 50-bar rolling q90 + 60m + 15m                          | 1,703 | 74.1%  | 79.0%  | 76.5%  | 4.21   | 57.22        | [72.0%, 76.1%]     | GROWING    
+20. [E] Volume > 200% of session avg volume so far + 60m + 15m            | 325   | 71.1%  | 74.2%  | 76.0%  | 3.88   | 85.59        | [65.9%, 75.7%]     | GROWING    
+03. [A] Volume > 2x prior 20-bar EMA + 60m + 15m                          | 654   | 72.5%  | 76.1%  | 75.2%  | 4.03   | 59.44        | [68.9%, 75.8%]     | GROWING    
+08. [B] Range > 2x ATR20 + 60m + 15m                                      | 566   | 71.4%  | 70.3%  | 74.4%  | 4.02   | 62.54        | [67.5%, 74.9%]     | GROWING    
+07. [B] Range < 0.3x ATR20 + 60m + 15m                                    | 7     | 85.7%  | 71.4%  | 71.4%  | 105.75 | 59.86        | [48.7%, 97.4%]     | DECAYING   
+17. [D] High volume + low range + low delta/vol + 60m + 15m + NOT killers | 0     | 0.0%   | nan    | nan    | nan    | nan          | [0.0%, 0.0%]       | NO_DATA    
+18. [D] Low delta/vol + stable vol + first_hour + 60m + 15m + NOT killers | 0     | 0.0%   | nan    | nan    | nan    | nan          | [0.0%, 0.0%]       | NO_DATA    

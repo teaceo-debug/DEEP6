@@ -1,0 +1,64 @@
+DEEP6 round14 overnight momentum regime
+========================================
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+Observation unit: unique signal bar grouped by global_index.
+Trade direction: sign(bar_delta) for all baseline / regime filters; divergence_sign for the CVD-divergence stack filters.
+Core gate: 60m_extreme = trade-direction anchor in bottom 20% / top 20% of the active 60m bar; 15m gate = trade_sign aligned with the active 15m trend.
+KILLER_1 = trade-direction anchor in middle 40-60% of the active 60m range. KILLER_2 = bar_volume > 3x prior 20-bar EMA volume.
+Overnight move = current 09:30 RTH open minus prior RTH close, in ticks. Large/small overnight filters use 100-tick and 20-tick cutoffs from the brief.
+Session-high/low, midpoint-cross, streak exhaustion, 10-bar realized vol, and range-compression release all come from merged RTH 1m context at bar_ts.
+Realized vol = rolling std of 1m close-to-close pct returns over 10 bars; prior vol = the same series shifted 10 bars (non-overlapping comparison window).
+Filter 16 scores the 5m-aligned reversal case where the 15m trend is still opposite. Filter 17 follows the literal brief and is bullish-only (bottom 20% of both 60m and 15m).
+N uses rows with complete 5b/10b/30b forward closes so every WR window and persistence flag uses the same sample.
+Persistence: GROWING if WR_30b > WR_5b; STABLE if WR_30b is within 3 percentage points of WR_5b without growth; DECAYING otherwise.
+
+Raw event rows loaded:                  1,767,271
+Grouped signal bars:                    127,361
+5m bars built:                          92,201
+15m bars built:                         30,745
+60m bars built:                         7,693
+Bars in large overnight-move sessions:  107,996
+Bars in small overnight-move sessions:  5,280
+Bars near running session high:         40,726
+Bars near running session low:          22,572
+Bars crossing session midpoint:         4,077
+Bars with vol expansion:                57,346
+Bars with vol contraction:              63,375
+Bars with vol breakout:                 4,048
+Bars with compression release:          15,897
+Bars with CVD divergence:               5,448
+KILLER_1 hits (bar-direction sample):   32,451
+KILLER_2 hits (bar-direction sample):   1,327
+
+Baselines
+---------
+Bar-direction all bars:     N=127,135 | WR5=49.6% | WR10=49.7% | WR30=49.6% | PF5=1.00 | Avg5=0.09t | CI5=[49.3%, 49.8%] | Persistence=GROWING
+Bar-direction 60m + 15m:    N=14,565 | WR5=78.6% | WR10=85.5% | WR30=83.1% | PF5=8.00 | Avg5=65.06t | CI5=[77.9%, 79.2%] | Persistence=GROWING
+CVD divergence all bars:    N=5,448 | WR5=50.4% | WR10=50.5% | WR30=49.2% | PF5=0.93 | Avg5=-3.26t | CI5=[49.1%, 51.7%] | Persistence=STABLE
+CVD divergence + 60m + 15m: N=807 | WR5=82.4% | WR10=92.7% | WR30=82.8% | PF5=15.05 | Avg5=97.45t | CI5=[79.6%, 84.9%] | Persistence=GROWING
+
+20 overnight / momentum / regime filters ranked by 30b win rate
+-------------------------------------------------------------
+Filter                                                                      | N      | WR 5b | WR 10b | WR 30b | PF 5b | Avg Ticks 5b | Wilson 95% CI (5b) | Persistence
+----------------------------------------------------------------------------+--------+-------+--------+--------+-------+--------------+--------------------+------------
+18. [E] CVD divergence + doji + 60m + 15m + NOT killers + first_hour        | 37     | 97.3% | 97.3%  | 94.6%  | 56.34 | 140.59       | [86.2%, 99.5%]     | STABLE     
+20. [E] 3 narrowing ranges + CVD divergence + 60m + 15m + NOT killers       | 72     | 93.1% | 94.4%  | 90.3%  | 46.38 | 122.90       | [84.8%, 97.0%]     | STABLE     
+02. [A] Small overnight move < 20 ticks + 60m + 15m                         | 581    | 76.9% | 85.7%  | 88.8%  | 9.34  | 49.60        | [73.3%, 80.2%]     | GROWING    
+17. [D] Bottom 20% of 60m and 15m + 15m trend + 60m_extreme                 | 4,304  | 87.8% | 93.1%  | 86.3%  | 18.67 | 91.69        | [86.8%, 88.7%]     | STABLE     
+06. [B] Near session low + bullish signal + 60m + 15m                       | 1,460  | 82.2% | 90.5%  | 85.0%  | 11.96 | 89.98        | [80.1%, 84.1%]     | GROWING    
+09. [B] New session low then bullish reversal + 60m + 15m                   | 249    | 83.5% | 93.2%  | 84.7%  | 17.14 | 124.91       | [78.4%, 87.6%]     | GROWING    
+12. [C] Current 10-bar realized vol < prior 10-bar vol + 60m + 15m          | 7,115  | 78.9% | 86.3%  | 84.1%  | 8.83  | 62.39        | [77.9%, 79.8%]     | GROWING    
+04. [A] Overnight move same as signal direction + 60m + 15m                 | 6,891  | 79.4% | 86.5%  | 84.1%  | 7.88  | 63.85        | [78.4%, 80.3%]     | GROWING    
+15. [D] 5m trend aligned + 15m trend aligned + 60m_extreme                  | 10,995 | 82.0% | 85.3%  | 83.3%  | 10.71 | 73.16        | [81.3%, 82.7%]     | GROWING    
+01. [A] Large overnight move > 100 ticks + 60m + 15m                        | 12,416 | 78.6% | 85.4%  | 82.9%  | 7.94  | 66.15        | [77.9%, 79.4%]     | GROWING    
+19. [E] Prior wide-range day + overnight reversal + 60m + 15m + NOT killers | 2,049  | 78.9% | 85.5%  | 82.7%  | 9.51  | 97.73        | [77.1%, 80.6%]     | GROWING    
+13. [C] Vol expansion after 5 bars of contraction + 60m + 15m               | 640    | 77.5% | 84.5%  | 82.5%  | 7.20  | 58.79        | [74.1%, 80.6%]     | GROWING    
+10. [B] 5+ bars same direction then opposite signal + 60m + 15m             | 423    | 81.8% | 88.9%  | 82.3%  | 12.96 | 87.40        | [77.8%, 85.2%]     | GROWING    
+03. [A] Overnight move opposite signal direction + 60m + 15m                | 7,635  | 77.8% | 84.7%  | 82.3%  | 8.06  | 65.78        | [76.8%, 78.7%]     | GROWING    
+14. [C] 3 shrinking ranges then expanding bar + 60m + 15m                   | 1,957  | 76.8% | 85.2%  | 82.1%  | 7.47  | 62.71        | [74.9%, 78.6%]     | GROWING    
+11. [C] Current 10-bar realized vol > prior 10-bar vol + 60m + 15m          | 6,599  | 77.8% | 83.8%  | 82.0%  | 6.76  | 60.46        | [76.8%, 78.8%]     | GROWING    
+07. [B] Crossed running session midpoint + 60m + 15m                        | 660    | 78.0% | 84.7%  | 81.2%  | 6.96  | 83.93        | [74.7%, 81.0%]     | GROWING    
+08. [B] New session high then bearish reversal + 60m + 15m                  | 319    | 78.4% | 89.0%  | 77.4%  | 9.49  | 70.21        | [73.5%, 82.5%]     | STABLE     
+05. [B] Near session high + bearish signal + 60m + 15m                      | 3,018  | 73.8% | 81.2%  | 76.1%  | 5.72  | 43.24        | [72.2%, 75.3%]     | GROWING    
+16. [D] 5m trend aligned while 15m trend opposite + 60m_extreme             | 5,114  | 61.1% | 59.1%  | 68.7%  | 2.07  | 25.17        | [59.7%, 62.4%]     | GROWING    

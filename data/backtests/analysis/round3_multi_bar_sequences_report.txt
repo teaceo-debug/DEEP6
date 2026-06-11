@@ -1,0 +1,50 @@
+DEEP6 round 3 multi-bar sequence analysis
+==========================================
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+Observation unit: unique signal bar grouped by global_index.
+Bar-sequence features are computed on the deduped global_index bar stream from signal_events.csv, following the round2_novel_bar_patterns.py workflow.
+5b/10b/30b returns are measured from bar_close to the forward close and multiplied by the filter direction.
+Direction rules: doji / compression / volume-sequence filters use sign(bar_delta); hammer = +1; shooting star = -1; bullish engulf = +1; bearish engulf = -1; inside-bar breakout uses breakout side.
+Doji = body/range < 0.10. Hammer / shooting star / engulfing follow the user-provided wick/body/body-containment rules.
+Doji-after-strong-move = prior 3 close-to-close moves all point the same way and opposite the doji trade direction.
+4+ narrowing ranges then expansion = prior four ranges strictly contract, then current range expands to >1.5x the prior bar range.
+Inside-bar breakout = prior bar is an inside bar and current bar breaks only one side of that prior range.
+60m_extreme = bullish setup anchors off bar_low in the bottom 20% of the 60m range; bearish setup anchors off bar_high in the top 20%.
+15m_trend_aligned compares the pattern direction to the 15m open-close sign.
+Status flags: VALIDATED = N>=30 and Wilson lower bound >50%; PROMISING = N>=15 and Wilson lower bound >45%; LOW_N = N<15.
+Requested filters are shown in the exact order requested.
+
+Raw event rows loaded:          1,767,271
+Grouped observations:           127,361
+15m bars built:                 30,745
+60m bars built:                 7,693
+Non-zero-delta observations:    127,165
+Delta-directed 60m extremes:    27,328
+Doji + 60m_extreme baseline N:  2,851
+
+Baselines
+---------
+All non-zero-delta bars: N=127,160 | WR5=49.6% | WR10=49.7% | WR30=49.6% | PF5=1.00 | Avg5=0.09t | CI5=[49.3%, 49.8%]
+60m extreme only:        N=27,326 | WR5=66.5% | WR10=72.1% | WR30=75.4% | PF5=3.05 | Avg5=39.47t | CI5=[65.9%, 67.0%]
+Doji + 60m_extreme:      N=2,851 | WR5=67.4% | WR10=73.7% | WR30=77.1% | PF5=3.07 | Avg5=39.97t | CI5=[65.6%, 69.1%]
+
+15 requested multi-bar sequence filters
+---------------------------------------
+Filter                                                            | N     | WR 5b | WR 10b | WR 30b | PF 5b | Avg Ticks 5b | Wilson 95% CI (5b) | Flag     
+------------------------------------------------------------------+-------+-------+--------+--------+-------+--------------+--------------------+----------
+01. Doji + 60m_extreme + delta reversal                           | 1,776 | 67.3% | 72.9%  | 76.6%  | 2.70  | 35.94        | [65.1%, 69.4%]     | VALIDATED
+02. Doji + 60m_extreme + volume spike (>2x 20-bar EMA)            | 133   | 69.9% | 72.9%  | 70.7%  | 2.83  | 72.94        | [61.7%, 77.1%]     | VALIDATED
+03. Doji + 60m_extreme + prior bar wide range (>75th percentile)  | 694   | 68.6% | 72.8%  | 78.4%  | 2.37  | 34.61        | [65.0%, 71.9%]     | VALIDATED
+04. Doji after 3-bar strong move + 60m_extreme                    | 547   | 65.3% | 69.3%  | 72.8%  | 2.38  | 31.22        | [61.2%, 69.1%]     | VALIDATED
+05. Double doji (2 consecutive dojis) + 60m_extreme               | 295   | 64.7% | 74.2%  | 77.6%  | 2.87  | 38.37        | [59.1%, 70.0%]     | VALIDATED
+06. Hammer + 60m_extreme                                          | 332   | 63.9% | 75.6%  | 76.5%  | 3.50  | 38.98        | [58.6%, 68.8%]     | VALIDATED
+07. Shooting star + 60m_extreme                                   | 300   | 64.7% | 71.0%  | 73.0%  | 2.81  | 36.32        | [59.1%, 69.9%]     | VALIDATED
+08. Hammer + 60m_extreme + 15m_trend_aligned                      | 177   | 78.5% | 90.4%  | 86.4%  | 13.64 | 66.84        | [71.9%, 83.9%]     | VALIDATED
+09. Shooting star + 60m_extreme + 15m_trend_aligned               | 150   | 78.7% | 91.3%  | 82.7%  | 10.36 | 66.13        | [71.4%, 84.5%]     | VALIDATED
+10. Bullish engulf + 60m_extreme                                  | 1,405 | 67.4% | 73.1%  | 77.5%  | 3.35  | 46.69        | [64.9%, 69.8%]     | VALIDATED
+11. Bearish engulf + 60m_extreme                                  | 1,770 | 61.9% | 66.9%  | 71.1%  | 2.36  | 30.21        | [59.6%, 64.1%]     | VALIDATED
+12. Engulfing + 60m_extreme + 15m_trend_aligned                   | 1,756 | 76.7% | 83.3%  | 80.5%  | 6.50  | 65.13        | [74.6%, 78.6%]     | VALIDATED
+13. 4+ narrowing ranges then expansion + 60m_extreme              | 578   | 66.4% | 70.2%  | 71.3%  | 2.52  | 44.39        | [62.5%, 70.2%]     | VALIDATED
+14. Inside bar -> breakout bar + 60m_extreme                      | 2,279 | 66.3% | 71.7%  | 75.7%  | 3.10  | 36.86        | [64.4%, 68.3%]     | VALIDATED
+15. Volume dry-up (<50% EMA) then spike (>150% EMA) + 60m_extreme | 76    | 55.3% | 63.2%  | 71.1%  | 1.67  | 14.55        | [44.1%, 65.9%]     |          

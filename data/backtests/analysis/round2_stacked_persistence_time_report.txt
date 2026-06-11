@@ -1,0 +1,46 @@
+DEEP6 round2 stacked persistence + time filter analysis
+=====================================================
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+Observation unit: unique same-bar, same-direction grouped signal observation.
+N uses rows with complete 5b/10b/15b/30b forward closes so persistence compares the same sample across windows.
+Base stack = 60m_extreme + 15m_trend_aligned. Score gates use grouped max score_final. Category/signal gates use grouped unique counts.
+mid_vol = middle ATR-20 tercile on unique 1-minute event bars. delta_opposite = sign of prior 10-bar session delta opposes signal direction.
+Time filters use bar_ts converted to America/New_York. lunch = 12:00-14:00, first_hour = 09:30-10:30, last_hour = 15:00-16:00, hour 10-12 = 10:00-11:59.
+Persistence: GROWING if WR_30b > WR_5b; STABLE if WR_30b is within 3 percentage points of WR_5b without growth; DECAYING otherwise.
+Sorted by 30b win rate descending.
+
+Raw event rows loaded:                 1,756,089
+Grouped observations:                  254,722
+15m bars built:                        30,745
+60m bars built:                        7,693
+15m trend aligned observations:        126,836
+60m extreme observations:              53,641
+Base stack observations:               25,070
+Base stack + delta_opposite:           15,230
+Base stack + mid_vol:                  7,964
+
+20 requested stacked filters ranked by 30b win rate
+---------------------------------------------------
+Filter                                                                            | N      | WR 5b | WR 10b | WR 15b | WR 30b | PF 5b | Avg Ticks 5b | Wilson 95% CI (5b) | Sharpe | Persistence
+----------------------------------------------------------------------------------+--------+-------+--------+--------+--------+-------+--------------+--------------------+--------+------------
+02. 60m_extreme + 15m_trend_aligned + first_hour (09:30-10:30)                    | 4,235  | 83.1% | 90.6%  | 91.1%  | 89.2%  | 14.36 | 113.19       | [81.9%, 84.2%]     | 0.70   | GROWING    
+20. 60m_extreme + 15m_trend_aligned + score_final >= 60 + first_hour + NOT Monday | 2,724  | 83.3% | 90.7%  | 91.9%  | 88.8%  | 12.84 | 116.49       | [81.8%, 84.6%]     | 0.87   | GROWING    
+07. score_final >= 60 + 60m_extreme + 15m_trend_aligned + first_hour              | 3,362  | 83.5% | 90.9%  | 91.3%  | 88.5%  | 14.52 | 122.80       | [82.2%, 84.7%]     | 0.71   | GROWING    
+13. 3+ categories + 60m_extreme + 15m_trend_aligned + first_hour                  | 3,444  | 81.6% | 89.8%  | 90.2%  | 88.0%  | 12.25 | 106.41       | [80.3%, 82.9%]     | 0.69   | GROWING    
+05. 60m_extreme + 15m_trend_aligned + hour 10-12 only                             | 8,007  | 81.7% | 88.2%  | 88.1%  | 86.3%  | 11.90 | 83.50        | [80.9%, 82.5%]     | 0.63   | GROWING    
+06. score_final >= 60 + 60m_extreme + 15m_trend_aligned + NOT lunch               | 5,201  | 82.8% | 89.8%  | 89.5%  | 86.2%  | 10.78 | 110.15       | [81.8%, 83.8%]     | 0.62   | GROWING    
+17. 60m_extreme + 15m_trend_aligned + Tuesday-Thursday                            | 15,088 | 81.7% | 88.2%  | 88.1%  | 85.3%  | 10.76 | 74.15        | [81.0%, 82.3%]     | 0.57   | GROWING    
+16. 60m_extreme + 15m_trend_aligned + NOT Monday                                  | 20,035 | 81.4% | 88.2%  | 88.1%  | 85.2%  | 10.28 | 74.07        | [80.8%, 81.9%]     | 0.58   | GROWING    
+15. 60m_extreme + 15m_trend_aligned + Friday                                      | 4,947  | 80.5% | 87.9%  | 88.2%  | 85.0%  | 9.05  | 73.81        | [79.3%, 81.5%]     | 0.62   | GROWING    
+04. 60m_extreme + 15m_trend_aligned + NOT first_30min + NOT lunch                 | 15,654 | 81.3% | 88.0%  | 87.7%  | 84.7%  | 9.95  | 72.20        | [80.7%, 81.9%]     | 0.53   | GROWING    
+19. 60m_extreme + 15m_trend_aligned + mid_vol + NOT lunch                         | 5,298  | 81.3% | 87.5%  | 87.5%  | 84.5%  | 10.80 | 60.17        | [80.2%, 82.3%]     | 0.64   | GROWING    
+01. 60m_extreme + 15m_trend_aligned + NOT lunch (12:00-14:00)                     | 17,437 | 81.7% | 88.4%  | 88.0%  | 84.5%  | 10.61 | 78.07        | [81.1%, 82.3%]     | 0.56   | GROWING    
+12. 4+ signals + 60m_extreme + 15m_trend_aligned + NOT lunch                      | 16,001 | 81.3% | 88.1%  | 87.6%  | 84.2%  | 9.95  | 74.72        | [80.6%, 81.9%]     | 0.55   | GROWING    
+14. 5+ signals + 60m_extreme + 15m_trend_aligned                                  | 20,041 | 80.1% | 87.1%  | 87.1%  | 84.1%  | 9.21  | 69.15        | [79.5%, 80.6%]     | 0.52   | GROWING    
+11. 3+ categories + 60m_extreme + 15m_trend_aligned + NOT lunch                   | 14,185 | 80.5% | 87.4%  | 87.0%  | 83.6%  | 9.32  | 74.42        | [79.8%, 81.1%]     | 0.54   | GROWING    
+18. 60m_extreme + 15m_trend_aligned + delta_opposite + NOT lunch                  | 10,420 | 82.1% | 89.0%  | 88.3%  | 83.6%  | 11.97 | 78.65        | [81.3%, 82.8%]     | 0.57   | GROWING    
+08. score_final >= 70 + 60m_extreme + 15m_trend_aligned + NOT lunch               | 1,226  | 82.5% | 87.2%  | 87.4%  | 83.4%  | 8.98  | 126.79       | [80.2%, 84.5%]     | 0.54   | GROWING    
+03. 60m_extreme + 15m_trend_aligned + last_hour (15:00-16:00)                     | 3,771  | 81.9% | 87.7%  | 86.2%  | 80.7%  | 6.91  | 65.86        | [80.6%, 83.1%]     | 0.36   | STABLE     
+10. score_final >= 80 + 60m_extreme + 15m_trend_aligned + NOT lunch               | 216    | 80.1% | 82.9%  | 78.7%  | 75.5%  | 4.52  | 101.71       | [74.3%, 84.9%]     | 0.44   | DECAYING   
+09. score_final >= 70 + 60m_extreme + 15m_trend_aligned + last_hour               | 166    | 79.5% | 71.1%  | 69.9%  | 65.7%  | 2.65  | 74.02        | [72.7%, 85.0%]     | 0.22   | DECAYING   

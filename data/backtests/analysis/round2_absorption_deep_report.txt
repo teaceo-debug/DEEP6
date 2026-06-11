@@ -1,0 +1,47 @@
+DEEP6 round2 absorption deep filter analysis
+===========================================
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+Observation unit: unique absorption observation grouped by global_index + direction_sign using only rows where category == 'absorption'.
+Co-fire logic: same global_index + same direction pulled from ALL events, then merged back onto the grouped absorption observation.
+Time filters use America/New_York and minutes_since_930 from round1_time_day_filters.py.
+N / PF / Avg Ticks / Wilson CI use the 5-bar sample. 10b/15b/30b WRs use the available sample for each horizon; the baseline detail lines show per-window N.
+Persistence: GROWING if WR_30b > WR_5b; STABLE if WR_30b is within 3 percentage points of WR_5b without growth; DECAYING otherwise.
+PF and Avg Ticks columns are for the 5-bar window.
+Requested filters are shown in the exact order requested.
+
+Raw event rows loaded:        1,756,089
+Absorption observations:      901
+15m bars built:               30,745
+60m bars built:               7,693
+60m_extreme + 15m_trend obs:  50
+ABS_04 observations:          41
+
+Baselines
+---------
+All absorption: N=901 | WR5=46.3% | PF5=0.95 | Avg5=-3.24t | CI5=[43.0%, 49.5%] | Persistence=STABLE
+  5b N=901 WR=46.3% Avg=-3.24 | 10b N=899 WR=47.4% Avg=-4.29 | 15b N=899 WR=46.4% Avg=-16.66 | 30b N=899 WR=45.6% Avg=-23.12
+Core stack: N=50 | WR5=88.0% | PF5=36.72 | Avg5=82.88t | CI5=[76.2%, 94.4%] | Persistence=GROWING
+  5b N=50 WR=88.0% Avg=82.88 | 10b N=49 WR=85.7% Avg=133.90 | 15b N=49 WR=89.8% Avg=185.84 | 30b N=49 WR=91.8% Avg=250.73
+ABS_04 core: N=1 | WR5=100.0% | PF5=inf | Avg5=85.00t | CI5=[20.7%, 100.0%] | Persistence=STABLE
+  5b N=1 WR=100.0% Avg=85.00 | 10b N=1 WR=100.0% Avg=230.00 | 15b N=1 WR=100.0% Avg=228.00 | 30b N=1 WR=100.0% Avg=229.00
+
+15 requested deep filters
+-------------------------
+Filter                                                                | N  | WR 5b  | WR 10b | WR 15b | WR 30b | PF 5b | Avg Ticks 5b | Wilson 95% CI (5b) | Persistence
+----------------------------------------------------------------------+----+--------+--------+--------+--------+-------+--------------+--------------------+------------
+01. absorption + 60m_extreme + 15m_trend + NOT lunch (12:00-14:00)    | 33 | 90.9%  | 84.4%  | 87.5%  | 87.5%  | 78.85 | 80.21        | [76.4%, 96.9%]     | DECAYING   
+02. absorption + 60m_extreme + 15m_trend + last_hour (15:00-16:00)    | 14 | 100.0% | 76.9%  | 76.9%  | 84.6%  | inf   | 80.57        | [78.5%, 100.0%]    | DECAYING   
+03. absorption + 60m_extreme + 15m_trend + first_hour                 | 2  | 100.0% | 100.0% | 100.0% | 100.0% | inf   | 140.00       | [34.2%, 100.0%]    | STABLE     
+04. absorption + 60m_extreme + 15m_trend + NOT Monday                 | 38 | 89.5%  | 91.9%  | 86.5%  | 91.9%  | 38.64 | 91.13        | [75.9%, 95.8%]     | GROWING    
+05. absorption + 60m_extreme + 15m_trend + has_TRAP_05 + NOT lunch    | 4  | 100.0% | 75.0%  | 75.0%  | 75.0%  | inf   | 61.50        | [51.0%, 100.0%]    | DECAYING   
+06. absorption + 60m_extreme + 15m_trend + has_EXH_03 + NOT lunch     | 0  | 0.0%   | nan    | nan    | nan    | nan   | nan          | [0.0%, 0.0%]       | NO_DATA    
+07. absorption + 60m_extreme + has_TRAP_04 + NOT lunch                | 2  | 100.0% | 100.0% | 100.0% | 100.0% | inf   | 559.00       | [34.2%, 100.0%]    | STABLE     
+08. absorption + 60m_extreme + 15m_trend + has_DELT_04                | 2  | 100.0% | 100.0% | 100.0% | 100.0% | inf   | 94.50        | [34.2%, 100.0%]    | STABLE     
+09. absorption + 60m_extreme + 15m_trend + delta_opposite             | 28 | 85.7%  | 92.6%  | 85.2%  | 96.3%  | 28.45 | 90.18        | [68.5%, 94.3%]     | GROWING    
+10. absorption + 60m_extreme + 15m_trend + mid_vol                    | 17 | 88.2%  | 94.1%  | 94.1%  | 94.1%  | 32.76 | 71.00        | [65.7%, 96.7%]     | GROWING    
+11. absorption + 60m_extreme + 15m_trend + delta_opposite + NOT lunch | 19 | 89.5%  | 88.9%  | 83.3%  | 94.4%  | 48.70 | 75.32        | [68.6%, 97.1%]     | GROWING    
+12. absorption + 60m_extreme + 15m_trend + score >= 60                | 21 | 100.0% | 100.0% | 100.0% | 90.5%  | inf   | 87.76        | [84.5%, 100.0%]    | DECAYING   
+13. ABS_04 + 60m_extreme + 15m_trend + NOT lunch                      | 1  | 100.0% | 100.0% | 100.0% | 100.0% | inf   | 85.00        | [20.7%, 100.0%]    | STABLE     
+14. ABS_04 + 60m_extreme + 15m_trend + last_hour                      | 0  | 0.0%   | nan    | nan    | nan    | nan   | nan          | [0.0%, 0.0%]       | NO_DATA    
+15. ABS_04 + 60m_extreme + 15m_trend + has_TRAP_05                    | 0  | 0.0%   | nan    | nan    | nan    | nan   | nan          | [0.0%, 0.0%]       | NO_DATA    

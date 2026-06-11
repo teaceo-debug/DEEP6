@@ -1,0 +1,55 @@
+DEEP6 round39 signal fatigue analysis
+====================================
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+Observation unit: unique signal-event bar grouped by global_index only, then traded in the direction of sign(bar_delta).
+Rows with bar_delta == 0 are excluded because the bar has no implied trade direction under this round's rules.
+60m_extreme = bullish bar_low in bottom 20% of 60m range / bearish bar_high in top 20%. 15m_trend_aligned = sign(bar_delta) matches the 15m open-close sign.
+NOT killers = NOT killer_1 (60m position between 40%-60%) AND NOT killer_2 (bar_volume > 3x prior 20-bar EMA volume on RTH 1m bars).
+Doji fatigue ordinals are counted only across doji bars that already pass the 60m + 15m gate. Absorption fatigue ordinals are counted only across absorption bars that already pass the same gate.
+Qualifying bar spacing uses session bar_index distance between consecutive 60m+15m qualifying bars. Filter 19 uses consecutive non-qualifying observation bars from the deduped signal-events stream, not all 1m bars.
+Filter 20 is hindsight-only and non-tradable: it identifies the terminal qualifying signal of the session after the fact.
+N uses rows with complete 5b/10b/30b forward closes so all WR windows compare the same sample.
+PF and Avg Ticks are based on 5b returns. Persistence compares WR_30b versus WR_5b. Rows are sorted by 30b WR.
+
+Raw event rows loaded:                              1,767,271
+Directional observations (global_index dedup):      127,165
+15m bars built:                                     30,745
+60m bars built:                                     7,693
+RTH bars in volume-spike context:                   127,361
+Qualifying observations with 60m + 15m gate:        14,568
+Doji + 60m + 15m observations:                      1,340
+Absorption + 60m + 15m observations:                151
+Qualifying observations + first_hour + NOT killers: 2,457
+Terminal qualifying observations (diagnostic):      332
+
+Baseline all directional observations:        N=127,135 | WR5=49.6% | WR10=49.7% | WR30=49.6% | PF5=1.00 | Avg5=0.09t | CI5=[49.3%, 49.8%] | Persistence=GROWING
+Baseline qualifying 60m + 15m:               N=14,565 | WR5=78.6% | WR10=85.5% | WR30=83.1% | PF5=8.00 | Avg5=65.06t | CI5=[77.9%, 79.2%] | Persistence=GROWING
+Baseline doji + 60m + 15m:                   N=1,340 | WR5=80.6% | WR10=89.0% | WR30=86.5% | PF5=7.79 | Avg5=66.89t | CI5=[78.4%, 82.6%] | Persistence=GROWING
+Baseline absorption + 60m + 15m:             N=151 | WR5=80.8% | WR10=83.4% | WR30=82.8% | PF5=2.73 | Avg5=48.55t | CI5=[73.8%, 86.3%] | Persistence=GROWING
+Baseline qualifying + first_hour + NOT killers: N=2,457 | WR5=79.5% | WR10=88.0% | WR30=86.5% | PF5=9.91 | Avg5=97.82t | CI5=[77.9%, 81.1%] | Persistence=GROWING
+
+20 requested signal-fatigue filters ranked by 30b WR
+--------------------------------------------------
+Filter                                                                                 | N      | WR 5b | WR 10b | WR 30b | PF 5b | Avg Ticks 5b | Wilson 95% CI (5b) | Persistence
+---------------------------------------------------------------------------------------+--------+-------+--------+--------+-------+--------------+--------------------+------------
+05[A]. 3rd+ doji of session + 60m + 15m + first_hour + NOT killers                     | 16     | 87.5% | 87.5%  | 93.8%  | 61.17 | 109.06       | [64.0%, 96.5%]     | GROWING    
+17[D]. >30 bars gap + 60m + 15m + NOT killers + first_hour                             | 59     | 84.7% | 84.7%  | 89.8%  | 19.84 | 111.46       | [73.5%, 91.8%]     | GROWING    
+04[A]. 1st doji of session + 60m + 15m + first_hour + NOT killers                      | 146    | 84.9% | 89.7%  | 88.4%  | 15.08 | 114.36       | [78.2%, 89.8%]     | GROWING    
+03[A]. 3rd+ doji of session + 60m + 15m                                                | 729    | 79.6% | 88.2%  | 87.1%  | 5.34  | 54.86        | [76.5%, 82.3%]     | GROWING    
+01[A]. 1st doji of session + 60m + 15m (fresh)                                         | 321    | 83.8% | 90.7%  | 86.6%  | 14.76 | 93.46        | [79.4%, 87.4%]     | GROWING    
+12[C]. 2nd absorption of session + 60m + 15m                                           | 29     | 86.2% | 96.6%  | 86.2%  | 16.42 | 75.52        | [69.4%, 94.5%]     | STABLE     
+08[B]. 3rd qualifying bar of session + 60m + 15m                                       | 332    | 81.3% | 93.7%  | 86.1%  | 11.96 | 102.85       | [76.8%, 85.2%]     | GROWING    
+18[E]. Qualifying bar after 60+ bar gap in qualifying signals + 60m + 15m              | 209    | 79.4% | 89.5%  | 85.6%  | 11.53 | 54.00        | [73.4%, 84.4%]     | GROWING    
+02[A]. 2nd doji of session + 60m + 15m                                                 | 290    | 79.7% | 89.0%  | 84.8%  | 11.90 | 67.72        | [74.6%, 83.9%]     | GROWING    
+06[B]. 1st qualifying bar of session + 60m + 15m (virgin signal)                       | 332    | 81.0% | 89.2%  | 83.7%  | 9.50  | 111.43       | [76.5%, 84.9%]     | GROWING    
+11[C]. 1st absorption of session + 60m + 15m                                           | 109    | 80.7% | 82.6%  | 83.5%  | 7.23  | 63.06        | [72.3%, 87.0%]     | GROWING    
+16[D]. <5 bars since last qualifying bar + 60m + 15m                                   | 10,017 | 79.0% | 85.0%  | 83.4%  | 8.50  | 66.11        | [78.2%, 79.8%]     | GROWING    
+07[B]. 2nd qualifying bar of session + 60m + 15m                                       | 332    | 79.5% | 88.3%  | 83.4%  | 10.72 | 101.32       | [74.9%, 83.5%]     | GROWING    
+14[D]. >30 bars since last qualifying bar + 60m + 15m                                  | 1,144  | 78.5% | 88.7%  | 83.0%  | 9.58  | 58.48        | [76.0%, 80.8%]     | GROWING    
+09[B]. 5th+ qualifying bar of session + 60m + 15m                                      | 13,237 | 78.4% | 85.1%  | 82.9%  | 7.65  | 61.15        | [77.7%, 79.1%]     | GROWING    
+10[B]. 10th+ qualifying bar of session + 60m + 15m                                     | 11,577 | 78.3% | 84.9%  | 82.9%  | 7.55  | 58.60        | [77.6%, 79.1%]     | GROWING    
+19[E]. Qualifying bar after 3+ consecutive non-qualifying observation bars + 60m + 15m | 4,923  | 77.9% | 86.3%  | 82.0%  | 7.10  | 61.02        | [76.7%, 79.0%]     | GROWING    
+15[D]. 5-15 bars since last qualifying bar + 60m + 15m                                 | 1,800  | 77.7% | 84.4%  | 81.6%  | 5.72  | 59.14        | [75.7%, 79.5%]     | GROWING    
+13[C]. 3rd+ absorption of session + 60m + 15m                                          | 13     | 69.2% | 61.5%  | 69.2%  | 0.42  | -133.23      | [42.4%, 87.3%]     | STABLE     
+20[E]. Last qualifying bar of session + 60m + 15m (terminal, hindsight-only)           | 331    | 88.8% | 80.7%  | 67.7%  | 4.12  | 87.86        | [85.0%, 91.8%]     | DECAYING   

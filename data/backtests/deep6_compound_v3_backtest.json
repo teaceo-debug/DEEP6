@@ -1,0 +1,38 @@
+{
+  "dataset_rows_rth": 26550,
+  "sessions": 69,
+  "v3_defaults": {
+    "description": "DEEP6CompoundSignalsV3 default profile: only AdaptiveDoji trigger enabled; FailedOR and CvdDoji disabled.",
+    "trigger_logic": "first hour + 60m extreme + 15m alignment + clean context + q10/adaptive low delta + doji",
+    "trades": 15,
+    "avg_tb_pts": 0.934,
+    "win_rate": 26.7,
+    "sum_tb_pts": 14.0,
+    "monthly": {
+      "2026-01": {
+        "trades": 6,
+        "avg_tb_pts": 7.691,
+        "win_rate": 33.3,
+        "sum_tb_pts": 46.1
+      },
+      "2026-02": {
+        "trades": 3,
+        "avg_tb_pts": 18.085,
+        "win_rate": 33.3,
+        "sum_tb_pts": 54.3
+      },
+      "2026-03": {
+        "trades": 4,
+        "avg_tb_pts": -27.002,
+        "win_rate": 0.0,
+        "sum_tb_pts": -108.0
+      },
+      "2026-04": {
+        "trades": 2,
+        "avg_tb_pts": 10.805,
+        "win_rate": 50.0,
+        "sum_tb_pts": 21.6
+      }
+    }
+  }
+}

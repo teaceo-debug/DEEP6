@@ -1,0 +1,55 @@
+DEEP6 round24 signal clustering analysis
+=======================================
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+Observation unit: unique same-bar, same-direction grouped signal observation (global_index, direction_sign).
+signal_count = grouped unique signal_id count; category_count = grouped unique category count; score = grouped max score_final.
+Base gate = 60m_extreme + 15m_trend_aligned + first_hour.
+60m_extreme = bullish bar_low in bottom 20% of 60m range / bearish bar_high in top 20%.
+15m_trend_aligned = signal direction matches 15m open-close sign. first_hour = 09:30-10:29 ET.
+NOT killers = NOT killer_1 (60m position between 40%-60%) AND NOT killer_2 (bar_volume > 3x prior 20-bar EMA within session).
+NOT FOMC uses the exact round13 FOMC day list. NOT summer excludes Jun-Aug sessions.
+N uses rows with complete 5b/10b/30b forward closes so all WR windows compare the same sample.
+PF and Avg Ticks are based on 5b returns. Persistence compares WR_30b versus WR_5b.
+Sorted by 30b WR descending.
+
+Raw event rows loaded:                     1,756,089
+Grouped observations:                      254,722
+15m bars built:                            30,745
+60m bars built:                            7,693
+Trading sessions in calendar:              332
+15m trend aligned observations:            126,836
+60m extreme observations:                  53,641
+60m + 15m + first_hour observations:       4,235
+NOT-killers observations:                  188,105
+FOMC-day observations:                     7,800
+Summer observations:                       48,862
+
+Baseline all bars: N=254,662 | WR5=49.7% | WR10=49.8% | WR30=49.9% | PF5=1.00 | Avg5=0.00t | CI5=[49.5%, 49.9%] | Persistence=GROWING
+Baseline 60m + 15m + first_hour: N=4,235 | WR5=83.1% | WR10=90.6% | WR30=89.2% | PF5=14.36 | Avg5=113.19t | CI5=[81.9%, 84.2%] | Persistence=GROWING
+Baseline 60m + 15m + first_hour + NOT killers: N=4,221 | WR5=83.1% | WR10=90.7% | WR30=89.3% | PF5=14.74 | Avg5=113.28t | CI5=[82.0%, 84.2%] | Persistence=GROWING
+
+20 signal-density / diversity / score filters ranked by 30b WR
+-------------------------------------------------------------
+Filter                                                                                                         | N     | WR 5b  | WR 10b | WR 30b | PF 5b | Avg Ticks 5b | Wilson 95% CI (5b) | Persistence
+---------------------------------------------------------------------------------------------------------------+-------+--------+--------+--------+-------+--------------+--------------------+------------
+15[C]. score >= 90 + 60m + 15m + first_hour + NOT killers                                                      | 13    | 100.0% | 100.0% | 100.0% | inf   | 232.23       | [77.2%, 100.0%]    | STABLE     
+14[C]. score >= 80 + 60m + 15m + first_hour + NOT killers                                                      | 67    | 91.0%  | 95.5%  | 91.0%  | 48.32 | 158.19       | [81.8%, 95.8%]     | STABLE     
+11[C]. score >= 50 + 60m + 15m + first_hour + NOT killers                                                      | 4,129 | 83.1%  | 90.7%  | 89.2%  | 14.98 | 114.37       | [82.0%, 84.3%]     | GROWING    
+01[A]. 3+ signals same direction + 60m + 15m + first_hour                                                      | 4,219 | 83.0%  | 90.6%  | 89.2%  | 14.22 | 112.46       | [81.8%, 84.1%]     | GROWING    
+06[B]. 2+ categories + 60m + 15m + first_hour                                                                  | 4,206 | 83.0%  | 90.6%  | 89.2%  | 14.22 | 112.74       | [81.8%, 84.1%]     | GROWING    
+12[C]. score >= 60 + 60m + 15m + first_hour + NOT killers                                                      | 3,350 | 83.6%  | 91.0%  | 88.6%  | 14.97 | 122.91       | [82.3%, 84.8%]     | GROWING    
+07[B]. 3+ categories + 60m + 15m + first_hour                                                                  | 3,444 | 81.6%  | 89.8%  | 88.0%  | 12.25 | 106.41       | [80.3%, 82.9%]     | GROWING    
+02[A]. 5+ signals same direction + 60m + 15m + first_hour                                                      | 3,371 | 81.4%  | 89.6%  | 87.9%  | 12.10 | 105.59       | [80.1%, 82.7%]     | GROWING    
+10[B]. 6+ categories + 60m + 15m + first_hour                                                                  | 250   | 83.2%  | 91.2%  | 87.6%  | 8.82  | 100.79       | [78.1%, 87.3%]     | GROWING    
+13[C]. score >= 70 + 60m + 15m + first_hour + NOT killers                                                      | 865   | 84.2%  | 90.2%  | 87.5%  | 16.03 | 144.41       | [81.6%, 86.4%]     | GROWING    
+18[D]. 3+ categories + score >= 60 + 60m + 15m + first_hour + NOT killers                                      | 2,762 | 82.3%  | 90.0%  | 87.5%  | 12.90 | 115.12       | [80.8%, 83.6%]     | GROWING    
+16[D]. 5+ signals + score >= 60 + 60m + 15m + first_hour + NOT killers                                         | 2,695 | 82.1%  | 89.9%  | 87.4%  | 12.75 | 114.22       | [80.6%, 83.5%]     | GROWING    
+03[A]. 7+ signals same direction + 60m + 15m + first_hour                                                      | 2,765 | 80.8%  | 89.0%  | 87.1%  | 10.88 | 102.02       | [79.2%, 82.2%]     | GROWING    
+19[D]. 4+ categories + score >= 70 + 60m + 15m + first_hour + NOT killers                                      | 579   | 83.1%  | 89.5%  | 86.9%  | 13.79 | 131.33       | [79.8%, 85.9%]     | GROWING    
+17[D]. 7+ signals + score >= 70 + 60m + 15m + first_hour + NOT killers                                         | 613   | 82.9%  | 89.1%  | 86.8%  | 13.61 | 135.90       | [79.7%, 85.6%]     | GROWING    
+08[B]. 4+ categories + 60m + 15m + first_hour                                                                  | 2,519 | 80.7%  | 89.0%  | 86.8%  | 10.95 | 102.60       | [79.2%, 82.2%]     | GROWING    
+20[E]. 5+ signals + 4+ categories + score >= 70 + 60m + 15m + first_hour + NOT killers + NOT FOMC + NOT summer | 490   | 82.4%  | 89.8%  | 85.9%  | 13.46 | 141.00       | [78.8%, 85.6%]     | GROWING    
+04[A]. 10+ signals same direction + 60m + 15m + first_hour                                                     | 807   | 81.8%  | 89.5%  | 85.9%  | 10.49 | 96.88        | [79.0%, 84.3%]     | GROWING    
+09[B]. 5+ categories + 60m + 15m + first_hour                                                                  | 1,275 | 80.2%  | 87.1%  | 84.8%  | 9.52  | 100.03       | [77.9%, 82.3%]     | GROWING    
+05[A]. 15+ signals same direction + 60m + 15m + first_hour                                                     | 0     | nan    | nan    | nan    | nan   | nan          | [0.0%, 0.0%]       | NO_DATA    

@@ -35,6 +35,10 @@ from deep6.ml.depth_radar.causal_classifier import (
     DEFAULT_INTERACTION_MODEL,
 )
 from deep6.ml.depth_radar.mbo_wall_engine import MBOWallEngine
+from deep6.ml.depth_radar.wall_ranker import SourceQuality, WallRanker
+
+DEPTH_RADAR_SCHEMA = "DEEP6_DEPTH_RADAR_V2"
+DEPTH_RADAR_VERSION = "5.0.0"
 
 
 logger = logging.getLogger(__name__)
@@ -286,14 +290,12 @@ class LiveMBORadar:
 
         @app.get("/walls")
         async def walls() -> dict[str, Any]:
-            return {
-                "timestamp": self._latest_payload.get("timestamp"),
-                "source": self.source,
-                "symbol": self._symbol_for_output(),
-                "mid_price": self._latest_payload.get("mid_price", 0.0),
-                "wall_count": len(self._latest_feature_walls),
-                "walls": self._latest_feature_walls,
-            }
+            if self._latest_payload:
+                return dict(self._latest_payload)
+            return self._build_payload(
+                timestamp=iso_z(self._last_update_ts) if self._last_update_ts is not None else None,
+                output_walls=[],
+            )
 
         return app
 
@@ -588,13 +590,8 @@ class LiveMBORadar:
         raw_walls = self._engine.get_active_walls()
         feature_walls = [self._enrich_wall_features(wall) for wall in raw_walls]
         output_walls = [self._to_output_wall(wall) for wall in feature_walls]
-        payload = {
-            "timestamp": iso_z(self._last_update_ts or utc_now()),
-            "symbol": self._symbol_for_output(),
-            "mid_price": round(self._last_mid_price, 2) if self._last_mid_price > 0 else 0.0,
-            "wall_count": len(output_walls),
-            "walls": output_walls,
-        }
+        timestamp = iso_z(self._last_update_ts or utc_now())
+        payload = self._build_payload(timestamp=timestamp, output_walls=output_walls)
 
         self._latest_feature_walls = feature_walls
         self._latest_output_walls = output_walls
@@ -614,19 +611,121 @@ class LiveMBORadar:
         enriched["duration_sec"] = round(float(enriched.get("age_sec", 0.0)), 1)
         return enriched
 
-    def _to_output_wall(self, wall: dict[str, Any]) -> dict[str, Any]:
+    def _source_quality(self) -> SourceQuality:
+        if self.source in {"databento", "replay"}:
+            return SourceQuality.TRUE_MBO
+        if self.source == "rithmic":
+            # Current Rithmic path consumes aggregated ORDER_BOOK updates and
+            # synthesizes per-price IDs.  Useful wall context, but not true
+            # order-id lifecycle evidence.
+            return SourceQuality.L2_APPROX
+        return SourceQuality.DEGRADED
+
+    def _confidence_multiplier(self) -> float:
+        return WallRanker(self._source_quality()).confidence_multiplier
+
+    def _market_state(self) -> dict[str, Any]:
+        dom = getattr(self._engine, "_dom", None)
+        best_bid = best_ask = 0.0
+        bid_size = ask_size = 0
+        if dom is not None:
+            try:
+                best_bid, bid_size = dom.best_bid()
+                best_ask, ask_size = dom.best_ask()
+            except Exception:  # noqa: BLE001 - defensive health payload
+                best_bid = best_ask = 0.0
+                bid_size = ask_size = 0
+        mid = round(self._last_mid_price, 2) if self._last_mid_price > 0 else 0.0
+        spread_ticks = 0.0
+        if best_bid > 0 and best_ask > 0:
+            spread_ticks = round((best_ask - best_bid) / max(self._engine.tick_size, 1e-9), 2)
         return {
-            "price": round(float(wall.get("price", 0.0)), 8),
+            "mid_price": mid,
+            "last_price": mid,
+            "best_bid": round(float(best_bid or 0.0), 8),
+            "best_ask": round(float(best_ask or 0.0), 8),
+            "best_bid_size": int(bid_size or 0),
+            "best_ask_size": int(ask_size or 0),
+            "spread_ticks": spread_ticks,
+        }
+
+    def _build_payload(self, timestamp: str | None, output_walls: list[dict[str, Any]]) -> dict[str, Any]:
+        source_quality = self._source_quality()
+        market_state = self._market_state()
+        mid_price = float(market_state.get("mid_price", 0.0) or 0.0)
+        return {
+            "schema": DEPTH_RADAR_SCHEMA,
+            "version": DEPTH_RADAR_VERSION,
+            "timestamp": timestamp,
+            "generated_at_utc": timestamp,
+            "source": self.source,
+            "source_quality": source_quality.value,
+            "symbol": self._symbol_for_output(),
+            "mid_price": mid_price,
+            "wall_count": len(output_walls),
+            "data_quality": {
+                "feed": source_quality.value,
+                "order_id_available": source_quality is SourceQuality.TRUE_MBO,
+                "event_gap_count": 0,
+                "last_event_age_ms": self._last_event_age_ms(),
+                "confidence_multiplier": self._confidence_multiplier(),
+                "connected": self._connected,
+            },
+            "market_state": market_state,
+            "walls": output_walls,
+            "gray_fusion": {
+                "active_marker": False,
+                "score": 0,
+                "quality": "NO_MARKER",
+                "confirmations": [],
+                "warnings": [],
+            },
+            "alerts": [],
+        }
+
+    def _last_event_age_ms(self) -> int | None:
+        if self._last_update_ts is None:
+            return None
+        try:
+            return int(max((pd.Timestamp.now(tz="UTC") - self._last_update_ts).total_seconds() * 1000.0, 0.0))
+        except Exception:  # noqa: BLE001
+            return None
+
+    def _to_output_wall(self, wall: dict[str, Any]) -> dict[str, Any]:
+        duration_sec = round(float(wall.get("duration_sec", wall.get("age_sec", 0.0)) or 0.0), 1)
+        refill_count = int(float(wall.get("refills_so_far", wall.get("refill_count", 0.0)) or 0.0))
+        price = round(float(wall.get("price", 0.0)), 8)
+        distance_ticks = float(wall.get("distance_from_mid_ticks", wall.get("distance_from_mid", 0.0)) or 0.0)
+        if not distance_ticks and self._last_mid_price > 0:
+            distance_ticks = abs(price - self._last_mid_price) / max(self._engine.tick_size, 1e-9)
+        base = {
+            "episode_id": str(wall.get("episode_id", "")),
+            "price": price,
             "side": _normalize_side(wall.get("side", "bid")),
-            "size": int(wall.get("size", 0) or 0),
-            "max_size": int(wall.get("max_size", 0) or 0),
+            "size": int(wall.get("size", wall.get("current_size", 0)) or 0),
+            "max_size": int(wall.get("max_size", wall.get("max_size_so_far", 0)) or 0),
             "classification": str(wall.get("classification", "GENUINE")),
             "confidence": round(float(wall.get("confidence", 0.0) or 0.0), 4),
-            "duration_sec": round(float(wall.get("duration_sec", 0.0) or 0.0), 1),
-            "refill_count": int(float(wall.get("refills_so_far", 0.0) or 0.0)),
+            "duration_sec": duration_sec,
+            "refill_count": refill_count,
             "state": str(wall.get("state", "FRESH")),
             "intent": str(wall.get("intent", "PASSIVE_REAL")),
+            "in_touch_band": bool(wall.get("in_touch_band", False)),
+            "distance_ticks": round(float(distance_ticks or 0.0), 2),
+            "absorption_ratio": round(float(wall.get("absorption_ratio", 0.0) or 0.0), 4),
+            "absorbed_volume": int(float(wall.get("absorbed_volume", 0.0) or 0.0)),
+            "filled_volume": int(float(wall.get("filled_volume", 0.0) or 0.0)),
+            "delta_2s": round(float(wall.get("delta_2s", 0.0) or 0.0), 4),
+            "delta_10s": round(float(wall.get("delta_10s", 0.0) or 0.0), 4),
+            "approach_speed": round(float(wall.get("approach_speed", 0.0) or 0.0), 4),
+            "attack_intensity": round(float(wall.get("attack_intensity", 0.0) or 0.0), 4),
+            "tests_count": int(float(wall.get("tests_count", wall.get("touch_tests_count", 0.0)) or 0.0)),
+            "cancel_reappear_count": int(float(wall.get("cancel_reappear_count", 0.0) or 0.0)),
+            "repricing_count": int(float(wall.get("repricing_count", 0.0) or 0.0)),
+            "pull_approach_flag": bool(wall.get("pull_approach_flag", False)),
+            "recovery_after_test": bool(wall.get("recovery_after_test", False)),
         }
+        return WallRanker(self._source_quality()).rank(base)
 
     def _symbol_for_output(self) -> str:
         if self.source == "rithmic":

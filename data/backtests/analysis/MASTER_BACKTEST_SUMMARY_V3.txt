@@ -1,0 +1,219 @@
+MASTER BACKTEST SUMMARY V3
+==========================
+Definitive consolidated review of the DEEP6 backtest campaign, rebuilding the master summary from every matched text report in data/backtests/analysis plus the legacy round1 walk-forward file.
+
+Section 1: Campaign Statistics
+==============================
+- Total rounds completed: 28 targeted campaign rounds (R0-R27).
+- Total scripts created: 48 Python files in scripts/ matching round*, analyze*, or validate*.
+- Total filter evaluations: 840 explicitly enumerated filters / comparison buckets (+90 detailed exit-window rows from R9).
+- Total reports generated: 42 pattern-matched text reports (+1 legacy extra report read explicitly).
+- Data range: 2025-01-01 to 2026-04-24.
+- Campaign duration note: 410 trading sessions across 479 calendar days (~15.7 months).
+
+Section 2: TOP 20 DEPLOY-Grade Signals (Final Ranking)
+=====================================================
+Ranking rule: OOS WR first, then best full-sample WR (30b preferred, else 5b), then N.
+
+01. Stable vol + 60m_extreme + 15m_trend_aligned + first_hour | N=64 | WR5=75.0% | WR30=98.4% | PF=15.38 | OOS=95.0% | Bayes=72.5% | Persistence=GROWING | Source=R17 | Regime=PROVISIONAL
+02. CVD divergenceergence + doji + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA + first_hour | N=37 | WR5=97.3% | WR30=94.6% | PF=56.34 | OOS=93.3% | Bayes=68.6% | Persistence=STABLE | Source=R14 | Regime=PROVISIONAL
+03. 3 narrowing ranges + CVD divergenceergence + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA | N=72 | WR5=93.1% | WR30=90.3% | PF=46.38 | OOS=93.1% | Bayes=75.5% | Persistence=STABLE | Source=R14 | Regime=PROVISIONAL
+04. absorption + 60m_extreme + 15m_trend_aligned + NOT lunch | N=33 | WR5=90.9% | WR30=87.5% | PF=78.85 | OOS=92.3% | Bayes=75.5% | Persistence=DECAYING | Source=R2B | Regime=FRAGILE
+05. absorption + 60m_extreme + 15m_trend_aligned + NOT Monday | N=38 | WR5=89.5% | WR30=91.9% | PF=38.64 | OOS=90.9% | Bayes=75.9% | Persistence=GROWING | Source=R2B | Regime=PROVISIONAL
+06. Prior losing session + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA + first_hour | N=23 | WR5=87.0% | WR30=n/a | PF=21.80 | OOS=90.0% | Bayes=63.3% | Persistence=n/a | Source=R16 | Regime=PROVISIONAL
+07. Doji + NOT FOMC + NOT summer + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA + first_hour | N=163 | WR5=85.9% | WR30=89.0% | PF=18.25 | OOS=89.7% | Bayes=79.5% | Persistence=GROWING | Source=R20 | Regime=ROBUST
+08. weekly breakout + CVD divergenceergence + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA | N=389 | WR5=85.3% | WR30=n/a | PF=22.91 | OOS=89.5% | Bayes=84.7% | Persistence=n/a | Source=R21 | Regime=ROBUST
+09. absorption + 60m_extreme + 15m_trend_aligned | N=50 | WR5=88.0% | WR30=91.8% | PF=36.72 | OOS=87.5% | Bayes=77.1% | Persistence=GROWING | Source=R0 | Regime=PROVISIONAL
+10. 3 narrowing ranges + 60m_extreme + 15m_trend_aligned | N=1,971 | WR5=81.6% | WR30=86.9% | PF=12.43 | OOS=85.7% | Bayes=84.7% | Persistence=GROWING | Source=R3A | Regime=ROBUST
+11. Small overnight move < 20 ticks + 60m_extreme + 15m_trend_aligned | N=581 | WR5=76.9% | WR30=88.8% | PF=9.34 | OOS=85.6% | Bayes=82.2% | Persistence=GROWING | Source=R14 | Regime=ROBUST
+12. |delta|/vol < 0.05 + 60m_extreme + 15m_trend_aligned | N=587 | WR5=82.8% | WR30=89.4% | PF=14.37 | OOS=84.5% | Bayes=81.4% | Persistence=GROWING | Source=R12 | Regime=ROBUST
+13. Bottom 20% of 60m and 15m + trend aligned | N=9,455 | WR5=83.7% | WR30=n/a | PF=7.38 | OOS=83.9% | Bayes=83.7% | Persistence=n/a | Source=R19 | Regime=ROBUST
+14. 5m + 15m_trend_aligned + 60m_extreme | N=10,995 | WR5=83.3% | WR30=n/a | PF=7.97 | OOS=83.9% | Bayes=83.7% | Persistence=n/a | Source=R19 | Regime=ROBUST
+15. Consecutive inside days + 60m_extreme + 15m_trend_aligned | N=111 | WR5=79.3% | WR30=n/a | PF=9.12 | OOS=83.8% | Bayes=71.9% | Persistence=n/a | Source=R18 | Regime=ROBUST
+16. Doji + 60m_extreme + 15m_trend_aligned + first_hour | N=214 | WR5=83.6% | WR30=76.7% | PF=15.36 | OOS=83.7% | Bayes=80.8% | Persistence=DECAYING | Source=R3A | Regime=FRAGILE
+17. score >= 70 + 60m_extreme + 15m_trend_aligned + NOT lunch | N=1,226 | WR5=82.5% | WR30=83.4% | PF=8.98 | OOS=83.3% | Bayes=82.0% | Persistence=GROWING | Source=R2A | Regime=ROBUST
+18. 60m_extreme + 15m_trend_aligned + first_hour | N=4,235 | WR5=83.1% | WR30=89.2% | PF=14.36 | OOS=83.0% | Bayes=82.9% | Persistence=GROWING | Source=R2A | Regime=ROBUST
+19. score >= 60 + 60m_extreme + 15m_trend_aligned + first_hour | N=3,362 | WR5=83.5% | WR30=88.5% | PF=14.52 | OOS=82.8% | Bayes=82.3% | Persistence=GROWING | Source=R2A | Regime=ROBUST
+20. score >= 60 + 60m_extreme + 15m_trend_aligned + NOT lunch | N=5,201 | WR5=82.8% | WR30=86.2% | PF=10.78 | OOS=82.6% | Bayes=82.3% | Persistence=GROWING | Source=R2A | Regime=ROBUST
+
+Section 3: Signal Killers (Always Exclude)
+==========================================
+R7B anti-patterns that repeatedly destroyed edge inside the core 60m_extreme + 15m_trend framework:
+
+1. middle 40-60% of 60m range | WR with=65.2% vs without=81.8% | Impact=-16.6pp | N with=546
+2. next-bar delta flips opposite signal | WR with=71.6% vs without=87.0% | Impact=-15.4pp | N with=8,939
+3. volume spike > 3x EMA | WR with=72.9% vs without=81.3% | Impact=-8.4pp | N with=295
+4. same-direction bar_delta > 90th percentile | WR with=75.3% vs without=81.9% | Impact=-6.5pp | N with=2,349
+
+Section 4: Novel Signal Families Discovered
+===========================================
+- R0 compound anchors: absorption + 60m_extreme + 15m_trend_aligned | N=50 | WR5=88.0% | WR30=91.8% | PF=36.72 | OOS=87.5%
+- R0.5 cross-category confluence: DELT_04 + TRAP_04 + 15m_trend_aligned | N=286 | WR5=73.8% | WR30=64.7% | PF=3.34 | OOS=70.9%
+- R1B regime gating: DELT_04 + delta_opposite + 15m_trend_aligned | N=2,569 | WR5=75.2% | WR30=n/a | PF=5.54 | OOS=n/a
+- R1C persistence overlays: score >= 60 + 60m_extreme + 15m_trend_aligned | N=6,024 | WR5=82.5% | WR30=86.2% | PF=10.61 | OOS=n/a
+- R1D time/day gating: absorption + 60m_extreme + 15m_trend_aligned + hour 10-12 | N=8 | WR5=100.0% | WR30=n/a | PF=inf | OOS=n/a
+- R2A stacked time/persistence: score >= 70 + 60m_extreme + 15m_trend_aligned + NOT lunch | N=1,226 | WR5=82.5% | WR30=83.4% | PF=8.98 | OOS=83.3%
+- R2B deep absorption filters: absorption + 60m_extreme + 15m_trend_aligned + NOT lunch | N=33 | WR5=90.9% | WR30=87.5% | PF=78.85 | OOS=92.3%
+- R2C novel bar patterns: Doji + 60m_extreme + 15m_trend_aligned | N=1,340 | WR5=80.6% | WR30=88.5% | PF=7.79 | OOS=79.8%
+- R3B multi-bar candlestick sequences: Engulfing + 60m_extreme + 15m_trend_aligned | N=1,756 | WR5=76.7% | WR30=80.5% | PF=6.50 | OOS=79.8%
+- R3C density/confluence: 5+ categories + 60m_extreme + 15m_trend_aligned | N=7,990 | WR5=78.2% | WR30=81.3% | PF=7.45 | OOS=78.4%
+- R6A multi-session context: Gap up above prior high + 60m_extreme + 15m_trend_aligned | N=3,873 | WR5=78.9% | WR30=n/a | PF=8.84 | OOS=n/a
+- R6B gap/opening-range reversals: Failed OR breakout/breakdown trap/breakdown trap + 60m_extreme + 15m_trend_aligned | N=2,613 | WR5=80.5% | WR30=87.8% | PF=8.63 | OOS=n/a
+- R7A sequential confirmation: absorption -> absorption within 5 bars + 60m_extreme | N=13 | WR5=100.0% | WR30=n/a | PF=inf | OOS=n/a
+- R8A price-level confluence: Major round + 60m_extreme + 15m_trend_aligned | N=747 | WR5=79.5% | WR30=n/a | PF=5.61 | OOS=n/a
+- R8B delta/CVD structure: CVD divergenceergence + 60m_extreme + 15m_trend_aligned | N=807 | WR5=82.4% | WR30=82.8% | PF=15.05 | OOS=n/a
+- R10 anti-killer stacks: CVD divergenceergence + doji + 60m_extreme + 15m_trend_aligned | N=88 | WR5=80.7% | WR30=89.8% | PF=17.96 | OOS=n/a
+- R11 chain/triple interactions: score >= 60 + mid_vol + delta_opposite + 60m_extreme + 15m_trend_aligned | N=485 | WR5=82.5% | WR30=n/a | PF=10.05 | OOS=n/a
+- R12 bar microstructure: |delta|/vol < 0.05 + 60m_extreme + 15m_trend_aligned | N=587 | WR5=82.8% | WR30=89.4% | PF=14.37 | OOS=84.5%
+- R13 macro/calendar overlays: NOT summer + NOT FOMC + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA + first_hour | N=1,927 | WR5=80.6% | WR30=n/a | PF=11.00 | OOS=81.2%
+- R14 overnight/regime: CVD divergenceergence + doji + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA + first_hour | N=37 | WR5=97.3% | WR30=94.6% | PF=56.34 | OOS=93.3%
+- R16 consecutive-session memory: Prior losing session + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA + first_hour | N=23 | WR5=87.0% | WR30=n/a | PF=21.80 | OOS=90.0%
+- R17 vol-of-vol / contraction: Stable vol + 60m_extreme + 15m_trend_aligned + first_hour | N=64 | WR5=75.0% | WR30=98.4% | PF=15.38 | OOS=95.0%
+- R18 weekly relative strength: Consecutive inside days + 60m_extreme + 15m_trend_aligned | N=111 | WR5=79.3% | WR30=n/a | PF=9.12 | OOS=83.8%
+- R20 ultra-stacks: |delta|/vol < 0.05 + Stable vol + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA + first_hour | N=1 | WR5=100.0% | WR30=100.0% | PF=inf | OOS=100.0%
+- R22 inverse/failure logic: A1 BASE: prior win streak >= 3 before 60m_extreme + 15m_trend_aligned signal | N=15,842 | WR5=88.0% | WR30=n/a | PF=23.36 | OOS=n/a
+- R23 candle combos: Hammer with volume > 2x EMA + 60m_extreme + 15m_trend_aligned | N=13 | WR5=84.6% | WR30=100.0% | PF=15.39 | OOS=n/a
+- R24 signal clustering: score >= 90 + 60m_extreme + 15m_trend_aligned + first_hour + NOT volume spike > 3x EMA | N=13 | WR5=100.0% | WR30=100.0% | PF=inf | OOS=n/a
+- R25 momentum exhaustion: Within 10 ticks of session high + bearish signal + 60m_extreme + 15m_trend_aligned | N=9 | WR5=66.7% | WR30=88.9% | PF=4.55 | OOS=n/a
+
+Ancillary absorption studies read alongside the round campaign:
+- Absorption MTF: Absorption-only audit: 15m alignment improved raw absorption to WR=58.2% (N=490), and favorable 60m extremes pushed it to WR=71.3% (N=122, PF=3.91).
+- Absorption calendar/session: Absorption seasonality stayed weak overall, but dec (n=93, wr=53.76%), opex_week (n=300, wr=48.67%), and D-profile days (N=95, WR=51.58%) were the best contextual pockets.
+- Absorption volume profile: Volume-profile absorption worked best beyond value area (N=96, WR=57.29%, Avg=40.00 ticks), and ABS_04 was the strongest subtype (N=41, WR=53.66%).
+
+Section 5: Universal Trading Rules (Final Version)
+===============================================
+1. Keep 60m_extreme + 15m_trend_aligned as the execution backbone: core WR5=81.4% and WR30=85.0%.
+2. Default to first_hour and killer exclusion when possible: first-hour core OOS=83.0% and NOT-killers WR5=78.7%.
+3. Favor structure-backed divergence/compression overlays: CVD divergence core WR5=n/a; doji + NOT FOMC + NOT summer + first_hour reached OOS=89.7%.
+4. Stable / contracting conditions are additive, not decorative: 3 narrowing ranges + core reached WR30=86.9%.
+5. Quiet overnight and inside-day context helped continuation of the core edge: small overnight move OOS=85.6%; consecutive inside days WR5=79.3%.
+6. Density/score clustering remains a valid confirmation layer: score >= 70 + core + first_hour + NOT killers reached WR30=87.5%.
+7. Momentum-exhaustion reversals work best only when still nested inside the core gate: 5 lower highs + bullish signal + core reached WR30=86.8%.
+8. Always hard-exclude the four R7B killers; additionally treat lunch, opposite/no 15m trend, high-ATR blowoff, and direct same-direction CVD confirmation as danger states until re-validated.
+9. Legacy V1/V2 master summaries pointed to the same backbone; later rounds refined that framework rather than overturning it.
+
+Section 6: Recommended NinjaTrader Indicator Build (Top 10)
+==========================================================
+1. Stable vol + 60m_extreme + 15m_trend_aligned + first_hour
+   - Exact definition: Stable vol + 60m_extreme + 15m_trend_aligned + first_hour.
+   - Expected frequency: ~0.16/day | ~0.8/week based on N=64.
+   - Color coding: GREEN (PROVISIONAL) | Reference WR=95.0%.
+   - Mandatory exclusions: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal.
+2. CVD divergenceergence + doji + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA + first_hour
+   - Exact definition: CVD divergenceergence + doji + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA + first_hour.
+   - Expected frequency: ~0.09/day | ~0.5/week based on N=37.
+   - Color coding: GREEN (PROVISIONAL) | Reference WR=93.3%.
+   - Mandatory exclusions: same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal.
+3. 3 narrowing ranges + CVD divergenceergence + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA
+   - Exact definition: 3 narrowing ranges + CVD divergenceergence + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA.
+   - Expected frequency: ~0.18/day | ~0.9/week based on N=72.
+   - Color coding: GREEN (PROVISIONAL) | Reference WR=93.1%.
+   - Mandatory exclusions: same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal.
+4. absorption + 60m_extreme + 15m_trend_aligned + NOT lunch
+   - Exact definition: absorption + 60m_extreme + 15m_trend_aligned + NOT lunch.
+   - Expected frequency: ~0.08/day | ~0.4/week based on N=33.
+   - Color coding: GREEN (FRAGILE) | Reference WR=92.3%.
+   - Mandatory exclusions: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal.
+5. absorption + 60m_extreme + 15m_trend_aligned + NOT Monday
+   - Exact definition: absorption + 60m_extreme + 15m_trend_aligned + NOT Monday.
+   - Expected frequency: ~0.09/day | ~0.5/week based on N=38.
+   - Color coding: GREEN (PROVISIONAL) | Reference WR=90.9%.
+   - Mandatory exclusions: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal.
+6. Prior losing session + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA + first_hour
+   - Exact definition: Prior losing session + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA + first_hour.
+   - Expected frequency: ~0.06/day | ~0.3/week based on N=23.
+   - Color coding: GREEN (PROVISIONAL) | Reference WR=90.0%.
+   - Mandatory exclusions: same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal.
+7. Doji + NOT FOMC + NOT summer + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA + first_hour
+   - Exact definition: Doji + NOT FOMC + NOT summer + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA + first_hour.
+   - Expected frequency: ~0.40/day | ~2.0/week based on N=163.
+   - Color coding: GREEN (ROBUST) | Reference WR=89.7%.
+   - Mandatory exclusions: same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal.
+8. weekly breakout + CVD divergenceergence + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA
+   - Exact definition: weekly breakout + CVD divergenceergence + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA.
+   - Expected frequency: ~0.95/day | ~4.7/week based on N=389.
+   - Color coding: GREEN (ROBUST) | Reference WR=89.5%.
+   - Mandatory exclusions: same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal.
+9. absorption + 60m_extreme + 15m_trend_aligned
+   - Exact definition: absorption + 60m_extreme + 15m_trend_aligned.
+   - Expected frequency: ~0.12/day | ~0.6/week based on N=50.
+   - Color coding: GREEN (PROVISIONAL) | Reference WR=87.5%.
+   - Mandatory exclusions: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal.
+10. 3 narrowing ranges + 60m_extreme + 15m_trend_aligned
+   - Exact definition: 3 narrowing ranges + 60m_extreme + 15m_trend_aligned.
+   - Expected frequency: ~4.81/day | ~24.0/week based on N=1,971.
+   - Color coding: GREEN (ROBUST) | Reference WR=85.7%.
+   - Mandatory exclusions: volume spike > 3x EMA; same-direction bar_delta > 90th percentile; next-bar delta flips opposite signal.
+
+Section 7: Exit/Profit Target Recommendations
+============================================
+Using the matched R26 text report for exit guidance.
+
+- All entries | Absorption + 60m_extreme + 15m_trend_aligned -> optimal exit 10b | Sharpe=1.11 | Avg=+124.21t | N=42
+- All entries | CVD divergenceergenceergence + 60m_extreme + 15m_trend_aligned -> optimal exit 10b | Sharpe=0.97 | Avg=+163.08t | N=793
+- All entries | Failed OR breakout/breakdown trap/breakdown trap + 60m_extreme + 15m_trend_aligned -> optimal exit 15b | Sharpe=0.86 | Avg=+139.91t | N=4,003
+- All entries | Doji + 60m_extreme + 15m_trend_aligned -> optimal exit 15b | Sharpe=0.80 | Avg=+150.06t | N=1,282
+- All entries | 60m_extreme + 15m_trend_aligned -> optimal exit 15b | Sharpe=0.73 | Avg=+146.57t | N=24,236
+- First-hour entries | Absorption + 60m_extreme + 15m_trend_aligned + first_hour -> optimal exit 15b | Sharpe=15.76 | Avg=+156.00t | N=2
+- First-hour entries | CVD divergenceergenceergence + 60m_extreme + 15m_trend_aligned + first_hour -> optimal exit 15b | Sharpe=1.10 | Avg=+240.32t | N=298
+- First-hour entries | Doji + 60m_extreme + 15m_trend_aligned + first_hour -> optimal exit 10b | Sharpe=1.02 | Avg=+170.50t | N=185
+- First-hour entries | 60m_extreme + 15m_trend_aligned + first_hour -> optimal exit 15b | Sharpe=0.85 | Avg=+222.19t | N=3,273
+- First-hour entries | Failed OR breakout/breakdown trap/breakdown trap + 60m_extreme + 15m_trend_aligned + first_hour -> optimal exit 10b | Sharpe=0.78 | Avg=+130.61t | N=729
+- Last-hour entries | Absorption + 60m_extreme + 15m_trend_aligned + last_hour -> optimal exit 15b | Sharpe=14.78 | Avg=+75.75t | N=4
+- Last-hour entries | Failed OR breakout/breakdown trap/breakdown trap + 60m_extreme + 15m_trend_aligned + last_hour -> optimal exit 30b | Sharpe=1.23 | Avg=+137.35t | N=306
+- Last-hour entries | CVD divergenceergenceergence + 60m_extreme + 15m_trend_aligned + last_hour -> optimal exit 30b | Sharpe=1.13 | Avg=+250.65t | N=23
+- Last-hour entries | Doji + 60m_extreme + 15m_trend_aligned + last_hour -> optimal exit 30b | Sharpe=1.01 | Avg=+193.96t | N=138
+- Last-hour entries | 60m_extreme + 15m_trend_aligned + last_hour -> optimal exit 30b | Sharpe=0.91 | Avg=+184.31t | N=2,296
+
+Section 8: Regime Robustness Assessment
+=======================================
+Standalone R27 text report detected; using it where available.
+
+ROBUST across periods:
+- Doji + NOT FOMC + NOT summer + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA + first_hour | OOS=89.7% (N=58) | Bayes=79.5% | Persistence=GROWING
+- weekly breakout + CVD divergenceergence + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA | OOS=89.5% (N=143) | Bayes=84.7% | Persistence=n/a
+- 3 narrowing ranges + 60m_extreme + 15m_trend_aligned | OOS=85.7% (N=685) | Bayes=84.7% | Persistence=GROWING
+- Small overnight move < 20 ticks + 60m_extreme + 15m_trend_aligned | OOS=85.6% (N=188) | Bayes=82.2% | Persistence=GROWING
+- |delta|/vol < 0.05 + 60m_extreme + 15m_trend_aligned | OOS=84.5% (N=206) | Bayes=81.4% | Persistence=GROWING
+- Bottom 20% of 60m and 15m + trend aligned | OOS=83.9% (N=3,396) | Bayes=83.7% | Persistence=n/a
+- 5m + 15m_trend_aligned + 60m_extreme | OOS=83.9% (N=3,961) | Bayes=83.7% | Persistence=n/a
+- Consecutive inside days + 60m_extreme + 15m_trend_aligned | OOS=83.8% (N=37) | Bayes=71.9% | Persistence=n/a
+- score >= 70 + 60m_extreme + 15m_trend_aligned + NOT lunch | OOS=83.3% (N=480) | Bayes=82.0% | Persistence=GROWING
+- 60m_extreme + 15m_trend_aligned + first_hour | OOS=83.0% (N=1,545) | Bayes=82.9% | Persistence=GROWING
+- score >= 60 + 60m_extreme + 15m_trend_aligned + first_hour | OOS=82.8% (N=1,260) | Bayes=82.3% | Persistence=GROWING
+- score >= 60 + 60m_extreme + 15m_trend_aligned + NOT lunch | OOS=82.6% (N=1,896) | Bayes=82.3% | Persistence=GROWING
+
+PROVISIONAL / needs continued monitoring:
+- Stable vol + 60m_extreme + 15m_trend_aligned + first_hour | WR5=75.0% | WR30=98.4% | OOS=95.0% | N=64
+- CVD divergenceergence + doji + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA + first_hour | WR5=97.3% | WR30=94.6% | OOS=93.3% | N=37
+- 3 narrowing ranges + CVD divergenceergence + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA | WR5=93.1% | WR30=90.3% | OOS=93.1% | N=72
+- absorption + 60m_extreme + 15m_trend_aligned + NOT Monday | WR5=89.5% | WR30=91.9% | OOS=90.9% | N=38
+- Prior losing session + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA + first_hour | WR5=87.0% | WR30=n/a | OOS=90.0% | N=23
+- absorption + 60m_extreme + 15m_trend_aligned | WR5=88.0% | WR30=91.8% | OOS=87.5% | N=50
+- 3 narrowing ranges + Stable vol + Small overnight move < 20 ticks + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA | WR5=87.0% | WR30=91.3% | OOS=81.8% | N=23
+- Body < 20% + |delta|/vol < 0.10 + NOT volume spike > 3x EMA + 60m_extreme + 15m_trend_aligned + first_hour | WR5=85.4% | WR30=82.9% | OOS=79.3% | N=82
+- Delta flip + volume spike + 60m_extreme + 15m_trend_aligned | WR5=74.2% | WR30=75.7% | OOS=73.2% | N=345
+- absorption + 60m_extreme | WR5=71.3% | WR30=81.0% | OOS=71.4% | N=122
+
+FRAGILE / paper-trade-only for now:
+- absorption + 60m_extreme + 15m_trend_aligned + NOT lunch | Status=DEPLOY | OOS=92.3% | Persistence=DECAYING | N=33
+- Doji + 60m_extreme + 15m_trend_aligned + first_hour | Status=DEPLOY | OOS=83.7% | Persistence=DECAYING | N=214
+- absorption + 15m_trend_aligned + delta_opposite | Status=DEPLOY | OOS=76.9% | Persistence=DECAYING | N=84
+- DELT_04 + TRAP_04 + 15m_trend_aligned | Status=DEPLOY | OOS=70.9% | Persistence=DECAYING | N=286
+- 2-bar delta divergence + 60m_extreme | Status=DEPLOY | OOS=59.2% | Persistence=n/a | N=460
+- CVD divergenceergence + 60m_extreme + 15m_trend_aligned + NOT volume spike > 3x EMA + first_hour | Status=DISCOVERY_STRONG | OOS=n/a | Persistence=DECAYING | N=325
+- CVD divergenceergenceergence + 60m_extreme + 15m_trend_aligned + first_hour | Status=DISCOVERY_STRONG | OOS=n/a | Persistence=DECAYING | N=323
+- score >= 80 + 60m_extreme + 15m_trend_aligned + NOT lunch | Status=DISCOVERY_STRONG | OOS=n/a | Persistence=DECAYING | N=216
+- Failed OR breakout/breakdown trap/breakdown trap + 60m_extreme + 15m_trend_aligned + first_hour | Status=DISCOVERY_STRONG | OOS=n/a | Persistence=DECAYING | N=767
+- score >= 70 + 60m_extreme + 15m_trend_aligned + last_hour | Status=DISCOVERY_STRONG | OOS=n/a | Persistence=DECAYING | N=166
+
+Section 9: Statistical Caveats (Final)
+=====================================
+- Multiple-comparisons risk is larger than in V2: 840 explicitly enumerated filters / comparison buckets plus detailed exit-window slicing means tail performance can still overstate live edge.
+- Validation depth remains uneven: walk-forward DEPLOY signals deserve the most trust; plain VALIDATED rows are still in-sample confirmations.
+- Overlap risk is extreme: many winners are nested versions of the same core regime (60m_extreme + 15m trend + first_hour + killer exclusion + divergence/compression overlays). Do not size them as independent bets.
+- Small-N overlays exist at the very top of several tables; treat them as premium alert modifiers, not the backbone of automation.
+- Round21 explicitly notes that the R20 script was reconstructed for validation. Treat the R20 walk-forward layer as useful but not as authoritative as rounds with intact discovery scripts.
+- Auxiliary absorption-only studies were read and summarized, but their observation frame is narrower than the full signal-universe round reports and should not be ranked 1:1 against the core campaign tables.
+- Side-study coverage: 3 non-round absorption reports were incorporated narratively and into the total evaluation count, but not allowed to dominate the final DEPLOY ranking.

@@ -1,0 +1,568 @@
+ROUND 36 WALK-FORWARD VALIDATION (R29-R35 TOP 12)
+=================================================
+
+Source events: C:\Users\Tea\DEEP6\data\backtests\signal_events.csv
+Source bars:   C:\Users\Tea\DEEP6\data\backtests\nq_1yr_1m.csv
+Observation frames: (1) grouped signal bars using sign(bar_delta) for non-absorption filters, and (2) grouped absorption observations using event direction_sign.
+Core gate carries forward from prior rounds: 60m_extreme = trade anchor in bottom 20% / top 20% of the active 60m bar; 15m gate = trade direction aligned with the active 15m trend.
+Killers carry forward from prior rounds: killer_1 = 60m position in the middle 40%-60%; killer_2 = bar_volume > 3x prior 20-bar EMA volume; NOT killers = neither killer fired.
+Adaptive low delta/vol = abs(bar_delta) / bar_volume below the prior 50 grouped-bar rolling 10th percentile within the same session.
+Triple adaptive = bar_volume above the prior 50 grouped-bar rolling 90th percentile AND bar_range < 0.5 * ATR20 AND adaptive low delta/vol.
+Wide day carries forward from prior rounds as prior_session_is_wide_range = prior session range >= validation-period session-range q75 built from unique signal bars.
+IB context is reconstructed directly from nq_1yr_1m.csv: IB high/low = 09:30-10:29 ET; within-IB and extension states are evaluated only after that first hour to avoid look-ahead.
+Session delta opposing = sign(session_cumulative_delta) opposite the filter trade direction. Session cumulative delta is built from unique signal bars because nq_1yr_1m.csv does not contain delta.
+All 12 requested filters are evaluated on 30-bar forward returns because the supplied R29-R35 leader notes were framed as top findings and the explicit references pointed to WR30 leaders.
+round35_session_structure.py was not present under scripts/, and round33/round34 source scripts were also absent, so those filters were rebuilt directly from the task brief plus existing round11/24/29/30 primitives.
+Walk-forward windows: Jan-Feb→Mar 2025, Apr-May→Jun 2025, Jun-Jul→Aug 2025, Sep-Oct→Nov 2025, Nov-Dec 2025→Jan 2026, Feb-Mar→Apr 2026.
+Monthly stability and Bayesian metrics use only composite OOS trades.
+
+Raw event rows loaded:                   1,767,271
+Raw absorption event rows:               901
+Unique all-signal bars:                  127,361
+Signal-direction observations:           254,722
+Bar-sample observations:                 127,165
+Absorption observations:                 901
+15m bars built:                          30,745
+60m bars built:                          7,693
+Prior wide-range threshold (range q75):  407.00
+Core bar observations:                   14,568
+Core absorption observations:            50
+Adaptive low delta/vol bar observations: 12,547
+Triple adaptive absorption obs:          1
+Session-delta-opposing bar obs:          60,018
+Within-IB bar observations:              50,798
+IB-extension bar observations:           56,459
+
+Baselines
+---------
+Bar sample core 30b: N=14,565 | WR=83.1% | PF=7.41 | Avg=+176.92 ticks | CI=[82.4%, 83.7%]
+Bar sample core 30b + NOT killers: N=14,378 | WR=83.2% | PF=7.48 | Avg=+176.74 ticks | CI=[82.6%, 83.8%]
+Absorption sample core 30b: N=49 | WR=91.8% | PF=7.63 | Avg=+250.73 ticks | CI=[80.8%, 96.8%]
+Absorption sample core 30b + NOT killers: N=46 | WR=91.3% | PF=7.29 | Avg=+253.52 ticks | CI=[79.7%, 96.6%]
+
+Summary ranking by composite OOS WR
+-----------------------------------
+Rank | Round | Eval | Filter                                                                                         | N     | WR%    | OOS N | OOS WR% | OOS Wilson 95% CI | OOS Bayes | Verdict     
+-----+-------+------+------------------------------------------------------------------------------------------------+-------+--------+-------+---------+-------------------+-----------+-------------
+1    | R33   | 30b  | 11. Range < 0.5x ATR20 + doji + 60m + 15m + NOT killers                                        | 66    | 90.9%  | 22    | 100.0%  | [85.1%, 100.0%]   | 76.2%     | DEPLOY      
+2    | R30   | 30b  | 02. Gap absorption (3+ bar gap then re-absorption) + 60m + 15m                                 | 20    | 100.0% | 8     | 100.0%  | [67.6%, 100.0%]   | 64.3%     | DEPLOY      
+3    | R29   | 30b  | 01. absorption + 60m + 15m + prior wide-range day + NOT killers                                | 10    | 100.0% | 3     | 100.0%  | [43.8%, 100.0%]   | 56.5%     | DEPLOY      
+4    | R33   | 30b  | 04. Adaptive low delta/vol (rolling q10) + doji + 60m + 15m + NOT killers                      | 229   | 86.9%  | 81    | 91.4%   | [83.2%, 95.8%]    | 83.2%     | DEPLOY      
+5    | R30   | 30b  | 03. absorption -> exhaustion within 3 bars + 60m + 15m                                         | 36    | 91.7%  | 11    | 90.9%   | [62.3%, 98.4%]    | 64.5%     | DEPLOY      
+6    | R34   | 30b  | 07. max_strength >= 0.7 + score >= 60 + 60m + 15m + first_hour + NOT killers                   | 1,973 | 85.7%  | 736   | 85.7%   | [83.0%, 88.1%]    | 84.8%     | DEPLOY      
+7    | R34   | 30b  | 06. Score 65-80 + 60m + 15m + first_hour + NOT killers                                         | 1,328 | 84.0%  | 500   | 84.8%   | [81.4%, 87.7%]    | 83.5%     | DEPLOY      
+8    | R35   | 30b  | 09. Within IB + session delta opposing + 60m + 15m + NOT killers                               | 2,793 | 81.0%  | 925   | 83.5%   | [80.9%, 85.7%]    | 82.8%     | DEPLOY      
+9    | R35   | 30b  | 12. Session delta opposing signal + 60m + 15m                                                  | 7,899 | 80.8%  | 2,791 | 82.1%   | [80.6%, 83.5%]    | 81.9%     | DEPLOY      
+10   | R33   | 30b  | 05. Triple adaptive absorption: high vol + low range + low delta/vol + 60m + 15m + NOT killers | 0     | nan    | 0     | nan     | [0.0%, 0.0%]      | 50.0%     | INSUFFICIENT
+11   | R34   | 30b  | 08. absorption + exhaustion + trapped same bar + 60m + 15m + NOT killers                       | 0     | nan    | 0     | nan     | [0.0%, 0.0%]      | 50.0%     | INSUFFICIENT
+12   | R35   | 30b  | 10. IB extension + wide day + 60m + 15m + NOT killers + first_hour                             | 0     | nan    | 0     | nan     | [0.0%, 0.0%]      | 50.0%     | INSUFFICIENT
+
+FILTER 11: Range < 0.5x ATR20 + doji + 60m + 15m + NOT killers
+-------------------------------------------------------------
+Source round: R33
+Observation frame: grouped signal-bar sample / sign(bar_delta)
+Evaluation horizon: 30 bars forward
+Discovery sample: N=66, WR=90.9%, PF=16.07, Avg=+148.91 ticks
+Discovery reference: R33: tight + doji family.
+
+A) Walk-Forward (6 fixed windows, 2mo IS / 1mo OOS):
+  Window 1 (Jan-Feb 2025 IS → Mar 2025 OOS): IS N=15, IS WR=73.3% | OOS N=6, Wins=6, WR=100.0%, Avg=+426.00 ticks
+  Window 2 (Apr-May 2025 IS → Jun 2025 OOS): IS N=5, IS WR=100.0% | OOS N=6, Wins=6, WR=100.0%, Avg=+163.67 ticks
+  Window 3 (Jun-Jul 2025 IS → Aug 2025 OOS): IS N=15, IS WR=93.3% | OOS N=2, Wins=2, WR=100.0%, Avg=+108.50 ticks
+  Window 4 (Sep-Oct 2025 IS → Nov 2025 OOS): IS N=3, IS WR=100.0% | OOS N=1, Wins=1, WR=100.0%, Avg=+14.00 ticks
+  Window 5 (Nov-Dec 2025 IS → Jan 2026 OOS): IS N=6, IS WR=83.3% | OOS N=3, Wins=3, WR=100.0%, Avg=+99.00 ticks
+  Window 6 (Feb-Mar 2026 IS → Apr 2026 OOS): IS N=7, IS WR=100.0% | OOS N=4, Wins=4, WR=100.0%, Avg=+167.75 ticks
+  Composite OOS: N=22, Wins=22, WR=100.0%, Avg=+215.32 ticks
+  OOS Wilson 95% CI: [85.1%, 100.0%]
+  Any OOS window < 40% WR: NO
+  [PASS]: no OOS window below 40% WR
+
+B) Monthly Stability (OOS months only):
+  Mar-25: N=6, WR=100.0%, Avg=+426.00 ticks
+  Jun-25: N=6, WR=100.0%, Avg=+163.67 ticks
+  Aug-25: N=2, WR=100.0%, Avg=+108.50 ticks
+  Nov-25: N=1, WR=100.0%, Avg=+14.00 ticks
+  Jan-26: N=3, WR=100.0%, Avg=+99.00 ticks
+  Apr-26: N=4, WR=100.0%, Avg=+167.75 ticks
+  Months > 50% WR: 6/6
+  Longest bad-month streak (<50% WR): 0
+  Longest losing trade streak (composite OOS): 0
+  [PASS]: no OOS month below 35% WR with N>=3
+
+C) Bayesian (Composite OOS):
+  Prior: Beta(10, 10), mean=50.0%
+  Posterior: Beta(32, 10), mean=76.2%
+  95% Credible Interval: [62.4%, 87.6%]
+  Shrinkage: 100.0% → 76.2%
+
+OVERALL VERDICT: DEPLOY
+- DEPLOY: composite OOS WR > 55%, no OOS month below 35% WR (N>=3), posterior > 55%
+- PAPER TRADE: composite OOS WR > 50% and posterior > 50%
+- INSUFFICIENT: otherwise
+
+FILTER 02: Gap absorption (3+ bar gap then re-absorption) + 60m + 15m
+--------------------------------------------------------------------
+Source round: R30
+Observation frame: absorption observation sample / event direction_sign
+Evaluation horizon: 30 bars forward
+Discovery sample: N=20, WR=100.0%, PF=inf, Avg=+213.50 ticks
+Discovery reference: R30: 100.0% WR30, N=20.
+
+A) Walk-Forward (6 fixed windows, 2mo IS / 1mo OOS):
+  Window 1 (Jan-Feb 2025 IS → Mar 2025 OOS): IS N=2, IS WR=100.0% | OOS N=1, Wins=1, WR=100.0%, Avg=+229.00 ticks
+  Window 2 (Apr-May 2025 IS → Jun 2025 OOS): IS N=0, IS WR=nan | OOS N=1, Wins=1, WR=100.0%, Avg=+57.00 ticks
+  Window 3 (Jun-Jul 2025 IS → Aug 2025 OOS): IS N=3, IS WR=100.0% | OOS N=2, Wins=2, WR=100.0%, Avg=+558.50 ticks
+  Window 4 (Sep-Oct 2025 IS → Nov 2025 OOS): IS N=4, IS WR=100.0% | OOS N=0, Wins=0, WR=nan, Avg=nan ticks
+  Window 5 (Nov-Dec 2025 IS → Jan 2026 OOS): IS N=2, IS WR=100.0% | OOS N=1, Wins=1, WR=100.0%, Avg=+88.00 ticks
+  Window 6 (Feb-Mar 2026 IS → Apr 2026 OOS): IS N=2, IS WR=100.0% | OOS N=3, Wins=3, WR=100.0%, Avg=+171.33 ticks
+  Composite OOS: N=8, Wins=8, WR=100.0%, Avg=+250.62 ticks
+  OOS Wilson 95% CI: [67.6%, 100.0%]
+  Any OOS window < 40% WR: NO
+  [PASS]: no OOS window below 40% WR
+
+B) Monthly Stability (OOS months only):
+  Mar-25: N=1, WR=100.0%, Avg=+229.00 ticks
+  Jun-25: N=1, WR=100.0%, Avg=+57.00 ticks
+  Aug-25: N=2, WR=100.0%, Avg=+558.50 ticks
+  Nov-25: N=0, WR=nan, Avg=nan ticks
+  Jan-26: N=1, WR=100.0%, Avg=+88.00 ticks
+  Apr-26: N=3, WR=100.0%, Avg=+171.33 ticks
+  Months > 50% WR: 5/5
+  Longest bad-month streak (<50% WR): 0
+  Longest losing trade streak (composite OOS): 0
+  [PASS]: no OOS month below 35% WR with N>=3
+
+C) Bayesian (Composite OOS):
+  Prior: Beta(10, 10), mean=50.0%
+  Posterior: Beta(18, 10), mean=64.3%
+  95% Credible Interval: [46.0%, 80.6%]
+  Shrinkage: 100.0% → 64.3%
+
+OVERALL VERDICT: DEPLOY
+- DEPLOY: composite OOS WR > 55%, no OOS month below 35% WR (N>=3), posterior > 55%
+- PAPER TRADE: composite OOS WR > 50% and posterior > 50%
+- INSUFFICIENT: otherwise
+
+FILTER 01: absorption + 60m + 15m + prior wide-range day + NOT killers
+---------------------------------------------------------------------
+Source round: R29
+Observation frame: absorption observation sample / event direction_sign
+Evaluation horizon: 30 bars forward
+Discovery sample: N=10, WR=100.0%, PF=inf, Avg=+359.30 ticks
+Discovery reference: R29: 100% WR, N=10.
+
+A) Walk-Forward (6 fixed windows, 2mo IS / 1mo OOS):
+  Window 1 (Jan-Feb 2025 IS → Mar 2025 OOS): IS N=2, IS WR=100.0% | OOS N=0, Wins=0, WR=nan, Avg=nan ticks
+  Window 2 (Apr-May 2025 IS → Jun 2025 OOS): IS N=0, IS WR=nan | OOS N=0, Wins=0, WR=nan, Avg=nan ticks
+  Window 3 (Jun-Jul 2025 IS → Aug 2025 OOS): IS N=0, IS WR=nan | OOS N=1, Wins=1, WR=100.0%, Avg=+90.00 ticks
+  Window 4 (Sep-Oct 2025 IS → Nov 2025 OOS): IS N=1, IS WR=100.0% | OOS N=1, Wins=1, WR=100.0%, Avg=+994.00 ticks
+  Window 5 (Nov-Dec 2025 IS → Jan 2026 OOS): IS N=1, IS WR=100.0% | OOS N=0, Wins=0, WR=nan, Avg=nan ticks
+  Window 6 (Feb-Mar 2026 IS → Apr 2026 OOS): IS N=4, IS WR=100.0% | OOS N=1, Wins=1, WR=100.0%, Avg=+109.00 ticks
+  Composite OOS: N=3, Wins=3, WR=100.0%, Avg=+397.67 ticks
+  OOS Wilson 95% CI: [43.8%, 100.0%]
+  Any OOS window < 40% WR: NO
+  [PASS]: no OOS window below 40% WR
+
+B) Monthly Stability (OOS months only):
+  Mar-25: N=0, WR=nan, Avg=nan ticks
+  Jun-25: N=0, WR=nan, Avg=nan ticks
+  Aug-25: N=1, WR=100.0%, Avg=+90.00 ticks
+  Nov-25: N=1, WR=100.0%, Avg=+994.00 ticks
+  Jan-26: N=0, WR=nan, Avg=nan ticks
+  Apr-26: N=1, WR=100.0%, Avg=+109.00 ticks
+  Months > 50% WR: 3/3
+  Longest bad-month streak (<50% WR): 0
+  Longest losing trade streak (composite OOS): 0
+  [PASS]: no OOS month below 35% WR with N>=3
+
+C) Bayesian (Composite OOS):
+  Prior: Beta(10, 10), mean=50.0%
+  Posterior: Beta(13, 10), mean=56.5%
+  95% Credible Interval: [36.4%, 75.6%]
+  Shrinkage: 100.0% → 56.5%
+
+OVERALL VERDICT: DEPLOY
+- DEPLOY: composite OOS WR > 55%, no OOS month below 35% WR (N>=3), posterior > 55%
+- PAPER TRADE: composite OOS WR > 50% and posterior > 50%
+- INSUFFICIENT: otherwise
+
+FILTER 04: Adaptive low delta/vol (rolling q10) + doji + 60m + 15m + NOT killers
+-------------------------------------------------------------------------------
+Source round: R33
+Observation frame: grouped signal-bar sample / sign(bar_delta)
+Evaluation horizon: 30 bars forward
+Discovery sample: N=229, WR=86.9%, PF=9.97, Avg=+196.96 ticks
+
+A) Walk-Forward (6 fixed windows, 2mo IS / 1mo OOS):
+  Window 1 (Jan-Feb 2025 IS → Mar 2025 OOS): IS N=24, IS WR=83.3% | OOS N=15, Wins=14, WR=93.3%, Avg=+220.40 ticks
+  Window 2 (Apr-May 2025 IS → Jun 2025 OOS): IS N=38, IS WR=86.8% | OOS N=8, Wins=8, WR=100.0%, Avg=+216.12 ticks
+  Window 3 (Jun-Jul 2025 IS → Aug 2025 OOS): IS N=22, IS WR=86.4% | OOS N=17, Wins=15, WR=88.2%, Avg=+129.47 ticks
+  Window 4 (Sep-Oct 2025 IS → Nov 2025 OOS): IS N=32, IS WR=84.4% | OOS N=15, Wins=14, WR=93.3%, Avg=+292.53 ticks
+  Window 5 (Nov-Dec 2025 IS → Jan 2026 OOS): IS N=26, IS WR=88.5% | OOS N=16, Wins=13, WR=81.2%, Avg=+90.12 ticks
+  Window 6 (Feb-Mar 2026 IS → Apr 2026 OOS): IS N=29, IS WR=86.2% | OOS N=10, Wins=10, WR=100.0%, Avg=+199.40 ticks
+  Composite OOS: N=81, Wins=74, WR=91.4%, Avg=+185.93 ticks
+  OOS Wilson 95% CI: [83.2%, 95.8%]
+  Any OOS window < 40% WR: NO
+  [PASS]: no OOS window below 40% WR
+
+B) Monthly Stability (OOS months only):
+  Mar-25: N=15, WR=93.3%, Avg=+220.40 ticks
+  Jun-25: N=8, WR=100.0%, Avg=+216.12 ticks
+  Aug-25: N=17, WR=88.2%, Avg=+129.47 ticks
+  Nov-25: N=15, WR=93.3%, Avg=+292.53 ticks
+  Jan-26: N=16, WR=81.2%, Avg=+90.12 ticks
+  Apr-26: N=10, WR=100.0%, Avg=+199.40 ticks
+  Months > 50% WR: 6/6
+  Longest bad-month streak (<50% WR): 0
+  Longest losing trade streak (composite OOS): 1
+  [PASS]: no OOS month below 35% WR with N>=3
+
+C) Bayesian (Composite OOS):
+  Prior: Beta(10, 10), mean=50.0%
+  Posterior: Beta(84, 17), mean=83.2%
+  95% Credible Interval: [75.3%, 89.8%]
+  Shrinkage: 91.4% → 83.2%
+
+OVERALL VERDICT: DEPLOY
+- DEPLOY: composite OOS WR > 55%, no OOS month below 35% WR (N>=3), posterior > 55%
+- PAPER TRADE: composite OOS WR > 50% and posterior > 50%
+- INSUFFICIENT: otherwise
+
+FILTER 03: absorption -> exhaustion within 3 bars + 60m + 15m
+------------------------------------------------------------
+Source round: R30
+Observation frame: absorption observation sample / event direction_sign
+Evaluation horizon: 30 bars forward
+Discovery sample: N=36, WR=91.7%, PF=5.95, Avg=+236.92 ticks
+Discovery reference: R30: 91.7% WR30, N=36.
+
+A) Walk-Forward (6 fixed windows, 2mo IS / 1mo OOS):
+  Window 1 (Jan-Feb 2025 IS → Mar 2025 OOS): IS N=4, IS WR=100.0% | OOS N=2, Wins=2, WR=100.0%, Avg=+245.00 ticks
+  Window 2 (Apr-May 2025 IS → Jun 2025 OOS): IS N=3, IS WR=100.0% | OOS N=3, Wins=2, WR=66.7%, Avg=-55.67 ticks
+  Window 3 (Jun-Jul 2025 IS → Aug 2025 OOS): IS N=5, IS WR=80.0% | OOS N=2, Wins=2, WR=100.0%, Avg=+381.00 ticks
+  Window 4 (Sep-Oct 2025 IS → Nov 2025 OOS): IS N=4, IS WR=100.0% | OOS N=1, Wins=1, WR=100.0%, Avg=+994.00 ticks
+  Window 5 (Nov-Dec 2025 IS → Jan 2026 OOS): IS N=3, IS WR=66.7% | OOS N=1, Wins=1, WR=100.0%, Avg=+88.00 ticks
+  Window 6 (Feb-Mar 2026 IS → Apr 2026 OOS): IS N=10, IS WR=90.0% | OOS N=2, Wins=2, WR=100.0%, Avg=+164.50 ticks
+  Composite OOS: N=11, Wins=10, WR=90.9%, Avg=+226.91 ticks
+  OOS Wilson 95% CI: [62.3%, 98.4%]
+  Any OOS window < 40% WR: NO
+  [PASS]: no OOS window below 40% WR
+
+B) Monthly Stability (OOS months only):
+  Mar-25: N=2, WR=100.0%, Avg=+245.00 ticks
+  Jun-25: N=3, WR=66.7%, Avg=-55.67 ticks
+  Aug-25: N=2, WR=100.0%, Avg=+381.00 ticks
+  Nov-25: N=1, WR=100.0%, Avg=+994.00 ticks
+  Jan-26: N=1, WR=100.0%, Avg=+88.00 ticks
+  Apr-26: N=2, WR=100.0%, Avg=+164.50 ticks
+  Months > 50% WR: 6/6
+  Longest bad-month streak (<50% WR): 0
+  Longest losing trade streak (composite OOS): 1
+  [PASS]: no OOS month below 35% WR with N>=3
+
+C) Bayesian (Composite OOS):
+  Prior: Beta(10, 10), mean=50.0%
+  Posterior: Beta(20, 11), mean=64.5%
+  95% Credible Interval: [47.2%, 80.1%]
+  Shrinkage: 90.9% → 64.5%
+
+OVERALL VERDICT: DEPLOY
+- DEPLOY: composite OOS WR > 55%, no OOS month below 35% WR (N>=3), posterior > 55%
+- PAPER TRADE: composite OOS WR > 50% and posterior > 50%
+- INSUFFICIENT: otherwise
+
+FILTER 07: max_strength >= 0.7 + score >= 60 + 60m + 15m + first_hour + NOT killers
+----------------------------------------------------------------------------------
+Source round: R34
+Observation frame: grouped signal-bar sample / sign(bar_delta)
+Evaluation horizon: 30 bars forward
+Discovery sample: N=1,973, WR=85.7%, PF=14.56, Avg=+271.10 ticks
+
+A) Walk-Forward (6 fixed windows, 2mo IS / 1mo OOS):
+  Window 1 (Jan-Feb 2025 IS → Mar 2025 OOS): IS N=233, IS WR=86.7% | OOS N=132, Wins=116, WR=87.9%, Avg=+361.40 ticks
+  Window 2 (Apr-May 2025 IS → Jun 2025 OOS): IS N=242, IS WR=86.0% | OOS N=90, Wins=73, WR=81.1%, Avg=+136.06 ticks
+  Window 3 (Jun-Jul 2025 IS → Aug 2025 OOS): IS N=203, IS WR=88.2% | OOS N=135, Wins=113, WR=83.7%, Avg=+213.64 ticks
+  Window 4 (Sep-Oct 2025 IS → Nov 2025 OOS): IS N=260, IS WR=86.9% | OOS N=128, Wins=114, WR=89.1%, Avg=+349.18 ticks
+  Window 5 (Nov-Dec 2025 IS → Jan 2026 OOS): IS N=228, IS WR=85.1% | OOS N=136, Wins=116, WR=85.3%, Avg=+321.38 ticks
+  Window 6 (Feb-Mar 2026 IS → Apr 2026 OOS): IS N=289, IS WR=82.0% | OOS N=115, Wins=99, WR=86.1%, Avg=+210.75 ticks
+  Composite OOS: N=736, Wins=631, WR=85.7%, Avg=+273.68 ticks
+  OOS Wilson 95% CI: [83.0%, 88.1%]
+  Any OOS window < 40% WR: NO
+  [PASS]: no OOS window below 40% WR
+
+B) Monthly Stability (OOS months only):
+  Mar-25: N=132, WR=87.9%, Avg=+361.40 ticks
+  Jun-25: N=90, WR=81.1%, Avg=+136.06 ticks
+  Aug-25: N=135, WR=83.7%, Avg=+213.64 ticks
+  Nov-25: N=128, WR=89.1%, Avg=+349.18 ticks
+  Jan-26: N=136, WR=85.3%, Avg=+321.38 ticks
+  Apr-26: N=115, WR=86.1%, Avg=+210.75 ticks
+  Months > 50% WR: 6/6
+  Longest bad-month streak (<50% WR): 0
+  Longest losing trade streak (composite OOS): 14
+  [PASS]: no OOS month below 35% WR with N>=3
+
+C) Bayesian (Composite OOS):
+  Prior: Beta(10, 10), mean=50.0%
+  Posterior: Beta(641, 115), mean=84.8%
+  95% Credible Interval: [82.1%, 87.3%]
+  Shrinkage: 85.7% → 84.8%
+
+OVERALL VERDICT: DEPLOY
+- DEPLOY: composite OOS WR > 55%, no OOS month below 35% WR (N>=3), posterior > 55%
+- PAPER TRADE: composite OOS WR > 50% and posterior > 50%
+- INSUFFICIENT: otherwise
+
+FILTER 06: Score 65-80 + 60m + 15m + first_hour + NOT killers
+------------------------------------------------------------
+Source round: R34
+Observation frame: grouped signal-bar sample / sign(bar_delta)
+Evaluation horizon: 30 bars forward
+Discovery sample: N=1,328, WR=84.0%, PF=13.63, Avg=+286.72 ticks
+
+A) Walk-Forward (6 fixed windows, 2mo IS / 1mo OOS):
+  Window 1 (Jan-Feb 2025 IS → Mar 2025 OOS): IS N=173, IS WR=83.8% | OOS N=96, Wins=83, WR=86.5%, Avg=+357.35 ticks
+  Window 2 (Apr-May 2025 IS → Jun 2025 OOS): IS N=151, IS WR=82.1% | OOS N=49, Wins=38, WR=77.6%, Avg=+148.00 ticks
+  Window 3 (Jun-Jul 2025 IS → Aug 2025 OOS): IS N=118, IS WR=85.6% | OOS N=91, Wins=75, WR=82.4%, Avg=+245.74 ticks
+  Window 4 (Sep-Oct 2025 IS → Nov 2025 OOS): IS N=173, IS WR=83.8% | OOS N=101, Wins=89, WR=88.1%, Avg=+382.58 ticks
+  Window 5 (Nov-Dec 2025 IS → Jan 2026 OOS): IS N=163, IS WR=85.3% | OOS N=91, Wins=78, WR=85.7%, Avg=+334.30 ticks
+  Window 6 (Feb-Mar 2026 IS → Apr 2026 OOS): IS N=200, IS WR=82.0% | OOS N=72, Wins=61, WR=84.7%, Avg=+220.75 ticks
+  Composite OOS: N=500, Wins=424, WR=84.8%, Avg=+297.75 ticks
+  OOS Wilson 95% CI: [81.4%, 87.7%]
+  Any OOS window < 40% WR: NO
+  [PASS]: no OOS window below 40% WR
+
+B) Monthly Stability (OOS months only):
+  Mar-25: N=96, WR=86.5%, Avg=+357.35 ticks
+  Jun-25: N=49, WR=77.6%, Avg=+148.00 ticks
+  Aug-25: N=91, WR=82.4%, Avg=+245.74 ticks
+  Nov-25: N=101, WR=88.1%, Avg=+382.58 ticks
+  Jan-26: N=91, WR=85.7%, Avg=+334.30 ticks
+  Apr-26: N=72, WR=84.7%, Avg=+220.75 ticks
+  Months > 50% WR: 6/6
+  Longest bad-month streak (<50% WR): 0
+  Longest losing trade streak (composite OOS): 10
+  [PASS]: no OOS month below 35% WR with N>=3
+
+C) Bayesian (Composite OOS):
+  Prior: Beta(10, 10), mean=50.0%
+  Posterior: Beta(434, 86), mean=83.5%
+  95% Credible Interval: [80.2%, 86.5%]
+  Shrinkage: 84.8% → 83.5%
+
+OVERALL VERDICT: DEPLOY
+- DEPLOY: composite OOS WR > 55%, no OOS month below 35% WR (N>=3), posterior > 55%
+- PAPER TRADE: composite OOS WR > 50% and posterior > 50%
+- INSUFFICIENT: otherwise
+
+FILTER 09: Within IB + session delta opposing + 60m + 15m + NOT killers
+----------------------------------------------------------------------
+Source round: R35
+Observation frame: grouped signal-bar sample / sign(bar_delta)
+Evaluation horizon: 30 bars forward
+Discovery sample: N=2,793, WR=81.0%, PF=5.85, Avg=+157.53 ticks
+
+A) Walk-Forward (6 fixed windows, 2mo IS / 1mo OOS):
+  Window 1 (Jan-Feb 2025 IS → Mar 2025 OOS): IS N=485, IS WR=74.8% | OOS N=172, Wins=141, WR=82.0%, Avg=+183.12 ticks
+  Window 2 (Apr-May 2025 IS → Jun 2025 OOS): IS N=252, IS WR=76.2% | OOS N=240, Wins=203, WR=84.6%, Avg=+113.25 ticks
+  Window 3 (Jun-Jul 2025 IS → Aug 2025 OOS): IS N=434, IS WR=83.2% | OOS N=197, Wins=164, WR=83.2%, Avg=+120.16 ticks
+  Window 4 (Sep-Oct 2025 IS → Nov 2025 OOS): IS N=272, IS WR=84.2% | OOS N=90, Wins=75, WR=83.3%, Avg=+190.63 ticks
+  Window 5 (Nov-Dec 2025 IS → Jan 2026 OOS): IS N=315, IS WR=86.3% | OOS N=162, Wins=133, WR=82.1%, Avg=+154.30 ticks
+  Window 6 (Feb-Mar 2026 IS → Apr 2026 OOS): IS N=440, IS WR=80.0% | OOS N=64, Wins=56, WR=87.5%, Avg=+214.53 ticks
+  Composite OOS: N=925, Wins=772, WR=83.5%, Avg=+149.44 ticks
+  OOS Wilson 95% CI: [80.9%, 85.7%]
+  Any OOS window < 40% WR: NO
+  [PASS]: no OOS window below 40% WR
+
+B) Monthly Stability (OOS months only):
+  Mar-25: N=172, WR=82.0%, Avg=+183.12 ticks
+  Jun-25: N=240, WR=84.6%, Avg=+113.25 ticks
+  Aug-25: N=197, WR=83.2%, Avg=+120.16 ticks
+  Nov-25: N=90, WR=83.3%, Avg=+190.63 ticks
+  Jan-26: N=162, WR=82.1%, Avg=+154.30 ticks
+  Apr-26: N=64, WR=87.5%, Avg=+214.53 ticks
+  Months > 50% WR: 6/6
+  Longest bad-month streak (<50% WR): 0
+  Longest losing trade streak (composite OOS): 9
+  [PASS]: no OOS month below 35% WR with N>=3
+
+C) Bayesian (Composite OOS):
+  Prior: Beta(10, 10), mean=50.0%
+  Posterior: Beta(782, 163), mean=82.8%
+  95% Credible Interval: [80.3%, 85.1%]
+  Shrinkage: 83.5% → 82.8%
+
+OVERALL VERDICT: DEPLOY
+- DEPLOY: composite OOS WR > 55%, no OOS month below 35% WR (N>=3), posterior > 55%
+- PAPER TRADE: composite OOS WR > 50% and posterior > 50%
+- INSUFFICIENT: otherwise
+
+FILTER 12: Session delta opposing signal + 60m + 15m
+---------------------------------------------------
+Source round: R35
+Observation frame: grouped signal-bar sample / sign(bar_delta)
+Evaluation horizon: 30 bars forward
+Discovery sample: N=7,899, WR=80.8%, PF=6.16, Avg=+162.23 ticks
+Discovery reference: R35: counter-delta reversal.
+
+A) Walk-Forward (6 fixed windows, 2mo IS / 1mo OOS):
+  Window 1 (Jan-Feb 2025 IS → Mar 2025 OOS): IS N=1067, IS WR=77.0% | OOS N=517, Wins=428, WR=82.8%, Avg=+221.98 ticks
+  Window 2 (Apr-May 2025 IS → Jun 2025 OOS): IS N=1006, IS WR=78.6% | OOS N=531, Wins=433, WR=81.5%, Avg=+103.73 ticks
+  Window 3 (Jun-Jul 2025 IS → Aug 2025 OOS): IS N=1025, IS WR=82.0% | OOS N=487, Wins=400, WR=82.1%, Avg=+114.32 ticks
+  Window 4 (Sep-Oct 2025 IS → Nov 2025 OOS): IS N=1002, IS WR=83.0% | OOS N=407, Wins=340, WR=83.5%, Avg=+199.35 ticks
+  Window 5 (Nov-Dec 2025 IS → Jan 2026 OOS): IS N=875, IS WR=82.4% | OOS N=477, Wins=392, WR=82.2%, Avg=+181.43 ticks
+  Window 6 (Feb-Mar 2026 IS → Apr 2026 OOS): IS N=1071, IS WR=80.0% | OOS N=372, Wins=298, WR=80.1%, Avg=+195.37 ticks
+  Composite OOS: N=2791, Wins=2291, WR=82.1%, Avg=+166.92 ticks
+  OOS Wilson 95% CI: [80.6%, 83.5%]
+  Any OOS window < 40% WR: NO
+  [PASS]: no OOS window below 40% WR
+
+B) Monthly Stability (OOS months only):
+  Mar-25: N=517, WR=82.8%, Avg=+221.98 ticks
+  Jun-25: N=531, WR=81.5%, Avg=+103.73 ticks
+  Aug-25: N=487, WR=82.1%, Avg=+114.32 ticks
+  Nov-25: N=407, WR=83.5%, Avg=+199.35 ticks
+  Jan-26: N=477, WR=82.2%, Avg=+181.43 ticks
+  Apr-26: N=372, WR=80.1%, Avg=+195.37 ticks
+  Months > 50% WR: 6/6
+  Longest bad-month streak (<50% WR): 0
+  Longest losing trade streak (composite OOS): 17
+  [PASS]: no OOS month below 35% WR with N>=3
+
+C) Bayesian (Composite OOS):
+  Prior: Beta(10, 10), mean=50.0%
+  Posterior: Beta(2301, 510), mean=81.9%
+  95% Credible Interval: [80.4%, 83.3%]
+  Shrinkage: 82.1% → 81.9%
+
+OVERALL VERDICT: DEPLOY
+- DEPLOY: composite OOS WR > 55%, no OOS month below 35% WR (N>=3), posterior > 55%
+- PAPER TRADE: composite OOS WR > 50% and posterior > 50%
+- INSUFFICIENT: otherwise
+
+FILTER 05: Triple adaptive absorption: high vol + low range + low delta/vol + 60m + 15m + NOT killers
+----------------------------------------------------------------------------------------------------
+Source round: R33
+Observation frame: absorption observation sample / event direction_sign
+Evaluation horizon: 30 bars forward
+Discovery sample: N=0, WR=nan, PF=nan, Avg=nan ticks
+
+A) Walk-Forward (6 fixed windows, 2mo IS / 1mo OOS):
+  Window 1 (Jan-Feb 2025 IS → Mar 2025 OOS): IS N=0, IS WR=nan | OOS N=0, Wins=0, WR=nan, Avg=nan ticks
+  Window 2 (Apr-May 2025 IS → Jun 2025 OOS): IS N=0, IS WR=nan | OOS N=0, Wins=0, WR=nan, Avg=nan ticks
+  Window 3 (Jun-Jul 2025 IS → Aug 2025 OOS): IS N=0, IS WR=nan | OOS N=0, Wins=0, WR=nan, Avg=nan ticks
+  Window 4 (Sep-Oct 2025 IS → Nov 2025 OOS): IS N=0, IS WR=nan | OOS N=0, Wins=0, WR=nan, Avg=nan ticks
+  Window 5 (Nov-Dec 2025 IS → Jan 2026 OOS): IS N=0, IS WR=nan | OOS N=0, Wins=0, WR=nan, Avg=nan ticks
+  Window 6 (Feb-Mar 2026 IS → Apr 2026 OOS): IS N=0, IS WR=nan | OOS N=0, Wins=0, WR=nan, Avg=nan ticks
+  Composite OOS: N=0, Wins=0, WR=nan, Avg=nan ticks
+  OOS Wilson 95% CI: [0.0%, 0.0%]
+  Any OOS window < 40% WR: NO
+  [FAIL]: no out-of-sample trades
+
+B) Monthly Stability (OOS months only):
+  Mar-25: N=0, WR=nan, Avg=nan ticks
+  Jun-25: N=0, WR=nan, Avg=nan ticks
+  Aug-25: N=0, WR=nan, Avg=nan ticks
+  Nov-25: N=0, WR=nan, Avg=nan ticks
+  Jan-26: N=0, WR=nan, Avg=nan ticks
+  Apr-26: N=0, WR=nan, Avg=nan ticks
+  Months > 50% WR: 0/0
+  Longest bad-month streak (<50% WR): 0
+  Longest losing trade streak (composite OOS): 0
+  [FAIL]: no monthly OOS trades
+
+C) Bayesian (Composite OOS):
+  Prior: Beta(10, 10), mean=50.0%
+  Posterior: Beta(10, 10), mean=50.0%
+  95% Credible Interval: [28.9%, 71.1%]
+  Shrinkage: nan → 50.0%
+
+OVERALL VERDICT: INSUFFICIENT
+- DEPLOY: composite OOS WR > 55%, no OOS month below 35% WR (N>=3), posterior > 55%
+- PAPER TRADE: composite OOS WR > 50% and posterior > 50%
+- INSUFFICIENT: otherwise
+
+FILTER 08: absorption + exhaustion + trapped same bar + 60m + 15m + NOT killers
+------------------------------------------------------------------------------
+Source round: R34
+Observation frame: absorption observation sample / event direction_sign
+Evaluation horizon: 30 bars forward
+Discovery sample: N=0, WR=nan, PF=nan, Avg=nan ticks
+
+A) Walk-Forward (6 fixed windows, 2mo IS / 1mo OOS):
+  Window 1 (Jan-Feb 2025 IS → Mar 2025 OOS): IS N=0, IS WR=nan | OOS N=0, Wins=0, WR=nan, Avg=nan ticks
+  Window 2 (Apr-May 2025 IS → Jun 2025 OOS): IS N=0, IS WR=nan | OOS N=0, Wins=0, WR=nan, Avg=nan ticks
+  Window 3 (Jun-Jul 2025 IS → Aug 2025 OOS): IS N=0, IS WR=nan | OOS N=0, Wins=0, WR=nan, Avg=nan ticks
+  Window 4 (Sep-Oct 2025 IS → Nov 2025 OOS): IS N=0, IS WR=nan | OOS N=0, Wins=0, WR=nan, Avg=nan ticks
+  Window 5 (Nov-Dec 2025 IS → Jan 2026 OOS): IS N=0, IS WR=nan | OOS N=0, Wins=0, WR=nan, Avg=nan ticks
+  Window 6 (Feb-Mar 2026 IS → Apr 2026 OOS): IS N=0, IS WR=nan | OOS N=0, Wins=0, WR=nan, Avg=nan ticks
+  Composite OOS: N=0, Wins=0, WR=nan, Avg=nan ticks
+  OOS Wilson 95% CI: [0.0%, 0.0%]
+  Any OOS window < 40% WR: NO
+  [FAIL]: no out-of-sample trades
+
+B) Monthly Stability (OOS months only):
+  Mar-25: N=0, WR=nan, Avg=nan ticks
+  Jun-25: N=0, WR=nan, Avg=nan ticks
+  Aug-25: N=0, WR=nan, Avg=nan ticks
+  Nov-25: N=0, WR=nan, Avg=nan ticks
+  Jan-26: N=0, WR=nan, Avg=nan ticks
+  Apr-26: N=0, WR=nan, Avg=nan ticks
+  Months > 50% WR: 0/0
+  Longest bad-month streak (<50% WR): 0
+  Longest losing trade streak (composite OOS): 0
+  [FAIL]: no monthly OOS trades
+
+C) Bayesian (Composite OOS):
+  Prior: Beta(10, 10), mean=50.0%
+  Posterior: Beta(10, 10), mean=50.0%
+  95% Credible Interval: [28.9%, 71.1%]
+  Shrinkage: nan → 50.0%
+
+OVERALL VERDICT: INSUFFICIENT
+- DEPLOY: composite OOS WR > 55%, no OOS month below 35% WR (N>=3), posterior > 55%
+- PAPER TRADE: composite OOS WR > 50% and posterior > 50%
+- INSUFFICIENT: otherwise
+
+FILTER 10: IB extension + wide day + 60m + 15m + NOT killers + first_hour
+------------------------------------------------------------------------
+Source round: R35
+Observation frame: grouped signal-bar sample / sign(bar_delta)
+Evaluation horizon: 30 bars forward
+Discovery sample: N=0, WR=nan, PF=nan, Avg=nan ticks
+Note: Implemented literally from the brief. With first_hour defined as 09:30-10:29 ET and IB extension locked only after the first hour, this filter is structurally expected to be empty.
+
+A) Walk-Forward (6 fixed windows, 2mo IS / 1mo OOS):
+  Window 1 (Jan-Feb 2025 IS → Mar 2025 OOS): IS N=0, IS WR=nan | OOS N=0, Wins=0, WR=nan, Avg=nan ticks
+  Window 2 (Apr-May 2025 IS → Jun 2025 OOS): IS N=0, IS WR=nan | OOS N=0, Wins=0, WR=nan, Avg=nan ticks
+  Window 3 (Jun-Jul 2025 IS → Aug 2025 OOS): IS N=0, IS WR=nan | OOS N=0, Wins=0, WR=nan, Avg=nan ticks
+  Window 4 (Sep-Oct 2025 IS → Nov 2025 OOS): IS N=0, IS WR=nan | OOS N=0, Wins=0, WR=nan, Avg=nan ticks
+  Window 5 (Nov-Dec 2025 IS → Jan 2026 OOS): IS N=0, IS WR=nan | OOS N=0, Wins=0, WR=nan, Avg=nan ticks
+  Window 6 (Feb-Mar 2026 IS → Apr 2026 OOS): IS N=0, IS WR=nan | OOS N=0, Wins=0, WR=nan, Avg=nan ticks
+  Composite OOS: N=0, Wins=0, WR=nan, Avg=nan ticks
+  OOS Wilson 95% CI: [0.0%, 0.0%]
+  Any OOS window < 40% WR: NO
+  [FAIL]: no out-of-sample trades
+
+B) Monthly Stability (OOS months only):
+  Mar-25: N=0, WR=nan, Avg=nan ticks
+  Jun-25: N=0, WR=nan, Avg=nan ticks
+  Aug-25: N=0, WR=nan, Avg=nan ticks
+  Nov-25: N=0, WR=nan, Avg=nan ticks
+  Jan-26: N=0, WR=nan, Avg=nan ticks
+  Apr-26: N=0, WR=nan, Avg=nan ticks
+  Months > 50% WR: 0/0
+  Longest bad-month streak (<50% WR): 0
+  Longest losing trade streak (composite OOS): 0
+  [FAIL]: no monthly OOS trades
+
+C) Bayesian (Composite OOS):
+  Prior: Beta(10, 10), mean=50.0%
+  Posterior: Beta(10, 10), mean=50.0%
+  95% Credible Interval: [28.9%, 71.1%]
+  Shrinkage: nan → 50.0%
+
+OVERALL VERDICT: INSUFFICIENT
+- DEPLOY: composite OOS WR > 55%, no OOS month below 35% WR (N>=3), posterior > 55%
+- PAPER TRADE: composite OOS WR > 50% and posterior > 50%
+- INSUFFICIENT: otherwise

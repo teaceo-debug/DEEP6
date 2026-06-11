@@ -1,0 +1,249 @@
+ROUND 26 PROFIT TARGET ANALYSIS
+===============================
+
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+
+Methodology:
+- Observation unit is one unique signal bar grouped by global_index.
+- 15m/60m context comes from nq_1yr_1m.csv resamples.
+- Forward paths use same-session RTH 1m closes only; no overnight carry is allowed.
+- Time exits score the requested 1/2/5/10/15/30 bar windows.
+- Fixed-target sweeps use +20t / +40t / +60t targets with a 30-bar timeout and no hard stop.
+- ATR-target sweeps use 0.5x / 1.0x / 1.5x ATR20 targets with a 30-bar timeout and no hard stop.
+- Bracket sims use close-only path checks: first close to cross stop/target wins; otherwise trade exits at the 30-bar close.
+- NOT killers = direction-aware 60m anchor not in the 40%-60% middle band AND bar_volume not > 3x prior 20-bar EMA.
+- CVD divergence follows the round9 session-extreme vs prior-CVD-extreme logic.
+- Morning/evening star follows the round23 3-candle definition.
+- Setup D uses the first-hour star variant because the brief's cited sample size (~88) matches that round23 winner.
+
+Unique signal bars loaded: 127,361
+First-hour bars:           19,920
+Doji bars:                 12,875
+CVD divergence bars:       5,448
+Morning/evening stars:     4,278
+|delta|/vol < 0.05 bars:   5,947
+
+SETUP A: 60m + 15m + NOT killers + first_hour
+----------------------------------------------
+Trade direction: trade direction = sign(bar_delta)
+Raw sample size before window-specific drops: 2,457
+
+Time-based exits:
+Window | N     | WR    | PF    | Avg      | Sharpe
+-------+-------+-------+-------+----------+-------
+1b     | 2,457 | 64.9% | 2.88  | +24.50t  | 0.37  
+2b     | 2,457 | 71.6% | 4.54  | +46.59t  | 0.50  
+5b     | 2,457 | 79.5% | 9.91  | +97.82t  | 0.65  
+10b    | 2,457 | 88.0% | 19.60 | +158.12t | 0.82  
+15b    | 2,457 | 88.8% | 21.78 | +197.08t | 0.92  
+30b    | 2,457 | 86.5% | 15.35 | +257.07t | 0.84  
+
+Time-window leaders:
+- PF max: 15b (PF 21.78, Avg +197.08t).
+- Sharpe max: 15b (Sharpe 0.92, Avg +197.08t).
+- Avg-ticks max: 30b (Avg +257.07t, PF 15.35).
+
+Fixed tick target sweeps:
+Target | N     | Hit   | PF    | Avg     | Sharpe | Avg Exit
+-------+-------+-------+-------+---------+--------+---------
++20t   | 2,457 | 99.6% | 31.05 | +19.28t | 1.54   | 2.8b    
++40t   | 2,457 | 98.9% | 32.81 | +38.43t | 1.91   | 3.9b    
++60t   | 2,457 | 97.8% | 40.01 | +57.43t | 2.41   | 5.2b    
+
+ATR-scaled target sweeps:
+Target     | N     | Hit   | PF    | Avg      | Sharpe | Avg Exit
+-----------+-------+-------+-------+----------+--------+---------
+0.5x ATR20 | 1,647 | 98.8% | 25.59 | +44.30t  | 1.33   | 4.2b    
+1.0x ATR20 | 1,647 | 96.4% | 21.73 | +85.94t  | 1.39   | 7.4b    
+1.5x ATR20 | 1,647 | 91.8% | 20.35 | +123.81t | 1.38   | 11.0b   
+
+Stop/target simulations:
+Stop/Target | N     | WR    | Avg P&L | PF   | Timeouts
+------------+-------+-------+---------+------+---------
+-20 / +40   | 2,457 | 67.3% | +20.42t | 4.14 | 5       
+-30 / +60   | 2,457 | 68.9% | +32.43t | 4.57 | 21      
+-20 / +60   | 2,457 | 64.0% | +31.43t | 5.44 | 16      
+
+Recommendation:
+- Default to 15b time exit (Sharpe 0.92, PF 21.78, Avg +197.08t); best fixed target = +60t (Hit 97.8%, Avg +57.43t); best ATR target = 1.0x ATR20 (Hit 96.4%, Avg +85.94t); best bracket = -20 / +60 (WR 64.0%, Avg +31.43t, PF 5.44).
+
+
+SETUP B: Doji + 60m + 15m + NOT killers + first_hour
+-----------------------------------------------------
+Trade direction: trade direction = sign(bar_delta)
+Raw sample size before window-specific drops: 214
+
+Time-based exits:
+Window | N   | WR    | PF    | Avg      | Sharpe
+-------+-----+-------+-------+----------+-------
+1b     | 214 | 66.8% | 3.50  | +27.25t  | 0.44  
+2b     | 214 | 70.1% | 5.60  | +49.53t  | 0.56  
+5b     | 214 | 83.6% | 15.36 | +104.25t | 0.87  
+10b    | 214 | 90.2% | 31.53 | +171.49t | 1.02  
+15b    | 214 | 90.2% | 30.49 | +212.05t | 1.05  
+30b    | 214 | 87.9% | 20.55 | +260.88t | 0.98  
+
+Time-window leaders:
+- PF max: 10b (PF 31.53, Avg +171.49t).
+- Sharpe max: 15b (Sharpe 1.05, Avg +212.05t).
+- Avg-ticks max: 30b (Avg +260.88t, PF 20.55).
+
+Fixed tick target sweeps:
+Target | N   | Hit   | PF    | Avg     | Sharpe | Avg Exit
+-------+-----+-------+-------+---------+--------+---------
++20t   | 214 | 99.5% | 21.85 | +19.00t | 1.29   | 2.7b    
++40t   | 214 | 98.6% | 19.21 | +37.43t | 1.48   | 4.1b    
++60t   | 214 | 96.7% | 19.77 | +55.36t | 1.70   | 5.2b    
+
+ATR-scaled target sweeps:
+Target     | N   | Hit   | PF    | Avg      | Sharpe | Avg Exit
+-----------+-----+-------+-------+----------+--------+---------
+0.5x ATR20 | 150 | 97.3% | 7.44  | +39.35t  | 0.80   | 4.6b    
+1.0x ATR20 | 150 | 96.7% | 11.86 | +82.81t  | 1.17   | 7.0b    
+1.5x ATR20 | 150 | 94.7% | 14.34 | +124.49t | 1.31   | 10.6b   
+
+Stop/target simulations:
+Stop/Target | N   | WR    | Avg P&L | PF   | Timeouts
+------------+-----+-------+---------+------+---------
+-20 / +40   | 214 | 69.6% | +21.92t | 4.66 | 1       
+-30 / +60   | 214 | 71.5% | +35.17t | 5.40 | 4       
+-20 / +60   | 214 | 65.0% | +32.42t | 5.82 | 3       
+
+Recommendation:
+- Default to 15b time exit (Sharpe 1.05, PF 30.49, Avg +212.05t); best fixed target = +60t (Hit 96.7%, Avg +55.36t); best ATR target = 1.5x ATR20 (Hit 94.7%, Avg +124.49t); best bracket = -20 / +60 (WR 65.0%, Avg +32.42t, PF 5.82).
+
+
+SETUP C: CVD divergence + 60m + 15m
+------------------------------------
+Trade direction: trade direction = divergence_sign
+Raw sample size before window-specific drops: 807
+
+Time-based exits:
+Window | N   | WR    | PF    | Avg      | Sharpe
+-------+-----+-------+-------+----------+-------
+1b     | 807 | 63.9% | 2.78  | +21.23t  | 0.32  
+2b     | 806 | 71.2% | 4.42  | +41.42t  | 0.46  
+5b     | 804 | 82.5% | 15.09 | +97.00t  | 0.79  
+10b    | 793 | 92.9% | 40.79 | +163.08t | 0.97  
+15b    | 785 | 91.0% | 32.30 | +187.24t | 0.90  
+30b    | 775 | 83.7% | 14.94 | +216.18t | 0.79  
+
+Time-window leaders:
+- PF max: 10b (PF 40.79, Avg +163.08t).
+- Sharpe max: 10b (Sharpe 0.97, Avg +163.08t).
+- Avg-ticks max: 30b (Avg +216.18t, PF 14.94).
+
+Fixed tick target sweeps:
+Target | N   | Hit   | PF     | Avg     | Sharpe | Avg Exit
+-------+-----+-------+--------+---------+--------+---------
++20t   | 775 | 99.7% | 118.92 | +19.78t | 3.83   | 2.9b    
++40t   | 775 | 99.0% | 101.14 | +39.28t | 4.40   | 4.1b    
++60t   | 775 | 96.8% | 85.41  | +57.83t | 4.05   | 5.9b    
+
+ATR-scaled target sweeps:
+Target     | N   | Hit   | PF       | Avg      | Sharpe | Avg Exit
+-----------+-----+-------+----------+----------+--------+---------
+0.5x ATR20 | 582 | 99.8% | 2,386.01 | +36.88t  | 1.66   | 3.4b    
+1.0x ATR20 | 582 | 98.5% | 73.70    | +72.08t  | 1.48   | 5.7b    
+1.5x ATR20 | 582 | 95.0% | 38.23    | +103.50t | 1.35   | 8.4b    
+
+Stop/target simulations:
+Stop/Target | N   | WR    | Avg P&L | PF   | Timeouts
+------------+-----+-------+---------+------+---------
+-20 / +40   | 775 | 69.9% | +22.13t | 4.73 | 3       
+-30 / +60   | 775 | 71.1% | +34.52t | 5.11 | 9       
+-20 / +60   | 775 | 66.1% | +33.21t | 5.99 | 5       
+
+Recommendation:
+- Default to 10b time exit (Sharpe 0.97, PF 40.79, Avg +163.08t); best fixed target = +40t (Hit 99.0%, Avg +39.28t); best ATR target = 0.5x ATR20 (Hit 99.8%, Avg +36.88t); best bracket = -20 / +60 (WR 66.1%, Avg +33.21t, PF 5.99).
+
+
+SETUP D: Morning/evening star + 60m + 15m + NOT killers + first_hour
+---------------------------------------------------------------------
+Trade direction: trade direction = star_direction_sign
+Raw sample size before window-specific drops: 88
+
+Time-based exits:
+Window | N  | WR    | PF    | Avg      | Sharpe
+-------+----+-------+-------+----------+-------
+1b     | 88 | 54.5% | 1.68  | +12.98t  | 0.18  
+2b     | 88 | 68.2% | 3.08  | +39.18t  | 0.41  
+5b     | 88 | 76.1% | 7.38  | +92.26t  | 0.74  
+10b    | 88 | 90.9% | 29.30 | +178.78t | 0.55  
+15b    | 88 | 90.9% | 46.08 | +214.14t | 0.62  
+30b    | 88 | 92.0% | 37.02 | +239.47t | 1.17  
+
+Time-window leaders:
+- PF max: 15b (PF 46.08, Avg +214.14t).
+- Sharpe max: 30b (Sharpe 1.17, Avg +239.47t).
+- Avg-ticks max: 30b (Avg +239.47t, PF 37.02).
+
+Fixed tick target sweeps:
+Target | N  | Hit    | PF     | Avg     | Sharpe | Avg Exit
+-------+----+--------+--------+---------+--------+---------
++20t   | 88 | 100.0% | inf    | +20.00t | 0.00   | 2.9b    
++40t   | 88 | 98.9%  | 348.00 | +39.43t | 7.40   | 4.5b    
++60t   | 88 | 97.7%  | 166.45 | +58.28t | 5.14   | 5.6b    
+
+ATR-scaled target sweeps:
+Target     | N  | Hit    | PF    | Avg      | Sharpe | Avg Exit
+-----------+----+--------+-------+----------+--------+---------
+0.5x ATR20 | 65 | 100.0% | inf   | +49.52t  | 1.98   | 4.6b    
+1.0x ATR20 | 65 | 93.8%  | 24.43 | +92.27t  | 1.39   | 8.0b    
+1.5x ATR20 | 65 | 90.8%  | 35.98 | +137.79t | 1.48   | 10.3b   
+
+Stop/target simulations:
+Stop/Target | N  | WR    | Avg P&L | PF   | Timeouts
+------------+----+-------+---------+------+---------
+-20 / +40   | 88 | 63.6% | +18.18t | 3.50 | 0       
+-30 / +60   | 88 | 62.5% | +26.35t | 3.36 | 1       
+-20 / +60   | 88 | 59.1% | +27.27t | 4.33 | 0       
+
+Recommendation:
+- Default to 30b time exit (Sharpe 1.17, PF 37.02, Avg +239.47t); best fixed target = +40t (Hit 98.9%, Avg +39.43t); best ATR target = 0.5x ATR20 (Hit 100.0%, Avg +49.52t); best bracket = -20 / +60 (WR 59.1%, Avg +27.27t, PF 4.33).
+
+
+SETUP E: |delta|/vol < 0.05 + 60m + 15m + NOT killers
+------------------------------------------------------
+Trade direction: trade direction = sign(bar_delta)
+Raw sample size before window-specific drops: 579
+
+Time-based exits:
+Window | N   | WR    | PF    | Avg      | Sharpe
+-------+-----+-------+-------+----------+-------
+1b     | 579 | 63.7% | 3.01  | +15.91t  | 0.32  
+2b     | 579 | 70.6% | 4.47  | +29.72t  | 0.45  
+5b     | 578 | 82.9% | 14.71 | +74.48t  | 0.74  
+10b    | 574 | 92.5% | 50.88 | +125.57t | 0.93  
+15b    | 559 | 91.6% | 41.20 | +158.36t | 0.95  
+30b    | 542 | 90.8% | 32.53 | +214.25t | 0.78  
+
+Time-window leaders:
+- PF max: 10b (PF 50.88, Avg +125.57t).
+- Sharpe max: 15b (Sharpe 0.95, Avg +158.36t).
+- Avg-ticks max: 30b (Avg +214.25t, PF 32.53).
+
+Fixed tick target sweeps:
+Target | N   | Hit   | PF    | Avg     | Sharpe | Avg Exit
+-------+-----+-------+-------+---------+--------+---------
++20t   | 542 | 99.4% | 39.06 | +19.38t | 2.07   | 3.3b    
++40t   | 542 | 98.7% | 58.20 | +38.83t | 3.23   | 5.1b    
++60t   | 542 | 96.5% | 57.11 | +57.15t | 3.27   | 7.4b    
+
+ATR-scaled target sweeps:
+Target     | N   | Hit   | PF    | Avg     | Sharpe | Avg Exit
+-----------+-----+-------+-------+---------+--------+---------
+0.5x ATR20 | 507 | 99.4% | 54.87 | +29.33t | 1.46   | 3.7b    
+1.0x ATR20 | 507 | 98.4% | 76.45 | +58.49t | 1.56   | 6.0b    
+1.5x ATR20 | 507 | 96.1% | 49.22 | +85.31t | 1.47   | 8.8b    
+
+Stop/target simulations:
+Stop/Target | N   | WR    | Avg P&L | PF   | Timeouts
+------------+-----+-------+---------+------+---------
+-20 / +40   | 542 | 73.1% | +23.90t | 5.47 | 1       
+-30 / +60   | 542 | 75.8% | +38.85t | 6.66 | 8       
+-20 / +60   | 542 | 69.0% | +35.63t | 6.95 | 6       
+
+Recommendation:
+- Default to 15b time exit (Sharpe 0.95, PF 41.20, Avg +158.36t); best fixed target = +60t (Hit 96.5%, Avg +57.15t); best ATR target = 1.0x ATR20 (Hit 98.4%, Avg +58.49t); best bracket = -20 / +60 (WR 69.0%, Avg +35.63t, PF 6.95).

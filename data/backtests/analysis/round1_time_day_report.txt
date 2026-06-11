@@ -1,0 +1,51 @@
+DEEP6 round1 time-of-day and day-of-week filter analysis
+======================================================
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+Observation unit: unique same-bar, same-direction grouped signal observation.
+Regime filters match analyze_cross_category_combos.py: 15m_trend_aligned = signal direction matches 15m bar sign; 60m_extreme = bullish bar_low in bottom 20% of 60m range / bearish bar_high in top 20%.
+Time filters use bar_ts converted to America/New_York. Hour buckets are local-clock windows: 09-10=09:xx, 10-12=10:xx-11:xx, 12-14=12:xx-13:xx, 14-16=14:xx-15:xx.
+Session windows use minutes_since_930 = (hour - 9) * 60 + minute - 30.
+Status flags: VALIDATED = N>=30 and Wilson lower bound >50%; PROMISING = N>=15 and Wilson lower bound >45%; LOW_N = N<15.
+
+Raw event rows loaded: 1,756,089
+Grouped observations:  254,722
+15m bars built:       30,745
+60m bars built:       7,693
+15m trend aligned:    126,836
+60m extreme:          53,641
+
+Baseline (5-bar window)
+-----------------------
+All observations: N=254,712 | WR=49.7% | PF=1.00 | Avg=0.00t | Med=0.00t | CI=[49.5%, 49.9%] | Sharpe=0.00
+60m_extreme only: N=53,639 | WR=68.8% | PF=3.36 | Avg=43.50t | Med=29.00t | CI=[68.5%, 69.2%] | Sharpe=0.28
+
+All 25 filters ranked by 5-bar average return
+---------------------------------------------------
+Filter                                                                          | N      | WR%    | PF    | Avg Ticks | Med Ticks | Wilson 95% CI   | Sharpe
+--------------------------------------------------------------------------------+--------+--------+-------+-----------+-----------+-----------------+-------
+06. absorption + 60m_extreme + 15m_trend + hour 10-12 [LOW_N]                   | 8      | 100.0% | inf   | 106.50    | 104.00    | [67.6%, 100.0%] | 2.21  
+22. absorption + 60m_extreme + 15m_trend + last_hour + NOT_Monday [LOW_N]       | 11     | 100.0% | inf   | 85.45     | 94.00     | [74.1%, 100.0%] | 1.99  
+08. absorption + 60m_extreme + 15m_trend + NOT hour 12-14 [VALIDATED]           | 33     | 90.9%  | 78.85 | 80.21     | 85.00     | [76.4%, 96.9%]  | 1.58  
+12. score >= 80 + 60m_extreme + hour 10-12 [VALIDATED]                          | 177    | 71.2%  | 3.66  | 75.68     | 43.00     | [64.1%, 77.4%]  | 0.35  
+07. absorption + 60m_extreme + 15m_trend + hour 14-16 [PROMISING]               | 25     | 88.0%  | 53.79 | 71.80     | 71.00     | [70.0%, 95.8%]  | 1.45  
+10. DELT_04 + TRAP_04 + 15m_trend + hour 10-12 [VALIDATED]                      | 48     | 75.0%  | 7.28  | 71.42     | 54.50     | [61.2%, 85.1%]  | 0.66  
+19. ALL + 60m_extreme + first_hour (09:30-10:30) [VALIDATED]                    | 8,908  | 70.9%  | 4.47  | 67.99     | 50.00     | [69.9%, 71.8%]  | 0.46  
+01. ALL + 60m_extreme + hour 09-10 (open range) [VALIDATED]                     | 4,725  | 67.2%  | 3.43  | 62.22     | 47.00     | [65.9%, 68.6%]  | 0.44  
+18. ALL + 60m_extreme + first_30min (09:30-10:00) [VALIDATED]                   | 4,725  | 67.2%  | 3.43  | 62.22     | 47.00     | [65.9%, 68.6%]  | 0.44  
+23. DELT_04 + TRAP_04 + 15m_trend + NOT_lunch (exclude 12:00-13:30) [VALIDATED] | 231    | 71.4%  | 3.03  | 60.10     | 40.00     | [65.3%, 76.9%]  | 0.29  
+11. score >= 80 + 60m_extreme + hour 14-16 [VALIDATED]                          | 399    | 62.2%  | 1.54  | 57.63     | 39.00     | [57.3%, 66.8%]  | 0.12  
+09. DELT_04 + TRAP_04 + 15m_trend + hour 14-16 [VALIDATED]                      | 170    | 70.0%  | 2.51  | 54.26     | 37.00     | [62.7%, 76.4%]  | 0.23  
+17. ALL + 60m_extreme + Friday [VALIDATED]                                      | 10,010 | 69.0%  | 3.52  | 49.12     | 31.00     | [68.1%, 69.9%]  | 0.27  
+02. ALL + 60m_extreme + hour 10-12 (mid-morning) [VALIDATED]                    | 16,874 | 68.8%  | 4.20  | 48.63     | 34.00     | [68.1%, 69.5%]  | 0.42  
+05. ALL + 60m_extreme + hour 15 only (power hour) [VALIDATED]                   | 7,702  | 70.3%  | 2.10  | 45.45     | 30.00     | [69.3%, 71.3%]  | 0.15  
+20. ALL + 60m_extreme + last_hour (15:00-16:00) [VALIDATED]                     | 7,702  | 70.3%  | 2.10  | 45.45     | 30.00     | [69.3%, 71.3%]  | 0.15  
+24. 3+ categories + 60m_extreme + last_hour [VALIDATED]                         | 5,853  | 69.7%  | 2.12  | 45.28     | 28.00     | [68.5%, 70.9%]  | 0.15  
+16. ALL + 60m_extreme + Thursday [VALIDATED]                                    | 10,616 | 68.6%  | 3.13  | 44.33     | 32.00     | [67.7%, 69.5%]  | 0.30  
+15. ALL + 60m_extreme + Wednesday [VALIDATED]                                   | 11,134 | 69.0%  | 3.43  | 44.09     | 29.00     | [68.2%, 69.9%]  | 0.28  
+25. TYPE_B + 60m_extreme + NOT_first_30min [VALIDATED]                          | 840    | 67.3%  | 1.68  | 42.00     | 39.00     | [64.0%, 70.4%]  | 0.11  
+14. ALL + 60m_extreme + Tuesday [VALIDATED]                                     | 11,176 | 68.8%  | 3.26  | 41.27     | 28.00     | [67.9%, 69.6%]  | 0.28  
+04. ALL + 60m_extreme + hour 14-16 (close range) [VALIDATED]                    | 15,789 | 69.5%  | 2.52  | 39.30     | 26.00     | [68.8%, 70.2%]  | 0.18  
+13. ALL + 60m_extreme + Monday [VALIDATED]                                      | 10,703 | 68.8%  | 3.51  | 39.13     | 25.00     | [67.9%, 69.7%]  | 0.29  
+21. ALL + 60m_extreme + mid_session (10:30-15:00) [VALIDATED]                   | 37,029 | 68.1%  | 3.78  | 37.20     | 25.00     | [67.6%, 68.5%]  | 0.39  
+03. ALL + 60m_extreme + hour 12-14 (lunch/afternoon) [VALIDATED]                | 16,251 | 68.7%  | 3.95  | 36.81     | 25.00     | [68.0%, 69.4%]  | 0.37  

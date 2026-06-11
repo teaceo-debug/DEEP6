@@ -1,0 +1,163 @@
+DEEP6 round38 signal correlation analysis
+========================================
+Source events: C:\Users\Tea\DEEP6\data\backtests\signal_events.csv
+Source bars:   C:\Users\Tea\DEEP6\data\backtests\nq_1yr_1m.csv
+Observation unit: unique signal bar grouped by global_index.
+Trade direction for P&L: sign(bar_delta). Zero-delta bars are skipped for WR/PF/Avg stats.
+Bar-feature formulas are aligned to the existing round2, round12, round17, and round23 definitions.
+Co-occurrence / redundancy uses raw deduped signal bars. Synergy and representative selection use signal + 60m + 15m + NOT killers.
+Section 4 adds first_hour to both the full-set and non-redundant-set tests.
+60m gate = bullish bar_low in bottom 20% of active 60m range / bearish bar_high in top 20%. 15m gate = trade direction matches 15m trend sign.
+NOT killers = NOT killer_1 (trade anchor in middle 40%-60% of the active 60m range) AND NOT killer_2 (bar_volume > 3x prior 20-bar EMA).
+Stable vol = rolling 10-bar std of ATR20 below the 25th percentile of vol_of_vol across the non-zero-delta sample.
+Synergy uses WR30 as the primary comparison. PF and Avg are reported on the 5-bar horizon.
+
+Raw event rows loaded:                   1,767,271
+Grouped signal bars:                     127,361
+Non-zero-delta trade sample:             127,165
+15m bars built:                          30,745
+60m bars built:                          7,693
+60m + 15m core bars:                     14,568
+60m + 15m + NOT killers bars:            14,381
+60m + 15m + NOT killers + first_hour:    2,457
+Stable-vol threshold (25th pct vol_of_vol): 0.27
+
+Baselines
+---------
+All non-zero-delta bars:               N=127,135 | WR5=49.6% | WR10=49.7% | WR30=49.6% | PF5=1.00 | Avg5=0.09t | CI5=[49.3%, 49.8%] | Persistence=GROWING
+60m + 15m core:                        N=14,565 | WR5=78.6% | WR10=85.5% | WR30=83.1% | PF5=8.00 | Avg5=65.06t | CI5=[77.9%, 79.2%] | Persistence=GROWING
+60m + 15m + NOT killers:               N=14,378 | WR5=78.7% | WR10=85.7% | WR30=83.2% | PF5=8.33 | Avg5=65.14t | CI5=[78.0%, 79.4%] | Persistence=GROWING
+60m + 15m + NOT killers + first_hour:  N=2,457 | WR5=79.5% | WR10=88.0% | WR30=86.5% | PF5=9.91 | Avg5=97.82t | CI5=[77.9%, 81.1%] | Persistence=GROWING
+
+Section 1: 10x10 Jaccard co-occurrence matrix
+-----------------------------------------------
+Signal legend:
+- S01 = Doji
+- S02 = CVD divergence
+- S03 = |delta|/vol < 0.05
+- S04 = 3 narrowing ranges
+- S05 = Hammer/shooting star
+- S06 = Engulfing
+- S07 = Morning/evening star
+- S08 = Absorption (category)
+- S09 = Score >= 60
+- S10 = Stable vol
+
+Signal overview
+---------------
+Code | Signal                | Raw Bars | Core+NOT Killers Bars | Solo WR30
+-----+-----------------------+----------+-----------------------+----------
+S01  | Doji                  | 12,875   | 1,323                 | 86.5%    
+S02  | CVD divergence        | 5,448    | 659                   | 82.2%    
+S03  | |delta|/vol < 0.05    | 5,947    | 579                   | 89.3%    
+S04  | 3 narrowing ranges    | 22,272   | 1,970                 | 86.9%    
+S05  | Hammer/shooting star  | 2,534    | 326                   | 84.7%    
+S06  | Engulfing             | 12,451   | 1,737                 | 80.5%    
+S07  | Morning/evening star  | 4,278    | 600                   | 83.8%    
+S08  | Absorption (category) | 901      | 134                   | 82.8%    
+S09  | Score >= 60           | 28,907   | 3,402                 | 84.8%    
+S10  | Stable vol            | 29,526   | 3,409                 | 82.7%    
+
+Jaccard matrix
+--------------
+Signal | S01   | S02   | S03   | S04   | S05   | S06   | S07   | S08   | S09   | S10  
+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+------
+S01    | 1.000 | 0.037 | 0.068 | 0.103 | 0.007 | 0.002 | 0.004 | 0.019 | 0.097 | 0.077
+S02    | 0.037 | 1.000 | 0.025 | 0.023 | 0.019 | 0.030 | 0.013 | 0.023 | 0.088 | 0.021
+S03    | 0.068 | 0.025 | 1.000 | 0.051 | 0.000 | 0.017 | 0.012 | 0.004 | 0.117 | 0.040
+S04    | 0.103 | 0.023 | 0.051 | 1.000 | 0.021 | 0.040 | 0.017 | 0.004 | 0.097 | 0.104
+S05    | 0.007 | 0.019 | 0.000 | 0.021 | 1.000 | 0.008 | 0.009 | 0.060 | 0.013 | 0.019
+S06    | 0.002 | 0.030 | 0.017 | 0.040 | 0.008 | 1.000 | 0.066 | 0.004 | 0.062 | 0.068
+S07    | 0.004 | 0.013 | 0.012 | 0.017 | 0.009 | 0.066 | 1.000 | 0.003 | 0.024 | 0.031
+S08    | 0.019 | 0.023 | 0.004 | 0.004 | 0.060 | 0.004 | 0.003 | 1.000 | 0.013 | 0.006
+S09    | 0.097 | 0.088 | 0.117 | 0.097 | 0.013 | 0.062 | 0.024 | 0.013 | 1.000 | 0.042
+S10    | 0.077 | 0.021 | 0.040 | 0.104 | 0.019 | 0.068 | 0.031 | 0.006 | 0.042 | 1.000
+
+Pairwise overlap / conditional table
+------------------------------------
+Pair    | A Bars | B Bars | Both  | Union  | Jaccard | P(A|B) | P(B|A) | Flag       
+--------+--------+--------+-------+--------+---------+--------+--------+------------
+S03+S09 | 5,947  | 28,907 | 3,650 | 31,204 | 0.117   | 12.6%  | 61.4%  | INDEPENDENT
+S04+S10 | 22,272 | 29,526 | 4,884 | 46,914 | 0.104   | 16.5%  | 21.9%  | INDEPENDENT
+S01+S04 | 12,875 | 22,272 | 3,281 | 31,866 | 0.103   | 14.7%  | 25.5%  | INDEPENDENT
+S01+S09 | 12,875 | 28,907 | 3,705 | 38,077 | 0.097   | 12.8%  | 28.8%  | INDEPENDENT
+S04+S09 | 22,272 | 28,907 | 4,535 | 46,644 | 0.097   | 15.7%  | 20.4%  | INDEPENDENT
+S02+S09 | 5,448  | 28,907 | 2,793 | 31,562 | 0.088   | 9.7%   | 51.3%  | INDEPENDENT
+S01+S10 | 12,875 | 29,526 | 3,034 | 39,367 | 0.077   | 10.3%  | 23.6%  | INDEPENDENT
+S01+S03 | 12,875 | 5,947  | 1,205 | 17,617 | 0.068   | 20.3%  | 9.4%   | INDEPENDENT
+S06+S10 | 12,451 | 29,526 | 2,687 | 39,290 | 0.068   | 9.1%   | 21.6%  | INDEPENDENT
+S06+S07 | 12,451 | 4,278  | 1,032 | 15,697 | 0.066   | 24.1%  | 8.3%   | INDEPENDENT
+S06+S09 | 12,451 | 28,907 | 2,408 | 38,950 | 0.062   | 8.3%   | 19.3%  | INDEPENDENT
+S05+S08 | 2,534  | 901    | 195   | 3,240  | 0.060   | 21.6%  | 7.7%   | INDEPENDENT
+S03+S04 | 5,947  | 22,272 | 1,376 | 26,843 | 0.051   | 6.2%   | 23.1%  | INDEPENDENT
+S09+S10 | 28,907 | 29,526 | 2,382 | 56,051 | 0.042   | 8.1%   | 8.2%   | INDEPENDENT
+S04+S06 | 22,272 | 12,451 | 1,330 | 33,393 | 0.040   | 10.7%  | 6.0%   | INDEPENDENT
+S03+S10 | 5,947  | 29,526 | 1,350 | 34,123 | 0.040   | 4.6%   | 22.7%  | INDEPENDENT
+S01+S02 | 12,875 | 5,448  | 656   | 17,667 | 0.037   | 12.0%  | 5.1%   | INDEPENDENT
+S07+S10 | 4,278  | 29,526 | 1,001 | 32,803 | 0.031   | 3.4%   | 23.4%  | INDEPENDENT
+S02+S06 | 5,448  | 12,451 | 521   | 17,378 | 0.030   | 4.2%   | 9.6%   | INDEPENDENT
+S02+S03 | 5,448  | 5,947  | 281   | 11,114 | 0.025   | 4.7%   | 5.2%   | INDEPENDENT
+S07+S09 | 4,278  | 28,907 | 765   | 32,420 | 0.024   | 2.6%   | 17.9%  | INDEPENDENT
+S02+S04 | 5,448  | 22,272 | 632   | 27,088 | 0.023   | 2.8%   | 11.6%  | INDEPENDENT
+S02+S08 | 5,448  | 901    | 141   | 6,208  | 0.023   | 15.6%  | 2.6%   | INDEPENDENT
+S04+S05 | 22,272 | 2,534  | 515   | 24,291 | 0.021   | 20.3%  | 2.3%   | INDEPENDENT
+S02+S10 | 5,448  | 29,526 | 708   | 34,266 | 0.021   | 2.4%   | 13.0%  | INDEPENDENT
+S01+S08 | 12,875 | 901    | 263   | 13,513 | 0.019   | 29.2%  | 2.0%   | INDEPENDENT
+S02+S05 | 5,448  | 2,534  | 151   | 7,831  | 0.019   | 6.0%   | 2.8%   | INDEPENDENT
+S05+S10 | 2,534  | 29,526 | 591   | 31,469 | 0.019   | 2.0%   | 23.3%  | INDEPENDENT
+S03+S06 | 5,947  | 12,451 | 316   | 18,082 | 0.017   | 2.5%   | 5.3%   | INDEPENDENT
+S04+S07 | 22,272 | 4,278  | 435   | 26,115 | 0.017   | 10.2%  | 2.0%   | INDEPENDENT
+S05+S09 | 2,534  | 28,907 | 411   | 31,030 | 0.013   | 1.4%   | 16.2%  | INDEPENDENT
+S02+S07 | 5,448  | 4,278  | 125   | 9,601  | 0.013   | 2.9%   | 2.3%   | INDEPENDENT
+S08+S09 | 901    | 28,907 | 370   | 29,438 | 0.013   | 1.3%   | 41.1%  | INDEPENDENT
+S03+S07 | 5,947  | 4,278  | 126   | 10,099 | 0.012   | 2.9%   | 2.1%   | INDEPENDENT
+S05+S07 | 2,534  | 4,278  | 64    | 6,748  | 0.009   | 1.5%   | 2.5%   | INDEPENDENT
+S05+S06 | 2,534  | 12,451 | 126   | 14,859 | 0.008   | 1.0%   | 5.0%   | INDEPENDENT
+S01+S05 | 12,875 | 2,534  | 102   | 15,307 | 0.007   | 4.0%   | 0.8%   | INDEPENDENT
+S08+S10 | 901    | 29,526 | 169   | 30,258 | 0.006   | 0.6%   | 18.8%  | INDEPENDENT
+S04+S08 | 22,272 | 901    | 101   | 23,072 | 0.004   | 11.2%  | 0.5%   | INDEPENDENT
+S01+S07 | 12,875 | 4,278  | 72    | 17,081 | 0.004   | 1.7%   | 0.6%   | INDEPENDENT
+S06+S08 | 12,451 | 901    | 56    | 13,296 | 0.004   | 6.2%   | 0.4%   | INDEPENDENT
+S03+S08 | 5,947  | 901    | 25    | 6,823  | 0.004   | 2.8%   | 0.4%   | INDEPENDENT
+S07+S08 | 4,278  | 901    | 15    | 5,164  | 0.003   | 1.7%   | 0.4%   | INDEPENDENT
+S01+S06 | 12,875 | 12,451 | 60    | 25,266 | 0.002   | 0.5%   | 0.5%   | INDEPENDENT
+S03+S05 | 5,947  | 2,534  | 2     | 8,479  | 0.000   | 0.1%   | 0.0%   | INDEPENDENT
+
+Section 2: Top 5 independent pairs with synergy tests
+------------------------------------------------------
+Independent = Jaccard < 0.30. Table sorted by combined WR30 descending.
+Pair    | Jaccard | Combined N | Solo A WR30 | Solo B WR30 | Combined WR30 | PF5   | Avg5   | Synergy
+--------+---------+------------+-------------+-------------+---------------+-------+--------+--------
+S03+S08 | 0.004   | 3          | 89.3%       | 82.8%       | 100.0%        | 12.50 | 38.33  | SYNERGY
+S01+S06 | 0.002   | 8          | 86.5%       | 80.5%       | 100.0%        | 11.36 | 79.00  | SYNERGY
+S04+S06 | 0.040   | 134        | 86.9%       | 80.5%       | 94.0%         | 13.57 | 78.53  | SYNERGY
+S02+S03 | 0.025   | 31         | 82.2%       | 89.3%       | 93.5%         | 17.42 | 119.74 | SYNERGY
+S08+S10 | 0.006   | 26         | 82.8%       | 82.7%       | 92.3%         | 11.40 | 36.00  | SYNERGY
+
+Section 3: Redundancy clusters and best representatives
+-------------------------------------------------------
+Redundant edge threshold: Jaccard > 0.70
+Cluster | Members                   | Redundant Edges | Representative            | Rep N | Rep WR30
+--------+---------------------------+-----------------+---------------------------+-------+---------
+C01     | S01:Doji                  | singleton       | S01:Doji                  | 1,323 | 86.5%   
+C02     | S02:CVD divergence        | singleton       | S02:CVD divergence        | 659   | 82.2%   
+C03     | S03:|delta|/vol < 0.05    | singleton       | S03:|delta|/vol < 0.05    | 579   | 89.3%   
+C04     | S04:3 narrowing ranges    | singleton       | S04:3 narrowing ranges    | 1,970 | 86.9%   
+C05     | S05:Hammer/shooting star  | singleton       | S05:Hammer/shooting star  | 326   | 84.7%   
+C06     | S06:Engulfing             | singleton       | S06:Engulfing             | 1,737 | 80.5%   
+C07     | S07:Morning/evening star  | singleton       | S07:Morning/evening star  | 599   | 83.8%   
+C08     | S08:Absorption (category) | singleton       | S08:Absorption (category) | 134   | 82.8%   
+C09     | S09:Score >= 60           | singleton       | S09:Score >= 60           | 3,402 | 84.8%   
+C10     | S10:Stable vol            | singleton       | S10:Stable vol            | 3,406 | 82.7%   
+
+Non-redundant signal set (10 reps): S01:Doji, S02:CVD divergence, S03:|delta|/vol < 0.05, S04:3 narrowing ranges, S05:Hammer/shooting star, S06:Engulfing, S07:Morning/evening star, S08:Absorption (category), S09:Score >= 60, S10:Stable vol
+
+Section 4: Non-redundant signal set performance
+-----------------------------------------------
+Both rows below require every listed signal + 60m + 15m + NOT killers + first_hour.
+Set                | Signals                                          | N | WR5  | WR10 | WR30 | PF5 | Avg5 | Persistence
+-------------------+--------------------------------------------------+---+------+------+------+-----+------+------------
+Full 10-signal set | S01, S02, S03, S04, S05, S06, S07, S08, S09, S10 | 0 | 0.0% | nan  | nan  | nan | nan  | NO_DATA    
+Non-redundant set  | S01, S02, S03, S04, S05, S06, S07, S08, S09, S10 | 0 | 0.0% | nan  | nan  | nan | nan  | NO_DATA    
+
+Comparison: neither the full set nor the non-redundant set produced a tradable first-hour intersection sample.

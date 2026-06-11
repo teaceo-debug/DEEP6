@@ -1,0 +1,49 @@
+DEEP6 round40 drawdown + MAE analysis
+====================================
+Source events: C:\Users\Tea\DEEP6\data\backtests\signal_events.csv
+Source bars:   C:\Users\Tea\DEEP6\data\backtests\nq_1yr_1m.csv
+Trade exit assumption: 30-bar time exit using fwd_close_1b through fwd_close_30b on close-to-close checkpoints.
+N only counts setups with a complete 30-bar forward path available inside the same RTH session.
+MAE/MFE use signed returns in ticks, so negative MAE is adverse and positive MFE is favorable for both longs and shorts.
+Stop analysis asks what share of eventual 30-bar winners would have hit each stop first under the same checkpoint approximation.
+Drawdown stats use cumulative 30-bar final returns ordered by setup observation timestamp.
+
+Setup A: 60m + 15m + NOT killers + first_hour
+  N=2,457, WR=86.5%, PF=15.35
+  MAE: median=-28.00t, mean=-45.33t, worst=-1,495.00t
+  MFE: median=+330.00t, mean=+394.90t, best=+5,744.00t
+  Winners stopped out: -10t=55.6%, -20t=48.6%, -30t=42.3%, -40t=36.2%, -50t=30.2%
+  Optimal stop: -80t (expectancy +200.62t/trade)
+  Drawdown: max=-6,667.00t, duration=49 bars, avg depth=-277.30t
+
+Setup B: Doji + 60m + 15m + NOT killers
+  N=1,233, WR=88.5%, PF=23.30
+  MAE: median=-16.00t, mean=-27.22t, worst=-787.00t
+  MFE: median=+219.00t, mean=+285.06t, best=+4,991.00t
+  Winners stopped out: -10t=50.5%, -20t=40.1%, -30t=31.0%, -40t=23.6%, -50t=17.7%
+  Optimal stop: -80t (expectancy +164.23t/trade)
+  Drawdown: max=-732.00t, duration=13 bars, avg depth=-103.17t
+
+Setup C: CVD divergence + 60m + 15m
+  N=775, WR=83.7%, PF=14.94
+  MAE: median=-19.00t, mean=-33.63t, worst=-1,208.00t
+  MFE: median=+294.00t, mean=+341.18t, best=+3,662.00t
+  Winners stopped out: -10t=51.5%, -20t=42.1%, -30t=35.6%, -40t=27.3%, -50t=22.2%
+  Optimal stop: -80t (expectancy +181.22t/trade)
+  Drawdown: max=-906.00t, duration=11 bars, avg depth=-150.69t
+
+Setup D: absorption + 60m + 15m + NOT lunch
+  N=23, WR=91.3%, PF=32.65
+  MAE: median=-21.00t, mean=-33.96t, worst=-161.00t
+  MFE: median=+276.00t, mean=+299.39t, best=+994.00t
+  Winners stopped out: -10t=57.1%, -20t=47.6%, -30t=28.6%, -40t=19.0%, -50t=19.0%
+  Optimal stop: -40t (expectancy +139.87t/trade)
+  Drawdown: max=-132.00t, duration=2 bars, avg depth=-74.50t
+
+Setup E: score >= 60 + 60m + 15m + first_hour + NOT killers
+  N=3,350, WR=88.6%, PF=20.59
+  MAE: median=-22.00t, mean=-36.46t, worst=-1,495.00t
+  MFE: median=+378.00t, mean=+454.00t, best=+5,744.00t
+  Winners stopped out: -10t=52.6%, -20t=45.9%, -30t=39.7%, -40t=33.6%, -50t=28.5%
+  Optimal stop: -80t (expectancy +246.19t/trade)
+  Drawdown: max=-11,901.00t, duration=75 bars, avg depth=-315.39t

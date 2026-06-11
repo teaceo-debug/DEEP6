@@ -1,0 +1,65 @@
+DEEP6 round 7 sequential signal-sequence analysis
+===============================================
+Source events: C:\Users\Tea\DEEP6\data\backtests\signal_events.csv
+Source bars:   C:\Users\Tea\DEEP6\data\backtests\nq_1yr_1m.csv
+Observation unit: unique signal bar grouped by global_index.
+Sequence scan runs chronologically inside each session and looks forward 1..X bars for the second condition.
+Signal-based sequence matching uses signal direction from signal_events.csv; bar-pattern sequence matching uses the pattern direction defined below.
+P&L and regime gates always use sign(bar_delta) on the SECOND bar, per request.
+60m_extreme = bullish second-bar low in the bottom 20% of its 60m range / bearish second-bar high in the top 20%.
+15m_trend = second-bar bar_delta sign matches the 15m open-close sign.
+Rolling range / volume thresholds use the prior 20 deduped signal bars inside each session.
+Doji = body/range < 0.10 using the deduped signal-bar stream.
+Hammer = bullish body with lower wick >2x body and upper wick <0.5x body.
+Bullish follow-through = positive-delta bullish bar that closes above the prior bar high.
+Engulfing = current body fully engulfs the prior body; direction is bullish/bearish by close vs open.
+3 same-direction bars = three consecutive deduped signal bars with the same non-zero bar_delta sign.
+2 wide range bars = two consecutive wide-range bars with the same non-zero bar_delta sign.
+Delta acceleration = three consecutive bars with the same non-zero bar_delta sign and strictly increasing |bar_delta|.
+Delta reversal = current bar_delta sign flips versus the prior bar_delta sign.
+Sequences 10 and 13 are intentionally opposite-direction A->B transitions; all others require same-direction A->B matching.
+Unspecified build-up windows (filters 10-13) default to a 3-bar lookahead.
+Status flags: VALIDATED = N>=30 and Wilson lower bound >50%; PROMISING = N>=15 and Wilson lower bound >45%; LOW_N = N<15.
+Final ranking is sorted by 5-bar average ticks descending.
+
+Raw event rows loaded:         1,767,271
+Deduped signal bars:          127,361
+15m bars built:               30,745
+60m bars built:               7,693
+Non-zero-delta bars:          127,165
+60m extreme non-zero bars:    27,328
+TRAP_04 rows loaded:          9,968
+TRAP_05 rows loaded:          54,052
+EXH_03 rows loaded:           62,716
+DELT_04 rows loaded:          20,671
+Absorption rows loaded:       901
+
+Baselines
+---------
+All non-zero-delta bars: N=127,160 | WR5=49.6% | PF5=1.00 | Avg5=0.09t | CI5=[49.3%, 49.8%]
+60m extreme only:        N=27,326 | WR5=66.5% | PF5=3.05 | Avg5=39.47t | CI5=[65.9%, 67.0%]
+
+20 requested sequential filters
+------------------------------
+Filter                                                                           | N      | WR 5b  | PF    | Avg Ticks | Wilson 95% CI   | Flag     
+---------------------------------------------------------------------------------+--------+--------+-------+-----------+-----------------+----------
+05. [A] absorption -> absorption within 5 bars + 60m_extreme                     | 13     | 100.0% | inf   | 489.23    | [77.2%, 100.0%] | LOW_N    
+15. [D] absorption -> TRAP_05 within 3 bars + 60m_extreme + 15m_trend            | 46     | 82.6%  | 36.01 | 88.28     | [69.3%, 90.9%]  | VALIDATED
+16. [D] doji -> engulfing within 2 bars + 60m_extreme + 15m_trend                | 291    | 76.6%  | 6.68  | 65.80     | [71.4%, 81.1%]  | VALIDATED
+17. [D] hammer -> bullish follow-through within 2 bars + 60m_extreme + 15m_trend | 91     | 79.1%  | 8.57  | 64.76     | [69.7%, 86.2%]  | VALIDATED
+14. [D] Any signal -> confirming signal within 2 bars + 60m_extreme + 15m_trend  | 46,676 | 78.6%  | 8.01  | 64.69     | [78.3%, 79.0%]  | VALIDATED
+20. [E] score >= 60 bar -> score >= 60 bar within 3 bars + 60m_extreme           | 16,358 | 66.5%  | 2.91  | 59.54     | [65.8%, 67.3%]  | VALIDATED
+03. [A] DELT_04 -> absorption within 5 bars + 60m_extreme                        | 103    | 72.8%  | 3.10  | 48.01     | [63.5%, 80.5%]  | VALIDATED
+09. [B] 3+ categories -> EXH_03 within 3 bars + 60m_extreme                      | 25,214 | 67.9%  | 3.13  | 39.86     | [67.3%, 68.5%]  | VALIDATED
+18. [E] 2+ signals -> 2+ signals on next bar + 60m_extreme                       | 54,377 | 66.4%  | 3.03  | 39.17     | [66.0%, 66.8%]  | VALIDATED
+07. [B] EXH_03 -> doji within 3 bars + 60m_extreme                               | 2,007  | 68.9%  | 3.08  | 38.92     | [66.8%, 70.8%]  | VALIDATED
+08. [B] DELT_04 -> EXH_03 within 5 bars + 60m_extreme                            | 4,388  | 66.9%  | 3.37  | 38.87     | [65.5%, 68.3%]  | VALIDATED
+10. [C] 3 same-direction bars -> opposite doji within 3 bars + 60m_extreme       | 1,524  | 66.9%  | 2.98  | 37.72     | [64.5%, 69.2%]  | VALIDATED
+19. [E] TYPE_B bar -> TYPE_B bar within 3 bars + 60m_extreme                     | 332    | 66.9%  | 1.56  | 34.08     | [61.6%, 71.7%]  | VALIDATED
+11. [C] Volume spike -> narrow range bar within 3 bars + 60m_extreme             | 90     | 64.4%  | 2.33  | 33.50     | [54.1%, 73.6%]  | VALIDATED
+01. [A] TRAP_04 -> absorption within 3 bars + 60m_extreme                        | 224    | 58.0%  | 1.55  | 32.18     | [51.5%, 64.3%]  | VALIDATED
+06. [B] EXH_03 -> TRAP_04 within 3 bars + 60m_extreme                            | 1,805  | 62.3%  | 1.71  | 30.68     | [60.1%, 64.5%]  | VALIDATED
+04. [A] Doji -> absorption within 3 bars + 60m_extreme                           | 55     | 72.7%  | 1.52  | 28.64     | [59.8%, 82.7%]  | VALIDATED
+13. [C] Delta acceleration -> delta reversal within 3 bars + 60m_extreme         | 2,195  | 64.0%  | 2.07  | 27.80     | [61.9%, 65.9%]  | VALIDATED
+02. [A] EXH_03 -> absorption within 3 bars + 60m_extreme                         | 271    | 62.0%  | 1.68  | 26.18     | [56.1%, 67.6%]  | VALIDATED
+12. [C] 2 wide range bars -> narrow range bar within 3 bars + 60m_extreme        | 91     | 75.8%  | 1.36  | 18.58     | [66.1%, 83.5%]  | VALIDATED

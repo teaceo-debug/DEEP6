@@ -1,0 +1,211 @@
+ROUND 41 EDGE DECAY ANALYSIS
+============================
+
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+
+Methodology:
+- Base and score setups use signal observations grouped by global_index + direction.
+- Doji, CVD divergence, 3 narrowing ranges, and engulfing use unique signal bars grouped by global_index.
+- Absorption uses absorption-only observations grouped by global_index + direction.
+- 15m/60m context comes from nq_1yr_1m.csv resamples.
+- Existing 1/2/5/10/15/30-bar closes come from signal_events.csv.
+- 3/20/25-bar closes are reconstructed from same-session RTH 1m closes via bar_ts merge.
+- NOT killers = direction-aware 60m anchor not in the 40%-60% middle band AND bar_volume not > 3x prior 20-bar EMA.
+- Peak = highest win-rate window; ties break by higher Avg ticks, then higher PF, then earlier window.
+- Decay = first post-peak tested window with WR < 55%.
+- Half-life = first post-peak tested window with WR <= 50% + (peak_WR - 50%) / 2.
+
+Unique signal bars loaded:      127,361
+Signal observations loaded:     254,722
+Absorption observations loaded: 901
+Doji bars:                      12,875
+CVD divergence bars:            5,448
+3 narrowing-range bars:         22,272
+Engulfing bars:                 12,451
+
+OVERVIEW
+--------
+Window cell format: WR/PF/AvgTicks
+
+Setup                                | 1b                 | 2b                 | 3b                 | 5b                   | 10b                  | 15b                  | 20b                   | 25b                  | 30b                  | Peak      | Decay | Half-life
+-------------------------------------+--------------------+--------------------+--------------------+----------------------+----------------------+----------------------+-----------------------+----------------------+----------------------+-----------+-------+----------
+60m + 15m (base)                     | 65.0%/3.00/+16.61t | 71.0%/4.71/+31.88t | 75.6%/6.81/+46.43t | 81.6%/12.07/+72.26t  | 88.6%/24.92/+119.28t | 89.0%/25.69/+146.57t | 88.1%/22.31/+165.86t  | 87.8%/20.58/+181.77t | 86.7%/17.89/+192.61t | 15b@89.0% | >30b  | >30b     
+60m + 15m + NOT killers + first_hour | 66.4%/3.25/+27.26t | 73.7%/5.41/+51.98t | 77.7%/8.10/+74.89t | 83.1%/14.66/+113.42t | 90.7%/29.59/+182.30t | 91.1%/30.46/+221.66t | 91.1%/26.81/+249.24t  | 90.7%/25.11/+270.98t | 89.2%/20.99/+283.88t | 15b@91.1% | >30b  | >30b     
+Doji + 60m + 15m                     | 64.6%/3.04/+15.71t | 69.4%/4.43/+29.59t | 73.7%/5.70/+42.11t | 81.0%/11.78/+69.43t  | 89.8%/28.45/+115.53t | 90.2%/36.48/+150.06t | 89.6%/31.46/+171.61t  | 89.4%/26.25/+185.74t | 88.5%/23.43/+195.87t | 15b@90.2% | >30b  | >30b     
+CVD divergence + 60m + 15m           | 63.9%/2.78/+21.23t | 71.2%/4.42/+41.42t | 77.4%/7.52/+63.41t | 82.5%/15.09/+97.00t  | 92.9%/40.79/+163.08t | 91.0%/32.30/+187.24t | 87.5%/22.43/+195.83t  | 86.4%/18.11/+211.76t | 83.7%/14.94/+216.18t | 10b@92.9% | >30b  | >30b     
+absorption + 60m + 15m               | 52.0%/1.73/+8.48t  | 68.0%/4.27/+32.48t | 80.0%/5.95/+41.80t | 88.0%/36.72/+82.88t  | 88.1%/75.53/+124.21t | 95.0%/89.04/+171.68t | 90.0%/105.93/+194.12t | 95.0%/83.41/+220.45t | 95.0%/60.85/+222.95t | 30b@95.0% | >30b  | >30b     
+3 narrowing ranges + 60m + 15m       | 66.8%/3.36/+17.54t | 70.6%/4.78/+31.12t | 75.8%/7.40/+46.24t | 81.6%/12.67/+71.23t  | 90.0%/26.05/+118.17t | 89.6%/24.95/+145.78t | 88.6%/19.90/+164.34t  | 88.9%/19.54/+179.06t | 88.4%/18.08/+191.71t | 10b@90.0% | >30b  | >30b     
+Engulfing + 60m + 15m                | 63.1%/2.74/+15.96t | 67.6%/3.65/+29.32t | 70.4%/4.78/+42.11t | 76.8%/7.94/+67.05t   | 83.8%/15.59/+109.27t | 84.7%/17.04/+131.77t | 83.6%/16.03/+154.37t  | 83.6%/14.90/+165.78t | 82.0%/13.81/+175.60t | 15b@84.7% | >30b  | >30b     
+score >= 60 + 60m + 15m + first_hour | 66.4%/3.23/+29.36t | 73.7%/5.34/+55.88t | 77.9%/8.08/+80.69t | 83.5%/14.52/+122.80t | 90.9%/28.63/+197.10t | 91.3%/29.80/+238.91t | 90.9%/26.20/+267.11t  | 90.2%/24.25/+288.95t | 88.5%/20.40/+302.63t | 15b@91.3% | >30b  | >30b     
+
+DETAILED METRICS
+----------------
+
+SETUP 1: 60m + 15m (base)
+--------------------------
+Observation unit: global_index + direction (unique signal observation)
+Trade direction: trade direction = signal direction
+Raw sample size before window-specific drops: 25,070
+Peak window: 15b at 89.0% (PF 25.69, Avg +146.57t, Sharpe 0.73)
+Decay point: >30b (WR stayed >= 55% after the peak window)
+Half-life: >30b (threshold 69.5%)
+
+Window | N      | WR    | PF    | Avg Ticks | Sharpe
+-------+--------+-------+-------+-----------+-------
+1b     | 25,049 | 65.0% | 3.00  | +16.61t   | 0.33  
+2b     | 25,032 | 71.0% | 4.71  | +31.88t   | 0.45  
+3b     | 25,011 | 75.6% | 6.81  | +46.43t   | 0.53  
+5b     | 24,943 | 81.6% | 12.07 | +72.26t   | 0.63  
+10b    | 24,640 | 88.6% | 24.92 | +119.28t  | 0.72  
+15b    | 24,236 | 89.0% | 25.69 | +146.57t  | 0.73  
+20b    | 24,147 | 88.1% | 22.31 | +165.86t  | 0.74  
+25b    | 23,907 | 87.8% | 20.58 | +181.77t  | 0.74  
+30b    | 23,505 | 86.7% | 17.89 | +192.61t  | 0.73  
+
+SETUP 2: 60m + 15m + NOT killers + first_hour
+----------------------------------------------
+Observation unit: global_index + direction (unique signal observation)
+Trade direction: trade direction = signal direction
+Raw sample size before window-specific drops: 4,225
+Peak window: 15b at 91.1% (PF 30.46, Avg +221.66t, Sharpe 0.87)
+Decay point: >30b (WR stayed >= 55% after the peak window)
+Half-life: >30b (threshold 70.6%)
+
+Window | N     | WR    | PF    | Avg Ticks | Sharpe
+-------+-------+-------+-------+-----------+-------
+1b     | 4,225 | 66.4% | 3.25  | +27.26t   | 0.38  
+2b     | 4,225 | 73.7% | 5.41  | +51.98t   | 0.52  
+3b     | 4,225 | 77.7% | 8.10  | +74.89t   | 0.60  
+5b     | 4,225 | 83.1% | 14.66 | +113.42t  | 0.70  
+10b    | 4,225 | 90.7% | 29.59 | +182.30t  | 0.78  
+15b    | 4,225 | 91.1% | 30.46 | +221.66t  | 0.87  
+20b    | 4,225 | 91.1% | 26.81 | +249.24t  | 0.93  
+25b    | 4,225 | 90.7% | 25.11 | +270.98t  | 0.93  
+30b    | 4,225 | 89.2% | 20.99 | +283.88t  | 0.89  
+
+SETUP 3: Doji + 60m + 15m
+--------------------------
+Observation unit: global_index (unique signal bar)
+Trade direction: trade direction = sign(bar_delta)
+Raw sample size before window-specific drops: 1,340
+Peak window: 15b at 90.2% (PF 36.48, Avg +150.06t, Sharpe 0.80)
+Decay point: >30b (WR stayed >= 55% after the peak window)
+Half-life: >30b (threshold 70.1%)
+
+Window | N     | WR    | PF    | Avg Ticks | Sharpe
+-------+-------+-------+-------+-----------+-------
+1b     | 1,340 | 64.6% | 3.04  | +15.71t   | 0.34  
+2b     | 1,339 | 69.4% | 4.43  | +29.59t   | 0.44  
+3b     | 1,336 | 73.7% | 5.70  | +42.11t   | 0.52  
+5b     | 1,327 | 81.0% | 11.78 | +69.43t   | 0.64  
+10b    | 1,309 | 89.8% | 28.45 | +115.53t  | 0.70  
+15b    | 1,282 | 90.2% | 36.48 | +150.06t  | 0.80  
+20b    | 1,278 | 89.6% | 31.46 | +171.61t  | 0.74  
+25b    | 1,269 | 89.4% | 26.25 | +185.74t  | 0.79  
+30b    | 1,249 | 88.5% | 23.43 | +195.87t  | 0.78  
+
+SETUP 4: CVD divergence + 60m + 15m
+------------------------------------
+Observation unit: global_index (unique signal bar)
+Trade direction: trade direction = divergence_sign
+Raw sample size before window-specific drops: 807
+Peak window: 10b at 92.9% (PF 40.79, Avg +163.08t, Sharpe 0.97)
+Decay point: >30b (WR stayed >= 55% after the peak window)
+Half-life: >30b (threshold 71.5%)
+
+Window | N   | WR    | PF    | Avg Ticks | Sharpe
+-------+-----+-------+-------+-----------+-------
+1b     | 807 | 63.9% | 2.78  | +21.23t   | 0.32  
+2b     | 806 | 71.2% | 4.42  | +41.42t   | 0.46  
+3b     | 806 | 77.4% | 7.52  | +63.41t   | 0.64  
+5b     | 804 | 82.5% | 15.09 | +97.00t   | 0.79  
+10b    | 793 | 92.9% | 40.79 | +163.08t  | 0.97  
+15b    | 785 | 91.0% | 32.30 | +187.24t  | 0.90  
+20b    | 785 | 87.5% | 22.43 | +195.83t  | 0.84  
+25b    | 782 | 86.4% | 18.11 | +211.76t  | 0.79  
+30b    | 775 | 83.7% | 14.94 | +216.18t  | 0.79  
+
+SETUP 5: absorption + 60m + 15m
+--------------------------------
+Observation unit: global_index + direction (unique absorption observation)
+Trade direction: trade direction = signal direction
+Raw sample size before window-specific drops: 50
+Peak window: 30b at 95.0% (PF 60.85, Avg +222.95t, Sharpe 0.88)
+Decay point: >30b (WR stayed >= 55% after the peak window)
+Half-life: >30b (threshold 72.5%)
+
+Window | N  | WR    | PF     | Avg Ticks | Sharpe
+-------+----+-------+--------+-----------+-------
+1b     | 50 | 52.0% | 1.73   | +8.48t    | 0.18  
+2b     | 50 | 68.0% | 4.27   | +32.48t   | 0.51  
+3b     | 50 | 80.0% | 5.95   | +41.80t   | 0.63  
+5b     | 50 | 88.0% | 36.72  | +82.88t   | 1.05  
+10b    | 42 | 88.1% | 75.53  | +124.21t  | 1.11  
+15b    | 40 | 95.0% | 89.04  | +171.68t  | 1.05  
+20b    | 40 | 90.0% | 105.93 | +194.12t  | 0.99  
+25b    | 40 | 95.0% | 83.41  | +220.45t  | 0.93  
+30b    | 40 | 95.0% | 60.85  | +222.95t  | 0.88  
+
+SETUP 6: 3 narrowing ranges + 60m + 15m
+----------------------------------------
+Observation unit: global_index (unique signal bar)
+Trade direction: trade direction = sign(bar_delta)
+Raw sample size before window-specific drops: 1,970
+Peak window: 10b at 90.0% (PF 26.05, Avg +118.17t, Sharpe 0.81)
+Decay point: >30b (WR stayed >= 55% after the peak window)
+Half-life: >30b (threshold 70.0%)
+
+Window | N     | WR    | PF    | Avg Ticks | Sharpe
+-------+-------+-------+-------+-----------+-------
+1b     | 1,970 | 66.8% | 3.36  | +17.54t   | 0.39  
+2b     | 1,968 | 70.6% | 4.78  | +31.12t   | 0.50  
+3b     | 1,965 | 75.8% | 7.40  | +46.24t   | 0.62  
+5b     | 1,954 | 81.6% | 12.67 | +71.23t   | 0.74  
+10b    | 1,938 | 90.0% | 26.05 | +118.17t  | 0.81  
+15b    | 1,913 | 89.6% | 24.95 | +145.78t  | 0.75  
+20b    | 1,904 | 88.6% | 19.90 | +164.34t  | 0.78  
+25b    | 1,884 | 88.9% | 19.54 | +179.06t  | 0.78  
+30b    | 1,858 | 88.4% | 18.08 | +191.71t  | 0.80  
+
+SETUP 7: Engulfing + 60m + 15m
+-------------------------------
+Observation unit: global_index (unique signal bar)
+Trade direction: trade direction = engulf_direction_sign
+Raw sample size before window-specific drops: 1,756
+Peak window: 15b at 84.7% (PF 17.04, Avg +131.77t, Sharpe 0.67)
+Decay point: >30b (WR stayed >= 55% after the peak window)
+Half-life: >30b (threshold 67.3%)
+
+Window | N     | WR    | PF    | Avg Ticks | Sharpe
+-------+-------+-------+-------+-----------+-------
+1b     | 1,754 | 63.1% | 2.74  | +15.96t   | 0.33  
+2b     | 1,752 | 67.6% | 3.65  | +29.32t   | 0.39  
+3b     | 1,752 | 70.4% | 4.78  | +42.11t   | 0.48  
+5b     | 1,749 | 76.8% | 7.94  | +67.05t   | 0.56  
+10b    | 1,723 | 83.8% | 15.59 | +109.27t  | 0.64  
+15b    | 1,692 | 84.7% | 17.04 | +131.77t  | 0.67  
+20b    | 1,686 | 83.6% | 16.03 | +154.37t  | 0.66  
+25b    | 1,675 | 83.6% | 14.90 | +165.78t  | 0.71  
+30b    | 1,643 | 82.0% | 13.81 | +175.60t  | 0.70  
+
+SETUP 8: score >= 60 + 60m + 15m + first_hour
+----------------------------------------------
+Observation unit: global_index + direction (unique signal observation)
+Trade direction: trade direction = signal direction
+Raw sample size before window-specific drops: 3,362
+Peak window: 15b at 91.3% (PF 29.80, Avg +238.91t, Sharpe 0.88)
+Decay point: >30b (WR stayed >= 55% after the peak window)
+Half-life: >30b (threshold 70.7%)
+
+Window | N     | WR    | PF    | Avg Ticks | Sharpe
+-------+-------+-------+-------+-----------+-------
+1b     | 3,362 | 66.4% | 3.23  | +29.36t   | 0.38  
+2b     | 3,362 | 73.7% | 5.34  | +55.88t   | 0.52  
+3b     | 3,362 | 77.9% | 8.08  | +80.69t   | 0.61  
+5b     | 3,362 | 83.5% | 14.52 | +122.80t  | 0.71  
+10b    | 3,362 | 90.9% | 28.63 | +197.10t  | 0.79  
+15b    | 3,362 | 91.3% | 29.80 | +238.91t  | 0.88  
+20b    | 3,362 | 90.9% | 26.20 | +267.11t  | 0.95  
+25b    | 3,362 | 90.2% | 24.25 | +288.95t  | 0.94  
+30b    | 3,362 | 88.5% | 20.40 | +302.63t  | 0.89

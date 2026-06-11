@@ -49,11 +49,12 @@ def test_model_intent_display(model, mock_walls):
     assert value in ("PASSIVE_REAL", "SPOOF_LIKE", "RESERVE_REFRESH", "MIGRATORY")
 
 
-def test_model_confidence_format(model, mock_walls):
+def test_model_score_format(model, mock_walls):
+    mock_walls[0]["scores"] = {"quality": 73, "spoof": 8, "iceberg": 44}
     model.update_walls(mock_walls)
-    idx = model.index(0, 6)  # Confidence column
+    idx = model.index(0, 5)  # Quality score column
     value = model.data(idx, Qt.DisplayRole)
-    assert "%" in str(value)
+    assert str(value) == "73"
 
 
 def test_model_foreground_spoof(model, mock_walls):

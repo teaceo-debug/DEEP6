@@ -1,0 +1,69 @@
+DEEP6 round29 absorption microstructure analysis
+============================================
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+Observation unit: unique absorption observation grouped by global_index + direction_sign using only category == 'absorption'.
+Direction uses signal_events.direction_sign, not bar_delta, so bullish/bearish absorption keeps its explicit signal direction.
+60m/15m context comes from nq_1yr_1m.csv. Delta/volume, bar-range, vol-of-vol, and CVD features come from all unique signal bars merged back by global_index.
+Delta/vol follows round12: abs(bar_delta) / bar_volume. Narrow/high-volume thresholds use the prior 20 bars within each session. Stable vol = vol_of_vol below the 25th percentile, where vol_of_vol is the 10-bar std of ATR20.
+Small overnight follows round14: current 09:30 RTH open minus prior RTH close, in ticks, with the requested <20 tick cutoff.
+CVD divergence follows round8 and must match the absorption direction for filter 24.
+Requested filters are ranked by 30b WR; the Code column preserves the original request order.
+N / PF / Avg Ticks / Wilson CI use the 5-bar sample. WR10 and WR30 use the same fully-available sample per row.
+Persistence: GROWING if WR30 > WR5; STABLE if WR30 is within 3 percentage points of WR5 without growth; DECAYING otherwise.
+
+Raw event rows loaded:                    1,756,089
+Raw absorption event rows:                901
+Unique all-signal bars:                   127,361
+Absorption observations:                  901
+15m bars built from nq_1yr_1m:           30,745
+60m bars built from nq_1yr_1m:           7,693
+Core 60m + 15m observations:             50
+Core 60m + 15m + NOT killers:            47
+Stable-vol observations:                  169
+Small-overnight observations:             21
+Prior wide-range-day observations:        202
+Matching CVD divergence observations:     9
+ABS_01 only observations:                 2
+ABS_02 only observations:                 0
+ABS_03 only observations:                 858
+ABS_04 only observations:                 41
+ABS_03 + ABS_04 same-observation count:   0
+Stable-vol threshold (vol_of_vol q25):    0.27
+Prior wide-range threshold (range q75):   407.00
+
+Baselines
+---------
+All absorption observations:          N=899 | WR5=46.2% | WR10=47.4% | WR30=45.6% | PF5=0.95 | Avg5=-3.45t | CI5=[42.9%, 49.4%] | Persistence=STABLE
+absorption + 60m + 15m:              N=49 | WR5=87.8% | WR10=85.7% | WR30=91.8% | PF5=35.73 | Avg5=82.22t | CI5=[75.8%, 94.3%] | Persistence=GROWING
+absorption + 60m + 15m + NOT killers:N=46 | WR5=87.0% | WR10=84.8% | WR30=91.3% | PF5=33.09 | Avg5=80.91t | CI5=[74.3%, 93.9%] | Persistence=GROWING
+
+25 requested absorption micro filters ranked by 30b WR
+-----------------------------------------------------
+Rank | Code | Group | Filter                                                                                  | N  | WR 5b  | WR 10b | WR 30b | PF 5b | Avg Ticks 5b | Wilson 95% CI (5b) | Persistence
+-----+------+-------+-----------------------------------------------------------------------------------------+----+--------+--------+--------+-------+--------------+--------------------+------------
+1    | 16   | D     | absorption + narrow range (<25th percentile of prior 20 bars) + 60m + 15m               | 2  | 100.0% | 100.0% | 100.0% | inf   | 88.00        | [34.2%, 100.0%]    | STABLE     
+2    | 17   | D     | absorption + very narrow range (<10th percentile of prior 20 bars) + 60m + 15m          | 2  | 100.0% | 100.0% | 100.0% | inf   | 88.00        | [34.2%, 100.0%]    | STABLE     
+3    | 19   | D     | absorption + narrow range + high volume (>75th percentile of prior 20 bars) + 60m + 15m | 2  | 100.0% | 100.0% | 100.0% | inf   | 88.00        | [34.2%, 100.0%]    | STABLE     
+4    | 04   | A     | ABS_04 only + 60m + 15m + NOT killers                                                   | 1  | 100.0% | 100.0% | 100.0% | inf   | 85.00        | [20.7%, 100.0%]    | STABLE     
+5    | 06   | B     | absorption strength >= 0.3 + 60m + 15m                                                  | 1  | 100.0% | 100.0% | 100.0% | inf   | 85.00        | [20.7%, 100.0%]    | STABLE     
+6    | 07   | B     | absorption strength >= 0.5 + 60m + 15m                                                  | 1  | 100.0% | 100.0% | 100.0% | inf   | 85.00        | [20.7%, 100.0%]    | STABLE     
+7    | 08   | B     | absorption strength >= 0.7 + 60m + 15m                                                  | 1  | 100.0% | 100.0% | 100.0% | inf   | 85.00        | [20.7%, 100.0%]    | STABLE     
+8    | 09   | B     | absorption strength >= 0.9 + 60m + 15m                                                  | 1  | 100.0% | 100.0% | 100.0% | inf   | 85.00        | [20.7%, 100.0%]    | STABLE     
+9    | 21   | E     | absorption + 60m + 15m + NOT lunch + small overnight + NOT killers                      | 1  | 100.0% | 100.0% | 100.0% | inf   | 56.00        | [20.7%, 100.0%]    | STABLE     
+10   | 24   | E     | absorption + CVD divergence + 60m + 15m + NOT killers                                   | 1  | 100.0% | 100.0% | 100.0% | inf   | 153.00       | [20.7%, 100.0%]    | STABLE     
+11   | 23   | E     | absorption + 60m + 15m + prior wide-range day + NOT killers                             | 10 | 90.0%  | 100.0% | 100.0% | 45.50 | 80.10        | [59.6%, 98.2%]     | GROWING    
+12   | 11   | C     | absorption + |delta|/vol < 0.05 + 60m + 15m                                             | 2  | 50.0%  | 100.0% | 100.0% | 1.61  | 13.50        | [9.5%, 90.5%]      | GROWING    
+13   | 12   | C     | absorption + |delta|/vol < 0.10 + 60m + 15m                                             | 2  | 50.0%  | 100.0% | 100.0% | 1.61  | 13.50        | [9.5%, 90.5%]      | GROWING    
+14   | 22   | E     | absorption + 60m + 15m + NOT lunch + stable vol + NOT killers                           | 5  | 80.0%  | 80.0%  | 100.0% | 67.00 | 52.80        | [37.6%, 96.4%]     | GROWING    
+15   | 13   | C     | absorption + |delta|/vol > 0.30 + 60m + 15m                                             | 46 | 89.1%  | 84.8%  | 91.3%  | 55.67 | 85.57        | [77.0%, 95.3%]     | GROWING    
+16   | 03   | A     | ABS_03 only + 60m + 15m + NOT killers                                                   | 45 | 86.7%  | 84.4%  | 91.1%  | 32.35 | 80.82        | [73.8%, 93.7%]     | GROWING    
+17   | 18   | D     | absorption + range shrinking vs prior bar + 60m + 15m                                   | 15 | 86.7%  | 80.0%  | 86.7%  | 33.05 | 81.20        | [62.1%, 96.3%]     | STABLE     
+18   | 25   | E     | absorption + 60m + 15m + 3 narrowing ranges + NOT killers                               | 3  | 100.0% | 100.0% | 66.7%  | inf   | 93.00        | [43.8%, 100.0%]    | DECAYING   
+19   | 01   | A     | ABS_01 only + 60m + 15m + NOT killers                                                   | 0  | 0.0%   | nan    | nan    | nan   | nan          | [0.0%, 0.0%]       | NO_DATA    
+20   | 02   | A     | ABS_02 only + 60m + 15m + NOT killers                                                   | 0  | 0.0%   | nan    | nan    | nan   | nan          | [0.0%, 0.0%]       | NO_DATA    
+21   | 05   | A     | ABS_03 + ABS_04 same bar + 60m + 15m + NOT killers                                      | 0  | 0.0%   | nan    | nan    | nan   | nan          | [0.0%, 0.0%]       | NO_DATA    
+22   | 10   | B     | absorption strength >= 0.5 + 60m + 15m + first_hour + NOT killers                       | 0  | 0.0%   | nan    | nan    | nan   | nan          | [0.0%, 0.0%]       | NO_DATA    
+23   | 14   | C     | absorption + |delta|/vol < 0.05 + 60m + 15m + NOT killers + first_hour                  | 0  | 0.0%   | nan    | nan    | nan   | nan          | [0.0%, 0.0%]       | NO_DATA    
+24   | 15   | C     | absorption + doji (body<10%) + |delta|/vol < 0.10 + 60m + 15m                           | 0  | 0.0%   | nan    | nan    | nan   | nan          | [0.0%, 0.0%]       | NO_DATA    
+25   | 20   | D     | absorption + narrow + low delta/vol + 60m + 15m + NOT killers + first_hour              | 0  | 0.0%   | nan    | nan    | nan   | nan          | [0.0%, 0.0%]       | NO_DATA    

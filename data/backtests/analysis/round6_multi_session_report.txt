@@ -1,0 +1,62 @@
+DEEP6 round 6 multi-session analysis
+====================================
+Source events: C:\Users\Tea\DEEP6\data\backtests\signal_events.csv
+Source bars:   C:\Users\Tea\DEEP6\data\backtests\nq_1yr_1m.csv
+Observation unit: grouped signal bar by (global_index, direction_sign from bar_delta).
+Session summary source: unique signal bars deduplicated by global_index before daily aggregation.
+Forward P&L window: 5 bars, signed by bar_delta direction.
+60m_extreme = bullish bar_low in bottom 20% of 60m range / bearish bar_high in top 20%.
+15m trend aligned = bar_delta sign matches the 15m open-close sign.
+Developing range location uses bar_close within the running session low/high from signal bars.
+Near prior VWAP uses prior session VWAP from close*volume / volume on unique signal bars.
+Wide/narrow prior session = top/bottom quartile of session range across all sessions.
+Large positive/negative prior delta = top/bottom quartile of session delta across all sessions.
+Status flags: VALIDATED = N>=30 and Wilson lower bound >50%; PROMISING = N>=15 and Wilson lower bound >45%; LOW_N = N<15.
+
+Raw event rows loaded:            1,767,271
+Unique bars loaded:               127,361
+Grouped observations:             127,165
+Sessions summarized:              332
+Observations with prior session:  126,775
+15m bars built:                   30,745
+60m bars built:                   7,693
+60m extreme observations:         27,328
+15m trend aligned observations:   73,297
+
+Cross-session thresholds
+------------------------
+Wide range q75:        407.00
+Narrow range q25:      207.19
+Large positive delta:  19,153.50
+Large negative delta:  -4,122.25
+
+Baselines (5-bar window)
+--------------------------
+All bars:               N=127,160 | WR=49.6% | PF=1.00 | Avg=+0.09 | CI=[49.3%, 49.8%]
+Prior-session ready:    N=126,770 | WR=49.5% | PF=1.00 | Avg=+0.06 | CI=[49.3%, 49.8%]
+60m extreme:            N=27,326 | WR=66.5% | PF=3.05 | Avg=+39.47 | CI=[65.9%, 67.0%]
+
+All 20 cross-session filters ranked by 5-bar average return
+----------------------------------------------------------
+Filter                                                                                         | N      | WR 5b | PF   | Avg Ticks | Wilson 95% CI 
+-----------------------------------------------------------------------------------------------+--------+-------+------+-----------+---------------
+11. Prior session wide range (top quartile) + 60m_extreme + 15m trend aligned [VALIDATED]      | 3,900  | 78.8% | 7.79 | +90.79    | [77.5%, 80.0%]
+06. Gap down below prior low + 60m_extreme + 15m trend aligned [VALIDATED]                     | 2,617  | 78.0% | 7.15 | +78.10    | [76.3%, 79.5%]
+07. Prior session wide range (top quartile) + 60m_extreme [VALIDATED]                          | 7,005  | 66.2% | 3.14 | +56.99    | [65.1%, 67.3%]
+10. Prior session bearish + bullish signal today + 60m_extreme [VALIDATED]                     | 5,632  | 68.8% | 3.66 | +53.84    | [67.6%, 70.0%]
+05. Gap up above prior high + 60m_extreme + 15m trend aligned [VALIDATED]                      | 3,873  | 78.9% | 8.84 | +50.15    | [77.6%, 80.2%]
+17. Signal close in first 20% of today's developing range + 60m_extreme [VALIDATED]            | 4,872  | 68.2% | 3.11 | +48.21    | [66.8%, 69.5%]
+14. Prior session large negative delta + 60m_extreme [VALIDATED]                               | 6,902  | 66.6% | 3.25 | +48.03    | [65.5%, 67.7%]
+12. Prior session narrow range (bottom quartile) + 60m_extreme + 15m trend aligned [VALIDATED] | 3,530  | 78.0% | 7.18 | +45.45    | [76.6%, 79.3%]
+02. Gap down below prior low + 60m_extreme [VALIDATED]                                         | 4,901  | 66.6% | 2.76 | +44.06    | [65.2%, 67.9%]
+20. Signal close >100 ticks from prior session close + 60m_extreme [VALIDATED]                 | 24,420 | 66.5% | 3.09 | +40.20    | [65.9%, 67.0%]
+15. Prior delta opposes today's signal direction + 60m_extreme [VALIDATED]                     | 14,402 | 65.5% | 3.20 | +40.16    | [64.7%, 66.3%]
+13. Prior session large positive delta + 60m_extreme [VALIDATED]                               | 6,759  | 67.1% | 3.01 | +39.47    | [66.0%, 68.2%]
+03. Large gap (>50 ticks from prior close) + 60m_extreme [VALIDATED]                           | 25,903 | 66.5% | 3.01 | +39.39    | [65.9%, 67.0%]
+16. Prior delta matches today's signal direction + 60m_extreme [VALIDATED]                     | 12,830 | 67.6% | 2.90 | +38.54    | [66.8%, 68.4%]
+04. Small/no gap (<10 ticks from prior close) + 60m_extreme [VALIDATED]                        | 769    | 66.2% | 3.43 | +32.49    | [62.8%, 69.4%]
+09. Prior session bullish + bearish signal today + 60m_extreme [VALIDATED]                     | 8,237  | 63.7% | 2.77 | +31.33    | [62.7%, 64.8%]
+01. Gap up above prior high + 60m_extreme [VALIDATED]                                          | 7,187  | 65.7% | 2.93 | +29.88    | [64.6%, 66.8%]
+08. Prior session narrow range (bottom quartile) + 60m_extreme [VALIDATED]                     | 6,754  | 65.8% | 2.94 | +28.31    | [64.6%, 66.9%]
+18. Signal close in last 20% of today's developing range + 60m_extreme [VALIDATED]             | 8,903  | 63.6% | 2.60 | +28.01    | [62.6%, 64.6%]
+19. Signal close within 20 ticks of prior session VWAP + 60m_extreme [VALIDATED]               | 516    | 66.9% | 1.89 | +24.83    | [62.7%, 70.8%]

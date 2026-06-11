@@ -1,0 +1,74 @@
+DEEP6 round25 momentum exhaustion
+================================
+Source events: /mnt/c/Users/Tea/DEEP6/data/backtests/signal_events.csv
+Source bars:   /mnt/c/Users/Tea/DEEP6/data/backtests/nq_1yr_1m.csv
+Observation unit: unique signal bar grouped by global_index, then merged to 1m RTH context at bar_ts.
+Core gate: 60m_extreme = trade-direction anchor in bottom 20% / top 20% of the active 60m bar; 15m gate = trade_sign aligned with the active 15m trend.
+Bar-direction filters use sign(bar_delta). Reversal-from-open filters use the opposite sign of close vs session open and require the signal bar to match that reversal sign.
+Explicit bullish/bearish filters use fixed trade_sign (+1 / -1) and require the signal bar to match that direction.
+Move from open = (bar_close - session_open) / tick. Largest move so far = new high in absolute close-vs-open distance. Retracement > 50% compares current close to the running session high/low relative to the session open.
+10-bar / 5-bar momentum features, higher-lows / lower-highs, false breakouts, running session high/low, and running VWAP all come from 1m RTH bars.
+Session VWAP = cumulative sum(close * volume) / cumulative sum(volume) per RTH session.
+KILLER_1 = trade-direction anchor in middle 40-60% of the active 60m range. KILLER_2 = bar_volume > 3x prior 20-bar EMA volume.
+N uses rows with complete 5b/10b/30b forward closes so every WR window and persistence flag uses the same sample.
+Persistence: GROWING if WR_30b > WR_5b; STABLE if WR_30b is within 3 percentage points of WR_5b without growth; DECAYING otherwise.
+
+Raw event rows loaded:                        1,767,271
+Grouped signal bars:                          127,361
+Signal bars with merged RTH context:          127,361
+15m bars built:                               30,745
+60m bars built:                               7,693
+Move-from-open > 100 ticks bars:              110,178
+Move-from-open > 200 ticks bars:              94,119
+Move-from-open < 30 ticks bars:               5,105
+New session move extremes:                    8,752
+>50% retracement bars:                        37,113
+Fast 10-bar move bars:                        71,533
+Stalled 10-bar move bars:                     11,129
+5-bar acceleration bars:                      30,023
+5-bar deceleration bars:                      30,529
+Fastest-bar-of-last-10 hits:                  11,591
+Higher-lows x5 hits:                          11,321
+Lower-highs x5 hits:                          10,668
+Higher-high + higher-low hits:                48,288
+False breaks above prior 5-bar high:          15,264
+False breaks below prior 5-bar low:           14,849
+Within 10 ticks of running session high:      2,547
+Within 10 ticks of running session low:       1,105
+Near running session VWAP:                    4,057
+Crossed above session VWAP from below:        2,476
+Doji bars:                                    12,875
+KILLER_1 hits (reversal sample):              31,107
+KILLER_2 hits (reversal sample):              1,328
+
+Baselines
+---------
+Bar-direction all bars:                 N=127,135 | WR5=49.6% | WR10=49.7% | WR30=49.6% | PF5=1.00 | Avg5=0.09t | CI5=[49.3%, 49.8%] | Persistence=GROWING
+Bar-direction 60m + 15m:                N=14,565 | WR5=78.6% | WR10=85.5% | WR30=83.1% | PF5=8.00 | Avg5=65.06t | CI5=[77.9%, 79.2%] | Persistence=GROWING
+Reversal sign + matching signal:        N=60,101 | WR5=48.9% | WR10=49.0% | WR30=48.2% | PF5=0.97 | Avg5=-1.27t | CI5=[48.5%, 49.3%] | Persistence=STABLE
+Reversal sign + matching signal + core: N=7,922 | WR5=78.0% | WR10=85.1% | WR30=81.3% | PF5=8.22 | Avg5=65.21t | CI5=[77.1%, 78.9%] | Persistence=GROWING
+
+20 momentum exhaustion filters ranked by 30b win rate
+---------------------------------------------------
+Filter                                                                                  | N     | WR 5b | WR 10b | WR 30b | PF 5b | Avg Ticks 5b | Wilson 95% CI (5b) | Persistence
+----------------------------------------------------------------------------------------+-------+-------+--------+--------+-------+--------------+--------------------+------------
+16. [D] Within 10 ticks of session high + bearish signal + 60m + 15m                    | 9     | 66.7% | 88.9%  | 88.9%  | 4.55  | 11.44        | [35.4%, 87.9%]     | GROWING    
+12. [C] 5 lower highs + bullish signal + 60m + 15m                                      | 410   | 85.4% | 95.9%  | 86.8%  | 14.00 | 86.10        | [81.6%, 88.5%]     | GROWING    
+04. [A] Largest move of session so far + reversal signal + 60m + 15m                    | 74    | 83.8% | 95.9%  | 86.5%  | 17.62 | 110.70       | [73.8%, 90.5%]     | GROWING    
+03. [A] Move from open < 30 ticks + reversal signal + 60m + 15m                         | 317   | 78.9% | 86.4%  | 86.1%  | 11.34 | 69.20        | [74.0%, 83.0%]     | GROWING    
+05. [A] Retraced > 50% of prior move + reversal signal + 60m + 15m                      | 1,970 | 79.6% | 86.0%  | 84.8%  | 8.35  | 72.49        | [77.8%, 81.3%]     | GROWING    
+20. [E] Overextended > 100 + deceleration + doji + 60m + 15m + NOT killers + first_hour | 26    | 84.6% | 92.3%  | 84.6%  | 19.85 | 115.27       | [66.5%, 93.9%]     | STABLE     
+15. [C] Broke prior 5-bar low then reversed bullish + 60m + 15m                         | 1,285 | 83.2% | 91.0%  | 84.6%  | 10.83 | 77.38        | [81.0%, 85.1%]     | GROWING    
+18. [D] Near session VWAP (within 10 ticks) + 60m + 15m                                 | 589   | 80.6% | 89.5%  | 84.6%  | 11.06 | 77.23        | [77.3%, 83.6%]     | GROWING    
+09. [B] 5-bar deceleration + 60m + 15m                                                  | 3,076 | 77.9% | 87.2%  | 84.4%  | 8.01  | 62.66        | [76.4%, 79.3%]     | GROWING    
+08. [B] 5-bar acceleration + 60m + 15m                                                  | 2,631 | 77.5% | 85.3%  | 84.1%  | 7.40  | 66.86        | [75.9%, 79.1%]     | GROWING    
+13. [C] Higher high + higher low then bearish reversal signal + 60m + 15m               | 1,919 | 79.9% | 87.9%  | 84.1%  | 8.36  | 65.56        | [78.1%, 81.7%]     | GROWING    
+06. [B] 10-bar move > 50 ticks + 60m + 15m                                              | 6,732 | 77.3% | 85.4%  | 84.0%  | 7.85  | 78.46        | [76.3%, 78.3%]     | GROWING    
+07. [B] 10-bar move < 10 ticks + 60m + 15m                                              | 1,722 | 79.6% | 84.0%  | 82.5%  | 7.84  | 41.88        | [77.6%, 81.5%]     | GROWING    
+11. [C] 5 higher lows + bearish signal + 60m + 15m                                      | 496   | 81.9% | 90.7%  | 82.1%  | 15.63 | 80.83        | [78.2%, 85.0%]     | GROWING    
+01. [A] Move from open > 100 ticks + reversal signal + 60m + 15m                        | 6,875 | 77.8% | 85.1%  | 80.9%  | 7.85  | 64.33        | [76.8%, 78.8%]     | GROWING    
+02. [A] Move from open > 200 ticks + reversal signal + 60m + 15m                        | 5,990 | 77.6% | 85.0%  | 80.9%  | 7.80  | 64.34        | [76.6%, 78.7%]     | GROWING    
+14. [C] Broke prior 5-bar high then reversed bearish + 60m + 15m                        | 1,434 | 78.7% | 86.1%  | 80.7%  | 7.36  | 62.05        | [76.5%, 80.7%]     | GROWING    
+19. [D] Crossed above session VWAP from below + bullish signal + 60m + 15m              | 314   | 79.0% | 85.0%  | 80.6%  | 6.14  | 78.55        | [74.1%, 83.1%]     | GROWING    
+10. [B] Current bar is fastest range in last 10 + 60m + 15m                             | 2,181 | 72.8% | 78.0%  | 77.3%  | 5.21  | 54.48        | [70.9%, 74.6%]     | GROWING    
+17. [D] Within 10 ticks of session low + bullish signal + 60m + 15m                     | 0     | 0.0%  | nan    | nan    | nan   | nan          | [0.0%, 0.0%]       | NO_DATA    
